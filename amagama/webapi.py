@@ -28,6 +28,16 @@ from flask import Module, json, request, current_app
 
 module = Module(__name__)
 
+
+def jsonwrapper(self, data):
+    callback = request.args.get('jsoncallback')
+    if callback:
+        return callback + '(' + json.dumps(data) + ')'
+    else:
+        #FIXME: put indent only if DEBUG=True
+        return json.dumps(data, indent=4)
+
+
 @module.route('/<slang>/<tlang>/unit/<path:uid>', methods=('GET', 'POST', 'PUT'))
 def unit_dispatch(slang, tlang, uid):
     if request.method == 'GET':
@@ -53,7 +63,7 @@ def store_dispatch(slang, tlang, sid):
 def translate_unit(uid, slang, tlang):
     candidates = current_app.tmdb.translate_unit(uid, slang, tlang)
     #logging.debug("candidates: %s", unicode(candidates))
-    response = json.dumps(candidates, indent=4)
+    response = jsonwrapper(candidates)
     return current_app.response_class(response, mimetype='application/json')
 
 def add_unit(uid, slang, tlang):
