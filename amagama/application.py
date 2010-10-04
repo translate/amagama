@@ -26,13 +26,13 @@ from flask import Flask
 from amagama import webapi, tmdb
 
 class AmagamaServer(Flask):
-    def __init__(self, tmdbfile, max_candidates=3, min_similarity=75, max_length=1000, *args, **kwargs):
-        super(AmagamaServer, self).__init__(__name__, *args, **kwargs)
+    def __init__(self, *args, **kwargs):
+        super(AmagamaServer, self).__init__(*args, **kwargs)
         self.config.update({'DB_USER': 'postgres', 'DB_NAME': 'amagama'})
         self.tmdb = tmdb.TMDB(self)
 
-def amagama_server_factory(tmdbfile, max_candidates, min_similarity, max_length):
-    app = AmagamaServer(tmdbfile, max_candidates, min_similarity, max_length)
+def amagama_server_factory():
+    app = AmagamaServer(__name__)
     app.register_module(webapi.module)
 
     return app

@@ -67,8 +67,7 @@ def main():
 
     logging.basicConfig(level=level, format=format)
 
-    application = amagama_server_factory(options.tmdbfile, max_candidates=options.max_candidates,
-                                         min_similarity=options.min_similarity, max_length=options.max_length)
+    application = amagama_server_factory()
 
     wsgi.launch_server(options.bind, options.port, application)
 
