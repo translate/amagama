@@ -29,7 +29,7 @@ from flask import Module, json, request, current_app
 module = Module(__name__)
 
 
-def jsonwrapper(self, data):
+def jsonwrapper(data):
     callback = request.args.get('jsoncallback')
     if callback:
         return callback + '(' + json.dumps(data) + ')'
@@ -62,7 +62,6 @@ def store_dispatch(slang, tlang, sid):
 
 def translate_unit(uid, slang, tlang):
     candidates = current_app.tmdb.translate_unit(uid, slang, tlang)
-    #logging.debug("candidates: %s", unicode(candidates))
     response = jsonwrapper(candidates)
     return current_app.response_class(response, mimetype='application/json')
 
