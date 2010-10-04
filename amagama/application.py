@@ -23,14 +23,13 @@ with clients using JSON over HTTP."""
 
 from flask import Flask
 
-from translate.storage import tmdb
-
-from amagama import webapi
+from amagama import webapi, tmdb
 
 class AmagamaServer(Flask):
     def __init__(self, tmdbfile, max_candidates=3, min_similarity=75, max_length=1000, *args, **kwargs):
         super(AmagamaServer, self).__init__(__name__, *args, **kwargs)
-        self.tmdb = tmdb.TMDB(tmdbfile, max_candidates, min_similarity, max_length)
+        self.config.update({'DB_USER': 'postgres', 'DB_NAME': 'amagama'})
+        self.tmdb = tmdb.TMDB(self)
 
 def amagama_server_factory(tmdbfile, max_candidates, min_similarity, max_length):
     app = AmagamaServer(tmdbfile, max_candidates, min_similarity, max_length)
