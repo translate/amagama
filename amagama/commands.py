@@ -55,6 +55,7 @@ class BuildTMDB(Command):
         current_app.tmdb.connection.commit()
 
     def handlefile(self, filename):
+        print "Importing strings from:", filename
         try:
             store = factory.getobject(filename)
         except Exception, e:
@@ -66,7 +67,6 @@ class BuildTMDB(Command):
         except Exception, e:
             print e
             raise
-        print "File added:", filename
 
     def handlefiles(self, dirname, filenames):
         for filename in filenames:
