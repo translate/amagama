@@ -168,6 +168,7 @@ SELECT s.text, t.text, s.lang, t.lang, TS_RANK_CD(s.vector, query) AS rank
     FROM sources s JOIN targets t ON s.sid = t.sid, PLAINTO_TSQUERY('simple', %(search_str)s) query
     WHERE s.lang = %(slang)s AND t.lang = %(tlang)s AND s.length BETWEEN %(minlen)s AND %(maxlen)s
     AND s.vector @@ query
+    ORDER BY rank DESC
 """
         cursor.execute(query, {'search_str': unit_source, 'slang': source_lang, 'tlang': target_lang,
                                     'minlen': minlen, 'maxlen': maxlen})
