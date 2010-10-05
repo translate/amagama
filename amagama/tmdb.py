@@ -36,21 +36,23 @@ CREATE TABLE sources (
     sid SERIAL PRIMARY KEY,
     text TEXT NOT NULL,
     vector TSVECTOR NOT NULL,
+    hash VARCHAR(32) NOT NULL,
     lang VARCHAR(32) NOT NULL,
     length INTEGER NOT NULL,
-    UNIQUE(lang, text)
+    UNIQUE(lang, hash)
 );
 CREATE INDEX sources_lang_idx ON sources (lang);
 CREATE INDEX sources_length_idx ON sources (length);
 CREATE INDEX sources_text_idx ON sources USING gin(vector);
 
 CREATE TABLE targets (
-       tid SERIAL PRIMARY KEY,
-       sid INTEGER NOT NULL,
-       text TEXT NOT NULL,
-       lang VARCHAR(32) NOT NULL,
-       FOREIGN KEY (sid) references sources(sid),
-       UNIQUE(sid, lang, text)
+    tid SERIAL PRIMARY KEY,
+    sid INTEGER NOT NULL,
+    text TEXT NOT NULL,
+    hash VARCHAR(32) NOT NULL,
+    lang VARCHAR(32) NOT NULL,
+    FOREIGN KEY (sid) references sources(sid),
+    UNIQUE(sid, lang, hash)
 );
 CREATE INDEX targets_sid_idx ON targets (sid);
 CREATE INDEX targets_lang_idx ON targets (lang);
@@ -79,22 +81,23 @@ CREATE INDEX targets_lang_idx ON targets (lang);
         try:
             if cursor is None:
                 cursor = self.get_cursor()
-
-            query = """SELECT sid FROM sources WHERE lang=%(source_lang)s and text=%(source)s"""
+            query = """SELECT sid FROM sources WHERE lang=%(source_lang)s and hash=MD5(%(source)s)"""
             cursor.execute(query, unit)
             result = cursor.fetchone()
             if result:
                 unit['sid'] = result['sid']
             else:
-                query = """INSERT INTO sources (text, vector, lang, length) VALUES(
-                %(source)s, TO_TSVECTOR('simple', %(source)s), %(source_lang)s, %(length)s) RETURNING sid"""
+                query = """INSERT INTO sources (text, vector, hash, lang, length) VALUES(
+                %(source)s, TO_TSVECTOR('simple', %(source)s), MD5(%(source)s),
+                %(source_lang)s, %(length)s) RETURNING sid"""
                 cursor.execute(query, unit)
                 unit['sid'] = cursor.fetchone()['sid']
 
-            query = """SELECT COUNT(*) FROM targets WHERE sid=%(sid)s AND lang=%(target_lang)s AND text=%(target)s"""
+            query = """SELECT COUNT(*) FROM targets WHERE sid=%(sid)s AND lang=%(target_lang)s AND hash=MD5(%(target)s)"""
             cursor.execute(query, unit)
             if not cursor.fetchone()[0]:
-                query = """INSERT INTO targets (sid, text, lang) VALUES (%(sid)s, %(target)s, %(target_lang)s)"""
+                query = """INSERT INTO targets (sid, text, hash, lang) VALUES (
+                %(sid)s, %(target)s, MD5(%(target)s), %(target_lang)s)"""
                 cursor.execute(query, unit)
 
             if commit:
