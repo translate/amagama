@@ -25,7 +25,7 @@ import math
 
 from flask import current_app
 
-from translate.lang import data
+from translate.lang import data, factory as lang_factory
 from translate.search.lshtein import LevenshteinComparer
 
 from amagama.postgres import PostGres
@@ -154,6 +154,7 @@ CREATE INDEX targets_lang_idx ON targets (lang);
             unit_source = unicode(unit_source, "utf-8")
         source_lang = data.normalize_code(source_lang)
         target_lang = data.normalize_code(target_lang)
+        langmodel = lang_factory.getlanguage(source_lang)
 
         min_similarity = current_app.config.get('MIN_SIMILARITY', 70)
         max_length = current_app.config.get('MAX_LENGTH', 1000)
@@ -162,16 +163,19 @@ CREATE INDEX targets_lang_idx ON targets (lang);
         minlen = min_levenshtein_length(len(unit_source), min_similarity)
         maxlen = max_levenshtein_length(len(unit_source), min_similarity, max_length)
 
+        search_str = ' | '.join(langmodel.words(unit_source))
         cursor = self.get_cursor()
         query = """
 SELECT s.text AS source, t.text AS target, TS_RANK_CD(to_tsvector(source), query) AS rank
-    FROM sources s JOIN targets t ON s.sid = t.sid, PLAINTO_TSQUERY('simple', %(search_str)s) query
+    FROM sources s JOIN targets t ON s.sid = t.sid,
+    TO_TSQUERY('simple', %(search_str)s) query,
     WHERE s.lang = %(slang)s AND t.lang = %(tlang)s AND s.length BETWEEN %(minlen)s AND %(maxlen)s
     AND s.vector @@ query
     ORDER BY rank DESC
 """
-        cursor.execute(query, {'search_str': unit_source, 'slang': source_lang, 'tlang': target_lang,
-                                    'minlen': minlen, 'maxlen': maxlen})
+        cursor.execute(query, {'search_str': search_str, 'source': unit_source,
+                               'slang': source_lang, 'tlang': target_lang,
+                               'minlen': minlen, 'maxlen': maxlen})
         results = []
         for row in cursor:
             result = {}
