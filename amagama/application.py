@@ -33,6 +33,6 @@ class AmagamaServer(Flask):
 
 def amagama_server_factory():
     app = AmagamaServer(__name__)
-    app.register_module(webapi.module)
+    app.register_module(webapi.module, url_prefix='/tmserver')
 
     return app
