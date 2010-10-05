@@ -56,21 +56,11 @@ CREATE INDEX targets_sid_idx ON targets (sid);
 CREATE INDEX targets_lang_idx ON targets (lang);
 """
 
-    def add_unit(self, unit, source_lang=None, target_lang=None, commit=True, cursor=None):
+    def add_unit(self, unit, source_lang, target_lang, commit=True, cursor=None):
         """inserts unit in the database"""
         #TODO: is that really the best way to handle unspecified
         # source and target languages? what about conflicts between
         # unit attributes and passed arguments
-        if unit.getsourcelanguage():
-            source_lang = unit.getsourcelanguage()
-        if unit.gettargetlanguage():
-            target_lang = unit.gettargetlanguage()
-
-        if not source_lang:
-            raise ValueError("undefined source language")
-        if not target_lang:
-            raise ValueError("undefined target language")
-
         source_lang = data.normalize_code(source_lang)
         target_lang = data.normalize_code(target_lang)
 

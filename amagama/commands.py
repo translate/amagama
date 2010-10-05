@@ -58,12 +58,14 @@ class BuildTMDB(Command):
         print "Importing strings from:", filename
         try:
             store = factory.getobject(filename)
+            source_lang = store.getsourcelanguage() or self.source_lang
+            target_lang = store.gettargetlanguage() or self.target_lang
         except Exception, e:
             print >> sys.stderr, str(e)
             return
         # do something useful with the store and db
         try:
-            current_app.tmdb.add_store(store, self.source_lang, self.target_lang, commit=False)
+            current_app.tmdb.add_store(store, source_lang, target_lang, commit=False)
         except Exception, e:
             print e
             raise
