@@ -164,7 +164,7 @@ CREATE INDEX targets_lang_idx ON targets (lang);
 
         cursor = self.get_cursor()
         query = """
-SELECT s.text, t.text, s.lang, t.lang, TS_RANK_CD(s.vector, query) AS rank
+SELECT s.text AS source, t.text AS target, TS_RANK_CD(to_tsvector(source), query) AS rank
     FROM sources s JOIN targets t ON s.sid = t.sid, PLAINTO_TSQUERY('simple', %(search_str)s) query
     WHERE s.lang = %(slang)s AND t.lang = %(tlang)s AND s.length BETWEEN %(minlen)s AND %(maxlen)s
     AND s.vector @@ query
@@ -175,9 +175,8 @@ SELECT s.text, t.text, s.lang, t.lang, TS_RANK_CD(s.vector, query) AS rank
         results = []
         for row in cursor:
             result = {}
-            result['source'] = row[0]
-            result['target'] = row[1]
-            result['context'] = row[2]
+            result['source'] = row['source']
+            result['target'] = row['target']
             result['quality'] = self.comparer.similarity(unit_source, result['source'], min_similarity)
             if result['quality'] >= min_similarity:
                 results.append(result)
