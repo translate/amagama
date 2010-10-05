@@ -177,6 +177,7 @@ SELECT s.text AS source, t.text AS target, TS_RANK_CD(to_tsvector(source), query
             result = {}
             result['source'] = row['source']
             result['target'] = row['target']
+            result['rank'] = row['rank']
             result['quality'] = self.comparer.similarity(unit_source, result['source'], min_similarity)
             if result['quality'] >= min_similarity:
                 results.append(result)
