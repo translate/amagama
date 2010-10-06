@@ -168,7 +168,7 @@ CREATE INDEX targets_lang_idx ON targets (lang);
         query = """
 SELECT s.text AS source, t.text AS target, TS_RANK_CD(to_tsvector(source), query) AS rank
     FROM sources s JOIN targets t ON s.sid = t.sid,
-    TO_TSQUERY('simple', %(search_str)s) query,
+    TO_TSQUERY('simple', %(search_str)s) query
     WHERE s.lang = %(slang)s AND t.lang = %(tlang)s AND s.length BETWEEN %(minlen)s AND %(maxlen)s
     AND s.vector @@ query
     ORDER BY rank DESC
