@@ -163,6 +163,8 @@ CREATE INDEX targets_lang_idx ON targets (lang);
         minlen = min_levenshtein_length(len(unit_source), min_similarity)
         maxlen = max_levenshtein_length(len(unit_source), min_similarity, max_length)
 
+        minrank = max(min_similarity / 2, 30)
+
         search_str = ' | '.join(langmodel.words(unit_source))
         cursor = self.get_cursor()
         query = """
@@ -175,7 +177,7 @@ SELECT * from (SELECT s.text AS source, t.text AS target, TS_RANK(s.vector, quer
 """
         cursor.execute(query, {'search_str': search_str, 'source': unit_source,
                                'slang': source_lang, 'tlang': target_lang,
-                               'minrank': min_similarity / 2, 'minlen': minlen, 'maxlen': maxlen})
+                               'minrank': minrank, 'minlen': minlen, 'maxlen': maxlen})
         results = []
         for row in cursor:
             result = {}
