@@ -61,7 +61,17 @@ def store_dispatch(slang, tlang, sid):
         pass
 
 def translate_unit(uid, slang, tlang):
-    candidates = current_app.tmdb.translate_unit(uid, slang, tlang)
+    try:
+        min_similarity = int(request.args.get('min_similarity', ''))
+    except ValueError:
+        min_similarity = None
+
+    try:
+        max_candidates = int(request.args.get('max_candidates', ''))
+    except ValueError:
+        max_candidates = None
+
+    candidates = current_app.tmdb.translate_unit(uid, slang, tlang, min_similarity, max_candidates)
     response = jsonwrapper(candidates)
     return current_app.response_class(response, mimetype='application/json')
 
