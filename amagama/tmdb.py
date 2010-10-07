@@ -166,16 +166,16 @@ CREATE INDEX targets_lang_idx ON targets (lang);
         search_str = ' | '.join(langmodel.words(unit_source))
         cursor = self.get_cursor()
         query = """
-SELECT s.text AS source, t.text AS target, TS_RANK_CD(to_tsvector(source), query) AS rank
+SELECT * from (SELECT s.text AS source, t.text AS target, TS_RANK(s.vector, query, 32) * 1745 AS rank
     FROM sources s JOIN targets t ON s.sid = t.sid,
     TO_TSQUERY('simple', %(search_str)s) query
     WHERE s.lang = %(slang)s AND t.lang = %(tlang)s AND s.length BETWEEN %(minlen)s AND %(maxlen)s
-    AND s.vector @@ query
+    AND s.vector @@ query) sub WHERE rank > %(minrank)s
     ORDER BY rank DESC
 """
         cursor.execute(query, {'search_str': search_str, 'source': unit_source,
                                'slang': source_lang, 'tlang': target_lang,
-                               'minlen': minlen, 'maxlen': maxlen})
+                               'minrank': min_similarity / 2, 'minlen': minlen, 'maxlen': maxlen})
         results = []
         for row in cursor:
             result = {}
