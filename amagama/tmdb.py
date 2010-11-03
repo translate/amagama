@@ -124,26 +124,28 @@ CREATE INDEX targets_%(slang)s_lang_idx ON targets_%(slang)s (lang);
 
     def add_dict(self, unit, commit=True, cursor=None):
         """inserts units represented as dictionaries in database"""
+        slang = unit['source_lang']
         try:
             if cursor is None:
                 cursor = self.get_cursor()
-            query = """SELECT sid FROM sources WHERE lang=%(source_lang)s and hash=MD5(%(source)s)"""
+            query = """SELECT sid FROM sources_%s WHERE hash=MD5(%%(source)s)""" % slang
             cursor.execute(query, unit)
             result = cursor.fetchone()
             if result:
                 unit['sid'] = result['sid']
             else:
-                query = """INSERT INTO sources (text, vector, hash, lang, length) VALUES(
-                %(source)s, TO_TSVECTOR('simple', %(source)s), MD5(%(source)s),
-                %(source_lang)s, %(length)s) RETURNING sid"""
+                query = """INSERT INTO sources_%s (text, vector, hash, length) VALUES(
+                %%(source)s, TO_TSVECTOR(%%(lang_config)s, %%(source)s), MD5(%%(source)s), %%(length)s)
+                RETURNING sid""" % slang
                 cursor.execute(query, unit)
                 unit['sid'] = cursor.fetchone()['sid']
 
-            query = """SELECT COUNT(*) FROM targets WHERE sid=%(sid)s AND lang=%(target_lang)s AND hash=MD5(%(target)s)"""
+            query = """SELECT COUNT(*) FROM targets_%s WHERE
+            sid=%%(sid)s AND lang=%%(target_lang)s AND hash=MD5(%%(target)s)""" % slang
             cursor.execute(query, unit)
             if not cursor.fetchone()[0]:
-                query = """INSERT INTO targets (sid, text, hash, lang) VALUES (
-                %(sid)s, %(target)s, MD5(%(target)s), %(target_lang)s)"""
+                query = """INSERT INTO targets_%s (sid, text, hash, lang) VALUES (
+                %%(sid)s, %%(target)s, MD5(%%(target)s), %%(target_lang)s)""" % slang
                 cursor.execute(query, unit)
 
             if commit:
@@ -218,12 +220,12 @@ CREATE INDEX targets_%(slang)s_lang_idx ON targets_%(slang)s (lang);
         cursor = self.get_cursor()
         query = """
 SELECT * from (SELECT s.text AS source, t.text AS target, TS_RANK(s.vector, query, 32) * 1744.93406073519 AS rank
-    FROM sources s JOIN targets t ON s.sid = t.sid,
-    TO_TSQUERY('simple', %(search_str)s) query
-    WHERE s.lang = %(slang)s AND t.lang = %(tlang)s AND s.length BETWEEN %(minlen)s AND %(maxlen)s
-    AND s.vector @@ query) sub WHERE rank > %(minrank)s
+    FROM sources_%s s JOIN targets_%s t ON s.sid = t.sid,
+    TO_TSQUERY(%%(lang_config)s, %%(search_str)s) query
+    WHERE t.lang = %%(tlang)s AND s.length BETWEEN %%(minlen)s AND %%(maxlen)s
+    AND s.vector @@ query) sub WHERE rank > %%(minrank)s
     ORDER BY rank DESC
-"""
+""" % (slang, slang)
         cursor.execute(query, {'search_str': search_str, 'source': unit_source,
                                'tlang': tlang, 'lang_config': lang_config,
                                'minrank': minrank, 'minlen': minlen, 'maxlen': maxlen})
