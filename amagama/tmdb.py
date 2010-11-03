@@ -30,6 +30,39 @@ from translate.search.lshtein import LevenshteinComparer
 
 from amagama.postgres import PostGres
 
+def lang_to_table(code):
+    # normalize to simplest form
+    result = data.simplify_to_common(code)
+    if data.langcode_ire.match(result):
+        # normalize to legal table name
+        return result.replace("-", "_").replace("@", "_").lower()
+    # illegal language name
+    return None
+
+code_config_map = {
+    'da': 'danish',
+    'nl': 'dutch',
+    'en': 'english',
+    'fi': 'finnish',
+    'fr': 'french',
+    'de': 'german',
+    'hu': 'hungarian',
+    'it': 'italian',
+    'nb': 'norwegian',
+    'nn': 'norwegian',
+    'no': 'norwegian',
+    'pt': 'portuguese',
+    'pt_BR': 'portuguese',
+    'ro': 'romanian',
+    'ru': 'russian',
+    'es': 'spanish',
+    'sv': 'swedish',
+    'tr': 'turkish',
+    }
+
+def lang_to_config(code):
+    return code_config_map.get(code, 'simple')
+
 class TMDB(PostGres):
     INIT_SQL = """
 CREATE TABLE sources (
