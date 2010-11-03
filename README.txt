@@ -33,10 +33,10 @@ usage information. try
 
 $ amagama-manage initdb --help
 
-first step after editing settings.py is to prepare database tables
+first step after editing settings.py is to prepare database tables for
+each source language you will use (you can add more languages later)
 
-$ amagama-manage initdb
-
+$ amagama-manage initdb -s en -s fr
 
 Importing Translations
 ----------------------
@@ -93,12 +93,11 @@ will be marked as coming from remotetm)
 TODO
 ----
 
-* use stemming for source languages
-* seperate per source language tables
+* simple web interface
+* custom index config for source languages not supported by default postgres install
 * keep track of file's mtime to avoid expensive reparses
 * use memcached to cache results
 * use more permemnant caching of levenshtein distances?
 * use postgres built in levenshtein functions?
-* simple web interface
 * integrate with Pootle
 * document API
