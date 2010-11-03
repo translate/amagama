@@ -85,3 +85,10 @@ class PostGres(object):
         cursor = self.get_cursor()
         cursor.execute(self.INIT_SQL)
         cursor.connection.commit()
+
+    def table_exists(self, table):
+        """checks if table already exists in database"""
+        query = """select exists(select relname from pg_class where relname = %(table)s and relkind='r')"""
+        cursor = self.get_cursor()
+        cursor.execute(query, {'table': table})
+        return cursor.fetchone()[0]
