@@ -98,6 +98,7 @@ CREATE INDEX targets_lang_idx ON targets (lang);
         # unit attributes and passed arguments
         slang = lang_to_table(source_lang)
         tlang = lang_to_table(target_lang)
+        lang_config = lang_to_config(slang)
 
         source = unicode(unit.source)
         unitdict = {'source': source,
@@ -105,6 +106,7 @@ CREATE INDEX targets_lang_idx ON targets (lang);
                     'target': unicode(unit.target),
                     'source_lang': slang,
                     'target_lang': tlang,
+                    'lang_config': lang_config,
                    }
 
         self.add_dict(unitdict, commit)
@@ -156,6 +158,7 @@ CREATE INDEX targets_lang_idx ON targets (lang);
         represented as dictionaries"""
         slang = lang_to_table(source_lang)
         tlang = lang_to_table(target_lang)
+        lang_config = lang_to_config(slang)
 
         count = 0
         try:
@@ -163,6 +166,7 @@ CREATE INDEX targets_lang_idx ON targets (lang);
             for unit in units:
                 unit['source_lang'] = slang
                 unit['target_lang'] = tlang
+                unit['lang_config'] = lang_config
                 unit['length'] = len(unit['source'])
                 self.add_dict(unit, commit=False, cursor=cursor)
                 count += 1
@@ -187,6 +191,7 @@ CREATE INDEX targets_lang_idx ON targets (lang);
             unit_source = unicode(unit_source, "utf-8")
         slang = lang_to_table(source_lang)
         tlang = lang_to_table(target_lang)
+        lang_config = lang_to_config(slang)
         langmodel = lang_factory.getlanguage(source_lang)
 
         max_length = current_app.config.get('MAX_LENGTH', 1000)
@@ -209,7 +214,7 @@ SELECT * from (SELECT s.text AS source, t.text AS target, TS_RANK(s.vector, quer
     ORDER BY rank DESC
 """
         cursor.execute(query, {'search_str': search_str, 'source': unit_source,
-                               'slang': source_lang, 'tlang': target_lang,
+                               'tlang': tlang, 'lang_config': lang_config,
                                'minrank': minrank, 'minlen': minlen, 'maxlen': maxlen})
         results = []
         for row in cursor:
