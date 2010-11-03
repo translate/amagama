@@ -78,7 +78,7 @@ class PostGres(object):
         #FIXME: maybe use server side cursors?
         return self.connection.cursor(cursor_factory=DictCursor)
 
-    def init_db(self):
+    def init_db(self, *args, **kwargs):
         """initialize the database"""
         if not self.INIT_SQL:
             return

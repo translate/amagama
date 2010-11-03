@@ -64,32 +64,43 @@ def lang_to_config(code):
     return code_config_map.get(code, 'simple')
 
 class TMDB(PostGres):
-    INIT_SQL = """
-CREATE TABLE sources (
+    INIT_SOURCE = """
+CREATE TABLE sources_%(slang)s (
     sid SERIAL PRIMARY KEY,
     text TEXT NOT NULL,
     vector TSVECTOR NOT NULL,
     hash VARCHAR(32) NOT NULL,
-    lang VARCHAR(32) NOT NULL,
     length INTEGER NOT NULL,
-    UNIQUE(lang, hash)
+    UNIQUE(hash)
 );
-CREATE INDEX sources_lang_idx ON sources (lang);
-CREATE INDEX sources_length_idx ON sources (length);
-CREATE INDEX sources_text_idx ON sources USING gin(vector);
-
-CREATE TABLE targets (
+CREATE INDEX sources_%(slang)s_length_idx ON sources_%(slang)s (length);
+CREATE INDEX sources_%(slang)s_text_idx ON sources_%(slang)s USING gin(vector);
+"""
+    INIT_TARGET = """
+CREATE TABLE targets_%(slang)s (
     tid SERIAL PRIMARY KEY,
     sid INTEGER NOT NULL,
     text TEXT NOT NULL,
     hash VARCHAR(32) NOT NULL,
     lang VARCHAR(32) NOT NULL,
-    FOREIGN KEY (sid) references sources(sid),
+    FOREIGN KEY (sid) references sources_%(slang)s(sid),
     UNIQUE(sid, lang, hash)
 );
-CREATE INDEX targets_sid_idx ON targets (sid);
-CREATE INDEX targets_lang_idx ON targets (lang);
+CREATE INDEX targets_%(slang)s_sid_idx ON targets_%(slang)s (sid);
+CREATE INDEX targets_%(slang)s_lang_idx ON targets_%(slang)s (lang);
 """
+
+    def init_db(self, source_langs):
+        cursor = self.get_cursor()
+        for slang in source_langs:
+            slang = lang_to_table(slang)
+            if not self.table_exists('sources_%s' % slang):
+                query = self.INIT_SOURCE % {'slang': slang}
+                cursor.execute(query)
+            if not self.table_exists('targets_%s' % slang):
+                query = self.INIT_TARGET % {'slang': slang}
+                cursor.execute(query)
+        cursor.connection.commit()
 
     def add_unit(self, unit, source_lang, target_lang, commit=True, cursor=None):
         """inserts unit in the database"""

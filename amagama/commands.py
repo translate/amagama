@@ -30,8 +30,12 @@ from flaskext.script import Command, Option
 
 class InitDB(Command):
     """create database tables"""
-    def run(self):
-        current_app.tmdb.init_db()
+    option_list = (
+        Option('--source-language', '-s', dest='source_langs', action='append'),
+    )
+
+    def run(self, source_langs):
+        current_app.tmdb.init_db(source_langs)
 
 class BuildTMDB(Command):
     """Populate Translation Memory database from bilinugual translation files"""
