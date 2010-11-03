@@ -96,15 +96,15 @@ CREATE INDEX targets_lang_idx ON targets (lang);
         #TODO: is that really the best way to handle unspecified
         # source and target languages? what about conflicts between
         # unit attributes and passed arguments
-        source_lang = data.normalize_code(source_lang)
-        target_lang = data.normalize_code(target_lang)
+        slang = lang_to_table(source_lang)
+        tlang = lang_to_table(target_lang)
 
         source = unicode(unit.source)
         unitdict = {'source': source,
                     'length': len(source),
                     'target': unicode(unit.target),
-                    'source_lang': source_lang,
-                    'target_lang': target_lang,
+                    'source_lang': slang,
+                    'target_lang': tlang,
                    }
 
         self.add_dict(unitdict, commit)
@@ -154,15 +154,15 @@ CREATE INDEX targets_lang_idx ON targets (lang);
     def add_list(self, units, source_lang, target_lang, commit=True):
         """insert all units in list into the database, units are
         represented as dictionaries"""
-        source_lang = data.normalize_code(source_lang)
-        target_lang = data.normalize_code(target_lang)
+        slang = lang_to_table(source_lang)
+        tlang = lang_to_table(target_lang)
 
         count = 0
         try:
             cursor = self.get_cursor()
             for unit in units:
-                unit['source_lang'] = source_lang
-                unit['target_lang'] = target_lang
+                unit['source_lang'] = slang
+                unit['target_lang'] = tlang
                 unit['length'] = len(unit['source'])
                 self.add_dict(unit, commit=False, cursor=cursor)
                 count += 1
@@ -185,8 +185,8 @@ CREATE INDEX targets_lang_idx ON targets (lang);
         """return TM suggestions for unit_source"""
         if isinstance(unit_source, str):
             unit_source = unicode(unit_source, "utf-8")
-        source_lang = data.normalize_code(source_lang)
-        target_lang = data.normalize_code(target_lang)
+        slang = lang_to_table(source_lang)
+        tlang = lang_to_table(target_lang)
         langmodel = lang_factory.getlanguage(source_lang)
 
         max_length = current_app.config.get('MAX_LENGTH', 1000)
