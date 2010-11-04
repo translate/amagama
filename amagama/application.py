@@ -34,5 +34,6 @@ class AmagamaServer(Flask):
 def amagama_server_factory():
     app = AmagamaServer("settings.py", __name__)
     app.register_module(webapi.module, url_prefix='/tmserver')
+    app.secret_key = "foobar"
     app.register_module(webui.module, url_prefix='')
     return app
