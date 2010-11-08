@@ -27,6 +27,12 @@ amaGama requires a postgresql database to store translations, create
 an empty database then edit the database connection configuration in
 amagama/settings.py
 
+A way to create the amagama database:
+
+$ su root
+# su postgres
+$ createdb -E UTF-8 amagama
+
 amaGama is managed through the amagama-manage command, try running it
 with no arguments for usage help. each command has it's own --help
 usage information. try
