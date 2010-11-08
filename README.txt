@@ -17,15 +17,15 @@ Dependencies
 * WSGI webserver (amagama will try cherrypy, werkzeug or python's
   wsgiref in that order)
 * Translate Toolkit (1.8.0+)
-* python-Levenshtien (for better performance)
+* python-Levenshtein (for better performance)
 
 
 Installation
 ------------
 
-amaGama requires a postgresql database to store translations, create
-an empty database then edit the database connection configuration in
-amagama/settings.py
+AmaGama requires a postgresql database to store translations. Create
+an empty database, then edit the database connection configuration in
+amagama/settings.py.
 
 A way to create the amagama database:
 
@@ -33,14 +33,14 @@ $ su root
 # su postgres
 $ createdb -E UTF-8 amagama
 
-amaGama is managed through the amagama-manage command, try running it
-with no arguments for usage help. each command has it's own --help
-usage information. try
+AmaGama is managed through the amagama-manage command. Try running it
+with no arguments for usage help. Each command has it's own --help
+usage information. Try
 
 $ amagama-manage initdb --help
 
-first step after editing settings.py is to prepare database tables for
-each source language you will use (you can add more languages later)
+The first step after editing settings.py is to prepare database tables for
+each source language you will use (you can add more languages later):
 
 $ amagama-manage initdb -s en -s fr
 
@@ -51,14 +51,14 @@ To populate the amaGama database we use the amagama-manage command build_tmdb
 
 $ amagama-manage build_tmdb -s en -t ar -i foo.po
 
-this will parse foo.po, assume source language is en and target
-language is ar and populate the database accordingly.
+This will parse foo.po, assume source language is English (en) and target
+language is Arabic (ar) and populate the database accordingly.
 
-the source and target language options are only used if the file does
-not provide this information. they do not override file metadata.
+The source and target language options are only used if the file does
+not provide this information. They do not override file metadata.
 
-all transalte toolkit bilingual formats are supported, if a directory
-is passed to -i it's content will be read recursively.
+All bilingual formats supported by the Transalte Toolkit are supported. If a 
+directory is passed to -i it's content will be read recursively.
 
 
 Running
@@ -82,18 +82,18 @@ Integrating with Virtaal
 amaGama implements the same protocol as tmserver, and can be used with
 Virtaal's remotetm plugin.
 
-in Virtaal under edit->preferences->plugins->Translation Memory->configure
-make sure the remote server plugin is enabled then close virtaal.
+In Virtaal go to edit->preferences->plugins->Translation Memory->configure
+to make sure the remote server plugin is enabled and then close Virtaal.
 
-edit ~/.virtaal/tm.ini and make sure there is a remotetm section that
+Edit ~/.virtaal/tm.ini and make sure there is a remotetm section that
 looks like this
 
 [remotetm]
 host = localhost
 port = 8888
 
-run Virtaal again you should start seeing results from amaGama (they
-will be marked as coming from remotetm)
+Run Virtaal again. You should start seeing results from amaGama (they
+will be marked as coming from remotetm).
 
 
 TODO
