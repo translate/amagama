@@ -58,22 +58,22 @@ The source and target language options are only used if the file does
 not provide this information. They do not override file metadata.
 
 All bilingual formats supported by the Transalte Toolkit are supported. If a 
-directory is passed to -i it's content will be read recursively.
+directory is passed to -i its content will be read recursively.
 
 
 Running
 -------
 
 The command amagama will try to use the best pure python wsgi server
-to launch amagama server listening on port 8888. try amagama --help
+to launch amagama server listening on port 8888. Try amagama --help
 for more options.
 
-after running you can test operation by visiting
+After running you can test operation by visiting:
 
 http://localhost/tmserver/en/ar/unit/file
 
-this should display a json representation of the english->arabic
-translations for "file"
+This should display a JSON representation of the english->arabic
+translations for "file".
 
 
 Integrating with Virtaal
@@ -86,7 +86,7 @@ In Virtaal go to edit->preferences->plugins->Translation Memory->configure
 to make sure the remote server plugin is enabled and then close Virtaal.
 
 Edit ~/.virtaal/tm.ini and make sure there is a remotetm section that
-looks like this
+looks like this:
 
 [remotetm]
 host = localhost
