@@ -64,6 +64,10 @@ class BuildTMDB(Command):
             store = factory.getobject(filename)
             source_lang = store.getsourcelanguage() or self.source_lang
             target_lang = store.gettargetlanguage() or self.target_lang
+
+            if not source_lang or not target_lang:
+                print >> sys.stderr, "Missing source or target language. Won't import", filename
+                return
         except Exception, e:
             print >> sys.stderr, str(e)
             return
