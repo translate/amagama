@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2009 Zuza Software Foundation
+# Copyright 2010 Zuza Software Foundation
 #
 # This file is part of translate.
 #
@@ -44,7 +44,7 @@ class PostGres(object):
     def cleanup(self, response):
         """return connection to pool on request end"""
         #FIXME: need to rollback on exceptions
-        if hasattr(g, 'translation_dirty') and g.transaction_dirty:
+        if getattr(g, 'translation_dirty', False):
             self.connection.commit()
             self.pool.putconn()
         return response
