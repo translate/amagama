@@ -21,6 +21,7 @@
 """Module to provide a translation memory database."""
 
 import math
+import re
 
 from flask import current_app
 
@@ -61,6 +62,8 @@ code_config_map = {
 
 def lang_to_config(code):
     return code_config_map.get(code, 'simple')
+
+_nonword_re = re.compile(r"[^\w' ]+", re.UNICODE)
 
 class TMDB(PostGres):
     INIT_SOURCE = """
@@ -215,7 +218,7 @@ CREATE INDEX targets_%(slang)s_lang_idx ON targets_%(slang)s (lang);
 
         minrank = max(min_similarity / 2, 30)
 
-        search_str = ' | '.join(langmodel.words(unit_source))
+        search_str = u' | '.join(langmodel.words(_nonword_re.sub(u"", unit_source)))
         cursor = self.get_cursor()
         query = """
 SELECT * from (SELECT s.text AS source, t.text AS target, TS_RANK(s.vector, query, 32) * 1744.93406073519 AS rank
