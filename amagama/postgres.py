@@ -29,7 +29,7 @@ import psycopg2.extensions
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
 
-from flask import g
+from flask import g, got_request_exception
 
 class PostGres(object):
     INIT_SQL = None
@@ -43,11 +43,20 @@ class PostGres(object):
 
     def cleanup(self, response):
         """return connection to pool on request end"""
-        #FIXME: need to rollback on exceptions
-        if getattr(g, 'translation_dirty', False):
-            self.connection.commit()
+        #FIXME: we should have better dirty detection, maybe wrap up insert queries?
+        if getattr(g, 'transaction_dirty', False):
+            if response.status_code < 400:
+                self.connection.commit()
+            else:
+                self.connection.rollback()
             self.pool.putconn()
         return response
+
+    def bailout(self, app, exception):
+        """return connection to pool on request end by unhandled exception"""
+        if app.debug and getattr(g, 'transaction_dirty', False):
+            self.connection.rollback()
+            self.pool.putconn()
 
     def init_app(self, app):
         self.app = app
@@ -66,6 +75,8 @@ class PostGres(object):
         self.pool = PersistentConnectionPool(**db_args)
 
         app.after_request(self.cleanup)
+
+        got_request_exception.connect(self.bailout, app)
 
     def get_connection(self):
         """get a thread local database connection object"""
