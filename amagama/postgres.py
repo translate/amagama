@@ -80,7 +80,13 @@ class PostGres(object):
 
     def get_connection(self):
         """get a thread local database connection object"""
-        g.transaction_dirty = True
+        #FIXME: this is dirty can we detect when in request context?
+        try:
+            g.transaction_dirty = True
+        except:
+            # using connection outside request context
+            pass
+
         return self.pool.getconn()
     connection = property(get_connection)
 
