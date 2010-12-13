@@ -97,6 +97,13 @@ class PostGres(object):
         cursor.execute(self.INIT_SQL)
         cursor.connection.commit()
 
+    def function_exists(self, function):
+        """checks if sql function already exists in database"""
+        query = """SELECT EXISTS(SELECT proname FROM pg_proc WHERE proname = %(function)s)"""
+        cursor = self.get_cursor()
+        cursor.execute(query, {'function': function})
+        return cursor.fetchone()[0]
+
     def table_exists(self, table):
         """checks if table already exists in database"""
         query = """select exists(select relname from pg_class where relname = %(table)s and relkind='r')"""
