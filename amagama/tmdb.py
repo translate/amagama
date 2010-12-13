@@ -25,7 +25,7 @@ import re
 
 from flask import current_app
 
-from translate.lang import data, factory as lang_factory
+from translate.lang import data
 from translate.search.lshtein import LevenshteinComparer
 
 from amagama.postgres import PostGres
@@ -66,6 +66,12 @@ def lang_to_config(code):
 _nonword_re = re.compile(r"[^\w' ]+", re.UNICODE)
 
 class TMDB(PostGres):
+    INIT_FUNCTIONS = """
+CREATE FUNCTION prepare_ortsquery(text) RETURNS text AS $$
+    SELECT ARRAY_TO_STRING((SELECT ARRAY_AGG(token) FROM TS_PARSE('default', $1) WHERE tokid != 12), '|');
+$$ LANGUAGE SQL;
+"""
+
     INIT_SOURCE = """
 CREATE TABLE sources_%(slang)s (
     sid SERIAL PRIMARY KEY,
@@ -94,6 +100,9 @@ CREATE INDEX targets_%(slang)s_lang_idx ON targets_%(slang)s (lang);
 
     def init_db(self, source_langs):
         cursor = self.get_cursor()
+        if not self.function_exists('prepare_ortsquery'):
+            cursor.execute(self.INIT_FUNCTIONS)
+
         for slang in source_langs:
             slang = lang_to_table(slang)
             if not self.table_exists('sources_%s' % slang):
@@ -207,7 +216,6 @@ CREATE INDEX targets_%(slang)s_lang_idx ON targets_%(slang)s (lang);
         slang = lang_to_table(source_lang)
         tlang = lang_to_table(target_lang)
         lang_config = lang_to_config(slang)
-        langmodel = lang_factory.getlanguage(source_lang)
 
         max_length = current_app.config.get('MAX_LENGTH', 1000)
         min_similarity = max(min_similarity or current_app.config.get('MIN_SIMILARITY', 70), 30)
@@ -218,12 +226,12 @@ CREATE INDEX targets_%(slang)s_lang_idx ON targets_%(slang)s (lang);
 
         minrank = max(min_similarity / 2, 30)
 
-        search_str = u' | '.join(langmodel.words(_nonword_re.sub(u"", unit_source)))
+        search_str = unit_source
         cursor = self.get_cursor()
         query = """
 SELECT * from (SELECT s.text AS source, t.text AS target, TS_RANK(s.vector, query, 32) * 1744.93406073519 AS rank
     FROM sources_%s s JOIN targets_%s t ON s.sid = t.sid,
-    TO_TSQUERY(%%(lang_config)s, %%(search_str)s) query
+    TO_TSQUERY(%%(lang_config)s, prepare_ortsquery(%%(search_str)s)) query
     WHERE t.lang = %%(tlang)s AND s.length BETWEEN %%(minlen)s AND %%(maxlen)s
     AND s.vector @@ query) sub WHERE rank > %%(minrank)s
     ORDER BY rank DESC
