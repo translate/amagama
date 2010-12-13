@@ -24,7 +24,7 @@ import StringIO
 
 from translate.storage import base, factory
 
-from flask import Module, json, request, current_app
+from flask import Module, json, request, current_app, abort
 
 module = Module(__name__)
 
@@ -37,6 +37,13 @@ def jsonwrapper(data):
         #FIXME: put indent only if DEBUG=True
         return json.dumps(data, indent=4)
 
+
+@module.route('/<slang>/<tlang>/unit/', methods=('GET', 'POST', 'PUT'))
+def unit_dispatch_get(slang, tlang):
+    uid = request.args.get('source', None)
+    if uid:
+        return unit_dispatch(slang, tlang, uid)
+    abort(404)
 
 @module.route('/<slang>/<tlang>/unit/<path:uid>', methods=('GET', 'POST', 'PUT'))
 def unit_dispatch(slang, tlang, uid):
