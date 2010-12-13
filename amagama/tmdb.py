@@ -23,7 +23,7 @@
 import math
 import re
 
-from flask import current_app
+from flask import current_app, abort
 
 from translate.lang import data
 from translate.search.lshtein import LevenshteinComparer
@@ -98,6 +98,17 @@ CREATE INDEX targets_%(slang)s_sid_idx ON targets_%(slang)s (sid);
 CREATE INDEX targets_%(slang)s_lang_idx ON targets_%(slang)s (lang);
 """
 
+    def __init__(self, *args, **kwargs):
+        super(TMDB, self).__init__(*args, **kwargs)
+        # initialize list of source languages
+        query = "SELECT relname FROM pg_class WHERE relkind='r' AND relname LIKE 'sources_%'"
+        cursor = self.get_cursor()
+        cursor.execute(query)
+        self.source_langs = set()
+        offset = len('sources_')
+        for row in cursor:
+            self.source_langs.add(row['relname'][offset:])
+
     def init_db(self, source_langs):
         cursor = self.get_cursor()
         if not self.function_exists('prepare_ortsquery'):
@@ -105,6 +116,9 @@ CREATE INDEX targets_%(slang)s_lang_idx ON targets_%(slang)s (lang);
 
         for slang in source_langs:
             slang = lang_to_table(slang)
+            if slang in self.source_langs:
+                continue
+
             if not self.table_exists('sources_%s' % slang):
                 query = self.INIT_SOURCE % {'slang': slang}
                 cursor.execute(query)
@@ -139,6 +153,16 @@ CREATE INDEX targets_%(slang)s_lang_idx ON targets_%(slang)s (lang);
         try:
             if cursor is None:
                 cursor = self.get_cursor()
+
+            if slang not in self.source_langs:
+                if not self.table_exists('sources_%s' % slang):
+                    query = self.INIT_SOURCE % {'slang': slang}
+                    cursor.execute(query)
+                if not self.table_exists('targets_%s' % slang):
+                    query = self.INIT_TARGET % {'slang': slang}
+                    cursor.execute(query)
+                cursor.connection.commit()
+
             query = """SELECT sid FROM sources_%s WHERE hash=MD5(%%(source)s)""" % slang
             cursor.execute(query, unit)
             result = cursor.fetchone()
@@ -211,11 +235,15 @@ CREATE INDEX targets_%(slang)s_lang_idx ON targets_%(slang)s (lang);
 
     def translate_unit(self, unit_source, source_lang, target_lang, min_similarity=None, max_candidates=None):
         """return TM suggestions for unit_source"""
-        if isinstance(unit_source, str):
-            unit_source = unicode(unit_source, "utf-8")
         slang = lang_to_table(source_lang)
+        if slang not in self.source_langs:
+            abort(404)
+
         tlang = lang_to_table(target_lang)
         lang_config = lang_to_config(slang)
+
+        if isinstance(unit_source, str):
+            unit_source = unicode(unit_source, "utf-8")
 
         max_length = current_app.config.get('MAX_LENGTH', 1000)
         min_similarity = max(min_similarity or current_app.config.get('MIN_SIMILARITY', 70), 30)
