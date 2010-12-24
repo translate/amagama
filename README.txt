@@ -5,7 +5,7 @@ Status
 ------
 
 At this stage amaGama is just a prototype, it started as a port of
-Translate Toolkit's tmserver to PostgreSQL
+Translate Toolkit's tmserver to PostgreSQL.
 
 
 Dependencies
@@ -13,7 +13,7 @@ Dependencies
 
 * PostgreSQL (in theory works with 8.3, tested on 8.4)
 * Psycopg2
-* Flask, flask-sript, flask-wtf
+* Flask, Flask-Script, Flask-WTF
 * WSGI webserver (amagama will try cherrypy, werkzeug or python's
   wsgiref in that order)
 * Translate Toolkit (1.8.0+)
