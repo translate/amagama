@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2010 Zuza Software Foundation
+# Copyright 2010-2011 Zuza Software Foundation
 #
 # This file is part of translate.
 #
@@ -77,7 +77,7 @@ INITCOND='{}'
 """
     INIT_FUNCTIONS = """
 CREATE FUNCTION prepare_ortsquery(text) RETURNS text AS $$
-    SELECT ARRAY_TO_STRING((SELECT ARRAY_AGG(token) FROM TS_PARSE('default', $1) WHERE tokid != 12), '|');
+    SELECT ARRAY_TO_STRING((SELECT ARRAY_AGG(quote_literal(token)) FROM TS_PARSE('default', $1) WHERE tokid != 12), '|');
 $$ LANGUAGE SQL;
 """
 
