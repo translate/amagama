@@ -66,6 +66,15 @@ def lang_to_config(code):
 _nonword_re = re.compile(r"[^\w' ]+", re.UNICODE)
 
 class TMDB(PostGres):
+    # array_agg() is only avaiable since Postgres 8.4, so we provide it if it
+    # doesn't exist. This is from http://wiki.postgresql.org/wiki/Array_agg
+    ARRAY_AGG_CODE = """
+CREATE AGGREGATE array_agg(anyelement) (
+SFUNC=array_append,
+STYPE=anyarray,
+INITCOND='{}'
+);
+"""
     INIT_FUNCTIONS = """
 CREATE FUNCTION prepare_ortsquery(text) RETURNS text AS $$
     SELECT ARRAY_TO_STRING((SELECT ARRAY_AGG(token) FROM TS_PARSE('default', $1) WHERE tokid != 12), '|');
@@ -111,6 +120,8 @@ CREATE INDEX targets_%(slang)s_lang_idx ON targets_%(slang)s (lang);
 
     def init_db(self, source_langs):
         cursor = self.get_cursor()
+        if not self.function_exists('ARRAY_AGG'):
+            cursor.execute(self.ARRAY_AGG_CODE)
         if not self.function_exists('prepare_ortsquery'):
             cursor.execute(self.INIT_FUNCTIONS)
 
