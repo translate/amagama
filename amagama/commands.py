@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2010 Zuza Software Foundation
+# Copyright 2010-2011 Zuza Software Foundation
 #
 # This file is part of translate.
 #
@@ -61,8 +61,8 @@ class BuildTMDB(Command):
         print "Importing strings from:", filename
         try:
             store = factory.getobject(filename)
-            source_lang = store.getsourcelanguage() or self.source_lang
-            target_lang = store.gettargetlanguage() or self.target_lang
+            source_lang = self.source_lang or store.getsourcelanguage()
+            target_lang = self.target_lang or store.gettargetlanguage()
 
             if not source_lang or not target_lang:
                 print >> sys.stderr, "Missing source or target language. Won't import", filename

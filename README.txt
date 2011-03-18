@@ -54,8 +54,8 @@ $ amagama-manage build_tmdb -s en -t ar -i foo.po
 This will parse foo.po, assume source language is English (en) and target
 language is Arabic (ar) and populate the database accordingly.
 
-The source and target language options are only used if the file does
-not provide this information. They do not override file metadata.
+The source and target language options only need to be specified if the file does
+not provide this information. They override file metadata if specified.
 
 All bilingual formats supported by the Transalte Toolkit are supported. If a 
 directory is passed to -i its content will be read recursively.
