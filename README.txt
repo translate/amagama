@@ -57,7 +57,7 @@ language is Arabic (ar) and populate the database accordingly.
 The source and target language options only need to be specified if the file does
 not provide this information. They override file metadata if specified.
 
-All bilingual formats supported by the Transalte Toolkit are supported. If a 
+All bilingual formats supported by the Translate Toolkit are supported. If a
 directory is passed to -i its content will be read recursively.
 
 
