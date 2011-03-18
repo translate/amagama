@@ -14,6 +14,7 @@ Dependencies
 * PostgreSQL (in theory works with 8.3, tested on 8.4)
 * Psycopg2
 * Flask, Flask-Script, Flask-WTF
+* blinker
 * WSGI webserver (amagama will try cherrypy, werkzeug or python's
   wsgiref in that order)
 * Translate Toolkit (1.8.0+)
@@ -32,6 +33,14 @@ A way to create the amagama database:
 $ su root
 # su postgres
 $ createdb -E UTF-8 amagama
+
+You might see an error such as this one:
+    createdb: database creation failed: ERROR:  new encoding (UTF8) is
+    incompatible with the encoding of the template database (SQL_ASCII)
+This could happen because the database was installed in the "C" locale. This
+might be fixed by doing the following:
+
+$ createdb -E UTF-8 -T template0 amagama
 
 AmaGama is managed through the amagama-manage command. Try running it
 with no arguments for usage help. Each command has it's own --help
