@@ -20,9 +20,7 @@
 
 """JSON based public APIs for the translation memory server"""
 
-import StringIO
-
-from translate.storage import base, factory
+from translate.storage import base
 
 from flask import Module, json, request, current_app, abort
 
@@ -98,8 +96,10 @@ def update_unit(uid, slang, tlang):
 
 def upload_store(sid, slang, tlang):
     """add units from uploaded file to tmdb"""
+    import StringIO
     data = StringIO.StringIO(request.data)
     data.name = sid
+    from translate.storage import factory
     store = factory.getobject(data)
     count = current_app.tmdb.add_store(store, slang, tlang)
     response = "added %d units from %s" % (count, sid)
