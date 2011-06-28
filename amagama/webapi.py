@@ -23,6 +23,10 @@
 from translate.storage import base
 
 from flask import Module, json, request, current_app, abort
+from werkzeug import Headers
+# Let's encourage caching for at an hour:
+cache_headers = Headers()
+cache_headers['Cache-Control'] = "max-age=3600, public"
 
 module = Module(__name__)
 
@@ -78,7 +82,7 @@ def translate_unit(uid, slang, tlang):
 
     candidates = current_app.tmdb.translate_unit(uid, slang, tlang, min_similarity, max_candidates)
     response = jsonwrapper(candidates)
-    return current_app.response_class(response, mimetype='application/json')
+    return current_app.response_class(response, mimetype='application/json', headers=cache_headers)
 
 def add_unit(uid, slang, tlang):
     data = request.json
