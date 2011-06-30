@@ -120,7 +120,7 @@ CREATE INDEX targets_%(slang)s_lang_idx ON targets_%(slang)s (lang);
 
     def init_db(self, source_langs):
         cursor = self.get_cursor()
-        if not self.function_exists('ARRAY_AGG'):
+        if not self.function_exists('array_agg'):
             cursor.execute(self.ARRAY_AGG_CODE)
         if not self.function_exists('prepare_ortsquery'):
             cursor.execute(self.INIT_FUNCTIONS)
