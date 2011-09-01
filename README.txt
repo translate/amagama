@@ -13,7 +13,7 @@ Dependencies
 
 * PostgreSQL (in theory works with 8.3, tested on 8.4)
 * Psycopg2
-* Flask, Flask-Script, Flask-WTF
+* Flask (0.6.1 or below), Flask-Script, Flask-WTF
 * blinker
 * WSGI webserver (amagama will try cherrypy, werkzeug or python's
   wsgiref in that order)
