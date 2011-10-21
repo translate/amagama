@@ -63,7 +63,6 @@ code_config_map = {
 def lang_to_config(code):
     return code_config_map.get(code, 'simple')
 
-_nonword_re = re.compile(r"[^\w' ]+", re.UNICODE)
 
 class TMDB(PostGres):
     # array_agg() is only avaiable since Postgres 8.4, so we provide it if it
