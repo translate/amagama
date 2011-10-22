@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2010 Zuza Software Foundation
+# Copyright 2010-2011 Zuza Software Foundation
 #
 # This file is part of translate.
 #
@@ -19,7 +19,7 @@
 # along with translate; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-"""PostgreSQL integreation"""
+"""PostgreSQL access and helpers."""
 
 from psycopg2.pool import PersistentConnectionPool
 from psycopg2.extras import DictCursor
@@ -42,7 +42,7 @@ class PostGres(object):
             self.init_app(app)
 
     def cleanup(self, response):
-        """return connection to pool on request end"""
+        """Return connection to pool on request end."""
         #FIXME: we should have better dirty detection, maybe wrap up insert queries?
         if getattr(g, 'transaction_dirty', False):
             if response.status_code < 400:
@@ -53,7 +53,7 @@ class PostGres(object):
         return response
 
     def bailout(self, app, exception):
-        """return connection to pool on request end by unhandled exception"""
+        """Return connection to pool on request ended by unhandled exception."""
         if app.debug and getattr(g, 'transaction_dirty', False):
             self.connection.rollback()
             self.pool.putconn()
@@ -79,7 +79,7 @@ class PostGres(object):
         got_request_exception.connect(self.bailout, app)
 
     def get_connection(self):
-        """get a thread local database connection object"""
+        """Get a thread local database connection object."""
         #FIXME: this is dirty can we detect when in request context?
         try:
             g.transaction_dirty = True
@@ -91,12 +91,12 @@ class PostGres(object):
     connection = property(get_connection)
 
     def get_cursor(self):
-        """get a database cursor object to be used for making queries"""
+        """Get a database cursor object to be used for making queries."""
         #FIXME: maybe use server side cursors?
         return self.connection.cursor(cursor_factory=DictCursor)
 
     def init_db(self, *args, **kwargs):
-        """initialize the database"""
+        """Initialize the database."""
         if not self.INIT_SQL:
             return
         cursor = self.get_cursor()
@@ -104,15 +104,15 @@ class PostGres(object):
         cursor.connection.commit()
 
     def function_exists(self, function):
-        """checks if sql function already exists in database"""
+        """Check if the SQL function already exists in the database."""
         query = """SELECT EXISTS(SELECT proname FROM pg_proc WHERE proname = %(function)s)"""
         cursor = self.get_cursor()
         cursor.execute(query, {'function': function})
         return cursor.fetchone()[0]
 
     def table_exists(self, table):
-        """checks if table already exists in database"""
-        query = """select exists(select relname from pg_class where relname = %(table)s and relkind='r')"""
+        """Check if table already exists in the database."""
+        query = """SELECT EXISTS(SELECT relname FROM pg_class WHERE relname = %(table)s and relkind='r')"""
         cursor = self.get_cursor()
         cursor.execute(query, {'table': table})
         return cursor.fetchone()[0]
