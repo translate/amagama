@@ -32,7 +32,7 @@ module = Module(__name__)
 def jsonwrapper(data):
     callback = request.args.get('jsoncallback')
     if callback:
-        return callback + '(' + json.dumps(data) + ')'
+        return '%s(%s)' % (callback, json.dumps(data))
     else:
         #FIXME: put indent only if DEBUG=True
         return json.dumps(data, indent=4)
