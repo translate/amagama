@@ -24,7 +24,7 @@ from translate.storage import base
 
 from flask import Module, json, request, current_app, abort
 from werkzeug import Headers
-# Let's encourage caching for at an hour:
+# Let's encourage caching for an hour:
 cache_headers = Headers()
 cache_headers['Cache-Control'] = "max-age=3600, public"
 
