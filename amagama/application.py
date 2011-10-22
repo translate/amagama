@@ -23,7 +23,7 @@ with clients using JSON over HTTP."""
 
 from flask import Flask
 
-from amagama import webapi, tmdb, webui
+from amagama import webapi, tmdb
 
 class AmagamaServer(Flask):
     def __init__(self, settings, *args, **kwargs):
@@ -35,5 +35,9 @@ def amagama_server_factory():
     app = AmagamaServer("settings.py", __name__)
     app.register_module(webapi.module, url_prefix='/tmserver')
     app.secret_key = "foobar"
-    app.register_module(webui.module, url_prefix='')
+    try:
+        import webui
+        app.register_module(webui.module, url_prefix='')
+    except ImportError, e:
+        logging.debug("The webui module could not be imported. The web interface is not enabled.")
     return app
