@@ -35,7 +35,8 @@ def jsonwrapper(data):
         return '%s(%s)' % (callback, json.dumps(data))
     else:
         #FIXME: put indent only if DEBUG=True
-        return json.dumps(data, indent=4)
+        #return json.dumps(data, indent=4)
+        return json.dumps(data)
 
 
 @module.route('/<slang>/<tlang>/unit/', methods=('GET', 'POST', 'PUT'))
