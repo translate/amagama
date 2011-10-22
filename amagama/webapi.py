@@ -22,6 +22,11 @@
 
 from flask import Module, json, request, current_app, abort
 from werkzeug import Headers
+
+
+dumps = json.dumps
+
+
 # Let's encourage caching for an hour:
 cache_headers = Headers()
 cache_headers['Cache-Control'] = "max-age=3600, public"
@@ -31,12 +36,13 @@ module = Module(__name__)
 
 def jsonwrapper(data):
     callback = request.args.get('jsoncallback')
+    #FIXME: put indent only if DEBUG=True
+    #dump = dumps(data, indent=4)
+    dump = dumps(data)
     if callback:
-        return '%s(%s)' % (callback, json.dumps(data))
+        return '%s(%s)' % (callback, dump)
     else:
-        #FIXME: put indent only if DEBUG=True
-        #return json.dumps(data, indent=4)
-        return json.dumps(data)
+        return dump
 
 
 @module.route('/<slang>/<tlang>/unit/', methods=('GET', 'POST', 'PUT'))
