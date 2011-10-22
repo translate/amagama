@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2010 Zuza Software Foundation
+# Copyright 2010-2011 Zuza Software Foundation
 #
 # This file is part of translate.
 #
@@ -19,8 +19,6 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 """JSON based public APIs for the translation memory server"""
-
-from translate.storage import base
 
 from flask import Module, json, request, current_app, abort
 from werkzeug import Headers
@@ -85,6 +83,7 @@ def translate_unit(uid, slang, tlang):
     return current_app.response_class(response, mimetype='application/json', headers=cache_headers)
 
 def add_unit(uid, slang, tlang):
+    from translate.storage import base
     data = request.json
     unit = base.TranslationUnit(data['source'])
     unit.target = data['target']
@@ -92,6 +91,7 @@ def add_unit(uid, slang, tlang):
     return ""
 
 def update_unit(uid, slang, tlang):
+    from translate.storage import base
     data = request.json
     unit = base.TranslationUnit(data['source'])
     unit.target = data['target']
