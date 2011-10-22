@@ -21,6 +21,8 @@
 """A translation memory server using tmdb for storage, communicates
 with clients using JSON over HTTP."""
 
+import logging
+
 from flask import Flask
 
 from amagama import webapi, tmdb
