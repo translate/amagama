@@ -1,17 +1,14 @@
-
 amaGama: a web translation memory server
 ========================================
 
 Status
 ------
-
 At this stage amaGama is just a prototype, it started as a port of
 Translate Toolkit's tmserver to PostgreSQL.
 
 
 Dependencies
 ------------
-
 * PostgreSQL (in theory works with 8.3, tested on 8.4)
 * Psycopg2
 * Flask (0.6.1 or below), Flask-Script, Flask-WTF
@@ -24,7 +21,6 @@ Dependencies
 
 Installation
 ------------
-
 AmaGama requires a postgresql database to store translations. Create
 an empty database, then edit the database connection configuration in
 ``amagama/settings.py``.
@@ -37,7 +33,7 @@ A way to create the amagama database::
 
 You might see an error such as this one::
 
-    createdb: database creation failed: ERROR:  new encoding (UTF8) is
+    createdb: database creation failed: ERROR: new encoding (UTF8) is
     incompatible with the encoding of the template database (SQL_ASCII)
     
 This could happen because the database was installed in the "C" locale. This
@@ -46,7 +42,7 @@ might be fixed by doing the following::
     $ createdb -E UTF-8 -T template0 amagama
 
 AmaGama is managed through the ``amagama-manage`` command. Try running it
-with no arguments for usage help. Each command has it's own --help
+with no arguments for usage help. Each command has it's own ``--help``
 usage information. Try ::
 
     $ amagama-manage initdb --help
@@ -58,7 +54,6 @@ each source language you will use (you can add more languages later)::
 
 Importing Translations
 ----------------------
-
 To populate the amaGama database we use the ``amagama-manage``
 command ``build_tmdb``::
 
@@ -77,7 +72,6 @@ directory is passed to ``-i`` its content will be read recursively.
 
 Running
 -------
-
 The command ``amagama`` will try to use the best pure python wsgi server
 to launch amagama server listening on port 8888. Try ``amagama --help``
 for more options.
@@ -91,7 +85,6 @@ translations for "file".
 
 Integrating with Virtaal
 ------------------------
-
 AmaGama implements the same protocol as tmserver, and can be used with
 Virtaal's remotetm plugin.
 
@@ -111,7 +104,6 @@ will be marked as coming from remotetm).
 
 TODO
 ----
-
 * simple web interface
 * custom index config for source languages not supported by default postgres install
 * keep track of file's mtime to avoid expensive reparses
