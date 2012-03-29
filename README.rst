@@ -35,7 +35,7 @@ You might see an error such as this one::
 
     createdb: database creation failed: ERROR: new encoding (UTF8) is
     incompatible with the encoding of the template database (SQL_ASCII)
-    
+
 This could happen because the database was installed in the "C" locale. This
 might be fixed by doing the following::
 
