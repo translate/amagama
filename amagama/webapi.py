@@ -20,7 +20,7 @@
 
 """JSON based public APIs for the translation memory server"""
 
-from flask import Module, json, request, current_app, abort
+from flask import Blueprint, json, request, current_app, abort
 from werkzeug import Headers
 
 
@@ -31,7 +31,7 @@ dumps = json.dumps
 cache_headers = Headers()
 cache_headers['Cache-Control'] = "max-age=3600, public"
 
-module = Module(__name__)
+module = Blueprint('webapi', __name__)
 
 
 def jsonwrapper(data):

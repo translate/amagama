@@ -20,10 +20,10 @@
 
 """JSON based public APIs for the translation memory server"""
 
-from flask import Module, request, current_app, render_template
+from flask import Blueprint, request, current_app, render_template
 from flaskext.wtf import Form, TextField, Required
 
-module = Module(__name__)
+module = Blueprint('webui', __name__)
 
 class TranslateForm(Form):
     uid = TextField('Text', validators=[Required()])

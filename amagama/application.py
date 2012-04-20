@@ -35,11 +35,11 @@ class AmagamaServer(Flask):
 
 def amagama_server_factory():
     app = AmagamaServer("settings.py", __name__)
-    app.register_module(webapi.module, url_prefix='/tmserver')
+    app.register_blueprint(webapi.module, url_prefix='/tmserver')
     app.secret_key = "foobar"
     try:
         import webui
-        app.register_module(webui.module, url_prefix='')
+        app.register_blueprint(webui.module, url_prefix='')
     except ImportError, e:
         logging.debug("The webui module could not be imported. The web interface is not enabled.")
     return app
