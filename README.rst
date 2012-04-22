@@ -9,14 +9,20 @@ Translate Toolkit's tmserver to PostgreSQL.
 
 Dependencies
 ------------
-* PostgreSQL (in theory works with 8.3, tested on 8.4)
+* Python2 (2.4+ should work, but other dependencies probably need 2.5+)
+* PostgreSQL (tested on 8.3 and 8.4)
 * Psycopg2
-* Flask (0.7 or later), Flask-Script, Flask-WTF
+* Flask (0.7 or later)
 * blinker
 * WSGI webserver (amagama will try cherrypy, werkzeug or python's
-  wsgiref in that order)
+  wsgiref in that order) unless running under apache, ningx, etc.
 * Translate Toolkit (1.8.0+)
-* python-Levenshtein (for better performance)
+
+Optional:
+* For management commands: Flask-Sript
+* For the web UI: Flask-WTF
+* For better performance: python-Levenshtein
+* For better performance: psyco (if available for your platform)
 
 
 Installation
