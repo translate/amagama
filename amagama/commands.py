@@ -25,7 +25,7 @@ from translate.storage import factory
 
 from flask import current_app
 
-from flaskext.script import Command, Option
+from flaskext.script import Command, Option, prompt_bool
 
 class InitDB(Command):
     """create database tables"""
@@ -35,6 +35,17 @@ class InitDB(Command):
 
     def run(self, source_langs):
         current_app.tmdb.init_db(source_langs)
+
+class DeployDB(Command):
+    """Optimise the database for deployment."""
+
+    def run(self):
+        if prompt_bool("This will permanently alter the database. Continue?"):
+            tmdb = current_app.tmdb
+            cursor = tmdb.get_cursor()
+            cursor.execute(tmdb.DEPLOY_QUERY % {'slang': 'en'})
+            tmdb.connection.commit()
+
 
 class TMDBStats(Command):
     """Print some (possibly) interesting figures about the TM DB."""

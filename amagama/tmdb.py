@@ -101,6 +101,14 @@ CREATE TABLE targets_%(slang)s (
 CREATE UNIQUE INDEX targets_%(slang)s_unique_idx ON targets_%(slang)s (sid, text, lang);
 """
 
+    DEPLOY_QUERY = """
+ALTER TABLE sources_%(slang)s DROP CONSTRAINT sources_%(slang)s_pkey CASCADE;
+ALTER TABLE targets_%(slang)s DROP COLUMN tid;
+DROP INDEX sources_%(slang)s_text_hash_idx;
+DROP INDEX targets_%(slang)s_unique_idx;
+CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, text);
+"""
+
     def __init__(self, *args, **kwargs):
         super(TMDB, self).__init__(*args, **kwargs)
         # initialize list of source languages
