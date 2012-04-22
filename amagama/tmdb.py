@@ -85,10 +85,9 @@ CREATE TABLE sources_%(slang)s (
     sid SERIAL PRIMARY KEY,
     text TEXT NOT NULL,
     vector TSVECTOR NOT NULL,
-    hash VARCHAR(32) NOT NULL,
-    length INTEGER NOT NULL,
-    UNIQUE(hash)
+    length INTEGER NOT NULL
 );
+CREATE INDEX sources_%(slang)s_text_hash_idx ON sources_%(slang)s USING hash(text);
 CREATE INDEX sources_%(slang)s_length_idx ON sources_%(slang)s (length);
 CREATE INDEX sources_%(slang)s_text_idx ON sources_%(slang)s USING gin(vector);
 """
@@ -122,6 +121,7 @@ CREATE INDEX targets_%(slang)s_lang_idx ON targets_%(slang)s (lang);
         if not self.function_exists('array_agg'):
             cursor.execute(self.ARRAY_AGG_CODE)
         if not self.function_exists('prepare_ortsquery'):
+            print "prepare_ortsquery not there"
             cursor.execute(self.INIT_FUNCTIONS)
 
         for slang in source_langs:
@@ -173,14 +173,14 @@ CREATE INDEX targets_%(slang)s_lang_idx ON targets_%(slang)s (lang);
                     cursor.execute(query)
                 cursor.connection.commit()
 
-            query = """SELECT sid FROM sources_%s WHERE hash=MD5(%%(source)s)""" % slang
+            query = """SELECT sid FROM sources_%s WHERE text=%%(source)s""" % slang
             cursor.execute(query, unit)
             result = cursor.fetchone()
             if result:
                 unit['sid'] = result['sid']
             else:
-                query = """INSERT INTO sources_%s (text, vector, hash, length) VALUES(
-                %%(source)s, TO_TSVECTOR(%%(lang_config)s, %%(source)s), MD5(%%(source)s), %%(length)s)
+                query = """INSERT INTO sources_%s (text, vector, length) VALUES(
+                %%(source)s, TO_TSVECTOR(%%(lang_config)s, %%(source)s), %%(length)s)
                 RETURNING sid""" % slang
                 cursor.execute(query, unit)
                 unit['sid'] = cursor.fetchone()['sid']
