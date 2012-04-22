@@ -120,7 +120,6 @@ CREATE UNIQUE INDEX targets_%(slang)s_unique_idx ON targets_%(slang)s (sid, text
         if not self.function_exists('array_agg'):
             cursor.execute(self.ARRAY_AGG_CODE)
         if not self.function_exists('prepare_ortsquery'):
-            print "prepare_ortsquery not there"
             cursor.execute(self.INIT_FUNCTIONS)
 
         for slang in source_langs:
