@@ -96,13 +96,12 @@ CREATE TABLE targets_%(slang)s (
     tid SERIAL PRIMARY KEY,
     sid INTEGER NOT NULL,
     text TEXT NOT NULL,
-    hash VARCHAR(32) NOT NULL,
     lang VARCHAR(32) NOT NULL,
-    FOREIGN KEY (sid) references sources_%(slang)s(sid),
-    UNIQUE(sid, lang, hash)
+    FOREIGN KEY (sid) references sources_%(slang)s(sid)
 );
 CREATE INDEX targets_%(slang)s_sid_idx ON targets_%(slang)s (sid);
 CREATE INDEX targets_%(slang)s_lang_idx ON targets_%(slang)s (lang);
+CREATE UNIQUE INDEX targets_%(slang)s_unique_idx ON targets_%(slang)s (sid, text, lang);
 """
 
     def __init__(self, *args, **kwargs):
@@ -186,11 +185,11 @@ CREATE INDEX targets_%(slang)s_lang_idx ON targets_%(slang)s (lang);
                 unit['sid'] = cursor.fetchone()['sid']
 
             query = """SELECT COUNT(*) FROM targets_%s WHERE
-            sid=%%(sid)s AND lang=%%(target_lang)s AND hash=MD5(%%(target)s)""" % slang
+            sid=%%(sid)s AND lang=%%(target_lang)s AND text=%%(target)s""" % slang
             cursor.execute(query, unit)
             if not cursor.fetchone()[0]:
-                query = """INSERT INTO targets_%s (sid, text, hash, lang) VALUES (
-                %%(sid)s, %%(target)s, MD5(%%(target)s), %%(target_lang)s)""" % slang
+                query = """INSERT INTO targets_%s (sid, text, lang) VALUES (
+                %%(sid)s, %%(target)s, %%(target_lang)s)""" % slang
                 cursor.execute(query, unit)
 
             if commit:
