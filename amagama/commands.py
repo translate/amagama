@@ -36,6 +36,47 @@ class InitDB(Command):
     def run(self, source_langs):
         current_app.tmdb.init_db(source_langs)
 
+class TMDBStats(Command):
+    """Print some (possibly) interesting figures about the TM DB."""
+
+    def run(self):
+        cursor = current_app.tmdb.get_cursor()
+        db_name = current_app.config.get("DB_NAME")
+        query = """SELECT
+            pg_size_pretty(pg_database_size(%s)),
+            pg_size_pretty(pg_total_relation_size('sources_en')),
+            pg_size_pretty(pg_total_relation_size('targets_en')),
+            pg_size_pretty(pg_relation_size('sources_en')),
+            pg_size_pretty(pg_relation_size('targets_en'))
+        ;"""
+        data = (
+            db_name,
+        )
+        cursor.execute(query, data)
+
+        result = cursor.fetchone()
+        print "Complete database (%s):\t" % db_name, result[0]
+        print "Complete size of sources_en:\t", result[1]
+        print "Complete size of targets_en:\t", result[2]
+        print "sources_en (table only):\t", result[3]
+        print "targets_en (table only):\t", result[4]
+
+        # On postgres 8.3 the casts below are required. They are not needed for
+        # postgres 8.4.
+        query = """COPY (
+            SELECT relname,
+                   indexrelname,
+                   pg_size_pretty(pg_relation_size(CAST(indexrelname as text)))
+            FROM pg_stat_all_indexes
+            WHERE schemaname = 'public'
+            ORDER BY pg_relation_size(CAST(indexrelname as text)) DESC
+        ) TO STDOUT
+        ;"""
+        print
+        print "Index sizes:"
+        cursor.copy_expert(query, sys.stdout)
+
+
 class BuildTMDB(Command):
     """Populate Translation Memory database from bilinugual translation files"""
 

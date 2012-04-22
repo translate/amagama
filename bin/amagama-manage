@@ -23,7 +23,7 @@ from flaskext.script import Manager
 
 from amagama.application import amagama_server_factory
 
-from amagama.commands import BuildTMDB, InitDB
+from amagama.commands import BuildTMDB, InitDB, TMDBStats
 from amagama.benchmark import BenchmarkTMDB
 
 app = amagama_server_factory()
@@ -33,6 +33,7 @@ manager = Manager(app)
 
 manager.add_command('build_tmdb', BuildTMDB())
 manager.add_command('initdb', InitDB())
+manager.add_command('tmdb_stats', TMDBStats())
 manager.add_command('benchmark_tmdb', BenchmarkTMDB())
 
 if __name__ == "__main__":
