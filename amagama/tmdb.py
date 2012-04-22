@@ -88,7 +88,6 @@ CREATE TABLE sources_%(slang)s (
     length INTEGER NOT NULL
 );
 CREATE INDEX sources_%(slang)s_text_hash_idx ON sources_%(slang)s USING hash(text);
-CREATE INDEX sources_%(slang)s_length_idx ON sources_%(slang)s (length);
 CREATE INDEX sources_%(slang)s_text_idx ON sources_%(slang)s USING gin(vector);
 """
     INIT_TARGET = """
@@ -99,8 +98,6 @@ CREATE TABLE targets_%(slang)s (
     lang VARCHAR(32) NOT NULL,
     FOREIGN KEY (sid) references sources_%(slang)s(sid)
 );
-CREATE INDEX targets_%(slang)s_sid_idx ON targets_%(slang)s (sid);
-CREATE INDEX targets_%(slang)s_lang_idx ON targets_%(slang)s (lang);
 CREATE UNIQUE INDEX targets_%(slang)s_unique_idx ON targets_%(slang)s (sid, text, lang);
 """
 
