@@ -18,7 +18,9 @@ Dependencies
   wsgiref in that order) unless running under apache, ningx, etc.
 * Translate Toolkit (1.8.0+)
 
+
 Optional:
+
 * For management commands: Flask-Sript
 * For the web UI: Flask-WTF
 * For better performance: python-Levenshtein
@@ -83,18 +85,21 @@ to launch amagama server listening on port 8888. Try ``amagama --help``
 for more options.
 
 After running you can test operation by visiting
-<http://localhost/tmserver/en/ar/unit/file>.
+<http://localhost:8888/tmserver/en/ar/unit/file>.
 
-This should display a JSON representation of the english->arabic
+This should display a JSON representation of the English->Arabic
 translations for "file".
 
 
 Integrating with Virtaal
 ------------------------
-AmaGama implements the same protocol as tmserver, and can be used with
-Virtaal's remotetm plugin.
+Virtaal has a plugin for the public amaGama server since version 0.7 and it is
+enabled by default.
 
-In Virtaal go to *edit->preferences->plugins->Translation Memory->configure*
+AmaGama implements the same protocol as tmserver, and can be used with
+Virtaal's remotetm plugin, or other software that supports this.
+
+In Virtaal go to *Edit->Preferences->Plugins->Translation Memory->Configure*
 to make sure the remote server plugin is enabled and then close Virtaal.
 
 Edit ``~/.virtaal/tm.ini`` and make sure there is a remotetm section that
@@ -115,6 +120,5 @@ TODO
 * keep track of file's mtime to avoid expensive reparses
 * use memcached to cache results
 * use more permanent caching of levenshtein distances?
-* use postgres built in levenshtein functions?
-* integrate with Pootle
+* use postgres' built-in Levenshtein functions?
 * document API
