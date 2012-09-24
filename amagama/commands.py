@@ -95,9 +95,23 @@ class BuildTMDB(Command):
         Option('--source-language', '-s', dest='slang'),
         Option('--target-language', '-t', dest='tlang'),
         Option('--input', '-i', dest='filename'),
+        Option('--profile', '-p', dest='profile_name'),
     )
 
-    def run(self, slang, tlang, filename):
+    def run(self, slang, tlang, filename, profile_name):
+        """Wrapper to implement profiling if requested."""
+        if profile_name:
+            import cProfile
+            from translate.misc.profiling import KCacheGrind
+            profiler = cProfile.Profile()
+            profiler.runcall(self.real_run, slang, tlang, filename)
+            profile_file = open(profile_name, 'w+')
+            KCacheGrind(profiler).output(profile_file)
+            profile_file.close()
+        else:
+            self.real_run(slang, tlang, filename)
+
+    def real_run(self, slang, tlang, filename):
         self.source_lang = slang
         self.target_lang = tlang
 
