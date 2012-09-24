@@ -30,12 +30,19 @@ from translate.search.lshtein import LevenshteinComparer
 
 from amagama.postgres import PostGres
 
+
+_table_name_cache = {}
+
 def lang_to_table(code):
+    if code in _table_name_cache:
+        return _table_name_cache[code]
     # normalize to simplest form
     result = data.simplify_to_common(code)
     if data.langcode_ire.match(result):
         # normalize to legal table name
-        return result.replace("-", "_").replace("@", "_").lower()
+        table_name = result.replace("-", "_").replace("@", "_").lower()
+        _table_name_cache[code] = table_name
+        return table_name
     # illegal language name
     return None
 
