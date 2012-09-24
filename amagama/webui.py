@@ -21,7 +21,7 @@
 """JSON based public APIs for the translation memory server"""
 
 from flask import Blueprint, request, current_app, render_template
-from flaskext.wtf import Form, TextField, Required
+from flask.ext.wtf import Form, TextField, Required
 
 module = Blueprint('webui', __name__)
 

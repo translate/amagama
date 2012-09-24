@@ -26,7 +26,7 @@ from translate.storage import factory
 
 from flask import current_app
 
-from flaskext.script import Command, Option
+from flask.ext.script import Command, Option
 
 class BenchmarkTMDB(Command):
     """Benchmark the application by querying for all strings in the given file.

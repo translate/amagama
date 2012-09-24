@@ -25,7 +25,7 @@ from translate.storage import factory
 
 from flask import current_app
 
-from flaskext.script import Command, Option, prompt_bool
+from flask.ext.script import Command, Option, prompt_bool
 
 class InitDB(Command):
     """create database tables"""
