@@ -174,15 +174,6 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, text);
             if cursor is None:
                 cursor = self.get_cursor()
 
-            if slang not in self.source_langs:
-                if not self.table_exists('sources_%s' % slang):
-                    query = self.INIT_SOURCE % {'slang': slang}
-                    cursor.execute(query)
-                if not self.table_exists('targets_%s' % slang):
-                    query = self.INIT_TARGET % {'slang': slang}
-                    cursor.execute(query)
-                cursor.connection.commit()
-
             query = """SELECT sid FROM sources_%s WHERE text=%%(source)s""" % slang
             cursor.execute(query, unit)
             result = cursor.fetchone()
@@ -240,6 +231,7 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, text);
         slang = lang_to_table(source_lang)
         tlang = lang_to_table(target_lang)
         lang_config = lang_to_config(slang)
+        assert slang in self.source_langs
 
         count = 0
         try:
