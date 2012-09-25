@@ -71,6 +71,18 @@ def lang_to_config(code):
     return code_config_map.get(code, 'simple')
 
 
+def build_cache_key(text, code):
+    """Build a simple string to use as cache key.
+
+    For now this is not usable with memcached."""
+    return "%s\n%s" % (code, text)
+
+
+def split_cache_key(key):
+    """Give the source string inside the given composite cache key."""
+    return key.split('\n', 1)[1]
+
+
 class TMDB(PostGres):
     # array_agg() is only avaiable since Postgres 8.4, so we provide it if it
     # doesn't exist. This is from http://wiki.postgresql.org/wiki/Array_agg
@@ -147,6 +159,25 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, text);
                 cursor.execute(query)
         cursor.connection.commit()
 
+    def get_sid(self, unit_dict, cursor):
+        source = unit_dict['source']
+        slang = unit_dict['source_lang']
+        key = build_cache_key(source, slang)
+        sid = current_app.cache.get(key)
+        #TODO: when using memcached, check that we got the right one since
+        # collisions on key names are possible
+        if sid:
+            return sid
+
+        query = """SELECT sid FROM sources_%s WHERE text=%%(source)s""" % slang
+        cursor.execute(query, unit_dict)
+        result = cursor.fetchone()
+        if result:
+            sid = result['sid']
+            current_app.cache.set(key, sid)
+            return sid
+        raise Exception("sid not found although it should have existed")
+
     def add_unit(self, unit, source_lang, target_lang, commit=True, cursor=None):
         """inserts unit in the database"""
         #TODO: is that really the best way to handle unspecified
@@ -174,18 +205,7 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, text);
             if cursor is None:
                 cursor = self.get_cursor()
 
-            query = """SELECT sid FROM sources_%s WHERE text=%%(source)s""" % slang
-            cursor.execute(query, unit)
-            result = cursor.fetchone()
-            if result:
-                unit['sid'] = result['sid']
-            else:
-                query = """INSERT INTO sources_%s (text, vector, length) VALUES(
-                %%(source)s, TO_TSVECTOR(%%(lang_config)s, %%(source)s), %%(length)s)
-                RETURNING sid""" % slang
-                cursor.execute(query, unit)
-                unit['sid'] = cursor.fetchone()['sid']
-
+            unit['sid'] = self.get_sid(unit, cursor)
             query = """SELECT COUNT(*) FROM targets_%s WHERE
             sid=%%(sid)s AND lang=%%(target_lang)s AND text=%%(target)s""" % slang
             cursor.execute(query, unit)
@@ -200,6 +220,59 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, text);
             self.connection.rollback()
             raise
 
+    def get_all_sids(self, store, source_lang):
+        """Ensures that all source strings are in the database+cache."""
+        # TODO: we should not have to do this again here
+        all_sources = set(
+                unicode(u.source) for u in store.units if u.istranslated()
+        )
+
+        d = current_app.cache.get_dict(*(
+                build_cache_key(k, source_lang) for k in all_sources
+        ))
+        # filter out None results (keys not found)
+        already_cached = set(filter(lambda x: d[x] is not None, d))
+        # unmangle the key to get a source string
+        # TODO: update for memcached
+        already_cached = set(split_cache_key(k) for k in already_cached)
+
+        uncached = tuple(all_sources - already_cached)
+        if not uncached:
+            # Everything is already cached
+            return
+
+        cursor = self.get_cursor()
+        select_query = """SELECT text, sid FROM sources_%s WHERE
+        text IN %%(list)s""" % source_lang
+        cursor.execute(select_query, {"list": uncached})
+        already_stored = dict(cursor.fetchall())
+
+        to_store = all_sources - already_cached - set(already_stored)
+        if to_store:
+            # some source strings still need to be stored
+            insert_query = """INSERT INTO sources_%s (text, vector, length) VALUES(
+            %%(source)s, TO_TSVECTOR(%%(lang_config)s, %%(source)s), %%(length)s)
+            RETURNING sid""" % source_lang
+
+            lang_config = lang_to_config(source_lang)
+            params = [{
+                    "lang_config": lang_config,
+                    "source": s,
+                    "length": len(s),
+                } for s in to_store
+            ]
+            cursor.executemany(insert_query, params)
+
+            # get the inserted rows back so that we have their IDs
+            cursor.execute(select_query, {"list": tuple(to_store)})
+            newly_stored = dict(cursor.fetchall())
+            already_stored.update(newly_stored)
+
+        current_app.cache.set_many(
+                (build_cache_key(k, source_lang), v) \
+                for (k, v) in already_stored.iteritems()
+        )
+
     def add_store(self, store, source_lang, target_lang, commit=True):
         """insert all units in store in database"""
         slang = lang_to_table(source_lang)
@@ -209,6 +282,7 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, text);
 
         cursor = self.get_cursor()
         count = 0
+        self.get_all_sids(store, source_lang)
         for unit in store.units:
             if unit.istranslatable() and unit.istranslated():
                 source = unicode(unit.source)

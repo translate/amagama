@@ -115,6 +115,10 @@ class BuildTMDB(Command):
         self.source_lang = slang
         self.target_lang = tlang
 
+        # A simple local cache to help speed up imports
+        from werkzeug.contrib.cache import SimpleCache
+        current_app.cache = SimpleCache(threshold=100000)
+
         if not os.path.exists(filename):
             print >> sys.stderr, "cannot process %s: does not exist" % filename
         elif os.path.isdir(filename):
