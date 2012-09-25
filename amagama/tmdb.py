@@ -208,27 +208,20 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, text);
             self.connection.rollback()
             raise
 
-    def add_dict(self, unit, commit=True, cursor=None):
-        """inserts units represented as dictionaries in database"""
+    def add_dict(self, unit, cursor):
+        """Inserts units represented as dictionaries in database.
+
+        The caller is expected to handle errors.
+        """
         slang = unit['source_lang']
-        try:
-            if cursor is None:
-                cursor = self.get_cursor()
-
-            unit['sid'] = self.get_sid(unit, cursor)
-            query = """SELECT COUNT(*) FROM targets_%s WHERE
-            sid=%%(sid)s AND lang=%%(target_lang)s AND text=%%(target)s""" % slang
+        unit['sid'] = self.get_sid(unit, cursor)
+        query = """SELECT COUNT(*) FROM targets_%s WHERE
+        sid=%%(sid)s AND lang=%%(target_lang)s AND text=%%(target)s""" % slang
+        cursor.execute(query, unit)
+        if not cursor.fetchone()[0]:
+            query = """INSERT INTO targets_%s (sid, text, lang) VALUES (
+            %%(sid)s, %%(target)s, %%(target_lang)s)""" % slang
             cursor.execute(query, unit)
-            if not cursor.fetchone()[0]:
-                query = """INSERT INTO targets_%s (sid, text, lang) VALUES (
-                %%(sid)s, %%(target)s, %%(target_lang)s)""" % slang
-                cursor.execute(query, unit)
-
-            if commit:
-                self.connection.commit()
-        except:
-            self.connection.rollback()
-            raise
 
     def get_all_sids(self, units, source_lang):
         """Ensures that all source strings are in the database+cache."""
@@ -306,7 +299,7 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, text);
                 unit['target_lang'] = tlang
                 unit['lang_config'] = lang_config
                 unit['length'] = len(unit['source'])
-                self.add_dict(unit, commit=False, cursor=cursor)
+                self.add_dict(unit, cursor=cursor)
                 count += 1
             if commit:
                 self.connection.commit()
