@@ -220,12 +220,9 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, text);
             self.connection.rollback()
             raise
 
-    def get_all_sids(self, store, source_lang):
+    def get_all_sids(self, units, source_lang):
         """Ensures that all source strings are in the database+cache."""
-        # TODO: we should not have to do this again here
-        all_sources = set(
-                unicode(u.source) for u in store.units if u.istranslated()
-        )
+        all_sources = set(u['source'] for u in units)
 
         d = current_app.cache.get_dict(*(
                 build_cache_key(k, source_lang) for k in all_sources
@@ -275,29 +272,12 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, text);
 
     def add_store(self, store, source_lang, target_lang, commit=True):
         """insert all units in store in database"""
-        slang = lang_to_table(source_lang)
-        tlang = lang_to_table(target_lang)
-        lang_config = lang_to_config(slang)
-        assert slang in self.source_langs
+        units = [{
+            'source': unicode(u.source),
+            'target': unicode(u.target),
+        } for u in store.units if u.istranslatable() and u.istranslated()]
 
-        cursor = self.get_cursor()
-        count = 0
-        self.get_all_sids(store, source_lang)
-        for unit in store.units:
-            if unit.istranslatable() and unit.istranslated():
-                source = unicode(unit.source)
-                unitdict = {'source': source,
-                            'length': len(source),
-                            'target': unicode(unit.target),
-                            'source_lang': slang,
-                            'target_lang': tlang,
-                            'lang_config': lang_config,
-                }
-                self.add_dict(unitdict, commit=False, cursor=cursor)
-                count += 1
-        if commit:
-            self.connection.commit()
-        return count
+        return self.add_list(units, source_lang, target_lang, commit)
 
     def add_list(self, units, source_lang, target_lang, commit=True):
         """insert all units in list into the database, units are
@@ -307,6 +287,7 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, text);
         lang_config = lang_to_config(slang)
         assert slang in self.source_langs
 
+        self.get_all_sids(units, source_lang)
         count = 0
         try:
             cursor = self.get_cursor()
