@@ -211,11 +211,24 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, text);
 
     def add_store(self, store, source_lang, target_lang, commit=True):
         """insert all units in store in database"""
+        slang = lang_to_table(source_lang)
+        tlang = lang_to_table(target_lang)
+        lang_config = lang_to_config(slang)
+        assert slang in self.source_langs
+
         cursor = self.get_cursor()
         count = 0
         for unit in store.units:
             if unit.istranslatable() and unit.istranslated():
-                self.add_unit(unit, source_lang, target_lang, commit=False, cursor=cursor)
+                source = unicode(unit.source)
+                unitdict = {'source': source,
+                            'length': len(source),
+                            'target': unicode(unit.target),
+                            'source_lang': slang,
+                            'target_lang': tlang,
+                            'lang_config': lang_config,
+                }
+                self.add_dict(unitdict, commit=False, cursor=cursor)
                 count += 1
         if commit:
             self.connection.commit()
