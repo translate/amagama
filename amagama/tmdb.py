@@ -106,7 +106,7 @@ CREATE TABLE sources_%(slang)s (
     vector TSVECTOR NOT NULL,
     length INTEGER NOT NULL
 );
-CREATE INDEX sources_%(slang)s_text_hash_idx ON sources_%(slang)s USING hash(text);
+CREATE UNIQUE INDEX sources_%(slang)s_text_unique_idx ON sources_%(slang)s (text);
 CREATE INDEX sources_%(slang)s_text_idx ON sources_%(slang)s USING gin(vector);
 """
     INIT_TARGET = """
@@ -123,7 +123,7 @@ CREATE UNIQUE INDEX targets_%(slang)s_unique_idx ON targets_%(slang)s (sid, text
     DEPLOY_QUERY = """
 ALTER TABLE sources_%(slang)s DROP CONSTRAINT sources_%(slang)s_pkey CASCADE;
 ALTER TABLE targets_%(slang)s DROP COLUMN tid;
-DROP INDEX sources_%(slang)s_text_hash_idx;
+DROP INDEX sources_%(slang)s_text_unique_idx;
 DROP INDEX targets_%(slang)s_unique_idx;
 CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, text);
 """
