@@ -187,16 +187,26 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, text);
         tlang = lang_to_table(target_lang)
         lang_config = lang_to_config(slang)
 
-        source = unicode(unit.source)
-        unitdict = {'source': source,
-                    'length': len(source),
-                    'target': unicode(unit.target),
-                    'source_lang': slang,
-                    'target_lang': tlang,
-                    'lang_config': lang_config,
-                   }
+        try:
+            if cursor is None:
+                cursor = self.get_cursor()
 
-        self.add_dict(unitdict, commit)
+            source = unicode(unit.source)
+            unitdict = {'source': source,
+                        'length': len(source),
+                        'target': unicode(unit.target),
+                        'source_lang': slang,
+                        'target_lang': tlang,
+                        'lang_config': lang_config,
+                       }
+
+            self.add_dict(unitdict, cursor)
+
+            if commit:
+                self.connection.commit()
+        except:
+            self.connection.rollback()
+            raise
 
     def add_dict(self, unit, commit=True, cursor=None):
         """inserts units represented as dictionaries in database"""
