@@ -28,7 +28,7 @@ from flask import current_app, abort
 from translate.lang import data
 from translate.search.lshtein import LevenshteinComparer
 
-from amagama.postgres import PostGres
+from amagama import postgres
 
 
 _table_name_cache = {}
@@ -83,7 +83,7 @@ def split_cache_key(key):
     return key.split('\n', 1)[1]
 
 
-class TMDB(PostGres):
+class TMDB(postgres.PostGres):
     # array_agg() is only avaiable since Postgres 8.4, so we provide it if it
     # doesn't exist. This is from http://wiki.postgresql.org/wiki/Array_agg
     ARRAY_AGG_CODE = """
@@ -244,25 +244,54 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, text);
         cursor = self.get_cursor()
         select_query = """SELECT text, sid FROM sources_%s WHERE
         text IN %%(list)s""" % source_lang
-        cursor.execute(select_query, {"list": uncached})
-        already_stored = dict(cursor.fetchall())
 
-        to_store = all_sources - already_cached - set(already_stored)
+        to_store = set()
+        already_stored = {}
+        for i in range(1,4):
+            # During parallel import, another process could have INSERTed a
+            # record just after we SELECTed and just before we INSERTed,
+            # causing a duplicate key. So let's expect that and retry a few
+            # times before we give up:
+            try:
+                cursor.execute(select_query, {"list": uncached})
+                already_stored = dict(cursor.fetchall())
+
+                to_store = all_sources - already_cached - set(already_stored)
+                if not to_store:
+                    # Note that we could technically leak the savepoint
+                    # "before_sids" (below) if this is not the first iteration
+                    # of the loop. It shouldn't matter, and will be destroyed
+                    # when we commit anyway.
+                    break
+
+                # some source strings still need to be stored
+                insert_query = """INSERT INTO sources_%s (text, vector, length)
+                VALUES(
+                    %%(source)s,
+                    TO_TSVECTOR(%%(lang_config)s, %%(source)s),
+                    %%(length)s
+                ) RETURNING sid""" % source_lang
+
+                lang_config = lang_to_config(source_lang)
+                params = [{
+                        "lang_config": lang_config,
+                        "source": s,
+                        "length": len(s),
+                    } for s in to_store
+                ]
+
+                cursor.execute("SAVEPOINT before_sids")
+                cursor.executemany(insert_query, params)
+                cursor.execute("RELEASE SAVEPOINT before_sids")
+            except postgres.psycopg2.IntegrityError:
+                cursor.execute("ROLLBACK TO SAVEPOINT before_sids")
+            else:
+                # No exception means we can break the retry loop.
+                break
+        else:
+            raise Exception("Failed 3 times to import sources")
+
         if to_store:
-            # some source strings still need to be stored
-            insert_query = """INSERT INTO sources_%s (text, vector, length) VALUES(
-            %%(source)s, TO_TSVECTOR(%%(lang_config)s, %%(source)s), %%(length)s)
-            RETURNING sid""" % source_lang
-
-            lang_config = lang_to_config(source_lang)
-            params = [{
-                    "lang_config": lang_config,
-                    "source": s,
-                    "length": len(s),
-                } for s in to_store
-            ]
-            cursor.executemany(insert_query, params)
-
             # get the inserted rows back so that we have their IDs
             cursor.execute(select_query, {"list": tuple(to_store)})
             newly_stored = dict(cursor.fetchall())
@@ -291,16 +320,29 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, text);
         assert slang in self.source_langs
 
         self.get_all_sids(units, source_lang)
-        count = 0
+
         try:
             cursor = self.get_cursor()
-            for unit in units:
-                unit['source_lang'] = slang
-                unit['target_lang'] = tlang
-                unit['lang_config'] = lang_config
-                unit['length'] = len(unit['source'])
-                self.add_dict(unit, cursor=cursor)
-                count += 1
+            for i in range(1,4):
+                count = 0
+                try:
+                    cursor.execute("SAVEPOINT after_sids")
+                    for unit in units:
+                        unit['source_lang'] = slang
+                        unit['target_lang'] = tlang
+                        unit['lang_config'] = lang_config
+                        unit['length'] = len(unit['source'])
+                        self.add_dict(unit, cursor=cursor)
+                        count += 1
+                except postgres.psycopg2.IntegrityError:
+                    # Similar to above, it seems some other process inserted
+                    # the target before we could. Let's just ignore it, since
+                    # we don't need any information about it.
+                    cursor.execute("ROLLBACK TO SAVEPOINT after_sids")
+                else:
+                    # No exception means we can break the retry loop.
+                    break
+            cursor.execute("RELEASE SAVEPOINT after_sids")
             if commit:
                 self.connection.commit()
         except:

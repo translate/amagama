@@ -23,6 +23,8 @@
 
 from psycopg2.pool import PersistentConnectionPool
 from psycopg2.extras import DictCursor
+from psycopg2 import IntegrityError
+
 
 # setup unicode
 import psycopg2.extensions
