@@ -128,7 +128,6 @@ class BuildTMDB(Command):
         current_app.tmdb.connection.commit()
 
     def handlefile(self, filename):
-        print "Importing strings from:", filename
         try:
             store = factory.getobject(filename)
             source_lang = self.source_lang or store.getsourcelanguage()
@@ -138,10 +137,12 @@ class BuildTMDB(Command):
                 print >> sys.stderr, "Missing source or target language. Won't import", filename
                 return
         except Exception, e:
+            print >> sys.stderr, "Error while processing file:", filename
             print >> sys.stderr, str(e)
             return
         # do something useful with the store and db
         try:
+            print "Importing strings from:", filename
             current_app.tmdb.add_store(store, source_lang, target_lang, commit=False)
         except Exception, e:
             print e
