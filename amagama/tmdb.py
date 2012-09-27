@@ -279,6 +279,8 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, text);
                         "length": len(s),
                     } for s in to_store
                 ]
+                # We sort to avoid deadlocks during parallel import
+                params.sort(key=lambda x: x['source'])
 
                 cursor.execute("SAVEPOINT before_sids")
                 cursor.executemany(insert_query, params)
@@ -323,6 +325,8 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, text);
 
         try:
             cursor = self.get_cursor()
+            # We sort to avoid deadlocks during parallel import
+            units.sort(key=lambda x: x['target'])
             for i in range(1,4):
                 count = 0
                 try:
