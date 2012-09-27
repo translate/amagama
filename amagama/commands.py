@@ -146,6 +146,10 @@ class BuildTMDB(Command):
             if not source_lang or not target_lang:
                 print >> sys.stderr, "Missing source or target language. Won't import", filename
                 return
+        except ValueError, e:
+            if not "Unknown filetype" in e.message:
+                print >> sys.stderr, str(e)
+            return
         except Exception, e:
             print >> sys.stderr, "Error while processing file:", filename
             print >> sys.stderr, str(e)
