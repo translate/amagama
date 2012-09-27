@@ -126,7 +126,6 @@ class BuildTMDB(Command):
             self.handledir(filename)
         else:
             self.handlefile(filename)
-        current_app.tmdb.connection.commit()
 
     def handlefile(self, filename):
         try:
@@ -157,7 +156,7 @@ class BuildTMDB(Command):
         # do something useful with the store and db
         try:
             print "Importing strings from:", filename
-            current_app.tmdb.add_store(store, source_lang, target_lang, commit=False)
+            current_app.tmdb.add_store(store, source_lang, target_lang, commit=True)
         except Exception, e:
             print e
             raise
