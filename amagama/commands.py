@@ -22,6 +22,7 @@ import sys
 import os
 
 from translate.storage import factory
+from translate.lang.data import langcode_ire
 
 from flask import current_app
 
@@ -132,6 +133,15 @@ class BuildTMDB(Command):
             store = factory.getobject(filename)
             source_lang = self.source_lang or store.getsourcelanguage()
             target_lang = self.target_lang or store.gettargetlanguage()
+
+            if not target_lang:
+               short = os.path.splitext(os.path.split(filename)[1])[0]
+               if langcode_ire.match(short):
+                   target_lang = short
+               else:
+                   short = os.path.split(os.path.split(filename)[0])[1]
+                   if langcode_ire.match(short) and short != 'po':
+                       target_lang = short
 
             if not source_lang or not target_lang:
                 print >> sys.stderr, "Missing source or target language. Won't import", filename
