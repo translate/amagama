@@ -1,0 +1,10 @@
+auto: true
+
+name: amaGama
+description: Web service for implementing a large-scale translation memory.
+latest_version: 0.
+author: Translate House
+
+about_url: http://translatehouse.org/about.html
+docs_url: http://translate.sourceforge.net/wiki/amagama/index
+gh_url: https://github.com/translate/amagama
