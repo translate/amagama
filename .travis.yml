@@ -1,0 +1,17 @@
+# https://travis-ci.org/#!/translate/amagama
+language: python
+python:
+  - 2.5
+  - 2.6
+  - 2.7
+install:
+  - pip install --use-mirrors flask
+  - pip install --use-mirrors blinker
+  - pip install --use-mirrors translate-toolkit
+  - pip install --use-mirrors psycopg2
+  - pip install --use-mirrors python-Levenshtein
+  - python setup.py install
+notifications:
+  email:
+    on_failure: change
+    on_success: change
