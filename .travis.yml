@@ -10,7 +10,9 @@ install:
   - pip install --use-mirrors translate-toolkit
   - pip install --use-mirrors psycopg2
   - pip install --use-mirrors python-Levenshtein
-  - python setup.py install
+before_script:
+  - export PATH=`pwd`/bin:$PATH
+  - export PYTHONPATH=`pwd`:$PTYHONPATH
 notifications:
   email:
     on_failure: change
