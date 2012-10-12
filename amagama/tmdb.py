@@ -125,7 +125,7 @@ ALTER TABLE sources_%(slang)s DROP CONSTRAINT sources_%(slang)s_pkey CASCADE;
 ALTER TABLE targets_%(slang)s DROP COLUMN tid;
 DROP INDEX sources_%(slang)s_text_unique_idx;
 DROP INDEX targets_%(slang)s_unique_idx;
-CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, text);
+CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
 """
 
     def __init__(self, *args, **kwargs):
