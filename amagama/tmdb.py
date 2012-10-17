@@ -387,7 +387,6 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
 
         minrank = max(min_similarity / 2, 30)
 
-        search_str = unit_source
         cursor = self.get_cursor()
         query = """
 SELECT * from (SELECT s.text AS source, t.text AS target, TS_RANK(s.vector, query, 32) * 1744.93406073519 AS rank
@@ -397,7 +396,7 @@ SELECT * from (SELECT s.text AS source, t.text AS target, TS_RANK(s.vector, quer
     AND s.vector @@ query) sub WHERE rank > %%(minrank)s
     ORDER BY rank DESC
 """ % (slang, slang)
-        cursor.execute(query, {'search_str': search_str, 'source': unit_source,
+        cursor.execute(query, {'search_str': unit_source,
                                'tlang': tlang, 'lang_config': lang_config,
                                'minrank': minrank, 'minlen': minlen, 'maxlen': maxlen})
         results = []
