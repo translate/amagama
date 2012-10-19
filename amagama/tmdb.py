@@ -29,6 +29,7 @@ from translate.lang import data
 from translate.search.lshtein import LevenshteinComparer
 
 from amagama import postgres
+from amagama.normalise import indexing_version
 
 
 _table_name_cache = {}
@@ -69,6 +70,14 @@ code_config_map = {
 
 def lang_to_config(code):
     return code_config_map.get(code, 'simple')
+
+
+def project_checker(project_style):
+    if project_style:
+        from translate.filters.checks import projectcheckers
+        checker = projectcheckers.get(project_style, None)
+        if checker:
+            return checker()
 
 
 def build_cache_key(text, code):
@@ -222,7 +231,7 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
             %%(sid)s, %%(target)s, %%(target_lang)s)""" % slang
             cursor.execute(query, unit)
 
-    def get_all_sids(self, units, source_lang):
+    def get_all_sids(self, units, source_lang, project_style):
         """Ensures that all source strings are in the database+cache."""
         all_sources = set(u['source'] for u in units)
 
@@ -239,6 +248,11 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
         if not uncached:
             # Everything is already cached
             return
+
+        checker = project_checker(project_style)
+        if checker:
+            from translate.lang import factory
+            checker.config.sourcelang = factory.getlanguage(source_lang)
 
         cursor = self.get_cursor()
         select_query = """SELECT text, sid FROM sources_%s WHERE
@@ -267,7 +281,7 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
                 insert_query = """INSERT INTO sources_%s (text, vector, length)
                 VALUES(
                     %%(source)s,
-                    TO_TSVECTOR(%%(lang_config)s, %%(source)s),
+                    TO_TSVECTOR(%%(lang_config)s, %%(indexed_source)s),
                     %%(length)s
                 ) RETURNING sid""" % source_lang
 
@@ -275,6 +289,7 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
                 params = [{
                         "lang_config": lang_config,
                         "source": s,
+                        "indexed_source": indexing_version(s, checker),
                         "length": len(s),
                     } for s in to_store
                 ]
@@ -303,16 +318,16 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
                 for (k, v) in already_stored.iteritems()
         )
 
-    def add_store(self, store, source_lang, target_lang, commit=True):
+    def add_store(self, store, source_lang, target_lang, project_style=None, commit=True):
         """insert all units in store in database"""
         units = [{
             'source': unicode(u.source),
             'target': unicode(u.target),
         } for u in store.units if u.istranslatable() and u.istranslated()]
 
-        return self.add_list(units, source_lang, target_lang, commit)
+        return self.add_list(units, source_lang, target_lang, project_style, commit)
 
-    def add_list(self, units, source_lang, target_lang, commit=True):
+    def add_list(self, units, source_lang, target_lang, project_style=None, commit=True):
         """insert all units in list into the database, units are
         represented as dictionaries"""
         slang = lang_to_table(source_lang)
@@ -320,7 +335,7 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
         lang_config = lang_to_config(slang)
         assert slang in self.source_langs
 
-        self.get_all_sids(units, source_lang)
+        self.get_all_sids(units, source_lang, project_style)
 
         try:
             cursor = self.get_cursor()
