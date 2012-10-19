@@ -72,12 +72,15 @@ def lang_to_config(code):
     return code_config_map.get(code, 'simple')
 
 
-def project_checker(project_style):
+def project_checker(project_style, source_lang):
     if project_style:
         from translate.filters.checks import projectcheckers
         checker = projectcheckers.get(project_style, None)
         if checker:
-            return checker()
+            checker = checker()
+            from translate.lang import factory
+            checker.config.sourcelang = factory.getlanguage(source_lang)
+            return checker
 
 
 def build_cache_key(text, code):
@@ -249,10 +252,7 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
             # Everything is already cached
             return
 
-        checker = project_checker(project_style)
-        if checker:
-            from translate.lang import factory
-            checker.config.sourcelang = factory.getlanguage(source_lang)
+        checker = project_checker(project_style, source_lang)
 
         cursor = self.get_cursor()
         select_query = """SELECT text, sid FROM sources_%s WHERE
