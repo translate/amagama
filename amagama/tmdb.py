@@ -193,7 +193,6 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
 
             source = unicode(unit.source)
             unitdict = {'source': source,
-                        'length': len(source),
                         'target': unicode(unit.target),
                         'source_lang': slang,
                         'target_lang': tlang,
@@ -335,7 +334,6 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
                         unit['source_lang'] = slang
                         unit['target_lang'] = tlang
                         unit['lang_config'] = lang_config
-                        unit['length'] = len(unit['source'])
                         self.add_dict(unit, cursor=cursor)
                         count += 1
                 except postgres.psycopg2.IntegrityError:
