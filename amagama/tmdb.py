@@ -375,7 +375,8 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
         return self._comparer
     comparer = property(get_comparer)
 
-    def translate_unit(self, unit_source, source_lang, target_lang, min_similarity=None, max_candidates=None):
+    def translate_unit(self, unit_source, source_lang, target_lang, project_style=None,
+                       min_similarity=None, max_candidates=None):
         """return TM suggestions for unit_source"""
         slang = lang_to_table(source_lang)
         if slang not in self.source_langs:
@@ -390,6 +391,8 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
 
         if isinstance(unit_source, str):
             unit_source = unicode(unit_source, "utf-8")
+
+        checker = project_checker(project_style, source_lang)
 
         max_length = current_app.config.get('MAX_LENGTH', 1000)
         min_similarity = max(min_similarity or current_app.config.get('MIN_SIMILARITY', 70), 30)
@@ -409,7 +412,7 @@ SELECT * from (SELECT s.text AS source, t.text AS target, TS_RANK(s.vector, quer
     AND s.vector @@ query) sub WHERE rank > %%(minrank)s
     ORDER BY rank DESC
 """ % (slang, slang)
-        cursor.execute(query, {'search_str': unit_source,
+        cursor.execute(query, {'search_str': indexing_version(unit_source, checker),
                                'tlang': tlang, 'lang_config': lang_config,
                                'minrank': minrank, 'minlen': minlen, 'maxlen': maxlen})
         results = []
