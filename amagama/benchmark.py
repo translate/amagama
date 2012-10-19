@@ -39,6 +39,7 @@ class BenchmarkTMDB(Command):
     option_list = (
         Option('--source-language', '-s', dest='slang'),
         Option('--target-language', '-t', dest='tlang'),
+        Option('--project-style', dest='project_style'),
         Option('--min-similarity', '-m', dest='min_similarity', default=None,
                help="The minimum similarity for related strings (default: server configuration)"),
         Option('--max-candidates', '-n', dest='max_candidates', default=None,
@@ -47,9 +48,10 @@ class BenchmarkTMDB(Command):
                help="A file or directory to use"),
     )
 
-    def run(self, slang, tlang, min_similarity, max_candidates, filename):
+    def run(self, slang, tlang, project_style, min_similarity, max_candidates, filename):
         self.source_lang = slang
         self.target_lang = tlang
+        self.project_style = project_style
         self.min_similarity = min_similarity and int(min_similarity)
         self.max_candidates = max_candidates and int(max_candidates)
 
@@ -92,6 +94,7 @@ class BenchmarkTMDB(Command):
             store = factory.getobject(filename)
             source_lang = self.source_lang or store.getsourcelanguage()
             target_lang = self.target_lang or store.gettargetlanguage()
+            project_style = self.project_style or store.getprojectstyle()
             min_similarity = self.min_similarity
             max_candidates = self.max_candidates
 
@@ -108,7 +111,8 @@ class BenchmarkTMDB(Command):
                 if unit.istranslatable():
                     # We need an explicit unicode (not multistring), otherwise
                     # psycopg2 can't adapt it:
-                    translate_unit(unicode(unit.source), source_lang, target_lang, min_similarity, max_candidates)
+                    translate_unit(unicode(unit.source), source_lang, target_lang,
+                                   project_style, min_similarity, max_candidates)
         except Exception, e:
             print e
             raise
