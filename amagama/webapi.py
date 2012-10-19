@@ -85,7 +85,9 @@ def translate_unit(uid, slang, tlang):
     except ValueError:
         max_candidates = None
 
-    candidates = current_app.tmdb.translate_unit(uid, slang, tlang, min_similarity, max_candidates)
+    project_style = request.args.get('style', None)
+    candidates = current_app.tmdb.translate_unit(uid, slang, tlang, project_style,
+                                                 min_similarity, max_candidates)
     response = jsonwrapper(candidates)
     return current_app.response_class(response, mimetype='application/json', headers=cache_headers)
 
@@ -112,13 +114,15 @@ def upload_store(sid, slang, tlang):
     data.name = sid
     from translate.storage import factory
     store = factory.getobject(data)
-    count = current_app.tmdb.add_store(store, slang, tlang)
+    project_style = request.args.get('style', None)
+    count = current_app.tmdb.add_store(store, slang, tlang, project_style)
     response = "added %d units from %s" % (count, sid)
     return response
 
 def add_store(sid, slang, tlang):
     """Add unit from POST data to tmdb."""
     units = request.JSON
-    count = current_app.tmdb.add_list(units, slang, tlang)
+    project_style = request.args.get('style', None)
+    count = current_app.tmdb.add_list(units, slang, tlang, project_style)
     response = "added %d units from %s" % (count, sid)
     return response
