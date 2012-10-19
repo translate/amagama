@@ -400,13 +400,12 @@ SELECT * from (SELECT s.text AS source, t.text AS target, TS_RANK(s.vector, quer
                                'tlang': tlang, 'lang_config': lang_config,
                                'minrank': minrank, 'minlen': minlen, 'maxlen': maxlen})
         results = []
+        similarity = self.comparer.similarity
         for row in cursor:
-            result = {}
-            result['source'] = row['source']
-            result['target'] = row['target']
-            result['rank'] = row['rank']
-            result['quality'] = self.comparer.similarity(unit_source, result['source'], min_similarity)
-            if result['quality'] >= min_similarity:
+            quality = similarity(unit_source, row['source'], min_similarity)
+            if quality >= min_similarity:
+                result = dict(row)
+                result['quality'] = quality
                 results.append(result)
         results.sort(key=lambda match: match['quality'], reverse=True)
         results = results[:max_candidates]
