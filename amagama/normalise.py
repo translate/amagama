@@ -23,6 +23,7 @@
 def indexing_version(s, checker=None):
     """Trasform the given string to something more suitable for indexing."""
     s = strip_accelerator(s, checker)
+    s = fix_ellipses(s)
     return s
 
 
@@ -42,3 +43,13 @@ def strip_accelerator(s, checker):
         return s.replace(accel, u"", 1)
 
     return s
+
+
+def fix_ellipses(s):
+    """Fix inconsistent ellipses."""
+    # Note that the space before the ellipsis will cause postgres to index it as
+    # a lexeme
+    if s.endswith(u'...'):
+        return s[:-3] + u' …'
+    else:
+        return s.replace(u'…', u' …')
