@@ -95,26 +95,28 @@ class BuildTMDB(Command):
     option_list = (
         Option('--source-language', '-s', dest='slang'),
         Option('--target-language', '-t', dest='tlang'),
+        Option('--project-style', dest='project_style'),
         Option('--input', '-i', dest='filename'),
         Option('--profile', '-p', dest='profile_name'),
     )
 
-    def run(self, slang, tlang, filename, profile_name):
+    def run(self, slang, tlang, project_style, filename, profile_name):
         """Wrapper to implement profiling if requested."""
         if profile_name:
             import cProfile
             from translate.misc.profiling import KCacheGrind
             profiler = cProfile.Profile()
-            profiler.runcall(self.real_run, slang, tlang, filename)
+            profiler.runcall(self.real_run, slang, tlang, project_style, filename)
             profile_file = open(profile_name, 'w+')
             KCacheGrind(profiler).output(profile_file)
             profile_file.close()
         else:
-            self.real_run(slang, tlang, filename)
+            self.real_run(slang, tlang, project_style, filename)
 
-    def real_run(self, slang, tlang, filename):
+    def real_run(self, slang, tlang, project_style, filename):
         self.source_lang = slang
         self.target_lang = tlang
+        self.project_style = project_style
 
         # A simple local cache to help speed up imports
         from werkzeug.contrib.cache import SimpleCache
@@ -132,6 +134,7 @@ class BuildTMDB(Command):
             store = factory.getobject(filename)
             source_lang = self.source_lang or store.getsourcelanguage()
             target_lang = self.target_lang or store.gettargetlanguage()
+            project_style = self.project_style or store.getprojectstyle()
 
             if not target_lang:
                short = os.path.splitext(os.path.split(filename)[1])[0]
@@ -156,7 +159,7 @@ class BuildTMDB(Command):
         # do something useful with the store and db
         try:
             print "Importing strings from:", filename
-            current_app.tmdb.add_store(store, source_lang, target_lang, commit=True)
+            current_app.tmdb.add_store(store, source_lang, target_lang, project_style, commit=True)
         except Exception, e:
             print e
             raise
