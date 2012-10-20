@@ -325,6 +325,9 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
             'target': unicode(u.target),
         } for u in store.units if u.istranslatable() and u.istranslated()]
 
+        #TODO: maybe filter out very short and very long strings?
+        if not units:
+            return 0
         return self.add_list(units, source_lang, target_lang, project_style, commit)
 
     def add_list(self, units, source_lang, target_lang, project_style=None, commit=True):
