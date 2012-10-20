@@ -398,8 +398,9 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
         min_similarity = max(min_similarity or current_app.config.get('MIN_SIMILARITY', 70), 30)
         max_candidates = max_candidates or current_app.config.get('MAX_CANDIDATES', 5)
 
-        minlen = min_levenshtein_length(len(unit_source), min_similarity)
-        maxlen = max_levenshtein_length(len(unit_source), min_similarity, max_length)
+        source_len = len(unit_source)
+        minlen = min_levenshtein_length(source_len, min_similarity)
+        maxlen = max_levenshtein_length(source_len, min_similarity, max_length)
 
         minrank = max(min_similarity / 2, 30)
 
