@@ -13,18 +13,24 @@ Request possible TM matches from the server.
 
 Example:
 
-  http://amagama.locamotion.org/tmserver/en/af/unit/Computer
+http://amagama.locamotion.org/tmserver/en/af/unit/Computer
 
-Construction:
+Construction::
 
   $(server)/tmserver/$(source_language)/$(target_language)/unit/$(query)
 
 Where:
 
-| server                  | The URL of the Amagama server  |
-| source_language  | Source language in Gettext format i.e. ISO639_ISO3166 e.g. en, en_GB, fr  |
-| target_language   | Target language e.g. ar, hi  |
-| query                   | The URL escaped string to be queried  |
++------------------+---------------------------------------+
+| server           | The URL of the Amagama server         |
++------------------+---------------------------------------+
+| source_language  | Source language in Gettext format i.e.|
+|                  | ISO639_ISO3166 e.g. en, en_GB, fr     |
++------------------+---------------------------------------+
+| target_language  | Target language e.g. ar, hi           |
++------------------+---------------------------------------+
+| query            | The URL escaped string to be queried  |
++------------------+---------------------------------------+
 
 .. _pages/amagama/api#tm_suggestion_results:
 
@@ -33,10 +39,16 @@ TM suggestion results
 
 The results from a TM suggestion request are provided in JSON format.  It is a list containing zero, 1 or multiple results. The results contain the following fields:
 
-| source  | Matching unit's source language text  |
-| target   | Matching unit's target language test   |
-| quality  | A Levenshtein distance measure of quality as percent  |
-| rank     | ?  |
++----------+---------------------------------------+
+| source   | Matching unit's source language text  |
++----------+---------------------------------------+
+| target   | Matching unit's target language test  |
++----------+---------------------------------------+
+| quality  | A Levenshtein distance measure of     |
+|          | quality as percent                    |
++----------+---------------------------------------+
+| rank     | ?                                     |
++----------+---------------------------------------+
 
 An example:
 
