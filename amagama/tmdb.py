@@ -171,6 +171,12 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
                 cursor.execute(query)
         cursor.connection.commit()
 
+    def drop_db(self, source_langs):
+        for slang in source_langs:
+            slang = lang_to_table(slang)
+            self.drop_table('sources_%s' % slang)
+            self.drop_table('targets_%s' % slang)
+
     def get_sid(self, unit_dict, cursor):
         source = unit_dict['source']
         slang = unit_dict['source_lang']

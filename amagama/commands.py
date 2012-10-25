@@ -37,6 +37,17 @@ class InitDB(Command):
     def run(self, source_langs):
         current_app.tmdb.init_db(source_langs)
 
+class DropDB(Command):
+    """Drop the database."""
+    option_list = (
+        Option('--source-language', '-s', dest='source_langs', action='append'),
+    )
+
+    def run(self, source_langs):
+        if prompt_bool("This will permanently destroy all data in the configured database. Continue?"):
+            current_app.tmdb.drop_db(source_langs)
+
+
 class DeployDB(Command):
     """Optimise the database for deployment."""
 
