@@ -7,3 +7,8 @@
 
 # /docs/
 /docs/_build/
+
+# Ignore stuff from the 'gh-pages' branch
+_layouts/
+_site/
+assets/
