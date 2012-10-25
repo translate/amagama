@@ -1,10 +1,7 @@
-API
----
-
-The following pages cover the documentation of Pootle from a wide variety of
-perspectives, including user's, server administrator's, and developer's view.
+Developers
+----------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    api
