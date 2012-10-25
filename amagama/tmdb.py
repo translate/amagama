@@ -337,6 +337,10 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
         tlang = lang_to_table(target_lang)
         lang_config = lang_to_config(slang)
         assert slang in self.source_langs
+        if slang == tlang:
+            # These won't be returned when querying, so it is useless to even
+            # store them
+            return 0
 
         self.get_all_sids(units, source_lang, project_style)
 
