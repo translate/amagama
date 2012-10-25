@@ -4,3 +4,6 @@
 #vim
 .*.swp
 *~
+
+# /docs/
+/docs/_build/
