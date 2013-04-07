@@ -1,4 +1,3 @@
-
 .. _pages/amagama/api#amagama_api:
 
 Amagama API
@@ -35,7 +34,7 @@ Where:
 .. _pages/amagama/api#tm_suggestion_results:
 
 TM suggestion results
----------------------
+=====================
 
 The results from a TM suggestion request are provided in JSON format.  It is a list containing zero, 1 or multiple results. The results contain the following fields:
 
