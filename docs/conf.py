@@ -254,7 +254,7 @@ texinfo_documents = [
 intersphinx_mapping = {
     'python': ('http://docs.python.org/2.7', None),
     'django': ('http://django.readthedocs.org/en/latest/', None),
-    'toolkit': ('http://translate-toolkit.readthedocs.org/en/latest/', None),
+    'toolkit': ('http://docs.translatehouse.org/projects/translate-toolkit/en/latest/', None),
 }
 
 # -- Options for Gettext -------------------------------------------------
