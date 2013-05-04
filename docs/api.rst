@@ -1,57 +1,94 @@
-.. _pages/amagama/api#amagama_api:
+.. _api:
 
-Amagama API
+amaGama API
 ***********
 
-.. _pages/amagama/api#tm_suggestion_request:
+.. _api#tm-suggestion-request:
 
 TM suggestion request
 =====================
 
-Request possible TM matches from the server.
+The URL structure for requesting TM suggestions is
+``<SERVER>/tmserver/<SOURCE_LANGUAGE>/<TARGET_LANGUAGE>/unit/<QUERY>`` where:
 
-Example:
++-------------------+---------------------------------------+
+| Placeholder       | Description                           |
++===================+=======================================+
+| <SERVER>          | The URL of the amaGama server         |
++-------------------+---------------------------------------+
+| <SOURCE_LANGUAGE> | Source language code: de, en, en_GB   |
++-------------------+---------------------------------------+
+| <TARGET_LANGUAGE> | Target language: ar, es_AR, fr, hi    |
++-------------------+---------------------------------------+
+| <QUERY>           | The URL escaped string to be queried  |
++-------------------+---------------------------------------+
 
-http://amagama.locamotion.org/tmserver/en/af/unit/Computer
+.. note:: ``<SOURCE_LANGUAGE>`` and ``<TARGET_LANGUAGE>`` should be language
+   codes in the form of **LANG_COUNTRY** where *LANG* is mandatory. **LANG**
+   should be a language code from `ISO 639
+   <http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes>`_ and **COUNTRY** a
+   country code from `ISO 3166 <http://en.wikipedia.org/wiki/ISO_3166-1>`_. The
+   following are valid examples: ar, de, en, en_GB, es_AR, fr, gl, hi, tlh,...
 
-Construction::
 
-  $(server)/tmserver/$(source_language)/$(target_language)/unit/$(query)
+For example::
 
-Where:
+    http://amagama.locamotion.org/tmserver/en/af/unit/Computer
 
-+------------------+---------------------------------------+
-| server           | The URL of the Amagama server         |
-+------------------+---------------------------------------+
-| source_language  | Source language in Gettext format i.e.|
-|                  | ISO639_ISO3166 e.g. en, en_GB, fr     |
-+------------------+---------------------------------------+
-| target_language  | Target language e.g. ar, hi           |
-+------------------+---------------------------------------+
-| query            | The URL escaped string to be queried  |
-+------------------+---------------------------------------+
 
-.. _pages/amagama/api#tm_suggestion_results:
+.. _api#providing-options:
+
+Providing options
++++++++++++++++++
+
+It is possible to provide some options in the request URL by using a `query
+string <http://en.wikipedia.org/wiki/Query_string>`_ with one or more or the
+following fields.
+
+
++-------------------+-------------------------------------------+
+| Option            | Description                               |
++===================+===========================================+
+| min_similarity    | The minimum similarity between the string |
+|                   | to be searched and the strings to match.  |
+|                   | See :ref:`Levenshtein distance            |
+|                   | <toolkit:levenshtein_distance>`. Minimum  |
+|                   | possible value is 30. Default value is 70.|
++-------------------+-------------------------------------------+
+| max_candidates    | The maximum number of results. Default    |
+|                   | value is 5.                               |
++-------------------+-------------------------------------------+
+
+
+For example::
+
+    http://amagama.locamotion.org/tmserver/en/gl/unit/window?min_similarity=31&max_candidates=500
+
+
+.. _api#tm-suggestion-results:
 
 TM suggestion results
 =====================
 
-The results from a TM suggestion request are provided in JSON format.  It is a list containing zero, 1 or multiple results. The results contain the following fields:
+The results from a TM suggestion request are provided in JSON format. It is a
+list containing zero or more results. The results contain the following fields:
 
-+----------+---------------------------------------+
-| source   | Matching unit's source language text  |
-+----------+---------------------------------------+
-| target   | Matching unit's target language test  |
-+----------+---------------------------------------+
-| quality  | A Levenshtein distance measure of     |
-|          | quality as percent                    |
-+----------+---------------------------------------+
-| rank     | ?                                     |
-+----------+---------------------------------------+
++-----------+---------------------------------------+
+| Field     | Description                           |
++===========+=======================================+
+| source    | Matching unit's source language text  |
++-----------+---------------------------------------+
+| target    | Matching unit's target language test  |
++-----------+---------------------------------------+
+| quality   | A Levenshtein distance measure of     |
+|           | quality as percent                    |
++-----------+---------------------------------------+
+| rank      | ?                                     |
++-----------+---------------------------------------+
 
 An example:
 
-::
+.. code-block:: json
 
     [
       {
