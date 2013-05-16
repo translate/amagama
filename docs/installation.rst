@@ -23,6 +23,7 @@ amaGama requires the following dependencies:
 - **WSGI webserver**: amaGama will try *cherrypy*, *werkzeug* or python's *wsgiref*
   in that order, unless running under *apache*, *nginx*, etc.
 - **Translate Toolkit**: 1.8.0 or later.
+- **simplejson** (required for Python < 2.6 only; optional for 2.6 and later)
 
 
 .. _installation#optional-dependencies:
@@ -34,7 +35,7 @@ It also has some optional dependencies:
 
 - For management commands:
 
-  - **Flask-Sript**
+  - **Flask-Script**
 
 - For the web UI:
 

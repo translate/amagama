@@ -22,7 +22,7 @@ that looks like this:
     host = localhost
     port = 8888
 
-.. note:: If you are going to use a remote amaGama server this settings need to
+.. note:: If you are going to use a remote amaGama server this setting needs to
    be changed accordingly.
 
 Run Virtaal again. You should start seeing results from amaGama (they will be
