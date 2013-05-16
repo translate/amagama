@@ -34,7 +34,7 @@ It also has some optional dependencies:
 
 - For management commands:
 
-  - **Flask-Sript**
+  - **Flask-Script**
 
 - For the web UI:
 
