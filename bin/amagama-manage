@@ -19,8 +19,11 @@
 # along with translate; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from amagama import flaskext_compat
-flaskext_compat.activate()
+from flask import __version__
+
+if __version__ < 0.8:
+    from amagama import flaskext_compat
+    flaskext_compat.activate()
 
 from flask.ext.script import Manager
 
