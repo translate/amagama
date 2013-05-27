@@ -2,6 +2,7 @@
 *.pyc
 amagama/
 bin/
+docs/
 
 # LESS
 assets/less/bootstrap
