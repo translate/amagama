@@ -12,3 +12,6 @@
 _layouts/
 _site/
 assets/
+
+# Requirements generation
+.reqs

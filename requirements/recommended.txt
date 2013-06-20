@@ -1,0 +1,4 @@
+-r required.txt
+
+python-Levenshtein>=0.10.2
+Flask-Script>=0.3
