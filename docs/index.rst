@@ -10,8 +10,8 @@ releases of the software, but the `source code is available at Github
 <https://github.com/translate/amagama>`_.
 
 A `public deployment <http://amagama.locamotion.org>`_ of amaGama is available
-and is usable from `Virtaal <http://virtaal.org>`_ and the development version
-of `Pootle <http://pootle.translatehouse.org>`_.
+and is usable from `Virtaal <http://virtaal.org>`_ and `Pootle
+<http://pootle.translatehouse.org>`_.
 
 If you are able to help with extra hosting, even if just for specific languages,
 please contact the project developers.
