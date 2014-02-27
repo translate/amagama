@@ -33,6 +33,7 @@ psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
 
 from flask import g, got_request_exception
 
+
 class PostGres(object):
     INIT_SQL = None
 

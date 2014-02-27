@@ -28,6 +28,7 @@ from flask import current_app
 
 from flask.ext.script import Command, Option
 
+
 class BenchmarkTMDB(Command):
     """Benchmark the application by querying for all strings in the given file.
 

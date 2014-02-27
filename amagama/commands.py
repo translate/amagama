@@ -28,6 +28,7 @@ from flask import current_app
 
 from flask.ext.script import Command, Option, prompt_bool
 
+
 class InitDB(Command):
     """create database tables"""
     option_list = (
@@ -36,6 +37,7 @@ class InitDB(Command):
 
     def run(self, source_langs):
         current_app.tmdb.init_db(source_langs)
+
 
 class DropDB(Command):
     """Drop the database."""

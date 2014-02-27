@@ -34,6 +34,7 @@ from amagama.normalise import indexing_version
 
 _table_name_cache = {}
 
+
 def lang_to_table(code):
     if code in _table_name_cache:
         return _table_name_cache[code]
@@ -46,6 +47,7 @@ def lang_to_table(code):
         return table_name
     # illegal language name
     return None
+
 
 code_config_map = {
     'da': 'danish',
@@ -67,6 +69,7 @@ code_config_map = {
     'sv': 'swedish',
     'tr': 'turkish',
     }
+
 
 def lang_to_config(code):
     return code_config_map.get(code, 'simple')
@@ -444,6 +447,7 @@ SELECT * from (SELECT s.text AS source, t.text AS target, TS_RANK(s.vector, quer
 
 def min_levenshtein_length(length, min_similarity):
     return math.ceil(max(length * (min_similarity/100.0), 2))
+
 
 def max_levenshtein_length(length, min_similarity, max_length):
     return math.floor(min(length / (min_similarity/100.0), max_length))

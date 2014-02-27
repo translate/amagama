@@ -25,8 +25,10 @@ from flask.ext.wtf import Form, TextField, Required
 
 module = Blueprint('webui', __name__)
 
+
 class TranslateForm(Form):
     uid = TextField('Text', validators=[Required()])
+
 
 @module.route('/<slang>/<tlang>/unit', methods=('GET', 'POST'))
 def translate(slang, tlang):

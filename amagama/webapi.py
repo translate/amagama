@@ -52,6 +52,7 @@ def unit_dispatch_get(slang, tlang):
         return unit_dispatch(slang, tlang, uid)
     abort(404)
 
+
 @module.route('/<slang>/<tlang>/unit/<path:uid>', methods=('GET', 'POST', 'PUT'))
 def unit_dispatch(slang, tlang, uid):
     if request.method == 'GET':
@@ -64,6 +65,7 @@ def unit_dispatch(slang, tlang, uid):
         #FIXME: raise exception?
         pass
 
+
 @module.route('/<slang>/<tlang>/store/<path:sid>', methods=('POST', 'PUT'))
 def store_dispatch(slang, tlang, sid):
     if request.method == 'POST':
@@ -73,6 +75,7 @@ def store_dispatch(slang, tlang, sid):
     else:
         #FIXME: raise exception?
         pass
+
 
 def translate_unit(uid, slang, tlang):
     try:
@@ -91,6 +94,7 @@ def translate_unit(uid, slang, tlang):
     response = jsonwrapper(candidates)
     return current_app.response_class(response, mimetype='application/json', headers=cache_headers)
 
+
 def add_unit(uid, slang, tlang):
     from translate.storage import base
     data = request.json
@@ -99,6 +103,7 @@ def add_unit(uid, slang, tlang):
     current_app.tmdb.add_unit(unit, slang, tlang)
     return ""
 
+
 def update_unit(uid, slang, tlang):
     from translate.storage import base
     data = request.json
@@ -106,6 +111,7 @@ def update_unit(uid, slang, tlang):
     unit.target = data['target']
     current_app.tmdb.add_unit(unit, slang, tlang)
     return ""
+
 
 def upload_store(sid, slang, tlang):
     """add units from uploaded file to tmdb"""
@@ -118,6 +124,7 @@ def upload_store(sid, slang, tlang):
     count = current_app.tmdb.add_store(store, slang, tlang, project_style)
     response = "added %d units from %s" % (count, sid)
     return response
+
 
 def add_store(sid, slang, tlang):
     """Add unit from POST data to tmdb."""
