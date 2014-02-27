@@ -42,7 +42,6 @@ It also has some optional dependencies:
 - For better performance:
 
   - **python-Levenshtein**
-  - **psyco** (if available for your platform)
 
 
 .. _installation#installation:
