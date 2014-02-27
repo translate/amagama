@@ -9,9 +9,10 @@ amaGama is implemented in Python on top of PostgreSQL. There are currently no
 releases of the software, but the `source code is available at Github
 <https://github.com/translate/amagama>`_.
 
-A `public deployment <http://amagama.locamotion.org>`_ of amaGama is available
-and is usable from `Virtaal <http://virtaal.org>`_ and `Pootle
-<http://pootle.translatehouse.org>`_.
+A `public deployment
+<http://amagama.locamotion.org/tmserver/en/af/unit/Computer>`_ of amaGama is
+available (API only, no UI) and is usable from `Virtaal <http://virtaal.org>`_
+and `Pootle <http://pootle.translatehouse.org>`_.
 
 .. toctree::
    :maxdepth: 1
