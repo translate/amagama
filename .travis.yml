@@ -10,6 +10,7 @@ before_script:
   - export PYTHONPATH=`pwd``python -c 'import os, sys; print(os.pathsep.join(sys.path))'`
   - psql -c "CREATE DATABASE amagama WITH ENCODING 'UTF-8';" -U postgres
 script:
+  - python -m compileall -q -f .
   - make docs
   - amagama-manage initdb -s en
   - amagama-manage tmdb_stats
