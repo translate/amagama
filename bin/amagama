@@ -27,12 +27,23 @@ from amagama.application import amagama_server_factory
 
 def main():
     parser = ArgumentParser()
-    parser.add_argument("-b", "--bind", default="localhost",
-                      help="adress to bind server to (default: %(default)s)")
-    parser.add_argument("-p", "--port", type=int, default=8888,
-                      help="port to listen on (default: %(default)s)")
-    parser.add_argument("--debug", action="store_true", default=False,
-                      help="enable debugging features")
+    parser.add_argument(
+        "-b", "--bind",
+        default="localhost",
+        help="adress to bind server to (default: %(default)s)"
+    )
+    parser.add_argument(
+        "-p", "--port",
+        default=8888,
+        type=int,
+        help="port to listen on (default: %(default)s)"
+    )
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        default=False,
+        help="enable debugging features"
+    )
 
     args = parser.parse_args()
 
