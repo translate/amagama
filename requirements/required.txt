@@ -1,3 +1,4 @@
+argparse
 blinker>=0.9
 flask>=0.8
 psycopg2>=2.2

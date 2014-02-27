@@ -19,34 +19,34 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 import logging
-from optparse import OptionParser
+from argparse import ArgumentParser
 
 from translate.misc import wsgi
 
 from amagama.application import amagama_server_factory
 
 def main():
-    parser = OptionParser()
-    parser.add_option("-b", "--bind", dest="bind", default="localhost",
+    parser = ArgumentParser()
+    parser.add_argument("-b", "--bind", dest="bind", default="localhost",
                       help="adress to bind server to (default: localhost)")
-    parser.add_option("-p", "--port", dest="port", type="int", default=8888,
+    parser.add_argument("-p", "--port", dest="port", type=int, default=8888,
                       help="port to listen on (default: 8888)")
-    parser.add_option("--debug", action="store_true", dest="debug", default=False,
+    parser.add_argument("--debug", action="store_true", dest="debug", default=False,
                       help="enable debugging features")
 
-    (options, args) = parser.parse_args()
+    args = parser.parse_args()
 
     #setup debugging
     format = '%(asctime)s %(levelname)s %(message)s'
-    level = options.debug and logging.DEBUG or logging.WARNING
-    if options.debug:
+    level = args.debug and logging.DEBUG or logging.WARNING
+    if args.debug:
         format = '%(levelname)7s %(module)s.%(funcName)s:%(lineno)d: %(message)s'
 
     logging.basicConfig(level=level, format=format)
 
     application = amagama_server_factory()
 
-    wsgi.launch_server(options.bind, options.port, application)
+    wsgi.launch_server(args.bind, args.port, application)
 
 
 if __name__ == '__main__':
