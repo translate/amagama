@@ -148,13 +148,13 @@ class BuildTMDB(Command):
             project_style = self.project_style or store.getprojectstyle()
 
             if not target_lang:
-               short = os.path.splitext(os.path.split(filename)[1])[0]
-               if langcode_ire.match(short):
-                   target_lang = short
-               else:
-                   short = os.path.split(os.path.split(filename)[0])[1]
-                   if langcode_ire.match(short) and short != 'po':
-                       target_lang = short
+                short = os.path.splitext(os.path.split(filename)[1])[0]
+                if langcode_ire.match(short):
+                    target_lang = short
+                else:
+                    short = os.path.split(os.path.split(filename)[0])[1]
+                    if langcode_ire.match(short) and short != 'po':
+                        target_lang = short
 
             if not source_lang or not target_lang:
                 print >> sys.stderr, "Missing source or target language. Won't import", filename
