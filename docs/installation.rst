@@ -14,8 +14,7 @@ Dependencies
 
 amaGama requires the following dependencies:
 
-- **Python 2**: 2.4 or later should work, but other dependencies probably need
-  2.5 or later.
+- **Python 2**: 2.6 or later.
 - **PostgreSQL**: Tested on 8.3 and 8.4.
 - **Psycopg2**
 - **Flask**: 0.7 or later.
@@ -23,7 +22,6 @@ amaGama requires the following dependencies:
 - **WSGI webserver**: amaGama will try *cherrypy*, *werkzeug* or python's *wsgiref*
   in that order, unless running under *apache*, *nginx*, etc.
 - **Translate Toolkit**: 1.8.0 or later.
-- **simplejson** (required for Python < 2.6 only; optional for 2.6 and later)
 
 
 .. _installation#optional-dependencies:
