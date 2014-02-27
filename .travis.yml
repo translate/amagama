@@ -4,13 +4,8 @@ python:
   - 2.6
   - 2.7
 install:
-  - pip install --use-mirrors flask
-  - pip install --use-mirrors Flask-Script
-  - pip install --use-mirrors blinker
-  - pip install --use-mirrors translate-toolkit
-  - pip install --use-mirrors psycopg2
-  - pip install --use-mirrors python-Levenshtein
-  - pip install --use-mirrors sphinx
+  - pip install -r requirements/recommended.txt
+  - pip install sphinx
 before_script:
   - export PATH=`pwd`/bin:$PATH
   - export PYTHONPATH=`pwd``python -c 'import sys, os; print os.pathsep.join(sys.path)'`
