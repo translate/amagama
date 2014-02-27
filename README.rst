@@ -38,6 +38,13 @@ Resources
 - IRC: `#pootle on irc.freenode.org <irc://irc.freenode.net/#pootle>`_
 
 
+Copying
+-------
+
+amaGama is released under the GNU General Public License, version 3 or later.
+See the LICENSE file for details.
+
+
 TODO
 ----
 * Simple web interface
