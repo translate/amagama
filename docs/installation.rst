@@ -52,6 +52,7 @@ checkout:
 .. code-block:: bash
 
    (amagama) $ git clone https://github.com/translate/amagama.git
+   (amagama) $ cd amagama
 
 
 .. _installation#requirements:
