@@ -27,11 +27,13 @@ from flask import Flask
 
 from amagama import webapi, tmdb
 
+
 class AmagamaServer(Flask):
     def __init__(self, settings, *args, **kwargs):
         super(AmagamaServer, self).__init__(*args, **kwargs)
         self.config.from_pyfile(settings)
         self.tmdb = tmdb.TMDB(self)
+
 
 def amagama_server_factory():
     app = AmagamaServer("settings.py", __name__)

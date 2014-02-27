@@ -25,7 +25,7 @@ import os
 # this part is only required when running from checkout instead of an install
 import sys
 ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
-sys.path.insert(0, ROOT_DIR) # Top level directory
+sys.path.insert(0, ROOT_DIR)  # Top level directory
 
 import amagama.application
 

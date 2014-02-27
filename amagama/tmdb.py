@@ -34,6 +34,7 @@ from amagama.normalise import indexing_version
 
 _table_name_cache = {}
 
+
 def lang_to_table(code):
     if code in _table_name_cache:
         return _table_name_cache[code]
@@ -46,6 +47,7 @@ def lang_to_table(code):
         return table_name
     # illegal language name
     return None
+
 
 code_config_map = {
     'da': 'danish',
@@ -67,6 +69,7 @@ code_config_map = {
     'sv': 'swedish',
     'tr': 'turkish',
     }
+
 
 def lang_to_config(code):
     return code_config_map.get(code, 'simple')
@@ -266,7 +269,7 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
 
         to_store = set()
         already_stored = {}
-        for i in range(1,4):
+        for i in range(1, 4):
             # During parallel import, another process could have INSERTed a
             # record just after we SELECTed and just before we INSERTed,
             # causing a duplicate key. So let's expect that and retry a few
@@ -320,7 +323,7 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
             already_stored.update(newly_stored)
 
         current_app.cache.set_many(
-                (build_cache_key(k, source_lang), v) \
+                (build_cache_key(k, source_lang), v)
                 for (k, v) in already_stored.iteritems()
         )
 
@@ -354,7 +357,7 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
             cursor = self.get_cursor()
             # We sort to avoid deadlocks during parallel import
             units.sort(key=lambda x: x['target'])
-            for i in range(1,4):
+            for i in range(1, 4):
                 count = 0
                 try:
                     cursor.execute("SAVEPOINT after_sids")
@@ -444,6 +447,7 @@ SELECT * from (SELECT s.text AS source, t.text AS target, TS_RANK(s.vector, quer
 
 def min_levenshtein_length(length, min_similarity):
     return math.ceil(max(length * (min_similarity/100.0), 2))
+
 
 def max_levenshtein_length(length, min_similarity, max_length):
     return math.floor(min(length / (min_similarity/100.0), max_length))

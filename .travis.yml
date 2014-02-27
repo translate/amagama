@@ -4,8 +4,8 @@ python:
   - 2.6
   - 2.7
 install:
+  - pip install -r requirements/travis.txt
   - pip install -r requirements/recommended.txt
-  - pip install sphinx
 before_script:
   - export PATH=`pwd`/bin:$PATH
   - export PYTHONPATH=`pwd``python -c 'import sys, os; print os.pathsep.join(sys.path)'`
@@ -15,6 +15,7 @@ script:
   - amagama-manage initdb -s en
   - amagama-manage tmdb_stats
   - yes | amagama-manage dropdb -s en
+  - pep8.sh travis
 notifications:
   email:
     on_failure: always
