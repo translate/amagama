@@ -320,7 +320,7 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
             already_stored.update(newly_stored)
 
         current_app.cache.set_many(
-                (build_cache_key(k, source_lang), v) \
+                (build_cache_key(k, source_lang), v)
                 for (k, v) in already_stored.iteritems()
         )
 
