@@ -94,7 +94,7 @@ An example:
       {
         "source": "Computer",
         "quality": 100.0,
-        "target": "Rekenaar", 
+        "target": "Rekenaar",
         "rank": 100.0
       },
       {
@@ -105,20 +105,20 @@ An example:
        },
        {
          "source": "&Computer",
-         "quality": 88.888888888888886, 
-         "target": "Rekenaar", 
+         "quality": 88.888888888888886,
+         "target": "Rekenaar",
          "rank": 100.0
        },
        {
-         "source": "_Computer", 
-         "quality": 88.888888888888886, 
-         "target": "_Rekenaar", 
+         "source": "_Computer",
+         "quality": 88.888888888888886,
+         "target": "_Rekenaar",
          "rank": 100.0
        },
        {
          "source": "My Computer",
-         "quality": 72.727272727272734, 
-         "target": "My Rekenaar", 
+         "quality": 72.727272727272734,
+         "target": "My Rekenaar",
          "rank": 100.0
        }
      ]
