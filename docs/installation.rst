@@ -50,36 +50,38 @@ Installation
 ============
 
 
-.. _installation#code:
+.. _installation#getting-amagama:
 
-amaGama code
-------------
+Getting amaGama
+---------------
 
-There is no release version for amaGama code so you will need to run it from a
-git checkout:
+There is no package for amaGama, so you will need to run it from a git
+checkout:
 
 .. code-block:: bash
 
    $ git clone https://github.com/translate/amagama.git
 
 
-.. _installation#dependences:
+.. _installation#dependencies:
 
 Dependencies
 ------------
 
 We recommend that you use a virtualenv and virtualenv-wrappers to create a
-virtual environemnt:
+virtual environment:
 
 .. code-block:: bash
 
    $ mkvirtualenv amagama
+
 
 Then install the dependencies:
 
 .. code-block:: bash
 
    (amagama) $ pip install -r requirements/recommended.txt
+
 
 After installing the amaGama dependencies, you can safely start amaGama
 installation.
@@ -123,21 +125,23 @@ The next step is to adjust amaGama settings to include the right database
 connection configuration, and perhaps change any other setting. Check the
 :ref:`amaGama settings documentation <settings>` in order to know how to do it.
 
-.. note:: One simple change that you should most likely make on a toy intallation is to set:
+.. note:: One simple change that you should most likely make on a toy
+   installation is to set:
 
    .. code-block:: python
 
       DB_HOST = "localhost"
 
-   This is a side effect of how Postgres is installed on Ubuntu and other systems.
+   This is a side effect of how Postgres is installed on Ubuntu and other
+   systems.
 
 
-.. _installation#tools:
+.. _installation#commands:
 
-Making the tools accesible
---------------------------
+Making the commands accessible
+------------------------------
 
-Since amaGama is not installed we need to add its command to various paths:
+Since amaGama is not installed we need to make accessible its commands:
 
 .. code-block:: bash
 
@@ -150,8 +154,8 @@ Since amaGama is not installed we need to add its command to various paths:
 Preparing the database
 ----------------------
 
-The first step after editing the settings is to prepare database tables for each
-source language you will use (you can add more languages later):
+The first step after editing the settings is to prepare database tables for
+each source language you will use (you can add more languages later):
 
 .. code-block:: bash
 
