@@ -28,7 +28,7 @@ from translate.storage import factory
 
 
 class InitDB(Command):
-    """create database tables"""
+    """Create the database tables."""
     option_list = (
         Option('--source-language', '-s', dest='source_langs', action='append'),
     )
@@ -44,7 +44,8 @@ class DropDB(Command):
     )
 
     def run(self, source_langs):
-        if prompt_bool("This will permanently destroy all data in the configured database. Continue?"):
+        if prompt_bool("This will permanently destroy all data in the "
+                       "configured database. Continue?"):
             current_app.tmdb.drop_db(source_langs)
 
 
@@ -116,7 +117,8 @@ class BuildTMDB(Command):
             import cProfile
             from translate.misc.profiling import KCacheGrind
             profiler = cProfile.Profile()
-            profiler.runcall(self.real_run, slang, tlang, project_style, filename)
+            profiler.runcall(self.real_run, slang, tlang, project_style,
+                             filename)
             profile_file = open(profile_name, 'w+')
             KCacheGrind(profiler).output(profile_file)
             profile_file.close()
@@ -166,10 +168,12 @@ class BuildTMDB(Command):
         except Exception:
             logging.exception("Error while processing: %s" % filename)
             return
-        # do something useful with the store and db
+
+        # Do something useful with the store and the database.
         try:
             logging.info("Importing strings from: %s" % filename)
-            current_app.tmdb.add_store(store, source_lang, target_lang, project_style, commit=True)
+            current_app.tmdb.add_store(store, source_lang, target_lang,
+                                       project_style, commit=True)
         except Exception:
             logging.exception("Error importing strings from: %s" % filename)
             raise

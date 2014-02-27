@@ -105,8 +105,9 @@ class BenchmarkTMDB(Command):
                 if unit.istranslatable():
                     # We need an explicit unicode (not multistring), otherwise
                     # psycopg2 can't adapt it:
-                    translate_unit(unicode(unit.source), source_lang, target_lang,
-                                   project_style, min_similarity, max_candidates)
+                    translate_unit(unicode(unit.source), source_lang,
+                                   target_lang, project_style, min_similarity,
+                                   max_candidates)
         except Exception:
             logging.exception("Error when translating unit")
             raise

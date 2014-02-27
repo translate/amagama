@@ -36,18 +36,18 @@ _table_name_cache = {}
 def lang_to_table(code):
     if code in _table_name_cache:
         return _table_name_cache[code]
-    # normalize to simplest form
+    # Normalize to simplest form.
     result = data.simplify_to_common(code)
     if data.langcode_ire.match(result):
-        # normalize to legal table name
+        # Normalize to legal table name.
         table_name = result.replace("-", "_").replace("@", "_").lower()
         _table_name_cache[code] = table_name
         return table_name
-    # illegal language name
+    # Illegal language name.
     return None
 
 
-code_config_map = {
+CODE_CONFIG_MAP = {
     'da': 'danish',
     'nl': 'dutch',
     'en': 'english',
@@ -66,11 +66,11 @@ code_config_map = {
     'es': 'spanish',
     'sv': 'swedish',
     'tr': 'turkish',
-    }
+}
 
 
 def lang_to_config(code):
-    return code_config_map.get(code, 'simple')
+    return CODE_CONFIG_MAP.get(code, 'simple')
 
 
 def project_checker(project_style, source_lang):
@@ -87,7 +87,8 @@ def project_checker(project_style, source_lang):
 def build_cache_key(text, code):
     """Build a simple string to use as cache key.
 
-    For now this is not usable with memcached."""
+    For now this is not usable with memcached.
+    """
     return "%s\n%s" % (code, text)
 
 
@@ -106,6 +107,7 @@ STYPE=anyarray,
 INITCOND='{}'
 );
 """
+
     INIT_FUNCTIONS = """
 CREATE FUNCTION prepare_ortsquery(text) RETURNS text AS $$
     SELECT ARRAY_TO_STRING((SELECT ARRAY_AGG(quote_literal(token)) FROM TS_PARSE('default', $1) WHERE tokid != 12), '|');
@@ -122,6 +124,7 @@ CREATE TABLE sources_%(slang)s (
 CREATE UNIQUE INDEX sources_%(slang)s_text_unique_idx ON sources_%(slang)s (text);
 CREATE INDEX sources_%(slang)s_text_idx ON sources_%(slang)s USING gin(vector);
 """
+
     INIT_TARGET = """
 CREATE TABLE targets_%(slang)s (
     tid SERIAL PRIMARY KEY,
@@ -143,7 +146,7 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
 
     def __init__(self, *args, **kwargs):
         super(TMDB, self).__init__(*args, **kwargs)
-        # initialize list of source languages
+        # Initialize list of source languages.
         query = "SELECT relname FROM pg_class WHERE relkind='r' AND relname LIKE 'sources_%'"
         cursor = self.get_cursor()
         cursor.execute(query)
@@ -184,7 +187,7 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
         key = build_cache_key(source, slang)
         sid = current_app.cache.get(key)
         #TODO: when using memcached, check that we got the right one since
-        # collisions on key names are possible
+        # collisions on key names are possible.
         if sid:
             return sid
 
@@ -197,11 +200,12 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
             return sid
         raise Exception("sid not found although it should have existed")
 
-    def add_unit(self, unit, source_lang, target_lang, commit=True, cursor=None):
-        """inserts unit in the database"""
-        #TODO: is that really the best way to handle unspecified
-        # source and target languages? what about conflicts between
-        # unit attributes and passed arguments
+    def add_unit(self, unit, source_lang, target_lang, commit=True,
+                 cursor=None):
+        """Insert unit in the database."""
+        #TODO: is that really the best way to handle unspecified source and
+        # target languages? what about conflicts between unit attributes and
+        # passed arguments?
         slang = lang_to_table(source_lang)
         tlang = lang_to_table(target_lang)
         lang_config = lang_to_config(slang)
@@ -210,13 +214,13 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
             if cursor is None:
                 cursor = self.get_cursor()
 
-            source = unicode(unit.source)
-            unitdict = {'source': source,
-                        'target': unicode(unit.target),
-                        'source_lang': slang,
-                        'target_lang': tlang,
-                        'lang_config': lang_config,
-                       }
+            unitdict = {
+                'source': unicode(unit.source),
+                'target': unicode(unit.target),
+                'source_lang': slang,
+                'target_lang': tlang,
+                'lang_config': lang_config,
+            }
 
             self.add_dict(unitdict, cursor)
 
@@ -227,7 +231,7 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
             raise
 
     def add_dict(self, unit, cursor):
-        """Inserts units represented as dictionaries in database.
+        """Insert units represented as dictionaries in database.
 
         The caller is expected to handle errors.
         """
@@ -242,21 +246,21 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
             cursor.execute(query, unit)
 
     def get_all_sids(self, units, source_lang, project_style):
-        """Ensures that all source strings are in the database+cache."""
+        """Ensure that all source strings are in the database+cache."""
         all_sources = set(u['source'] for u in units)
 
         d = current_app.cache.get_dict(*(
                 build_cache_key(k, source_lang) for k in all_sources
         ))
-        # filter out None results (keys not found)
+        # Filter out None results (keys not found).
         already_cached = set(filter(lambda x: d[x] is not None, d))
-        # unmangle the key to get a source string
+        # Unmangle the key to get a source string.
         # TODO: update for memcached
         already_cached = set(split_cache_key(k) for k in already_cached)
 
         uncached = tuple(all_sources - already_cached)
         if not uncached:
-            # Everything is already cached
+            # Everything is already cached.
             return
 
         checker = project_checker(project_style, source_lang)
@@ -284,7 +288,7 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
                     # when we commit anyway.
                     break
 
-                # some source strings still need to be stored
+                # Some source strings still need to be stored.
                 insert_query = """INSERT INTO sources_%s (text, vector, length)
                 VALUES(
                     %%(source)s,
@@ -300,7 +304,7 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
                         "length": len(s),
                     } for s in to_store
                 ]
-                # We sort to avoid deadlocks during parallel import
+                # We sort to avoid deadlocks during parallel import.
                 params.sort(key=lambda x: x['source'])
 
                 cursor.execute("SAVEPOINT before_sids")
@@ -325,8 +329,9 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
                 for (k, v) in already_stored.iteritems()
         )
 
-    def add_store(self, store, source_lang, target_lang, project_style=None, commit=True):
-        """insert all units in store in database"""
+    def add_store(self, store, source_lang, target_lang, project_style=None,
+                  commit=True):
+        """Insert all units in store in database."""
         units = [{
             'source': unicode(u.source),
             'target': unicode(u.target),
@@ -335,34 +340,40 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
         #TODO: maybe filter out very short and very long strings?
         if not units:
             return 0
-        return self.add_list(units, source_lang, target_lang, project_style, commit)
+        return self.add_list(units, source_lang, target_lang, project_style,
+                             commit)
 
-    def add_list(self, units, source_lang, target_lang, project_style=None, commit=True):
-        """insert all units in list into the database, units are
-        represented as dictionaries"""
+    def add_list(self, units, source_lang, target_lang, project_style=None,
+                 commit=True):
+        """Insert all units in list into the database.
+
+        Units are represented as dictionaries.
+        """
         slang = lang_to_table(source_lang)
         tlang = lang_to_table(target_lang)
         lang_config = lang_to_config(slang)
         assert slang in self.source_langs
         if slang == tlang:
             # These won't be returned when querying, so it is useless to even
-            # store them
+            # store them.
             return 0
 
         self.get_all_sids(units, source_lang, project_style)
 
         try:
             cursor = self.get_cursor()
-            # We sort to avoid deadlocks during parallel import
+            # We sort to avoid deadlocks during parallel import.
             units.sort(key=lambda x: x['target'])
             for i in range(1, 4):
                 count = 0
                 try:
                     cursor.execute("SAVEPOINT after_sids")
                     for unit in units:
-                        unit['source_lang'] = slang
-                        unit['target_lang'] = tlang
-                        unit['lang_config'] = lang_config
+                        unit.update({
+                            'source_lang': slang,
+                            'target_lang': tlang,
+                            'lang_config': lang_config,
+                        })
                         self.add_dict(unit, cursor=cursor)
                         count += 1
                 except postgres.psycopg2.IntegrityError:
@@ -389,9 +400,10 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
             self._comparer = LevenshteinComparer(max_length)
         return self._comparer
 
-    def translate_unit(self, unit_source, source_lang, target_lang, project_style=None,
-                       min_similarity=None, max_candidates=None):
-        """return TM suggestions for unit_source"""
+    def translate_unit(self, unit_source, source_lang, target_lang,
+                       project_style=None, min_similarity=None,
+                       max_candidates=None):
+        """Return TM suggestions for unit_source."""
         slang = lang_to_table(source_lang)
         if slang not in self.source_langs:
             abort(404)
@@ -400,7 +412,7 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
         lang_config = lang_to_config(slang)
 
         if slang == tlang:
-            # We really don't want to serve en->en requests
+            # We really don't want to serve en->en requests.
             abort(404)
 
         if isinstance(unit_source, str):
@@ -427,9 +439,14 @@ SELECT * from (SELECT s.text AS source, t.text AS target, TS_RANK(s.vector, quer
     AND s.vector @@ query) sub WHERE rank > %%(minrank)s
     ORDER BY rank DESC
 """ % (slang, slang)
-        cursor.execute(query, {'search_str': indexing_version(unit_source, checker),
-                               'tlang': tlang, 'lang_config': lang_config,
-                               'minrank': minrank, 'minlen': minlen, 'maxlen': maxlen})
+        cursor.execute(query, {
+            'search_str': indexing_version(unit_source, checker),
+            'tlang': tlang,
+            'lang_config': lang_config,
+            'minrank': minrank,
+            'minlen': minlen,
+            'maxlen': maxlen,
+        })
         results = []
         similarity = self.comparer.similarity
         for row in cursor:

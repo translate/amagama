@@ -26,7 +26,7 @@ from psycopg2.extras import DictCursor
 from psycopg2.pool import PersistentConnectionPool
 
 
-# setup unicode
+# Setup unicode.
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
 
@@ -43,7 +43,8 @@ class PostGres(object):
 
     def cleanup(self, response):
         """Return connection to pool on request end."""
-        #FIXME: we should have better dirty detection, maybe wrap up insert queries?
+        #FIXME: we should have better dirty detection, maybe wrap up insert
+        # queries?
         if getattr(g, 'transaction_dirty', False):
             if response.status_code < 400:
                 self.connection.commit()
@@ -60,13 +61,14 @@ class PostGres(object):
 
     def init_app(self, app):
         self.app = app
-        # read config
-        db_args = {'minconn': app.config.get('DB_MIN_CONNECTIONS', 2),
-                   'maxconn': app.config.get('DB_MAX_CONNECTIONS', 20),
-                   'database': app.config.get('DB_NAME'),
-                   'user': app.config.get('DB_USER'),
-                   'password': app.config.get('DB_PASSWORD', ''),
-                   }
+        # Read config.
+        db_args = {
+            'minconn': app.config.get('DB_MIN_CONNECTIONS', 2),
+            'maxconn': app.config.get('DB_MAX_CONNECTIONS', 20),
+            'database': app.config.get('DB_NAME'),
+            'user': app.config.get('DB_USER'),
+            'password': app.config.get('DB_PASSWORD', ''),
+        }
         if 'DB_HOST' in app.config:
             db_args['host'] = app.config.get('DB_HOST')
         if 'DB_PORT' in app.config:
@@ -85,7 +87,7 @@ class PostGres(object):
         try:
             g.transaction_dirty = True
         except:
-            # using connection outside request context
+            # Using connection outside request context.
             pass
 
         return self.pool.getconn()
