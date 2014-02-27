@@ -56,12 +56,6 @@ class BenchmarkTMDB(Command):
         self.max_candidates = max_candidates and int(max_candidates)
 
         try:
-            import psyco
-            psyco.full()
-        except Exception:
-            pass
-
-        try:
             if not filename:
                 print >> sys.stderr, "Please specify a file or directory to use."
             elif not os.path.exists(filename):
