@@ -17,7 +17,7 @@ amaGama requires the following dependencies:
 - **Python 2**: 2.6 or later.
 - **PostgreSQL**: Tested on 8.3 and 8.4.
 - **Psycopg2**
-- **Flask**: 0.7 or later.
+- **Flask**: 0.8 or later.
 - **blinker**
 - **WSGI webserver**: amaGama will try *cherrypy*, *werkzeug* or python's *wsgiref*
   in that order, unless running under *apache*, *nginx*, etc.
