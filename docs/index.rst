@@ -13,9 +13,6 @@ A `public deployment <http://amagama.locamotion.org>`_ of amaGama is available
 and is usable from `Virtaal <http://virtaal.org>`_ and `Pootle
 <http://pootle.translatehouse.org>`_.
 
-If you are able to help with extra hosting, even if just for specific languages,
-please contact the project developers.
-
 .. toctree::
    :maxdepth: 1
 
