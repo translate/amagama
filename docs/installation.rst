@@ -3,8 +3,8 @@
 Installing amaGama
 ******************
 
-Want to try amaGama? This guide will guide you through installing amaGama and
-its requirements.
+Want to try amaGama? This will guide you through installing amaGama and its
+requirements.
 
 
 .. _installation#dependencies:
@@ -49,6 +49,38 @@ It also has some optional dependencies:
 Installation
 ============
 
+
+.. _installation#code:
+
+amaGama code
+------------
+
+There is no release version for amaGama code so you will need to run it from a
+git checkout:
+
+.. code-block:: bash
+
+   $ git clone https://github.com/translate/amagama.git
+
+
+.. _installation#dependences:
+
+Dependencies
+------------
+
+We recommend that you use a virtualenv and virtualenv-wrappers to create a
+virtual environemnt:
+
+.. code-block:: bash
+
+   $ mkvirtualenv amagama
+
+Then install the dependencies:
+
+.. code-block:: bash
+
+   (amagama) $ pip install -r requirements/recommended.txt
+
 After installing the amaGama dependencies, you can safely start amaGama
 installation.
 
@@ -90,6 +122,27 @@ Adjusting the settings
 The next step is to adjust amaGama settings to include the right database
 connection configuration, and perhaps change any other setting. Check the
 :ref:`amaGama settings documentation <settings>` in order to know how to do it.
+
+.. note:: One simple change that you should most likely make on a toy intallation is to set:
+
+   .. code-block:: python
+
+      DB_HOST = "localhost"
+
+   This is a side effect of how Postgres is installed on Ubuntu and other systems.
+
+
+.. _installation#tools:
+
+Making the tools accesible
+--------------------------
+
+Since amaGama is not installed we need to add its command to various paths:
+
+.. code-block:: bash
+
+   $ export PATH=$(pwd)/bin:$PATH
+   $ export PYTHONPATH=$(pwd):$PYTHONPATH
 
 
 .. _installation#preparing-database:
