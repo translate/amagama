@@ -116,8 +116,7 @@ An example:
          "rank": 100.0
        },
        {
-         "source": 
-         "My Computer", 
+         "source": "My Computer",
          "quality": 72.727272727272734, 
          "target": "My Rekenaar", 
          "rank": 100.0
