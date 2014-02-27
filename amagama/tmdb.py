@@ -266,7 +266,7 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
 
         to_store = set()
         already_stored = {}
-        for i in range(1,4):
+        for i in range(1, 4):
             # During parallel import, another process could have INSERTed a
             # record just after we SELECTed and just before we INSERTed,
             # causing a duplicate key. So let's expect that and retry a few
@@ -354,7 +354,7 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
             cursor = self.get_cursor()
             # We sort to avoid deadlocks during parallel import
             units.sort(key=lambda x: x['target'])
-            for i in range(1,4):
+            for i in range(1, 4):
                 count = 0
                 try:
                     cursor.execute("SAVEPOINT after_sids")
