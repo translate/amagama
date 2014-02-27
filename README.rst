@@ -43,14 +43,3 @@ Copying
 
 amaGama is released under the GNU General Public License, version 3 or later.
 See the LICENSE file for details.
-
-
-TODO
-----
-* Simple web interface
-* Custom index config for source languages not supported by default postgres install
-* Keep track of file's mtime to avoid expensive reparses
-* Use memcached to cache results
-* Use more permanent caching of levenshtein distances?
-* Use PostgreSQL built-in Levenshtein functions?
-* Document API
