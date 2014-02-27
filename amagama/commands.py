@@ -189,4 +189,3 @@ class BuildTMDB(Command):
             return
         entries = os.listdir(dirname)
         self.handlefiles(dirname, entries)
- 
