@@ -24,16 +24,10 @@ Consult the specifics for your operating system in order to get each above
 package installed successfully.
 
 
-.. _installation#installation:
-
-Installation
-============
-
-
 .. _installation#getting-amagama:
 
 Getting amaGama
----------------
+===============
 
 There is no package for amaGama, so you will need to run it from a git
 checkout:
@@ -46,7 +40,7 @@ checkout:
 .. _installation#dependencies:
 
 Dependencies
-------------
+============
 
 We recommend that you use a virtualenv and virtualenv-wrappers to create a
 virtual environment:
@@ -70,7 +64,7 @@ installation.
 .. _installation#creating-database:
 
 Creating the database
----------------------
+=====================
 
 amaGama requires a PostgreSQL database to store translations. So create an empty
 database, for example doing the following:
@@ -99,7 +93,7 @@ database, for example doing the following:
 .. _installation#adjust-settings:
 
 Adjusting the settings
-----------------------
+======================
 
 The next step is to adjust amaGama settings to include the right database
 connection configuration, and perhaps change any other setting. Check the
@@ -119,7 +113,7 @@ connection configuration, and perhaps change any other setting. Check the
 .. _installation#commands:
 
 Making the commands accessible
-------------------------------
+==============================
 
 Since amaGama is not installed we need to make accessible its commands:
 
@@ -132,7 +126,7 @@ Since amaGama is not installed we need to make accessible its commands:
 .. _installation#preparing-database:
 
 Preparing the database
-----------------------
+======================
 
 The first step after editing the settings is to prepare database tables for
 each source language you will use (you can add more languages later):
@@ -145,7 +139,7 @@ each source language you will use (you can add more languages later):
 .. _installation#next-steps:
 
 Next steps
-----------
+==========
 
 Now that you have managed to install amaGama you will probably want to know how
 to:
