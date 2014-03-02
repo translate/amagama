@@ -93,7 +93,7 @@ class BenchmarkTMDB(Command):
             if not source_lang or not target_lang:
                 print >> sys.stderr, "Missing source or target language. Can't use %s" % filename
                 return
-        except Exception, e:
+        except Exception as e:
             print >> sys.stderr, str(e)
             return
 
@@ -105,6 +105,6 @@ class BenchmarkTMDB(Command):
                     # psycopg2 can't adapt it:
                     translate_unit(unicode(unit.source), source_lang, target_lang,
                                    project_style, min_similarity, max_candidates)
-        except Exception, e:
+        except Exception as e:
             print e
             raise

@@ -41,6 +41,6 @@ def amagama_server_factory():
     try:
         import webui
         app.register_blueprint(webui.module, url_prefix='')
-    except ImportError, e:
+    except ImportError:
         logging.debug("The webui module could not be imported. The web interface is not enabled.")
     return app

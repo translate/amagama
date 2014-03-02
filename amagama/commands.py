@@ -158,11 +158,11 @@ class BuildTMDB(Command):
             if not source_lang or not target_lang:
                 print >> sys.stderr, "Missing source or target language. Won't import", filename
                 return
-        except ValueError, e:
+        except ValueError as e:
             if not "Unknown filetype" in str(e):
                 print >> sys.stderr, str(e)
             return
-        except Exception, e:
+        except Exception as e:
             print >> sys.stderr, "Error while processing file:", filename
             print >> sys.stderr, str(e)
             return
@@ -170,7 +170,7 @@ class BuildTMDB(Command):
         try:
             print "Importing strings from:", filename
             current_app.tmdb.add_store(store, source_lang, target_lang, project_style, commit=True)
-        except Exception, e:
+        except Exception as e:
             print e
             raise
 
