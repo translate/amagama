@@ -100,7 +100,7 @@ class TMDBStats(Command):
 
 
 class BuildTMDB(Command):
-    """Populate Translation Memory database from bilinugual translation files"""
+    """Populate Translation Memory database from bilingual translation files"""
 
     option_list = (
         Option('--source-language', '-s', dest='slang'),

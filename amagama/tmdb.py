@@ -97,7 +97,7 @@ def split_cache_key(key):
 
 
 class TMDB(postgres.PostGres):
-    # array_agg() is only avaiable since Postgres 8.4, so we provide it if it
+    # array_agg() is only available since Postgres 8.4, so we provide it if it
     # doesn't exist. This is from http://wiki.postgresql.org/wiki/Array_agg
     ARRAY_AGG_CODE = """
 CREATE AGGREGATE array_agg(anyelement) (
