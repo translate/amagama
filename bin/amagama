@@ -48,10 +48,12 @@ def main():
     args = parser.parse_args()
 
     #setup debugging
-    format = '%(asctime)s %(levelname)s %(message)s'
-    level = args.debug and logging.DEBUG or logging.WARNING
     if args.debug:
+        level = logging.DEBUG
         format = '%(levelname)7s %(module)s.%(funcName)s:%(lineno)d: %(message)s'
+    else:
+        level = logging.WARNING
+        format = '%(asctime)s %(levelname)s %(message)s'
 
     logging.basicConfig(level=level, format=format)
 
