@@ -51,19 +51,19 @@ checkout:
    (amagama) $ git clone https://github.com/translate/amagama.git
 
 
-.. _installation#dependencies:
+.. _installation#requirements:
 
-Dependencies
-============
+Installing the requirements
+===========================
 
-Then install the dependencies:
+Then install the requirements:
 
 .. code-block:: bash
 
    (amagama) $ pip install -r requirements/recommended.txt
 
 
-After installing the amaGama dependencies, you can safely start amaGama
+After installing the amaGama requirements, you can safely start amaGama
 installation.
 
 
