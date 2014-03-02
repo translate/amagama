@@ -18,6 +18,7 @@
 
 """Benchmarking commands."""
 
+import logging
 import os
 import sys
 
@@ -55,9 +56,9 @@ class BenchmarkTMDB(Command):
 
         try:
             if not filename:
-                print >> sys.stderr, "Please specify a file or directory to use."
+                logging.error("Please specify a file or directory to use.")
             elif not os.path.exists(filename):
-                print >> sys.stderr, "cannot process %s: does not exist" % filename
+                logging.error("Cannot process %s: does not exist" % filename)
             elif os.path.isdir(filename):
                 self.handledir(filename)
             else:
@@ -81,7 +82,7 @@ class BenchmarkTMDB(Command):
                 self.handlefile(pathname)
 
     def handlefile(self, filename):
-        print "%s:" % filename
+        logging.info("About to process %s:" % filename)
         try:
             store = factory.getobject(filename)
             source_lang = self.source_lang or store.getsourcelanguage()
@@ -91,10 +92,11 @@ class BenchmarkTMDB(Command):
             max_candidates = self.max_candidates
 
             if not source_lang or not target_lang:
-                print >> sys.stderr, "Missing source or target language. Can't use %s" % filename
+                logging.error("Missing source or target language. Can't use "
+                              "%s" % filename)
                 return
-        except Exception as e:
-            print >> sys.stderr, str(e)
+        except Exception:
+            logging.exception("Error while processing %s" % filename)
             return
 
         translate_unit = current_app.tmdb.translate_unit
@@ -105,6 +107,6 @@ class BenchmarkTMDB(Command):
                     # psycopg2 can't adapt it:
                     translate_unit(unicode(unit.source), source_lang, target_lang,
                                    project_style, min_similarity, max_candidates)
-        except Exception as e:
-            print e
+        except Exception:
+            logging.exception("Error when translating unit")
             raise

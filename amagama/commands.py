@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License along with
 # amaGama. If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 import os
 import sys
 
@@ -77,11 +78,11 @@ class TMDBStats(Command):
         cursor.execute(query, data)
 
         result = cursor.fetchone()
-        print "Complete database (%s):\t" % db_name, result[0]
-        print "Complete size of sources_en:\t", result[1]
-        print "Complete size of targets_en:\t", result[2]
-        print "sources_en (table only):\t", result[3]
-        print "targets_en (table only):\t", result[4]
+        logging.info("Complete database (%s):\t%s" % (db_name, result[0]))
+        logging.info("Complete size of sources_en:\t%s" % result[1])
+        logging.info("Complete size of targets_en:\t%s" % result[2])
+        logging.info("sources_en (table only):\t%s" % result[3])
+        logging.info("targets_en (table only):\t%s" % result[4])
 
         # On postgres 8.3 the casts below are required. They are not needed for
         # postgres 8.4.
@@ -94,8 +95,7 @@ class TMDBStats(Command):
             ORDER BY pg_relation_size(CAST(indexrelname as text)) DESC
         ) TO STDOUT
         ;"""
-        print
-        print "Index sizes:"
+        logging.info("\nIndex sizes:")
         cursor.copy_expert(query, sys.stdout)
 
 
@@ -133,7 +133,7 @@ class BuildTMDB(Command):
         current_app.cache = SimpleCache(threshold=100000)
 
         if not os.path.exists(filename):
-            print >> sys.stderr, "cannot process %s: does not exist" % filename
+            logging.error("Cannot process %s: does not exist" % filename)
         elif os.path.isdir(filename):
             self.handledir(filename)
         else:
@@ -156,22 +156,22 @@ class BuildTMDB(Command):
                         target_lang = short
 
             if not source_lang or not target_lang:
-                print >> sys.stderr, "Missing source or target language. Won't import", filename
+                logging.error("Missing source or target language. Won't "
+                              "import %s" % filename)
                 return
         except ValueError as e:
             if not "Unknown filetype" in str(e):
-                print >> sys.stderr, str(e)
+                logging.exception("Error while handling: %s" % filename)
             return
-        except Exception as e:
-            print >> sys.stderr, "Error while processing file:", filename
-            print >> sys.stderr, str(e)
+        except Exception:
+            logging.exception("Error while processing: %s" % filename)
             return
         # do something useful with the store and db
         try:
-            print "Importing strings from:", filename
+            logging.info("Importing strings from: %s" % filename)
             current_app.tmdb.add_store(store, source_lang, target_lang, project_style, commit=True)
-        except Exception as e:
-            print e
+        except Exception:
+            logging.exception("Error importing strings from: %s" % filename)
             raise
 
     def handlefiles(self, dirname, filenames):
