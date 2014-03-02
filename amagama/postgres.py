@@ -19,17 +19,16 @@
 
 """PostgreSQL access and helpers."""
 
-from psycopg2.pool import PersistentConnectionPool
-from psycopg2.extras import DictCursor
+import psycopg2.extensions
+from flask import g, got_request_exception
 from psycopg2 import IntegrityError
+from psycopg2.extras import DictCursor
+from psycopg2.pool import PersistentConnectionPool
 
 
 # setup unicode
-import psycopg2.extensions
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
-
-from flask import g, got_request_exception
 
 
 class PostGres(object):

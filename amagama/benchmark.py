@@ -18,14 +18,12 @@
 
 """Benchmarking commands."""
 
-import sys
 import os
-
-from translate.storage import factory
+import sys
 
 from flask import current_app
-
 from flask.ext.script import Command, Option
+from translate.storage import factory
 
 
 class BenchmarkTMDB(Command):

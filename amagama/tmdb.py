@@ -22,8 +22,7 @@
 import math
 import re
 
-from flask import current_app, abort
-
+from flask import abort, current_app
 from translate.lang import data
 from translate.search.lshtein import LevenshteinComparer
 

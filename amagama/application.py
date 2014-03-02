@@ -24,7 +24,7 @@ import logging
 
 from flask import Flask
 
-from amagama import webapi, tmdb
+from amagama import tmdb, webapi
 
 
 class AmagamaServer(Flask):

@@ -17,15 +17,13 @@
 # You should have received a copy of the GNU General Public License along with
 # amaGama. If not, see <http://www.gnu.org/licenses/>.
 
-import sys
 import os
-
-from translate.storage import factory
-from translate.lang.data import langcode_ire
+import sys
 
 from flask import current_app
-
 from flask.ext.script import Command, Option, prompt_bool
+from translate.lang.data import langcode_ire
+from translate.storage import factory
 
 
 class InitDB(Command):

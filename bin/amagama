@@ -24,6 +24,7 @@ from translate.misc import wsgi
 
 from amagama.application import amagama_server_factory
 
+
 def main():
     parser = ArgumentParser()
     parser.add_argument(
