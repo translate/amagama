@@ -24,6 +24,20 @@ Consult the specifics for your operating system in order to get each above
 package installed successfully.
 
 
+.. _installation#setup-virtualenv:
+
+Setting up a virtualenv
+=======================
+
+The use of virtualenvs allows to install all the requirements at specific
+versions without interfering with system-wide packages. To create a virtualenv
+just run:
+
+.. code-block:: bash
+
+   $ mkvirtualenv amagama
+
+
 .. _installation#getting-amagama:
 
 Getting amaGama
@@ -34,21 +48,13 @@ checkout:
 
 .. code-block:: bash
 
-   $ git clone https://github.com/translate/amagama.git
+   (amagama) $ git clone https://github.com/translate/amagama.git
 
 
 .. _installation#dependencies:
 
 Dependencies
 ============
-
-We recommend that you use a virtualenv and virtualenv-wrappers to create a
-virtual environment:
-
-.. code-block:: bash
-
-   $ mkvirtualenv amagama
-
 
 Then install the dependencies:
 
