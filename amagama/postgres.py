@@ -78,7 +78,8 @@ class PostGres(object):
 
         got_request_exception.connect(self.bailout, app)
 
-    def get_connection(self):
+    @property
+    def connection(self):
         """Get a thread local database connection object."""
         #FIXME: this is dirty can we detect when in request context?
         try:
@@ -88,7 +89,6 @@ class PostGres(object):
             pass
 
         return self.pool.getconn()
-    connection = property(get_connection)
 
     def get_cursor(self):
         """Get a database cursor object to be used for making queries."""

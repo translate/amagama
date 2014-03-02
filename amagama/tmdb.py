@@ -382,12 +382,12 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
 
         return count
 
-    def get_comparer(self):
+    @property
+    def comparer(self):
         if not hasattr(self, '_comparer'):
             max_length = current_app.config.get('MAX_LENGTH', 1000)
             self._comparer = LevenshteinComparer(max_length)
         return self._comparer
-    comparer = property(get_comparer)
 
     def translate_unit(self, unit_source, source_lang, target_lang, project_style=None,
                        min_similarity=None, max_candidates=None):
