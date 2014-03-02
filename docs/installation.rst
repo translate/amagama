@@ -16,81 +16,61 @@ amaGama requires the following dependencies:
 
 - **Python 2**: 2.6 or later.
 - **PostgreSQL**: Tested on 8.3 and 8.4.
-- **Psycopg2**
-- **Flask**: 0.8 or later.
-- **blinker**
-- **WSGI webserver**: amaGama will try *cherrypy*, *werkzeug* or python's *wsgiref*
-  in that order, unless running under *apache*, *nginx*, etc.
-- **Translate Toolkit**: 1.8.0 or later.
+- **git**: Necessary to get amaGama.
+- **virtualenv**: We strongly recommend its use.
+- **virtualenvwrapper**: To ease handling virtualenvs.
+
+Consult the specifics for your operating system in order to get each above
+package installed successfully.
 
 
-.. _installation#optional-dependencies:
+.. _installation#setup-virtualenv:
 
-Optional dependencies
----------------------
+Setting up a virtualenv
+=======================
 
-It also has some optional dependencies:
-
-- For management commands:
-
-  - **Flask-Script**
-
-- For the web UI:
-
-  - **Flask-WTF**
-
-- For better performance:
-
-  - **python-Levenshtein**
-
-
-.. _installation#installation:
-
-Installation
-============
-
-
-.. _installation#getting-amagama:
-
-Getting amaGama
----------------
-
-There is no package for amaGama, so you will need to run it from a git
-checkout:
-
-.. code-block:: bash
-
-   $ git clone https://github.com/translate/amagama.git
-
-
-.. _installation#dependencies:
-
-Dependencies
-------------
-
-We recommend that you use a virtualenv and virtualenv-wrappers to create a
-virtual environment:
+The use of virtualenvs allows to install all the requirements at specific
+versions without interfering with system-wide packages. To create a virtualenv
+just run:
 
 .. code-block:: bash
 
    $ mkvirtualenv amagama
 
 
-Then install the dependencies:
+.. _installation#getting-amagama:
+
+Getting amaGama
+===============
+
+There is no package for amaGama, so you will need to run it from a git
+checkout:
+
+.. code-block:: bash
+
+   (amagama) $ git clone https://github.com/translate/amagama.git
+
+
+.. _installation#requirements:
+
+Installing the requirements
+===========================
+
+Then install the requirements:
 
 .. code-block:: bash
 
    (amagama) $ pip install -r requirements/recommended.txt
 
 
-After installing the amaGama dependencies, you can safely start amaGama
+After installing the amaGama requirements, you can safely start amaGama
 installation.
 
 
 .. _installation#creating-database:
 
 Creating the database
----------------------
+=====================
 
 amaGama requires a PostgreSQL database to store translations. So create an empty
 database, for example doing the following:
@@ -119,7 +99,7 @@ database, for example doing the following:
 .. _installation#adjust-settings:
 
 Adjusting the settings
-----------------------
+======================
 
 The next step is to adjust amaGama settings to include the right database
 connection configuration, and perhaps change any other setting. Check the
@@ -139,7 +119,7 @@ connection configuration, and perhaps change any other setting. Check the
 .. _installation#commands:
 
 Making the commands accessible
-------------------------------
+==============================
 
 Since amaGama is not installed we need to make accessible its commands:
 
@@ -152,7 +132,7 @@ Since amaGama is not installed we need to make accessible its commands:
 .. _installation#preparing-database:
 
 Preparing the database
-----------------------
+======================
 
 The first step after editing the settings is to prepare database tables for
 each source language you will use (you can add more languages later):
@@ -165,7 +145,7 @@ each source language you will use (you can add more languages later):
 .. _installation#next-steps:
 
 Next steps
-----------
+==========
 
 Now that you have managed to install amaGama you will probably want to know how
 to:

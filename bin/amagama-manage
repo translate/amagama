@@ -20,13 +20,13 @@
 from flask.ext.script import Manager
 
 from amagama.application import amagama_server_factory
-
-from amagama.commands import BuildTMDB, InitDB, DropDB, DeployDB, TMDBStats
 from amagama.benchmark import BenchmarkTMDB
+from amagama.commands import BuildTMDB, DeployDB, DropDB, InitDB, TMDBStats
+
 
 app = amagama_server_factory()
-# configure your app
 
+# Configure the app.
 manager = Manager(app)
 
 manager.add_command('build_tmdb', BuildTMDB())
@@ -35,6 +35,7 @@ manager.add_command('dropdb', DropDB())
 manager.add_command('deploy_db', DeployDB())
 manager.add_command('tmdb_stats', TMDBStats())
 manager.add_command('benchmark_tmdb', BenchmarkTMDB())
+
 
 if __name__ == "__main__":
     manager.run()

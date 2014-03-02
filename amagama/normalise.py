@@ -32,7 +32,7 @@ def strip_accelerator(s, checker):
 
     accel = checker.config.accelmarkers[0]
     if s.count(accel) != 1:
-        # TODO: in mozilla, XML entities could mess this up
+        # TODO: in mozilla, XML entities could mess this up.
         return s
 
     accel_pos = s.find(accel)
@@ -46,8 +46,8 @@ def strip_accelerator(s, checker):
 
 def fix_ellipses(s):
     """Fix inconsistent ellipses."""
-    # Note that the space before the ellipsis will cause postgres to index it as
-    # a lexeme
+    # Note that the space before the ellipsis will cause postgres to index it
+    # as a lexeme.
     if s.endswith(u'...'):
         return s[:-3] + u' …'
     else:

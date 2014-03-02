@@ -1,3 +1,0 @@
--r recommended.txt
-
-Flask-WTF>=0.5.2

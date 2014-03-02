@@ -1,4 +1,7 @@
 -r required.txt
 
+# For better performance
 python-Levenshtein>=0.10.2
+
+# For management commands
 Flask-Script>=0.3

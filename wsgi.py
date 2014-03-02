@@ -18,12 +18,15 @@
 # amaGama. If not, see <http://www.gnu.org/licenses/>.
 
 import os
-
-# this part is only required when running from checkout instead of an install
 import sys
-ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
-sys.path.insert(0, ROOT_DIR)  # Top level directory
 
+# This part is only required when running from checkout instead of an install,
+# and only if PYTHONPATH was not exported before running.
+ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
+sys.path.insert(0, ROOT_DIR)  # Top level directory.
+
+# Keep this import after the path altering.
 import amagama.application
+
 
 application = amagama.application.amagama_server_factory()

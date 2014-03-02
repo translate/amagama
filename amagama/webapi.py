@@ -19,11 +19,10 @@
 
 """JSON based public APIs for the translation memory server"""
 
-from flask import Blueprint, json, request, current_app, abort
+from json import dumps
+
+from flask import Blueprint, abort, current_app, request
 from werkzeug import Headers
-
-
-dumps = json.dumps
 
 
 # Let's encourage caching for an hour:
