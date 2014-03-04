@@ -80,11 +80,11 @@ class TMDBStats(Command):
         cursor.execute(query, data)
 
         result = cursor.fetchone()
-        logging.info("Complete database (%s):\t%s" % (db_name, result[0]))
-        logging.info("Complete size of sources_en:\t%s" % result[1])
-        logging.info("Complete size of targets_en:\t%s" % result[2])
-        logging.info("sources_en (table only):\t%s" % result[3])
-        logging.info("targets_en (table only):\t%s" % result[4])
+        print("Complete database (%s):\t%s" % (db_name, result[0]))
+        print("Complete size of sources_en:\t%s" % result[1])
+        print("Complete size of targets_en:\t%s" % result[2])
+        print("sources_en (table only):\t%s" % result[3])
+        print("targets_en (table only):\t%s" % result[4])
 
         # On postgres 8.3 the casts below are required. They are not needed for
         # postgres 8.4.
