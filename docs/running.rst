@@ -3,6 +3,9 @@
 Running amaGama
 ***************
 
+.. note:: Please make sure that the command to run amaGama :ref:`is accessible
+   <installation#commands>`.
+
 The command :command:`amagama` will try to use the best pure Python WSGI server
 to launch amaGama server listening on port ``8888``. Try
 :command:`amagama --help` for more options.
