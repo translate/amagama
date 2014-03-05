@@ -5,17 +5,18 @@
 #
 # This file is part of amaGama.
 #
-# amaGama is free software: you can redistribute it and/or modify it under the
-# terms of the GNU General Public License as published by the Free Software
-# Foundation, either version 3 of the License, or (at your option) any later
-# version.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-# amaGama is distributed in the hope that it will be useful, but WITHOUT ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-# A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License along with
-# amaGama. If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
 import os
@@ -79,11 +80,11 @@ class TMDBStats(Command):
         cursor.execute(query, data)
 
         result = cursor.fetchone()
-        logging.info("Complete database (%s):\t%s" % (db_name, result[0]))
-        logging.info("Complete size of sources_en:\t%s" % result[1])
-        logging.info("Complete size of targets_en:\t%s" % result[2])
-        logging.info("sources_en (table only):\t%s" % result[3])
-        logging.info("targets_en (table only):\t%s" % result[4])
+        print("Complete database (%s):\t%s" % (db_name, result[0]))
+        print("Complete size of sources_en:\t%s" % result[1])
+        print("Complete size of targets_en:\t%s" % result[2])
+        print("sources_en (table only):\t%s" % result[3])
+        print("targets_en (table only):\t%s" % result[4])
 
         # On postgres 8.3 the casts below are required. They are not needed for
         # postgres 8.4.

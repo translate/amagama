@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" 
+          "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head><title>Translating {{ slang }} to {{ tlang }}</title></head>
+  <body>
+    <h1>Translating {{ slang }} to {{ tlang }}</h1>
+    <p class="translate-form">
+      <form method="POST" action="">
+	{{ form.hidden_tag() }}
+	{{ form.uid.label }} {{ form.uid(size=100) }}
+	<input type="submit" value="translate" />
+      </form>
+    </p>
+    {% if uid %}
+      <p>Translating: "{{ uid }}"</p>
+      {% if candidates %}
+        <table width="90%">
+	  <tr><th>Original Text</th><th>Translation</th>
+	    <th>Quality</th><th>Rank</th></tr>
+	  {% for candidate in candidates %}
+	    <tr><td>{{ candidate.source }}</td><td>{{ candidate.target }}</td>
+	      <td>{{ candidate.quality }}</td><td>{{ candidate.rank }}</td></tr>
+	  {% endfor %}
+	</table>
+      {% else %}
+	<p>No candidates found</p>
+      {% endif %}
+    {% endif %}
+</body>

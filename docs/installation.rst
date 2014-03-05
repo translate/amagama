@@ -16,8 +16,11 @@ amaGama requires the following dependencies:
 
 - **Python 2**: 2.6 or later.
 - **PostgreSQL**: Tested on 8.3 and 8.4.
+
+There are also some dependencies that we strongly recommend to use, but are optional:
+
 - **git**: Necessary to get amaGama.
-- **virtualenv**: We strongly recommend its use.
+- **virtualenv**: Provides an isolated environment or virtualenv.
 - **virtualenvwrapper**: To ease handling virtualenvs.
 
 Consult the specifics for your operating system in order to get each above
