@@ -1,0 +1,4 @@
+-r recommended.txt
+
+# For the web UI
+Flask-WTF>=0.5.2
