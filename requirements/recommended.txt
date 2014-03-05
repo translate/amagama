@@ -1,7 +1,8 @@
 -r required.txt
 
 # For better performance
-python-Levenshtein>=0.10.2
+# 0.11.0 is broken using pip, later versions are fixed
+python-Levenshtein>=0.10.2,!=0.11.0
 
 # For management commands
 Flask-Script>=0.3
