@@ -15,3 +15,4 @@ assets/
 
 # Requirements generation
 .reqs
+requirements/min-versions.txt
