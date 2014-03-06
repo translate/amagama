@@ -1,9 +1,0 @@
-blinker==0.9
-flask==0.7
-psycopg2==2.2
-translate-toolkit==1.8.0
-python-Levenshtein==0.10.2
-Flask-Script==0.3
-Flask-WTF==0.5.2
-#psyco==1.6
-Sphinx==1.1

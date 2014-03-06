@@ -11,7 +11,7 @@ help:
 
 # Perform forced build using -W for the (.PHONY) requirements target
 requirements:
-	$(MAKE) -W $(REQFILE) min-required.txt requirements.txt
+	$(MAKE) -W $(REQFILE) requirements/min-versions.txt requirements.txt
 
 REQS=.reqs
 REQFILE=requirements/recommended.txt
@@ -38,10 +38,21 @@ requirements.txt: $(REQFILE) requirements/required.txt # by inclusion
 	      sed -e 's/-\([0-9]\)/==\1/' -e 's/\.tar.*$$//') > $@;	\
 	 esac; 
 
-min-required.txt: requirements/*.txt
+requirements/min-versions.txt: requirements/*.txt
 	@if grep -q '>[0-9]' $^; then				\
 	   echo "Use '>=' not '>' for requirements"; exit 1;	\
 	 fi
 	@echo "creating $@"
-	@# uses `ls -r` to alphabetically reverse req files for better ordering
-	@cat `ls -r $^` | sed -n '/=/{s/>=/==/;s/<.*//;p;}' > $@
+	@echo "# Automatically generated: DO NOT EDIT" > $@
+	@echo "# Regenerate using 'make requirements'" >> $@
+	@echo "# ====================================" >> $@
+	@echo "# Minimum Requirements" >> $@
+	@echo "# ====================================" >> $@
+	@echo "#" >> $@
+	@echo "# These are the minimum versions of dependencies that the developers" >> $@
+	@echo "# claim will work." >> $@
+	@echo "#" >> $@
+	@echo "# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" >> $@
+	@echo "#" >> $@
+	@echo >> $@
+	@cat $^ | sed -n '/=/{s/>=/==/;s/,<.*//;p;}' >> $@
