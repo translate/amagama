@@ -25,6 +25,8 @@ from flask_wtf import Form
 from wtforms import TextField
 from wtforms.validators import Required
 
+from amagama.webapi import get_int_arg
+
 
 module = Blueprint('webui', __name__)
 
@@ -38,15 +40,8 @@ def translate(slang, tlang):
     form = TranslateForm()
     if form.validate_on_submit():
         uid = form.uid.data
-        try:
-            min_similarity = int(request.args.get('min_similarity', ''))
-        except ValueError:
-            min_similarity = None
-
-        try:
-            max_candidates = int(request.args.get('max_candidates', ''))
-        except ValueError:
-            max_candidates = None
+        min_similarity = get_int_arg(request, 'min_similarity')
+        max_candidates = get_int_arg(request, 'max_candidates')
 
         candidates = current_app.tmdb.translate_unit(uid, slang, tlang,
                                                      min_similarity,

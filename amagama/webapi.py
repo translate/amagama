@@ -83,17 +83,10 @@ def store_dispatch(slang, tlang, sid):
 
 def translate_unit(uid, slang, tlang):
     """Return the translations for the provided unit."""
-    try:
-        min_similarity = int(request.args.get('min_similarity', ''))
-    except ValueError:
-        min_similarity = None
-
-    try:
-        max_candidates = int(request.args.get('max_candidates', ''))
-    except ValueError:
-        max_candidates = None
-
+    min_similarity = get_int_arg(request, 'min_similarity')
+    max_candidates = get_int_arg(request, 'max_candidates')
     project_style = request.args.get('style', None)
+
     candidates = current_app.tmdb.translate_unit(uid, slang, tlang,
                                                  project_style, min_similarity,
                                                  max_candidates)
@@ -145,3 +138,15 @@ def add_store(sid, slang, tlang):
     count = current_app.tmdb.add_list(units, slang, tlang, project_style)
     response = "added %d units from %s" % (count, sid)
     return response
+
+
+###############################################################################
+# View helpers                                                                #
+###############################################################################
+
+def get_int_arg(request, arg_name):
+    """Return the specified integer argument from request, or None."""
+    try:
+        return int(request.args.get(arg_name, ''))
+    except:
+        return None
