@@ -36,8 +36,8 @@ module = Blueprint('webapi', __name__)
 def jsonwrapper(data):
     callback = request.args.get('jsoncallback')
     #FIXME: put indent only if DEBUG=True
-    #dump = dumps(data, indent=4)
-    dump = dumps(data)
+    #dump = dumps(data, ensure_ascii=False, indent=4, sort_keys=True)
+    dump = dumps(data, ensure_ascii=False, sort_keys=True)
     if callback:
         return '%s(%s)' % (callback, dump)
     else:
