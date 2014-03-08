@@ -73,6 +73,8 @@ def update_unit(uid, slang, tlang):
     """Update an existing unit."""
     from translate.storage import base
 
+    # FIXME: This is exactly the same code as in the add_unit() view, which
+    # only adds units, but doesn't update them.
     data = request.json
     unit = base.TranslationUnit(data['source'])
     unit.target = data['target']
