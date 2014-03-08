@@ -5,9 +5,6 @@ amaGama: a web translation memory server
 large-scale translation memory. A translation memory is a database of previous
 translations which can be searched to find good matches to new strings.
 
-.. note:: At this stage amaGama is just a prototype, it started as a port of
-   Translate Toolkit's tmserver to PostgreSQL.
-
 
 amaGama is a Server
 -------------------
