@@ -21,7 +21,7 @@
 """JSON based public APIs for the translation memory server"""
 
 from flask import Blueprint, current_app, render_template, request
-from flask.ext.wtf import Form
+from flask_wtf import Form
 from wtforms import TextField
 from wtforms.validators import Required
 
