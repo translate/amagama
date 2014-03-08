@@ -1,31 +1,29 @@
 amaGama: a web translation memory server
 ========================================
 
-`amaGama <http://amagama.translatehouse.org/>`_ is a web service implementing a
-large-scale translation memory. A translation memory is a database of previous
-translations which can be searched to find good matches to new strings.
+`amaGama <http://amagama.translatehouse.org>`_ is a web service written in
+Python implementing a large-scale translation memory on top of PostgreSQL. A
+translation memory is a database of previous translations which can be searched
+to find good matches to new strings.
 
+There are currently no releases of amaGama, but the source code is available in
+the `https://github.com/translate/amagama
+<https://github.com/translate/amagama>`_ repository.
 
-amaGama is a Server
--------------------
-
-amaGama is implemented in Python on top of PostgreSQL. There are currently no
-releases of the software, but `source code is available
-<https://github.com/translate/amagama>`_.
-
-A `public deployment <amagama.locamotion.org>`_ of amaGama is available.
-
-If you are interested please check `amaGama documentation
-<http://docs.translatehouse.org/projects/amagama/>`_.
+A public deployment of amaGama is available at `http://amagama.locamotion.org
+<http://amagama.locamotion.org>`_. Check the documentation to learn how to use
+it.
 
 
 Resources
 ---------
 
-- `amaGama Website <http://amagama.translatehouse.org/>`_
-- `Documentation <http://docs.translatehouse.org/projects/amagama/>`_
-- `Bug Tracker <http://bugs.locamotion.org/>`_
-- `Mailing List
+- Website: `http://amagama.translatehouse.org
+  <http://amagama.translatehouse.org>`_
+- Documentation: `http://docs.translatehouse.org/projects/amagama/
+  <http://docs.translatehouse.org/projects/amagama/>`_
+- Bug tracker: `http://bugs.locamotion.org <http://bugs.locamotion.org>`_
+- Mailing list: `https://lists.sourceforge.net/lists/listinfo/translate-pootle
   <https://lists.sourceforge.net/lists/listinfo/translate-pootle>`_
 - IRC: `#pootle on irc.freenode.org <irc://irc.freenode.net/#pootle>`_
 
