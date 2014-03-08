@@ -37,25 +37,17 @@ module = Blueprint('webapi', __name__)
 def unit_dispatch_get(slang, tlang):
     uid = request.args.get('source', '')
     if uid:
-        return unit_dispatch(slang, tlang, uid)
+        if request.method == 'GET':
+            return translate_unit(slang, tlang, uid)
+        elif request.method == 'POST':
+            return update_unit(slang, tlang, uid)
+        elif request.method == 'PUT':
+            return add_unit(slang, tlang, uid)
     abort(404)
 
 
-@module.route('/<slang>/<tlang>/unit/<path:uid>', methods=('GET', 'POST',
-                                                           'PUT'))
-def unit_dispatch(slang, tlang, uid):
-    if request.method == 'GET':
-        return translate_unit(uid, slang, tlang)
-    elif request.method == 'POST':
-        return update_unit(uid, slang, tlang)
-    elif request.method == 'PUT':
-        return add_unit(uid, slang, tlang)
-    else:
-        #FIXME: raise exception?
-        pass
-
-
-def translate_unit(uid, slang, tlang):
+@module.route('/<slang>/<tlang>/unit/<path:uid>', methods=('GET', ))
+def translate_unit(slang, tlang, uid):
     """Return the translations for the provided unit."""
     min_similarity = get_int_arg(request, 'min_similarity')
     max_candidates = get_int_arg(request, 'max_candidates')
@@ -69,7 +61,8 @@ def translate_unit(uid, slang, tlang):
                                       headers=cache_headers)
 
 
-def update_unit(uid, slang, tlang):
+@module.route('/<slang>/<tlang>/unit/<path:uid>', methods=('POST', ))
+def update_unit(slang, tlang, uid):
     """Update an existing unit."""
     from translate.storage import base
 
@@ -82,7 +75,8 @@ def update_unit(uid, slang, tlang):
     return ""
 
 
-def add_unit(uid, slang, tlang):
+@module.route('/<slang>/<tlang>/unit/<path:uid>', methods=('PUT', ))
+def add_unit(slang, tlang, uid):
     """Add a new unit."""
     from translate.storage import base
 
