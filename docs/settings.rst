@@ -3,8 +3,8 @@
 amaGama settings
 ****************
 
-amaGama has some settings that allow to tune how it behaves. Below you can see a
-detailed description for each setting and its default values.
+amaGama has some settings that allow to tune how it behaves. Below you can see
+a detailed description for each setting and its default values.
 
 amaGama settings are stored in :file:`amagama/settings.py`.
 
@@ -102,8 +102,8 @@ Settings for the database pool.
 ``DB_MIN_CONNECTIONS``
   Default: ``2``
 
-  Number of connections to the database server that are created automatically in
-  the database pool.
+  Number of connections to the database server that are created automatically
+  in the database pool.
 
 
 .. _settings#levenshtein-settings:
