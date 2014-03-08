@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-"""JSON based public APIs for the translation memory server"""
+"""Public web query for the amaGama translation memory server"""
 
 from flask import Blueprint, current_app, render_template, request
 from flask_wtf import Form
@@ -48,9 +48,18 @@ def translate(slang, tlang):
         except ValueError:
             max_candidates = None
 
-        candidates = current_app.tmdb.translate_unit(uid, slang, tlang, min_similarity, max_candidates)
+        candidates = current_app.tmdb.translate_unit(uid, slang, tlang,
+                                                     min_similarity,
+                                                     max_candidates)
     else:
         uid = None
         candidates = None
 
-    return render_template("translate.html", slang=slang, tlang=tlang, form=form, uid=uid, candidates=candidates)
+    ctx = {
+        'slang': slang,
+        'tlang': tlang,
+        'form': form,
+        'uid': uid,
+        'candidates': candidates,
+    }
+    return render_template("translate.html", **ctx)

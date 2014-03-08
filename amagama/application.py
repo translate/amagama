@@ -40,8 +40,9 @@ def amagama_server_factory():
     app.register_blueprint(webapi.module, url_prefix='/tmserver')
     app.secret_key = "foobar"
     try:
-        import webui
+        from amagama import webui
         app.register_blueprint(webui.module, url_prefix='')
     except ImportError:
-        logging.debug("The webui module could not be imported. The web interface is not enabled.")
+        logging.debug("The webui module could not be imported. The web "
+                      "interface is not enabled.")
     return app

@@ -31,7 +31,8 @@ from translate.storage import factory
 class InitDB(Command):
     """Create the database tables."""
     option_list = (
-        Option('--source-language', '-s', dest='source_langs', action='append'),
+        Option('--source-language', '-s', dest='source_langs',
+               action='append'),
     )
 
     def run(self, source_langs):
@@ -41,7 +42,8 @@ class InitDB(Command):
 class DropDB(Command):
     """Drop the database."""
     option_list = (
-        Option('--source-language', '-s', dest='source_langs', action='append'),
+        Option('--source-language', '-s', dest='source_langs',
+               action='append'),
     )
 
     def run(self, source_langs):

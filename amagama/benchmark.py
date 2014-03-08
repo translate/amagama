@@ -41,14 +41,17 @@ class BenchmarkTMDB(Command):
         Option('--target-language', '-t', dest='tlang'),
         Option('--project-style', dest='project_style'),
         Option('--min-similarity', '-m', dest='min_similarity', default=None,
-               help="The minimum similarity for related strings (default: server configuration)"),
+               help="The minimum similarity for related strings (default: "
+                    "server configuration)"),
         Option('--max-candidates', '-n', dest='max_candidates', default=None,
-               help="The maximum number of strings to return (default: server configuration)"),
+               help="The maximum number of strings to return (default: server "
+                    "configuration)"),
         Option('--input', '-i', dest='filename',
                help="A file or directory to use"),
     )
 
-    def run(self, slang, tlang, project_style, min_similarity, max_candidates, filename):
+    def run(self, slang, tlang, project_style, min_similarity, max_candidates,
+            filename):
         self.source_lang = slang
         self.target_lang = tlang
         self.project_style = project_style

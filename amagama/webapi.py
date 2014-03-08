@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-"""JSON based public APIs for the translation memory server"""
+"""JSON based public APIs for the amaGama translation memory server"""
 
 from json import dumps
 
@@ -34,25 +34,29 @@ module = Blueprint('webapi', __name__)
 
 
 def jsonwrapper(data):
-    callback = request.args.get('jsoncallback')
+    """Do some custom actions when exporting JSON."""
     #FIXME: put indent only if DEBUG=True
     #dump = dumps(data, ensure_ascii=False, indent=4, sort_keys=True)
     dump = dumps(data, ensure_ascii=False, sort_keys=True)
+
+    # This is used by Pootle.
+    callback = request.args.get('jsoncallback')
     if callback:
         return '%s(%s)' % (callback, dump)
-    else:
-        return dump
+
+    return dump
 
 
 @module.route('/<slang>/<tlang>/unit/', methods=('GET', 'POST', 'PUT'))
 def unit_dispatch_get(slang, tlang):
-    uid = request.args.get('source', None)
+    uid = request.args.get('source', '')
     if uid:
         return unit_dispatch(slang, tlang, uid)
     abort(404)
 
 
-@module.route('/<slang>/<tlang>/unit/<path:uid>', methods=('GET', 'POST', 'PUT'))
+@module.route('/<slang>/<tlang>/unit/<path:uid>', methods=('GET', 'POST',
+                                                           'PUT'))
 def unit_dispatch(slang, tlang, uid):
     if request.method == 'GET':
         return translate_unit(uid, slang, tlang)
@@ -77,6 +81,7 @@ def store_dispatch(slang, tlang, sid):
 
 
 def translate_unit(uid, slang, tlang):
+    """Return the translations for the provided unit."""
     try:
         min_similarity = int(request.args.get('min_similarity', ''))
     except ValueError:
@@ -88,14 +93,18 @@ def translate_unit(uid, slang, tlang):
         max_candidates = None
 
     project_style = request.args.get('style', None)
-    candidates = current_app.tmdb.translate_unit(uid, slang, tlang, project_style,
-                                                 min_similarity, max_candidates)
+    candidates = current_app.tmdb.translate_unit(uid, slang, tlang,
+                                                 project_style, min_similarity,
+                                                 max_candidates)
     response = jsonwrapper(candidates)
-    return current_app.response_class(response, mimetype='application/json', headers=cache_headers)
+    return current_app.response_class(response, mimetype='application/json',
+                                      headers=cache_headers)
 
 
 def add_unit(uid, slang, tlang):
+    """Add a new unit."""
     from translate.storage import base
+
     data = request.json
     unit = base.TranslationUnit(data['source'])
     unit.target = data['target']
@@ -104,7 +113,9 @@ def add_unit(uid, slang, tlang):
 
 
 def update_unit(uid, slang, tlang):
+    """Update an existing unit."""
     from translate.storage import base
+
     data = request.json
     unit = base.TranslationUnit(data['source'])
     unit.target = data['target']
@@ -113,11 +124,12 @@ def update_unit(uid, slang, tlang):
 
 
 def upload_store(sid, slang, tlang):
-    """add units from uploaded file to tmdb"""
+    """Add units from the uploaded file to tmdb."""
     import StringIO
+    from translate.storage import factory
+
     data = StringIO.StringIO(request.data)
     data.name = sid
-    from translate.storage import factory
     store = factory.getobject(data)
     project_style = request.args.get('style', None)
     count = current_app.tmdb.add_store(store, slang, tlang, project_style)
@@ -127,7 +139,7 @@ def upload_store(sid, slang, tlang):
 
 def add_store(sid, slang, tlang):
     """Add unit from POST data to tmdb."""
-    units = request.JSON
+    units = request.json
     project_style = request.args.get('style', None)
     count = current_app.tmdb.add_list(units, slang, tlang, project_style)
     response = "added %d units from %s" % (count, sid)
