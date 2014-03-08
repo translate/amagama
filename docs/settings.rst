@@ -25,6 +25,14 @@ Settings to define amaGama server behavior.
   Indicates if the debug mode is enabled.
 
 
+.. setting:: ENABLE_WEB_UI
+
+``ENABLE_WEB_UI``
+  Default: ``False``
+
+  Indicates if the web interface is enabled.
+
+
 .. _settings#database-settings:
 
 Database settings

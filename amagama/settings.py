@@ -1,6 +1,7 @@
 # Global config
 
 DEBUG = False
+ENABLE_WEB_UI = False
 
 
 # Database config
