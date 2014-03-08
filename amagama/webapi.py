@@ -93,18 +93,8 @@ def add_unit(uid, slang, tlang):
     return ""
 
 
-@module.route('/<slang>/<tlang>/store/<path:sid>', methods=('POST', 'PUT'))
-def store_dispatch(slang, tlang, sid):
-    if request.method == 'POST':
-        return add_store(sid, slang, tlang)
-    elif request.method == 'PUT':
-        return upload_store(sid, slang, tlang)
-    else:
-        #FIXME: raise exception?
-        pass
-
-
-def add_store(sid, slang, tlang):
+@module.route('/<slang>/<tlang>/store/<path:sid>', methods=('POST', ))
+def add_store(slang, tlang, sid):
     """Add unit from POST data to tmdb."""
     units = request.json
     project_style = request.args.get('style', None)
@@ -113,7 +103,8 @@ def add_store(sid, slang, tlang):
     return response
 
 
-def upload_store(sid, slang, tlang):
+@module.route('/<slang>/<tlang>/store/<path:sid>', methods=('PUT', ))
+def upload_store(slang, tlang, sid):
     """Add units from the uploaded file to tmdb."""
     import StringIO
     from translate.storage import factory
