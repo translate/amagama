@@ -9,18 +9,10 @@ a detailed description for each setting and its default values.
 amaGama settings are stored in :file:`amagama/settings.py`.
 
 
-.. _settings#available-settings:
-
-Available settings
-==================
-
-This is a list of settings grouped and ordered alphabetically.
-
-
 .. _settings#global-settings:
 
 Global settings
----------------
+===============
 
 Settings to define amaGama server behavior.
 
@@ -36,7 +28,7 @@ Settings to define amaGama server behavior.
 .. _settings#database-settings:
 
 Database settings
------------------
+=================
 
 Settings used for connecting to the amaGama database.
 
@@ -85,7 +77,7 @@ Settings used for connecting to the amaGama database.
 .. _settings#database-pool-settings:
 
 Database pool settings
-----------------------
+======================
 
 Settings for the database pool.
 
@@ -109,7 +101,7 @@ Settings for the database pool.
 .. _settings#levenshtein-settings:
 
 Levenshtein settings
---------------------
+====================
 
 Settings for Levenshtein algoritm. See :ref:`Levenshtein distance
 <toolkit:levenshtein_distance>` for more information.
