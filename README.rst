@@ -22,11 +22,6 @@ If you are interested please check `amaGama documentation
 <http://docs.translatehouse.org/projects/amagama/>`_.
 
 
-About the name
---------------
-*amaGama* is the Zulu word for *words*.
-
-
 Resources
 ---------
 
