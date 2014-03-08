@@ -33,21 +33,6 @@ cache_headers['Cache-Control'] = "max-age=3600, public"
 module = Blueprint('webapi', __name__)
 
 
-def jsonwrapper(data):
-    """Do some custom actions when exporting JSON."""
-    if current_app.config['DEBUG']:
-        dump = dumps(data, ensure_ascii=False, sort_keys=True, indent=4)
-    else:
-        dump = dumps(data, ensure_ascii=False, sort_keys=True)
-
-    # This is used by Pootle.
-    callback = request.args.get('jsoncallback')
-    if callback:
-        return '%s(%s)' % (callback, dump)
-
-    return dump
-
-
 @module.route('/<slang>/<tlang>/unit/', methods=('GET', 'POST', 'PUT'))
 def unit_dispatch_get(slang, tlang):
     uid = request.args.get('source', '')
@@ -150,3 +135,18 @@ def get_int_arg(request, arg_name):
         return int(request.args.get(arg_name, ''))
     except:
         return None
+
+
+def jsonwrapper(data):
+    """Do some custom actions when exporting JSON."""
+    if current_app.config['DEBUG']:
+        dump = dumps(data, ensure_ascii=False, sort_keys=True, indent=4)
+    else:
+        dump = dumps(data, ensure_ascii=False, sort_keys=True)
+
+    # This is used by Pootle.
+    callback = request.args.get('jsoncallback')
+    if callback:
+        return '%s(%s)' % (callback, dump)
+
+    return dump
