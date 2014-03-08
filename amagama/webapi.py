@@ -35,9 +35,10 @@ module = Blueprint('webapi', __name__)
 
 def jsonwrapper(data):
     """Do some custom actions when exporting JSON."""
-    #FIXME: put indent only if DEBUG=True
-    #dump = dumps(data, ensure_ascii=False, indent=4, sort_keys=True)
-    dump = dumps(data, ensure_ascii=False, sort_keys=True)
+    if current_app.config['DEBUG']:
+        dump = dumps(data, ensure_ascii=False, sort_keys=True, indent=4)
+    else:
+        dump = dumps(data, ensure_ascii=False, sort_keys=True)
 
     # This is used by Pootle.
     callback = request.args.get('jsoncallback')

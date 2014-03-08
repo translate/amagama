@@ -17,6 +17,22 @@ Available settings
 This is a list of settings grouped and ordered alphabetically.
 
 
+.. _settings#global-settings:
+
+Global settings
+---------------
+
+Settings to define amaGama server behavior.
+
+
+.. setting:: DEBUG
+
+``DEBUG``
+  Default: ``False``
+
+  Indicates if the debug mode is enabled.
+
+
 .. _settings#database-settings:
 
 Database settings

@@ -1,3 +1,8 @@
+# Global config
+
+DEBUG = False
+
+
 # Database config
 
 DB_USER = "postgres"
