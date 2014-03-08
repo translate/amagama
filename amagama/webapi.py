@@ -55,17 +55,6 @@ def unit_dispatch(slang, tlang, uid):
         pass
 
 
-@module.route('/<slang>/<tlang>/store/<path:sid>', methods=('POST', 'PUT'))
-def store_dispatch(slang, tlang, sid):
-    if request.method == 'POST':
-        return add_store(sid, slang, tlang)
-    elif request.method == 'PUT':
-        return upload_store(sid, slang, tlang)
-    else:
-        #FIXME: raise exception?
-        pass
-
-
 def translate_unit(uid, slang, tlang):
     """Return the translations for the provided unit."""
     min_similarity = get_int_arg(request, 'min_similarity')
@@ -80,6 +69,17 @@ def translate_unit(uid, slang, tlang):
                                       headers=cache_headers)
 
 
+def update_unit(uid, slang, tlang):
+    """Update an existing unit."""
+    from translate.storage import base
+
+    data = request.json
+    unit = base.TranslationUnit(data['source'])
+    unit.target = data['target']
+    current_app.tmdb.add_unit(unit, slang, tlang)
+    return ""
+
+
 def add_unit(uid, slang, tlang):
     """Add a new unit."""
     from translate.storage import base
@@ -91,15 +91,24 @@ def add_unit(uid, slang, tlang):
     return ""
 
 
-def update_unit(uid, slang, tlang):
-    """Update an existing unit."""
-    from translate.storage import base
+@module.route('/<slang>/<tlang>/store/<path:sid>', methods=('POST', 'PUT'))
+def store_dispatch(slang, tlang, sid):
+    if request.method == 'POST':
+        return add_store(sid, slang, tlang)
+    elif request.method == 'PUT':
+        return upload_store(sid, slang, tlang)
+    else:
+        #FIXME: raise exception?
+        pass
 
-    data = request.json
-    unit = base.TranslationUnit(data['source'])
-    unit.target = data['target']
-    current_app.tmdb.add_unit(unit, slang, tlang)
-    return ""
+
+def add_store(sid, slang, tlang):
+    """Add unit from POST data to tmdb."""
+    units = request.json
+    project_style = request.args.get('style', None)
+    count = current_app.tmdb.add_list(units, slang, tlang, project_style)
+    response = "added %d units from %s" % (count, sid)
+    return response
 
 
 def upload_store(sid, slang, tlang):
@@ -112,15 +121,6 @@ def upload_store(sid, slang, tlang):
     store = factory.getobject(data)
     project_style = request.args.get('style', None)
     count = current_app.tmdb.add_store(store, slang, tlang, project_style)
-    response = "added %d units from %s" % (count, sid)
-    return response
-
-
-def add_store(sid, slang, tlang):
-    """Add unit from POST data to tmdb."""
-    units = request.json
-    project_style = request.args.get('style', None)
-    count = current_app.tmdb.add_list(units, slang, tlang, project_style)
     response = "added %d units from %s" % (count, sid)
     return response
 
