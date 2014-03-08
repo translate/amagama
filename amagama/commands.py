@@ -23,7 +23,7 @@ import os
 import sys
 
 from flask import current_app
-from flask.ext.script import Command, Option, prompt_bool
+from flask_script import Command, Option, prompt_bool
 from translate.lang.data import langcode_ire
 from translate.storage import factory
 

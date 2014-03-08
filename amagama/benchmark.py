@@ -24,7 +24,7 @@ import os
 import sys
 
 from flask import current_app
-from flask.ext.script import Command, Option
+from flask_script import Command, Option
 from translate.storage import factory
 
 
