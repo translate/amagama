@@ -28,14 +28,14 @@ from wtforms.validators import Required
 from amagama.webapi import get_int_arg
 
 
-module = Blueprint('webui', __name__)
+web_ui = Blueprint('web_ui', __name__)
 
 
 class TranslateForm(Form):
     uid = TextField('Text', validators=[Required()])
 
 
-@module.route('/<slang>/<tlang>/unit', methods=('GET', 'POST'))
+@web_ui.route('/<slang>/<tlang>/unit', methods=('GET', 'POST'))
 def translate(slang, tlang):
     form = TranslateForm()
     if form.validate_on_submit():

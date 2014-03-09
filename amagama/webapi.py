@@ -31,11 +31,11 @@ cache_headers = Headers()
 cache_headers['Cache-Control'] = "max-age=3600, public"
 
 # Create the blueprints.
-module = Blueprint('webapi', __name__)
+read_api = Blueprint('read_api', __name__)
 write_api = Blueprint('write_api', __name__)
 
 
-@module.route('/<slang>/<tlang>/unit/', methods=('GET', ))
+@read_api.route('/<slang>/<tlang>/unit/', methods=('GET', ))
 def translate_unit_get(slang, tlang):
     return get_uid_and_call(translate_unit, slang, tlang)
 
@@ -50,7 +50,7 @@ def add_unit_get(slang, tlang):
     return get_uid_and_call(add_unit, slang, tlang)
 
 
-@module.route('/<slang>/<tlang>/unit/<path:uid>', methods=('GET', ))
+@read_api.route('/<slang>/<tlang>/unit/<path:uid>', methods=('GET', ))
 def translate_unit(slang, tlang, uid):
     """Return the translations for the provided unit."""
     min_similarity = get_int_arg(request, 'min_similarity')
