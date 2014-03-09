@@ -33,17 +33,19 @@ cache_headers['Cache-Control'] = "max-age=3600, public"
 module = Blueprint('webapi', __name__)
 
 
-@module.route('/<slang>/<tlang>/unit/', methods=('GET', 'POST', 'PUT'))
-def unit_dispatch_get(slang, tlang):
-    uid = request.args.get('source', '')
-    if uid:
-        if request.method == 'GET':
-            return translate_unit(slang, tlang, uid)
-        elif request.method == 'POST':
-            return update_unit(slang, tlang, uid)
-        elif request.method == 'PUT':
-            return add_unit(slang, tlang, uid)
-    abort(404)
+@module.route('/<slang>/<tlang>/unit/', methods=('GET', ))
+def translate_unit_get(slang, tlang):
+    return get_uid_and_call(translate_unit, slang, tlang)
+
+
+@module.route('/<slang>/<tlang>/unit/', methods=('POST', ))
+def update_unit_get(slang, tlang):
+    return get_uid_and_call(update_unit, slang, tlang)
+
+
+@module.route('/<slang>/<tlang>/unit/', methods=('PUT', ))
+def add_unit_get(slang, tlang):
+    return get_uid_and_call(add_unit, slang, tlang)
 
 
 @module.route('/<slang>/<tlang>/unit/<path:uid>', methods=('GET', ))
@@ -122,6 +124,18 @@ def get_int_arg(request, arg_name):
         return int(request.args.get(arg_name, ''))
     except:
         return None
+
+
+def get_uid_and_call(func, slang, tlang):
+    """Get the uid from the query string and call the passed function.
+
+    If the uid cannot be retrieved a HTTP 404 is sent.
+    """
+    uid = request.args.get('source', '')
+    if uid:
+        return func(slang, tlang, uid)
+
+    abort(404)
 
 
 def jsonwrapper(data):
