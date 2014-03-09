@@ -23,7 +23,8 @@ with clients using JSON over HTTP."""
 
 from flask import Flask
 
-from amagama import tmdb, webapi as api
+from amagama import tmdb
+from amagama.views import api
 
 
 class AmagamaServer(Flask):
@@ -42,7 +43,7 @@ def amagama_server_factory():
         app.register_blueprint(api.write_api, url_prefix='/tmserver')
 
     if app.config['ENABLE_WEB_UI']:
-        from amagama import webui as web
+        from amagama.views import web
         app.register_blueprint(web.web_ui, url_prefix='')
 
     return app

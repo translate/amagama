@@ -25,7 +25,7 @@ from flask_wtf import Form
 from wtforms import TextField
 from wtforms.validators import Required
 
-from amagama.webapi import get_int_arg
+from amagama.views.api import get_int_arg
 
 
 web_ui = Blueprint('web_ui', __name__)
