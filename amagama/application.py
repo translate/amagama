@@ -38,6 +38,9 @@ def amagama_server_factory():
     app.register_blueprint(webapi.module, url_prefix='/tmserver')
     app.secret_key = "foobar"
 
+    if app.config['ENABLE_DATA_ALTERING_API']:
+        app.register_blueprint(webapi.write_api, url_prefix='/tmserver')
+
     if app.config['ENABLE_WEB_UI']:
         from amagama import webui
         app.register_blueprint(webui.module, url_prefix='')

@@ -33,6 +33,19 @@ Settings to define amaGama server behavior.
   Indicates if the web interface is enabled.
 
 
+.. setting:: ENABLE_DATA_ALTERING_API
+
+``ENABLE_DATA_ALTERING_API``
+  Default: ``False``
+
+  Indicates if the part of the amaGama API that allows data to be altered is
+  enabled.
+
+  This doesn't affect to the part of the API that is used to perform queries
+  that don't alter the data. For example retrieving translations is always
+  enabled.
+
+
 .. _settings#database-settings:
 
 Database settings

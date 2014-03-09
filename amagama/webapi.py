@@ -30,7 +30,9 @@ from werkzeug import Headers
 cache_headers = Headers()
 cache_headers['Cache-Control'] = "max-age=3600, public"
 
+# Create the blueprints.
 module = Blueprint('webapi', __name__)
+write_api = Blueprint('write_api', __name__)
 
 
 @module.route('/<slang>/<tlang>/unit/', methods=('GET', ))
@@ -38,12 +40,12 @@ def translate_unit_get(slang, tlang):
     return get_uid_and_call(translate_unit, slang, tlang)
 
 
-@module.route('/<slang>/<tlang>/unit/', methods=('POST', ))
+@write_api.route('/<slang>/<tlang>/unit/', methods=('POST', ))
 def update_unit_get(slang, tlang):
     return get_uid_and_call(update_unit, slang, tlang)
 
 
-@module.route('/<slang>/<tlang>/unit/', methods=('PUT', ))
+@write_api.route('/<slang>/<tlang>/unit/', methods=('PUT', ))
 def add_unit_get(slang, tlang):
     return get_uid_and_call(add_unit, slang, tlang)
 
@@ -63,7 +65,7 @@ def translate_unit(slang, tlang, uid):
                                       headers=cache_headers)
 
 
-@module.route('/<slang>/<tlang>/unit/<path:uid>', methods=('POST', ))
+@write_api.route('/<slang>/<tlang>/unit/<path:uid>', methods=('POST', ))
 def update_unit(slang, tlang, uid):
     """Update an existing unit."""
     from translate.storage import base
@@ -77,7 +79,7 @@ def update_unit(slang, tlang, uid):
     return ""
 
 
-@module.route('/<slang>/<tlang>/unit/<path:uid>', methods=('PUT', ))
+@write_api.route('/<slang>/<tlang>/unit/<path:uid>', methods=('PUT', ))
 def add_unit(slang, tlang, uid):
     """Add a new unit."""
     from translate.storage import base
@@ -89,7 +91,7 @@ def add_unit(slang, tlang, uid):
     return ""
 
 
-@module.route('/<slang>/<tlang>/store/<path:sid>', methods=('POST', ))
+@write_api.route('/<slang>/<tlang>/store/<path:sid>', methods=('POST', ))
 def add_store(slang, tlang, sid):
     """Add unit from POST data to tmdb."""
     units = request.json
@@ -99,7 +101,7 @@ def add_store(slang, tlang, sid):
     return response
 
 
-@module.route('/<slang>/<tlang>/store/<path:sid>', methods=('PUT', ))
+@write_api.route('/<slang>/<tlang>/store/<path:sid>', methods=('PUT', ))
 def upload_store(slang, tlang, sid):
     """Add units from the uploaded file to tmdb."""
     import StringIO

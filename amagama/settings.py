@@ -2,6 +2,7 @@
 
 DEBUG = False
 ENABLE_WEB_UI = False
+ENABLE_DATA_ALTERING_API = False
 
 
 # Database config
