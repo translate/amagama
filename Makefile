@@ -1,12 +1,19 @@
+DOCS_DIR=docs
 
-.PHONY: all requirements help
+.PHONY: all docs requirements help
 
 all: help
+
+docs:
+	# The following creates the HTML docs.
+	# NOTE: cd and make must be in the same line.
+	cd ${DOCS_DIR}; make SPHINXOPTS="-W -q" html
 
 help:
 	@echo "Help"
 	@echo "----"
 	@echo
+	@echo "  docs - build Sphinx docs"
 	@echo "  requirements - (re)generate pinned and minimum requirements"
 
 # Perform forced build using -W for the (.PHONY) requirements target
