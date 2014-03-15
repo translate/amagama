@@ -14,6 +14,8 @@ A `public deployment
 available (API only, no UI) and is usable from `Virtaal <http://virtaal.org>`_
 and `Pootle <http://pootle.translatehouse.org>`_.
 
+*amaGama* is the Zulu word for *words*.
+
 .. toctree::
    :maxdepth: 1
 

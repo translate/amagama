@@ -21,7 +21,7 @@
 
 
 def indexing_version(s, checker=None):
-    """Trasform the given string to something more suitable for indexing."""
+    """Transform the given string to something more suitable for indexing."""
     s = strip_accelerator(s, checker)
     s = fix_ellipses(s)
     return s

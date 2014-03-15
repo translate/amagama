@@ -21,11 +21,10 @@
 """A translation memory server using tmdb for storage, communicates
 with clients using JSON over HTTP."""
 
-import logging
-
 from flask import Flask
 
-from amagama import tmdb, webapi
+from amagama import tmdb
+from amagama.views import api
 
 
 class AmagamaServer(Flask):
@@ -37,11 +36,14 @@ class AmagamaServer(Flask):
 
 def amagama_server_factory():
     app = AmagamaServer("settings.py", __name__)
-    app.register_blueprint(webapi.module, url_prefix='/tmserver')
+    app.register_blueprint(api.read_api, url_prefix='/tmserver')
     app.secret_key = "foobar"
-    try:
-        import webui
-        app.register_blueprint(webui.module, url_prefix='')
-    except ImportError:
-        logging.debug("The webui module could not be imported. The web interface is not enabled.")
+
+    if app.config['ENABLE_DATA_ALTERING_API']:
+        app.register_blueprint(api.write_api, url_prefix='/tmserver')
+
+    if app.config['ENABLE_WEB_UI']:
+        from amagama.views import web
+        app.register_blueprint(web.web_ui, url_prefix='')
+
     return app

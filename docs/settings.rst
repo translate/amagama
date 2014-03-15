@@ -3,24 +3,53 @@
 amaGama settings
 ****************
 
-amaGama has some settings that allow to tune how it behaves. Below you can see a
-detailed description for each setting and its default values.
+amaGama has some settings that allow to tune how it behaves. Below you can see
+a detailed description for each setting and its default values.
 
 amaGama settings are stored in :file:`amagama/settings.py`.
 
 
-.. _settings#available-settings:
+.. _settings#global-settings:
 
-Available settings
-==================
+Global settings
+===============
 
-This is a list of settings grouped and ordered alphabetically.
+Settings to define amaGama server behavior.
+
+
+.. setting:: DEBUG
+
+``DEBUG``
+  Default: ``False``
+
+  Indicates if the debug mode is enabled.
+
+
+.. setting:: ENABLE_WEB_UI
+
+``ENABLE_WEB_UI``
+  Default: ``False``
+
+  Indicates if the web interface is enabled.
+
+
+.. setting:: ENABLE_DATA_ALTERING_API
+
+``ENABLE_DATA_ALTERING_API``
+  Default: ``False``
+
+  Indicates if the part of the amaGama API that allows data to be altered is
+  enabled.
+
+  This doesn't affect to the part of the API that is used to perform queries
+  that don't alter the data. For example retrieving translations is always
+  enabled.
 
 
 .. _settings#database-settings:
 
 Database settings
------------------
+=================
 
 Settings used for connecting to the amaGama database.
 
@@ -69,7 +98,7 @@ Settings used for connecting to the amaGama database.
 .. _settings#database-pool-settings:
 
 Database pool settings
-----------------------
+======================
 
 Settings for the database pool.
 
@@ -86,14 +115,14 @@ Settings for the database pool.
 ``DB_MIN_CONNECTIONS``
   Default: ``2``
 
-  Number of connections to the database server that are created automatically in
-  the database pool.
+  Number of connections to the database server that are created automatically
+  in the database pool.
 
 
 .. _settings#levenshtein-settings:
 
 Levenshtein settings
---------------------
+====================
 
 Settings for Levenshtein algoritm. See :ref:`Levenshtein distance
 <toolkit:levenshtein_distance>` for more information.

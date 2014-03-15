@@ -48,7 +48,7 @@ def main():
 
     args = parser.parse_args()
 
-    # Setup debugging.
+    # Setup logging.
     if args.debug:
         level = logging.DEBUG
         format = ('%(levelname)7s %(module)s.%(funcName)s:%(lineno)d: '

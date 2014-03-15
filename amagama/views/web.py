@@ -18,37 +18,43 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-"""JSON based public APIs for the translation memory server"""
+"""Public web query for the amaGama translation memory server"""
 
 from flask import Blueprint, current_app, render_template, request
-from flask.ext.wtf import Form, Required, TextField
+from flask_wtf import Form
+from wtforms import TextField
+from wtforms.validators import Required
+
+from amagama.views.api import get_int_arg
 
 
-module = Blueprint('webui', __name__)
+web_ui = Blueprint('web_ui', __name__)
 
 
 class TranslateForm(Form):
     uid = TextField('Text', validators=[Required()])
 
 
-@module.route('/<slang>/<tlang>/unit', methods=('GET', 'POST'))
+@web_ui.route('/<slang>/<tlang>/unit', methods=('GET', 'POST'))
 def translate(slang, tlang):
     form = TranslateForm()
     if form.validate_on_submit():
         uid = form.uid.data
-        try:
-            min_similarity = int(request.args.get('min_similarity', ''))
-        except ValueError:
-            min_similarity = None
+        min_similarity = get_int_arg(request, 'min_similarity')
+        max_candidates = get_int_arg(request, 'max_candidates')
 
-        try:
-            max_candidates = int(request.args.get('max_candidates', ''))
-        except ValueError:
-            max_candidates = None
-
-        candidates = current_app.tmdb.translate_unit(uid, slang, tlang, min_similarity, max_candidates)
+        candidates = current_app.tmdb.translate_unit(uid, slang, tlang,
+                                                     min_similarity,
+                                                     max_candidates)
     else:
         uid = None
         candidates = None
 
-    return render_template("translate.html", slang=slang, tlang=tlang, form=form, uid=uid, candidates=candidates)
+    ctx = {
+        'slang': slang,
+        'tlang': tlang,
+        'form': form,
+        'uid': uid,
+        'candidates': candidates,
+    }
+    return render_template("translate.html", **ctx)

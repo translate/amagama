@@ -23,7 +23,7 @@ import os
 import sys
 
 from flask import current_app
-from flask.ext.script import Command, Option, prompt_bool
+from flask_script import Command, Option, prompt_bool
 from translate.lang.data import langcode_ire
 from translate.storage import factory
 
@@ -31,7 +31,8 @@ from translate.storage import factory
 class InitDB(Command):
     """Create the database tables."""
     option_list = (
-        Option('--source-language', '-s', dest='source_langs', action='append'),
+        Option('--source-language', '-s', dest='source_langs',
+               action='append'),
     )
 
     def run(self, source_langs):
@@ -41,7 +42,8 @@ class InitDB(Command):
 class DropDB(Command):
     """Drop the database."""
     option_list = (
-        Option('--source-language', '-s', dest='source_langs', action='append'),
+        Option('--source-language', '-s', dest='source_langs',
+               action='append'),
     )
 
     def run(self, source_langs):
