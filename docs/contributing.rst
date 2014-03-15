@@ -17,7 +17,7 @@ to follow the :ref:`installation guidelines <installation>`.
 Coding style
 ------------
 
-Please follow the :ref:`Translate Toolkit Styleguide <toolkit:styleguide>`.
+Please follow the :ref:`Translate Toolkit Style Guide <toolkit:styleguide>`.
 
 
 TODO

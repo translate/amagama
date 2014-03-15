@@ -124,7 +124,7 @@ Settings for the database pool.
 Levenshtein settings
 ====================
 
-Settings for Levenshtein algoritm. See :ref:`Levenshtein distance
+Settings for Levenshtein algorithm. See :ref:`Levenshtein distance
 <toolkit:levenshtein_distance>` for more information.
 
 
