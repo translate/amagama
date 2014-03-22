@@ -77,9 +77,10 @@
         }
 
         $('#js-similar-results').html(resultsHTML.join(''));
-        $('#js-similar-table').show();
+        $('#js-similar-table-headers').show();
       } else {
-        $('#js-similar-table').hide();
+        $('#js-similar-table-headers').hide();
+        $('#js-similar-results').empty();
       }
     },
 
