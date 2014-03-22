@@ -1,5 +1,5 @@
 argparse
 blinker>=0.9
-flask>=0.8
+Flask>=0.8
 psycopg2>=2.2
 translate-toolkit>=1.8.0
