@@ -20,41 +20,13 @@
 
 """Public web query for the amaGama translation memory server"""
 
-from flask import Blueprint, current_app, render_template, request
-from flask_wtf import Form
-from wtforms import TextField
-from wtforms.validators import Required
-
-from amagama.views.api import get_int_arg
+from flask import Blueprint, render_template
 
 
-web_ui = Blueprint('web_ui', __name__)
+web_ui = Blueprint('web_ui', __name__, static_folder='static')
 
 
-class TranslateForm(Form):
-    uid = TextField('Text', validators=[Required()])
-
-
-@web_ui.route('/<slang>/<tlang>/unit', methods=('GET', 'POST'))
+@web_ui.route('/<slang>/<tlang>/unit', methods=('GET', ))
 def translate(slang, tlang):
-    form = TranslateForm()
-    if form.validate_on_submit():
-        uid = form.uid.data
-        min_similarity = get_int_arg(request, 'min_similarity')
-        max_candidates = get_int_arg(request, 'max_candidates')
-
-        candidates = current_app.tmdb.translate_unit(uid, slang, tlang,
-                                                     min_similarity,
-                                                     max_candidates)
-    else:
-        uid = None
-        candidates = None
-
-    ctx = {
-        'slang': slang,
-        'tlang': tlang,
-        'form': form,
-        'uid': uid,
-        'candidates': candidates,
-    }
-    return render_template("translate.html", **ctx)
+    """Serve the query web page."""
+    return render_template("translate.html", slang=slang, tlang=tlang)
