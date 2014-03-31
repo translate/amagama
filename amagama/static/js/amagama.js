@@ -22,6 +22,10 @@
             sourceLanguage = $('#js-source-language').val(),
             targetLanguage = $('#js-target-language').val();
 
+        MGM.search.searchTitle = [
+          searchTerms, ' (', sourceLanguage, ' → ', targetLanguage, ')'
+        ].join('');
+
         var URLParams = $.param({
           'source': searchTerms,
           'min_similarity': minSimilarity,
@@ -34,47 +38,46 @@
         ].join('');
 
         // Query the amaGama API and display the results.
-        $.getJSON(queryURL, function (data) {
-          $('#js-similar-title').text([
-            searchTerms, ' (', sourceLanguage, ' → ', targetLanguage, ')'
-          ].join(''));
+        $.getJSON(queryURL, MGM.search.displayResults);
+      }
+    },
 
-          $('#js-similar-count').text('Found ' + data.length + ' results.');
+    displayResults: function (data) {
+      $('#js-similar-title').text(MGM.search.searchTitle);
+      $('#js-similar-count').text('Found ' + data.length + ' results.');
 
-          if (data.length) {
-            var currentResult,
-                resultQuality,
-                resultsHTML = [];
+      if (data.length) {
+        var currentResult,
+            resultQuality,
+            resultsHTML = [];
 
-            for (var i = 0; i < data.length; i++) {
-              currentResult = data[i];
+        for (var i = 0; i < data.length; i++) {
+          currentResult = data[i];
 
-              resultsHTML.push('<tr><td>');
-              resultsHTML.push(currentResult.source);
-              resultsHTML.push('</td><td>');
-              resultsHTML.push(currentResult.target);
-              resultsHTML.push('</td><td>');
+          resultsHTML.push('<tr><td>');
+          resultsHTML.push(currentResult.source);
+          resultsHTML.push('</td><td>');
+          resultsHTML.push(currentResult.target);
+          resultsHTML.push('</td><td>');
 
-              resultQuality = currentResult.quality.toFixed(2);
-              if (currentResult.quality === 100.00) {
-                resultsHTML.push('<span class="exact-match">');
-                resultsHTML.push(resultQuality);
-                resultsHTML.push('</span>');
-              }
-              else {
-                resultsHTML.push(resultQuality);
-              }
-              resultsHTML.push('</td><td>');
-              resultsHTML.push(currentResult.rank.toFixed(2));
-              resultsHTML.push('</td></tr>');
-            }
-
-            $('#js-similar-results').html(resultsHTML.join(''));
-            $('#js-similar-table').show();
-          } else {
-            $('#js-similar-table').hide();
+          resultQuality = currentResult.quality.toFixed(2);
+          if (currentResult.quality === 100.00) {
+            resultsHTML.push('<span class="exact-match">');
+            resultsHTML.push(resultQuality);
+            resultsHTML.push('</span>');
           }
-        });
+          else {
+            resultsHTML.push(resultQuality);
+          }
+          resultsHTML.push('</td><td>');
+          resultsHTML.push(currentResult.rank.toFixed(2));
+          resultsHTML.push('</td></tr>');
+        }
+
+        $('#js-similar-results').html(resultsHTML.join(''));
+        $('#js-similar-table').show();
+      } else {
+        $('#js-similar-table').hide();
       }
     }
   };
