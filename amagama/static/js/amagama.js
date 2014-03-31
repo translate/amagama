@@ -12,8 +12,8 @@ function doSearch (event) {
     // search box instead of hardcoding them here.
     var minSimilarity = 30,
         maxCandidates = 20,
-        sourceLanguage = $('#js-source-language :selected').val(),
-        targetLanguage = $('#js-target-language :selected').val();
+        sourceLanguage = $('#js-source-language').val(),
+        targetLanguage = $('#js-target-language').val();
 
     var URLParams = $.param({
       'source': searchTerms,
