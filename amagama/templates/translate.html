@@ -194,5 +194,10 @@
     <script src="{{ url_for('web_ui.static', filename='js/vendor/jquery-1.11.0.min.js') }}"></script>
     <script src="{{ url_for('web_ui.static', filename='js/vendor/bootstrap.min.js') }}"></script>
     <script src="{{ url_for('web_ui.static', filename='js/amagama.js') }}"></script>
+    <script>
+$(function() {
+  MGM.search.init();
+});
+    </script>
   </body>
 </html>

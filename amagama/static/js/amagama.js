@@ -1,36 +1,49 @@
-$(document).on('submit', '#js-amagama-form', doSearch);
+(function ($) {
 
+  window.MGM = window.MGM || {};
 
-function doSearch (event) {
-  event.preventDefault();
+  MGM.search = {
 
-  var searchTerms = $('#js-search-box').val();
+    init: function () {
+      $(document).on('submit', '#js-amagama-form', MGM.search.doSearch);
+    },
 
-  // Only trigger the search if query terms have been provided.
-  if (searchTerms) {
-    //TODO look for a way to specify min_similarity and max_candidates on the
-    // search box instead of hardcoding them here.
-    var minSimilarity = 30,
-        maxCandidates = 20,
-        sourceLanguage = $('#js-source-language :selected').val(),
-        targetLanguage = $('#js-target-language :selected').val();
+    doSearch: function (event) {
+      event.preventDefault();
 
-    var URLParams = $.param({
-      'source': searchTerms,
-      'min_similarity': minSimilarity,
-      'max_candidates': maxCandidates
-    });
+      var searchTerms = $('#js-search-box').val();
 
-    var queryURL = [
-      '/tmserver/', sourceLanguage, '/', targetLanguage, '/unit/?', URLParams
-    ].join('');
+      // Only trigger the search if query terms have been provided.
+      if (searchTerms) {
+        //TODO look for a way to specify min_similarity and max_candidates on
+        // the search box instead of hardcoding them here.
+        var minSimilarity = 30,
+            maxCandidates = 20,
+            sourceLanguage = $('#js-source-language').val(),
+            targetLanguage = $('#js-target-language').val();
 
-    // Query the amaGama API and display the results.
-    $.getJSON(queryURL, function (data) {
-      $('#js-similar-title').text([
-        searchTerms, ' (', sourceLanguage, ' → ', targetLanguage, ')'
-      ].join(''));
+        MGM.search.searchTitle = [
+          searchTerms, ' (', sourceLanguage, ' → ', targetLanguage, ')'
+        ].join('');
 
+        var URLParams = $.param({
+          'source': searchTerms,
+          'min_similarity': minSimilarity,
+          'max_candidates': maxCandidates
+        });
+
+        var queryURL = [
+          '/tmserver/', sourceLanguage, '/', targetLanguage, '/unit/?',
+          URLParams
+        ].join('');
+
+        // Query the amaGama API and display the results.
+        $.getJSON(queryURL, MGM.search.displayResults);
+      }
+    },
+
+    displayResults: function (data) {
+      $('#js-similar-title').text(MGM.search.searchTitle);
       $('#js-similar-count').text('Found ' + data.length + ' results.');
 
       if (data.length) {
@@ -66,6 +79,7 @@ function doSearch (event) {
       } else {
         $('#js-similar-table').hide();
       }
-    });
-  }
-};
+    }
+  };
+
+}(jQuery));
