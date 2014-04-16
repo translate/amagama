@@ -1,3 +1,4 @@
 -r recommended.txt
 
+pep8
 Sphinx>=1.1
