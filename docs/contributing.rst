@@ -25,12 +25,15 @@ TODO
 
 An incomplete list of possible TODO items:
 
-- Simple web interface
+- Improve web interface
 - Custom index config for source languages not supported by default PostgreSQL
   install
 - Keep track of file's mtime to avoid expensive reparses
 - Use memcached to cache results
 - Use more permanent caching of Levenshtein distances?
 - Use PostgreSQL built-in Levenshtein functions?
+- Full text search
+- Other search methods and options
 - Further documenting of API
 - Document the commands
+- Document how to deploy amaGama using Apache or other web server
