@@ -30,12 +30,12 @@ app = amagama_server_factory()
 # Configure the app.
 manager = Manager(app)
 
-manager.add_command('build_tmdb', BuildTMDB())
-manager.add_command('initdb', InitDB())
-manager.add_command('dropdb', DropDB())
-manager.add_command('deploy_db', DeployDB())
-manager.add_command('tmdb_stats', TMDBStats())
 manager.add_command('benchmark_tmdb', BenchmarkTMDB())
+manager.add_command('build_tmdb', BuildTMDB())
+manager.add_command('deploy_db', DeployDB())
+manager.add_command('dropdb', DropDB())
+manager.add_command('initdb', InitDB())
+manager.add_command('tmdb_stats', TMDBStats())
 
 
 if __name__ == "__main__":
