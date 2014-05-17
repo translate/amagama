@@ -3,8 +3,8 @@
 Importing translations
 **********************
 
-.. note:: Please make sure that the command to import translations into amaGama
-   :ref:`is accessible <installation#commands>`.
+.. note:: Please make sure that the :command:`amagama-manage` command :ref:`is
+   accessible <installation#commands>`.
 
 To populate the amaGama database the :command:`amagama-manage` command
 :command:`build_tmdb` subcommand should be used:
