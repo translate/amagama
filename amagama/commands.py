@@ -37,6 +37,8 @@ class InitDB(Command):
 
     def run(self, source_langs):
         current_app.tmdb.init_db(source_langs)
+        langs = "', '".join(source_langs)
+        print("Succesfully initialized the database for '%s'." % langs)
 
 
 class DropDB(Command):
@@ -50,6 +52,8 @@ class DropDB(Command):
         if prompt_bool("This will permanently destroy all data in the "
                        "configured database. Continue?"):
             current_app.tmdb.drop_db(source_langs)
+            langs = "', '".join(source_langs)
+            print("Succesfully dropped the database for '%s'." % langs)
 
 
 class DeployDB(Command):
@@ -61,6 +65,7 @@ class DeployDB(Command):
             cursor = tmdb.get_cursor()
             cursor.execute(tmdb.DEPLOY_QUERY % {'slang': 'en'})
             tmdb.connection.commit()
+            print("Succesfully altered the database for deployment.")
 
 
 class TMDBStats(Command):
@@ -144,7 +149,10 @@ class BuildTMDB(Command):
         else:
             self.handlefile(filename)
 
+        print("Succesfully imported %s" % filename)
+
     def handlefile(self, filename):
+        print("Importing %s" % filename)
         try:
             store = factory.getobject(filename)
             source_lang = self.source_lang or store.getsourcelanguage()
