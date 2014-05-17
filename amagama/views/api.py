@@ -37,16 +37,31 @@ write_api = Blueprint('write_api', __name__)
 
 @read_api.route('/<slang>/<tlang>/unit/', methods=('GET', ))
 def translate_unit_get(slang, tlang):
+    """Return the translations for the specified unit.
+
+    This actually internally redirects to the view that handles
+    /<slang>/<tlang>/unit/<path:uid> GET requests.
+    """
     return get_uid_and_call(translate_unit, slang, tlang)
 
 
 @write_api.route('/<slang>/<tlang>/unit/', methods=('POST', ))
 def update_unit_get(slang, tlang):
+    """Alter the unit on the DB using the provided data.
+
+    This actually internally redirects to the view that handles
+    /<slang>/<tlang>/unit/<path:uid> POST requests.
+    """
     return get_uid_and_call(update_unit, slang, tlang)
 
 
 @write_api.route('/<slang>/<tlang>/unit/', methods=('PUT', ))
 def add_unit_get(slang, tlang):
+    """Add the unit to the DB using the provided data.
+
+    This actually internally redirects to the view that handles
+    /<slang>/<tlang>/unit/<path:uid> PUT requests.
+    """
     return get_uid_and_call(add_unit, slang, tlang)
 
 
