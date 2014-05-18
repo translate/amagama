@@ -6,6 +6,7 @@
 
     init: function () {
       $(document).on('submit', '#js-amagama-form', MGM.search.doSearch);
+      $('#js-search-box').focus();
     },
 
     doSearch: function (event) {
