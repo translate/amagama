@@ -26,7 +26,7 @@ from flask import Blueprint, render_template
 web_ui = Blueprint('web_ui', __name__, static_folder='static')
 
 
-@web_ui.route('/<slang>/<tlang>/unit', methods=('GET', ))
-def translate(slang, tlang):
+@web_ui.route('/', methods=('GET', ))
+def translate():
     """Serve the query web page."""
-    return render_template("translate.html", slang=slang, tlang=tlang)
+    return render_template("translate.html")
