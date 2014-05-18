@@ -99,10 +99,15 @@
 
     displayLanguages: function (data) {
       var $sourceLanguage = $('#js-source-language'),
-          $targetLanguage = $('#js-target-language');
+          $targetLanguage = $('#js-target-language'),
+          browserLang = navigator.language || navigator.userLanguage;
 
       MGM.search.populateDropdown(data.sourceLanguages, $sourceLanguage);
       MGM.search.populateDropdown(data.targetLanguages, $targetLanguage);
+
+      $sourceLanguage.find('option[value="en"]').prop('selected', true);
+      $targetLanguage.find('option[value="' + browserLang + '"]')
+                     .prop('selected', true);
     }
   };
 
