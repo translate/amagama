@@ -6,6 +6,7 @@
 
     init: function () {
       $(document).on('submit', '#js-amagama-form', MGM.search.doSearch);
+      $.getJSON('/tmserver/languages/', MGM.search.displayLanguages);
       $('#js-search-box').focus();
     },
 
@@ -80,6 +81,33 @@
       } else {
         $('#js-similar-table').hide();
       }
+    },
+
+    populateDropdown: function (languages, $dropdown) {
+      var langsHTML = [];
+
+      for (var i = 0; i < languages.length; i++) {
+        langsHTML.push('<option value="');
+        langsHTML.push(languages[i]);
+        langsHTML.push('">');
+        langsHTML.push(languages[i]);
+        langsHTML.push('</option>');
+      }
+
+      $dropdown.html(langsHTML.join(''));
+    },
+
+    displayLanguages: function (data) {
+      var $sourceLanguage = $('#js-source-language'),
+          $targetLanguage = $('#js-target-language'),
+          browserLang = navigator.language || navigator.userLanguage;
+
+      MGM.search.populateDropdown(data.sourceLanguages, $sourceLanguage);
+      MGM.search.populateDropdown(data.targetLanguages, $targetLanguage);
+
+      $sourceLanguage.find('option[value="en"]').prop('selected', true);
+      $targetLanguage.find('option[value="' + browserLang + '"]')
+                     .prop('selected', true);
     }
   };
 

@@ -147,6 +147,7 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
 
     def __init__(self, *args, **kwargs):
         super(TMDB, self).__init__(*args, **kwargs)
+        self._available_langs = {}
         # Initialize list of source languages.
         query = "SELECT relname FROM pg_class WHERE relkind='r' AND relname LIKE 'sources_%'"
         cursor = self.get_cursor()
@@ -181,6 +182,35 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
             slang = lang_to_table(slang)
             self.drop_table('sources_%s' % slang)
             self.drop_table('targets_%s' % slang)
+
+    @property
+    def available_languages(self):
+        if not self._available_langs:
+            cursor = self.get_cursor()
+            source_languages = list(self.source_langs)
+            target_languages = set()
+
+            # Get all the target languages.
+            for slang in source_languages:
+                query = "SELECT DISTINCT lang FROM targets_%s" % slang
+                cursor.execute(query)
+                target_results = cursor.fetchall()
+
+                for result in target_results:
+                    slang = result[0]
+                    target_languages.add(slang)
+
+            source_languages.sort()
+            target_languages = list(target_languages)
+            target_languages.sort()
+
+            langs = {
+                'sourceLanguages': source_languages,
+                'targetLanguages': target_languages,
+            }
+            self._available_langs = langs
+
+        return self._available_langs
 
     def get_sid(self, unit_dict, cursor):
         source = unit_dict['source']

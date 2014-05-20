@@ -131,6 +131,15 @@ def upload_store(slang, tlang, sid):
     return response
 
 
+@read_api.route('/languages/', methods=('GET', ))
+def get_languages():
+    """Return all the available source and target languages in the database."""
+    languages = current_app.tmdb.available_languages
+    response = jsonwrapper(languages)
+    return current_app.response_class(response, mimetype='application/json',
+                                      headers=cache_headers)
+
+
 ###############################################################################
 # View helpers                                                                #
 ###############################################################################
