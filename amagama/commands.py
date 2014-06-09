@@ -117,23 +117,24 @@ class BuildTMDB(Command):
         Option('--project-style', dest='project_style'),
         Option('--input', '-i', dest='filename'),
         Option('--profile', '-p', dest='profile_name'),
+        Option('--verbose', action='store_true', dest='verbose'),
     )
 
-    def run(self, slang, tlang, project_style, filename, profile_name):
+    def run(self, slang, tlang, project_style, filename, profile_name, verbose):
         """Wrapper to implement profiling if requested."""
         if profile_name:
             import cProfile
             from translate.misc.profiling import KCacheGrind
             profiler = cProfile.Profile()
             profiler.runcall(self.real_run, slang, tlang, project_style,
-                             filename)
+                             filename, verbose)
             profile_file = open(profile_name, 'w+')
             KCacheGrind(profiler).output(profile_file)
             profile_file.close()
         else:
-            self.real_run(slang, tlang, project_style, filename)
+            self.real_run(slang, tlang, project_style, filename, verbose)
 
-    def real_run(self, slang, tlang, project_style, filename):
+    def real_run(self, slang, tlang, project_style, filename, verbose):
         self.source_lang = slang
         self.target_lang = tlang
         self.project_style = project_style
@@ -145,14 +146,17 @@ class BuildTMDB(Command):
         if not os.path.exists(filename):
             logging.error("Cannot process %s: does not exist" % filename)
         elif os.path.isdir(filename):
-            self.handledir(filename)
+            self.handledir(filename, verbose)
         else:
-            self.handlefile(filename)
+            self.handlefile(filename, verbose)
 
-        print("Succesfully imported %s" % filename)
+        if verbose:
+            print("Succesfully imported %s" % filename)
 
-    def handlefile(self, filename):
-        print("Importing %s" % filename)
+    def handlefile(self, filename, verbose):
+        if verbose:
+            print("Importing %s" % filename)
+
         try:
             store = factory.getobject(filename)
             source_lang = self.source_lang or store.getsourcelanguage()
@@ -189,17 +193,17 @@ class BuildTMDB(Command):
             logging.exception("Error importing strings from: %s" % filename)
             raise
 
-    def handlefiles(self, dirname, filenames):
+    def handlefiles(self, dirname, filenames, verbose):
         for filename in filenames:
             pathname = os.path.join(dirname, filename)
             if os.path.isdir(pathname):
-                self.handledir(pathname)
+                self.handledir(pathname, verbose)
             else:
-                self.handlefile(pathname)
+                self.handlefile(pathname, verbose)
 
-    def handledir(self, dirname):
+    def handledir(self, dirname, verbose):
         path, name = os.path.split(dirname)
         if name in ["CVS", ".svn", "_darcs", ".git", ".hg", ".bzr"]:
             return
         entries = os.listdir(dirname)
-        self.handlefiles(dirname, entries)
+        self.handlefiles(dirname, entries, verbose)
