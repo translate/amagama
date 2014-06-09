@@ -7,8 +7,8 @@ ENABLE_DATA_ALTERING_API = False
 
 # Database config
 
-DB_USER = "postgres"
 DB_NAME = "amagama"
+DB_USER = "postgres"
 DB_PASSWORD = ""
 #DB_HOST = "localhost"
 #DB_PORT = "5432"
