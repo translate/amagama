@@ -204,11 +204,10 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
             target_languages = list(target_languages)
             target_languages.sort()
 
-            langs = {
+            self._available_langs = {
                 'sourceLanguages': source_languages,
                 'targetLanguages': target_languages,
             }
-            self._available_langs = langs
 
         return self._available_langs
 
