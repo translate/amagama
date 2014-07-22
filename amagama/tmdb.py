@@ -439,11 +439,11 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
             abort(404)
 
         tlang = lang_to_table(target_lang)
-        lang_config = lang_to_config(slang)
-
         if slang == tlang:
             # We really don't want to serve en->en requests.
             abort(404)
+
+        lang_config = lang_to_config(slang)
 
         if isinstance(unit_source, str):
             unit_source = unicode(unit_source, "utf-8")
