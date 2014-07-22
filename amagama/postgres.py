@@ -22,7 +22,7 @@
 
 import psycopg2.extensions
 from flask import g, got_request_exception
-from psycopg2 import IntegrityError
+from psycopg2 import IntegrityError, ProgrammingError
 from psycopg2.extras import DictCursor
 from psycopg2.pool import PersistentConnectionPool
 

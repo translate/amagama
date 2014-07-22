@@ -469,14 +469,24 @@ SELECT * from (SELECT s.text AS source, t.text AS target, TS_RANK(s.vector, quer
     AND s.vector @@ query) sub WHERE rank > %%(minrank)s
     ORDER BY rank DESC
 """ % (slang, slang)
-        cursor.execute(query, {
-            'search_str': indexing_version(unit_source, checker),
-            'tlang': tlang,
-            'lang_config': lang_config,
-            'minrank': minrank,
-            'minlen': minlen,
-            'maxlen': maxlen,
-        })
+        try:
+            cursor.execute(query, {
+                'search_str': indexing_version(unit_source, checker),
+                'tlang': tlang,
+                'lang_config': lang_config,
+                'minrank': minrank,
+                'minlen': minlen,
+                'maxlen': maxlen,
+            })
+        except postgres.psycopg2.ProgrammingError:
+            # Avoid problems parsing strings like '<a "\b">'. If any of the
+            # characters in the example string is not present, then no error is
+            # thrown. The error is still present if any number of other letters
+            # are included between any of the characters in the example string.
+            self.connection.rollback()
+            self.pool.putconn()
+            return []
+
         results = []
         similarity = self.comparer.similarity
         for row in cursor:
