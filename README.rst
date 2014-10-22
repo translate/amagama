@@ -22,7 +22,7 @@ Resources
   <http://amagama.translatehouse.org>`_
 - Documentation: `http://docs.translatehouse.org/projects/amagama/
   <http://docs.translatehouse.org/projects/amagama/>`_
-- Bug tracker: `http://bugs.locamotion.org <http://bugs.locamotion.org>`_
+- Bug tracker: `Github <https://github.com/translate/amagama/issues>`_
 - Mailing list: `https://lists.sourceforge.net/lists/listinfo/translate-pootle
   <https://lists.sourceforge.net/lists/listinfo/translate-pootle>`_
 - IRC: `#pootle on irc.freenode.org <irc://irc.freenode.net/#pootle>`_
