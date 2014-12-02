@@ -1,6 +1,7 @@
 # Global config
 
 DEBUG = False
+SECRET_KEY = "foobar"
 ENABLE_WEB_UI = False
 ENABLE_DATA_ALTERING_API = False
 

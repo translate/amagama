@@ -25,6 +25,14 @@ Settings to define amaGama server behavior.
   Indicates if the debug mode is enabled.
 
 
+.. setting:: SECRET_KEY
+
+``SECRET_KEY``
+  Default: ``foobar``
+
+  Indicates the secret key to use for keeping the sessions secure.
+
+
 .. setting:: ENABLE_WEB_UI
 
 ``ENABLE_WEB_UI``
