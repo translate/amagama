@@ -144,7 +144,7 @@ class BuildTMDB(Command):
         current_app.cache = SimpleCache(threshold=100000)
 
         if not os.path.exists(filename):
-            logging.error("Cannot process %s: does not exist" % filename)
+            logging.error("Cannot process %s: does not exist", filename)
         elif os.path.isdir(filename):
             self.handledir(filename, verbose)
         else:
@@ -174,23 +174,23 @@ class BuildTMDB(Command):
 
             if not source_lang or not target_lang:
                 logging.error("Missing source or target language. Won't "
-                              "import %s" % filename)
+                              "import %s", filename)
                 return
         except ValueError as e:
-            if not "Unknown filetype" in str(e):
-                logging.exception("Error while handling: %s" % filename)
+            if "Unknown filetype" not in str(e):
+                logging.exception("Error while handling: %s", filename)
             return
         except Exception:
-            logging.exception("Error while processing: %s" % filename)
+            logging.exception("Error while processing: %s", filename)
             return
 
         # Do something useful with the store and the database.
         try:
-            logging.info("Importing strings from: %s" % filename)
+            logging.info("Importing strings from: %s", filename)
             current_app.tmdb.add_store(store, source_lang, target_lang,
                                        project_style, commit=True)
         except Exception:
-            logging.exception("Error importing strings from: %s" % filename)
+            logging.exception("Error importing strings from: %s", filename)
             raise
 
     def handlefiles(self, dirname, filenames, verbose):

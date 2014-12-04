@@ -23,7 +23,7 @@
 from json import dumps
 
 from flask import Blueprint, abort, current_app, request
-from werkzeug import Headers
+from werkzeug.datastructures import Headers
 
 
 # Let's encourage caching for an hour:
@@ -148,7 +148,7 @@ def get_int_arg(request, arg_name):
     """Return the specified integer argument from request, or None."""
     try:
         return int(request.args.get(arg_name, ''))
-    except:
+    except Exception:
         return None
 
 

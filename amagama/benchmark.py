@@ -21,7 +21,6 @@
 
 import logging
 import os
-import sys
 
 from flask import current_app
 from flask_script import Command, Option
@@ -62,7 +61,7 @@ class BenchmarkTMDB(Command):
             if not filename:
                 logging.error("Please specify a file or directory to use.")
             elif not os.path.exists(filename):
-                logging.error("Cannot process %s: does not exist" % filename)
+                logging.error("Cannot process %s: does not exist", filename)
             elif os.path.isdir(filename):
                 self.handledir(filename)
             else:
@@ -86,7 +85,7 @@ class BenchmarkTMDB(Command):
                 self.handlefile(pathname)
 
     def handlefile(self, filename):
-        logging.info("About to process %s:" % filename)
+        logging.info("About to process %s:", filename)
         try:
             store = factory.getobject(filename)
             source_lang = self.source_lang or store.getsourcelanguage()
@@ -97,10 +96,10 @@ class BenchmarkTMDB(Command):
 
             if not source_lang or not target_lang:
                 logging.error("Missing source or target language. Can't use "
-                              "%s" % filename)
+                              "%s", filename)
                 return
         except Exception:
-            logging.exception("Error while processing %s" % filename)
+            logging.exception("Error while processing %s", filename)
             return
 
         translate_unit = current_app.tmdb.translate_unit

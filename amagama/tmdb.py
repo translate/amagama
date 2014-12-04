@@ -21,7 +21,6 @@
 """Module to provide a translation memory database."""
 
 import math
-import re
 
 from flask import abort, current_app
 from translate.lang import data
@@ -256,7 +255,7 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
 
             if commit:
                 self.connection.commit()
-        except:
+        except Exception:
             self.connection.rollback()
             raise
 
@@ -417,7 +416,7 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
             cursor.execute("RELEASE SAVEPOINT after_sids")
             if commit:
                 self.connection.commit()
-        except:
+        except Exception:
             self.connection.rollback()
             raise
 

@@ -22,7 +22,6 @@
 
 import psycopg2.extensions
 from flask import g, got_request_exception
-from psycopg2 import IntegrityError
 from psycopg2.extras import DictCursor
 from psycopg2.pool import PersistentConnectionPool
 
@@ -87,7 +86,7 @@ class PostGres(object):
         #FIXME: this is dirty can we detect when in request context?
         try:
             g.transaction_dirty = True
-        except:
+        except Exception:
             # Using connection outside request context.
             pass
 
