@@ -124,7 +124,7 @@ class BuildTMDB(Command):
         """Wrapper to implement profiling if requested."""
         if profile_name:
             import cProfile
-            from translate.misc.profiling import KCacheGrind
+            from amagama.profiling import KCacheGrind
             profiler = cProfile.Profile()
             profiler.runcall(self.real_run, slang, tlang, project_style,
                              filename, verbose)
