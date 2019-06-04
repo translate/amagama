@@ -174,6 +174,7 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
             if not self.table_exists('targets_%s' % slang):
                 query = self.INIT_TARGET % {'slang': slang}
                 cursor.execute(query)
+            self.source_langs.add(slang)
         cursor.connection.commit()
 
     def drop_db(self, source_langs):
