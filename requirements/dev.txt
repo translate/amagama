@@ -2,3 +2,5 @@
 
 pep8
 Sphinx>=1.1
+pytest
+pytest-postgresql
