@@ -10,6 +10,7 @@ before_script:
   - psql -c "CREATE DATABASE amagama WITH ENCODING 'UTF-8';" -U postgres
 script:
   - python -m compileall -q -f .
+  - pytest
   - make docs
   - amagama-manage initdb -s en
   - amagama-manage tmdb_stats
