@@ -38,7 +38,7 @@ class InitDB(Command):
     def run(self, source_langs):
         current_app.tmdb.init_db(source_langs)
         langs = "', '".join(source_langs)
-        print("Succesfully initialized the database for '%s'." % langs)
+        print("Successfully initialized the database for '%s'." % langs)
 
 
 class DropDB(Command):
@@ -53,7 +53,7 @@ class DropDB(Command):
                        "configured database. Continue?"):
             current_app.tmdb.drop_db(source_langs)
             langs = "', '".join(source_langs)
-            print("Succesfully dropped the database for '%s'." % langs)
+            print("Successfully dropped the database for '%s'." % langs)
 
 
 class DeployDB(Command):
@@ -65,7 +65,7 @@ class DeployDB(Command):
             cursor = tmdb.get_cursor()
             cursor.execute(tmdb.DEPLOY_QUERY % {'slang': 'en'})
             tmdb.connection.commit()
-            print("Succesfully altered the database for deployment.")
+            print("Successfully altered the database for deployment.")
 
 
 class TMDBStats(Command):
@@ -151,7 +151,7 @@ class BuildTMDB(Command):
             self.handlefile(filename, verbose)
 
         if verbose:
-            print("Succesfully imported %s" % filename)
+            print("Successfully imported %s" % filename)
 
     def handlefile(self, filename, verbose):
         if verbose:

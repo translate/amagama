@@ -83,7 +83,7 @@ from the amaGama database:
 
     $ amagama-manage dropdb -s fr -s de
     This will permanently destroy all data in the configured database. Continue? [n] y
-    Succesfully dropped the database for 'fr', 'de'.
+    Successfully dropped the database for 'fr', 'de'.
 
 
 .. _managing#initdb:
@@ -98,7 +98,7 @@ languages. The following example creates the tables for English and French:
 .. code-block:: bash
 
     $ amagama-manage initdb -s en -s fr
-    Succesfully initialized the database for 'en', 'fr'.
+    Successfully initialized the database for 'en', 'fr'.
 
 
 .. _managing#tmdb-stats:

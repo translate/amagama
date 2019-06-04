@@ -14,7 +14,7 @@ To populate the amaGama database the :command:`amagama-manage` command
 
     $ amagama-manage build_tmdb --verbose -s en -t ar -i foo.po
     Importing foo.po
-    Succesfully imported foo.po
+    Successfully imported foo.po
 
 
 This will parse :file:`foo.po`, assuming that source language is *English (en)* and
@@ -36,4 +36,4 @@ read recursively:
     $ amagama-manage build_tmdb --verbose -s en -t gl -i translations/
     Importing translations/foo.po
     Importing translations/bar.po
-    Succesfully imported translations/
+    Successfully imported translations/
