@@ -36,6 +36,9 @@ class InitDB(Command):
     )
 
     def run(self, source_langs):
+        if not source_langs:
+            print("Provide source language with -s or --source-language.")
+            return 1
         current_app.tmdb.init_db(source_langs)
         langs = "', '".join(source_langs)
         print("Successfully initialized the database for '%s'." % langs)
