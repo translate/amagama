@@ -6,7 +6,7 @@ translation memory is a database of previous translations which can be searched
 to find good matches to new strings.
 
 amaGama is implemented in Python on top of PostgreSQL. There are currently no
-releases of the software, but the `source code is available at Github
+releases of the software, but the `source code is available at GitHub
 <https://github.com/translate/amagama>`_.
 
 A public deployment of amaGama is available, providing both a `public API

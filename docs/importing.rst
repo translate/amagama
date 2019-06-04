@@ -4,7 +4,8 @@ Importing translations
 **********************
 
 .. note:: Please make sure that the :command:`amagama-manage` command :ref:`is
-   accessible <installation#commands>`.
+   accessible <installation#commands>` and that the source language is already
+   initialized in the database with the :command:`initdb` command.
 
 To populate the amaGama database the :command:`amagama-manage` command
 :command:`build_tmdb` subcommand should be used:

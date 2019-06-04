@@ -69,6 +69,7 @@ options:
     This will permanently alter the database. Continue? [n] y
     Succesfully altered the database for deployment.
 
+.. note:: This is an irreveresible step that alters the database permanently.
 
 .. _managing#dropdb:
 
@@ -92,7 +93,7 @@ initdb
 
 This subcommand is used to create the tables in the database for one or several
 source languages. It can be run several times to specify additional source
-languages. The following example creates the tables for english and french:
+languages. The following example creates the tables for English and French:
 
 .. code-block:: bash
 

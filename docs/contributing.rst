@@ -3,14 +3,14 @@
 Contributing
 ************
 
-We accept code contributions to amaGama, please use Github pull requests for
+We accept code contributions to amaGama, please use GitHub pull requests for
 your changes.
 
 
 Preparations
 ------------
 
-You will need a local working copy of amaGama, the best way to achieve that is
+You will need a local working copy of amaGama. The best way to achieve that is
 to follow the :ref:`installation guidelines <installation>`.
 
 

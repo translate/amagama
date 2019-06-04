@@ -116,7 +116,7 @@ connection configuration, and perhaps change any other setting. Check the
 
       DB_HOST = "localhost"
 
-   This is a side effect of how Postgres is installed on Ubuntu and other
+   This is a side effect of how PostgreSQL is installed on Ubuntu and other
    systems.
 
 
@@ -125,7 +125,7 @@ connection configuration, and perhaps change any other setting. Check the
 Making the commands accessible
 ==============================
 
-Since amaGama is not installed we need to make accessible its commands:
+Since amaGama is not installed we need to make its commands accessible:
 
 .. code-block:: bash
 
@@ -155,5 +155,5 @@ Now that you have managed to install amaGama you will probably want to know how
 to:
 
 - :ref:`Manage amaGama <managing>`
-- :ref:`Import translations <importing>` to amaGama
+- :ref:`Import translations <importing>` into amaGama
 - :ref:`Run amaGama <running>`

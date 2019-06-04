@@ -24,11 +24,13 @@ The URL structure for requesting TM suggestions is
 +-------------------+---------------------------------------+
 
 .. note:: ``<SOURCE_LANGUAGE>`` and ``<TARGET_LANGUAGE>`` should be language
-   codes in the form of **LANG_COUNTRY** where *LANG* is mandatory. **LANG**
+   codes in the form of **LANG** OR **LANG_COUNTRY**. **LANG**
    should be a language code from `ISO 639
    <http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes>`_ and **COUNTRY** a
    country code from `ISO 3166 <http://en.wikipedia.org/wiki/ISO_3166-1>`_. The
    following are valid examples: ar, de, en, en_GB, es_AR, fr, gl, hi, tlh,...
+   For the public server the code en is used for the source language for most
+   of the FOSS localization files, not en_US.
 
 
 For example::

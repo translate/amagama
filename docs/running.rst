@@ -16,7 +16,7 @@ to launch amaGama server listening on port ``8888``.
 
 After launching the server you can test that amaGama is working by visiting
 http://localhost:8888/tmserver/en/ar/unit/file which should display a JSON
-representation of the *Arabic* translations for the *English* **file** word.
+representation of the *Arabic* translations for the *English* word **file**.
 
 .. note:: For more options check:
 

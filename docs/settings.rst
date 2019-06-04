@@ -3,7 +3,7 @@
 amaGama settings
 ****************
 
-amaGama has some settings that allow to tune how it behaves. Below you can see
+amaGama has some settings to allow tuning its behaviour. Below you can see
 a detailed description for each setting and its default values.
 
 amaGama settings are stored in :file:`amagama/settings.py`.
@@ -22,7 +22,7 @@ Settings to define amaGama server behavior.
 ``DEBUG``
   Default: ``False``
 
-  Indicates if the debug mode is enabled.
+  Indicates if debug mode is enabled.
 
 
 .. setting:: SECRET_KEY
@@ -30,7 +30,8 @@ Settings to define amaGama server behavior.
 ``SECRET_KEY``
   Default: ``foobar``
 
-  Indicates the secret key to use for keeping the sessions secure.
+  The secret key to use for keeping the sessions secure. Choose a long random
+  string and keep this secret.
 
 
 .. setting:: ENABLE_WEB_UI
@@ -38,7 +39,7 @@ Settings to define amaGama server behavior.
 ``ENABLE_WEB_UI``
   Default: ``False``
 
-  Indicates if the web interface is enabled.
+  Enables the web interface.
 
 
 .. setting:: ENABLE_DATA_ALTERING_API
@@ -46,8 +47,8 @@ Settings to define amaGama server behavior.
 ``ENABLE_DATA_ALTERING_API``
   Default: ``False``
 
-  Indicates if the part of the amaGama API that allows data to be altered is
-  enabled.
+  Enables the operations of the amaGama API that alters data. If set to
+  ``False``, the system can be considered read-only.
 
   This doesn't affect to the part of the API that is used to perform queries
   that don't alter the data. For example retrieving translations is always
@@ -115,7 +116,7 @@ Settings for the database pool.
 ``DB_MAX_CONNECTIONS``
   Default: ``20``
 
-  Maximum number of connections that the pool database will handle.
+  Maximum number of connections in the database pool.
 
 
 .. setting:: DB_MIN_CONNECTIONS
@@ -123,8 +124,7 @@ Settings for the database pool.
 ``DB_MIN_CONNECTIONS``
   Default: ``2``
 
-  Number of connections to the database server that are created automatically
-  in the database pool.
+  Minimum number of connections in the database pool.
 
 
 .. _settings#levenshtein-settings:
@@ -150,8 +150,8 @@ Settings for Levenshtein algorithm. See :ref:`Levenshtein distance
 ``MAX_LENGTH``
   Default: ``1000``
 
-  Maximum length of the string. If the string length is higher then it won't be
-  matched neither returned in the results.
+  Maximum length of result strings. If a string is longer, then it won't be
+  matched or returned in the results.
 
 
 .. setting:: MIN_SIMILARITY
@@ -159,8 +159,7 @@ Settings for Levenshtein algorithm. See :ref:`Levenshtein distance
 ``MIN_SIMILARITY``
   Default: ``70``
 
-  The minimum similarity between the string to be searched and the strings to
-  match.
+  The minimum similarity between the query string and the candidate strings.
 
   This can be overridden by providing another value using a :ref:`query string
   <api#providing-options>`, but there is a hardcoded minimum possible value of
