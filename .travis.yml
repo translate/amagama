@@ -3,6 +3,8 @@ dist: xenial
 language: python
 python:
   - 2.7
+services:
+  - postgresql
 install:
   - pip install -r requirements/dev.txt
 before_script:
