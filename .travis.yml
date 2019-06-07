@@ -3,8 +3,8 @@ dist: xenial
 language: python
 python:
   - 2.7
-services:
-  - postgresql
+addons:
+  postgresql: "10"
 install:
   - pip install -r requirements/dev.txt
 before_script:
@@ -13,7 +13,7 @@ before_script:
   - psql -c "CREATE DATABASE amagama WITH ENCODING 'UTF-8';" -U postgres
 script:
   - python -m compileall -q -f .
-  - pytest
+  - pytest --postgresql-exec=/usr/lib/postgresql/10/bin/pg_ctl
   - make docs
   - amagama-manage initdb -s en
   - amagama-manage tmdb_stats
