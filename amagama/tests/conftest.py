@@ -22,12 +22,12 @@ class TempTMDB(tmdb.TMDB):
         """Simple connection instead of TMDB's pool."""
         return self._connection
 
-    def add_test_unit(self, source, target):
+    def add_test_unit(self, source, target, slang=None, tlang=None):
         lang_config = tmdb.lang_to_config('en')
         po = pofile()
         u = po.addsourceunit(source)
         u.target = target
-        self.add_store(po, 'en', 'af')
+        self.add_store(po, slang or 'en', tlang or 'af')
         # avoid cached language lists:
         self._available_langs = {}
 
