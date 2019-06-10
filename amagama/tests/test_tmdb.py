@@ -1,3 +1,5 @@
+import pytest
+
 from . import PY2
 
 # fixtures:
@@ -44,6 +46,7 @@ class TestTMDB(object):
             assert result0["source"] == "Network"
             assert result0["quality"] < 100
 
+    @pytest.mark.xfail
     def test_ca_valencia(self, amagama):
         with amagama.app_context():
             targets = amagama.tmdb.available_languages['targetLanguages']
@@ -54,6 +57,7 @@ class TestTMDB(object):
             assert 'ca' not in targets
             assert 'ca_valencia' in targets
 
+    @pytest.mark.xfail
     def test_too_long(self, amagama):
         # https://github.com/translate/amagama/issues/3184
         import base64

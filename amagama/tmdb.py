@@ -182,6 +182,7 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
             slang = lang_to_table(slang)
             self.drop_table('sources_%s' % slang)
             self.drop_table('targets_%s' % slang)
+            self.source_langs.remove(slang)
 
     @property
     def available_languages(self):
@@ -421,6 +422,8 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
             self.connection.rollback()
             raise
 
+        if count:
+            self._available_langs = {}
         return count
 
     @property
