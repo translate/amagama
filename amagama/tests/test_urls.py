@@ -6,6 +6,14 @@ class TestURLs(object):
 
     def test_index(self, amagama):
         client = amagama.test_client()
+
+        # web UI disabled:
+        response = client.get('/')
+        assert response.status_code == 404
+
+        # web UI enabled:
+        from amagama.views import web
+        amagama.register_blueprint(web.web_ui, url_prefix='')
         response = client.get('/')
         assert response.status_code == 200
         assert "Search" in response.data
