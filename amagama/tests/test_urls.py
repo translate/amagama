@@ -4,6 +4,12 @@
 
 class TestURLs(object):
 
+    def test_index(self, amagama):
+        client = amagama.test_client()
+        response = client.get('/')
+        assert response.status_code == 200
+        assert "Search" in response.data
+
     def test_languages(self, amagama):
         client = amagama.test_client()
         response = client.get('/tmserver/languages/')
@@ -43,6 +49,10 @@ class TestURLs(object):
         for key in ('quality', 'source', 'target'):
             assert key in entry0
         assert float(entry0['quality']) == 100.0
+
+        response = client.get('/tmserver/en/af/unit/Network?jsoncallback=xyz123456')
+        assert response.status_code == 200
+        assert "xyz123456(" in response.data
 
     def test_404s(self, amagama):
         client = amagama.test_client()
