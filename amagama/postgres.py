@@ -23,12 +23,63 @@
 import psycopg2.extensions
 from flask import g, got_request_exception
 from psycopg2.extras import DictCursor
-from psycopg2.pool import PersistentConnectionPool
+from psycopg2.pool import AbstractConnectionPool
 
 
 # Setup unicode.
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
+
+
+# Imported verbatim from psycopg2 2.7 where it was removed:
+class PersistentConnectionPool(AbstractConnectionPool):
+    """A pool that assigns persistent connections to different threads.
+    Note that this connection pool generates by itself the required keys
+    using the current thread id.  This means that until a thread puts away
+    a connection it will always get the same connection object by successive
+    `!getconn()` calls. This also means that a thread can't use more than one
+    single connection from the pool.
+    """
+
+    def __init__(self, minconn, maxconn, *args, **kwargs):
+        """Initialize the threading lock."""
+        import threading
+        AbstractConnectionPool.__init__(
+            self, minconn, maxconn, *args, **kwargs)
+        self._lock = threading.Lock()
+
+        # we we'll need the thread module, to determine thread ids, so we
+        # import it here and copy it in an instance variable
+        import thread as _thread  # work around for 2to3 bug - see ticket #348
+        self.__thread = _thread
+
+    def getconn(self):
+        """Generate thread id and return a connection."""
+        key = self.__thread.get_ident()
+        self._lock.acquire()
+        try:
+            return self._getconn(key)
+        finally:
+            self._lock.release()
+
+    def putconn(self, conn=None, close=False):
+        """Put away an unused connection."""
+        key = self.__thread.get_ident()
+        self._lock.acquire()
+        try:
+            if not conn:
+                conn = self._used[key]
+            self._putconn(conn, key, close)
+        finally:
+            self._lock.release()
+
+    def closeall(self):
+        """Close all connections (even the one currently in use.)"""
+        self._lock.acquire()
+        try:
+            self._closeall()
+        finally:
+            self._lock.release()
 
 
 class PostGres(object):
