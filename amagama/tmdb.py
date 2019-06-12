@@ -241,10 +241,9 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
         tlang = lang_to_table(target_lang)
         lang_config = lang_to_config(slang)
 
+        if cursor is None:
+            cursor = self.get_cursor()
         try:
-            if cursor is None:
-                cursor = self.get_cursor()
-
             unitdict = {
                 'source': unicode(unit.source),
                 'target': unicode(unit.target),
@@ -256,9 +255,9 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
             self.add_dict(unitdict, cursor)
 
             if commit:
-                self.connection.commit()
+                cursor.connection.commit()
         except Exception:
-            self.connection.rollback()
+            cursor.connection.rollback()
             raise
 
     def add_dict(self, unit, cursor):
@@ -391,8 +390,8 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
 
         self.get_all_sids(units, source_lang, project_style)
 
+        cursor = self.get_cursor()
         try:
-            cursor = self.get_cursor()
             # We sort to avoid deadlocks during parallel import.
             units.sort(key=lambda x: x['target'])
             for i in range(1, 4):
@@ -417,9 +416,9 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
                     break
             cursor.execute("RELEASE SAVEPOINT after_sids")
             if commit:
-                self.connection.commit()
+                cursor.connection.commit()
         except Exception:
-            self.connection.rollback()
+            cursor.connection.rollback()
             raise
 
         if count:
@@ -486,8 +485,8 @@ SELECT * from (SELECT s.text AS source, t.text AS target, TS_RANK(s.vector, quer
             # characters in the example string is not present, then no error is
             # thrown. The error is still present if any number of other letters
             # are included between any of the characters in the example string.
-            self.connection.rollback()
-            self.pool.putconn()
+            cursor.connection.rollback()
+            self.pool.putconn(cursor.connection)
             return []
 
         results = []

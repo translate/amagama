@@ -45,12 +45,13 @@ class PostGres(object):
         """Return connection to pool on request end."""
         #FIXME: we should have better dirty detection, maybe wrap up insert
         # queries?
+        connection = self.connection
         if getattr(g, 'transaction_dirty', False):
             if response.status_code < 400:
-                self.connection.commit()
+                connection.commit()
             else:
-                self.connection.rollback()
-            self.pool.putconn()
+                connection.rollback()
+            self.pool.putconn(connection)
         return response
 
     def bailout(self, app, exception):
