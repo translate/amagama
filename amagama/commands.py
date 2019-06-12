@@ -143,8 +143,12 @@ class BuildTMDB(Command):
         self.project_style = project_style
 
         # A simple local cache to help speed up imports
-        from werkzeug.contrib.cache import SimpleCache
-        current_app.cache = SimpleCache(threshold=100000)
+        from flask_caching import Cache
+        cache = Cache(current_app, config={
+            'CACHE_TYPE': 'simple',
+            'CACHE_THRESHOLD': 100000,
+        })
+        current_app.cache = cache
 
         if not os.path.exists(filename):
             logging.error("Cannot process %s: does not exist", filename)

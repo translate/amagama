@@ -3,7 +3,6 @@
 import pytest
 
 from pytest_postgresql import factories
-from werkzeug.contrib.cache import SimpleCache
 
 from translate.storage.po import pofile
 
@@ -43,5 +42,10 @@ def amagama(pg_connection):
     app.testing = True
     app.tmdb = TempTMDB(connection=pg_connection)
     app.tmdb.init_db(['en'])
-    app.cache = SimpleCache()
+    from flask_caching import Cache
+    cache = Cache(app, config={
+        'CACHE_TYPE': 'simple',
+        'CACHE_THRESHOLD': 100000,
+    })
+    app.cache = cache
     return app
