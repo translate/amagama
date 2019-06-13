@@ -20,6 +20,8 @@
 
 """Module to provide a translation memory database."""
 
+from __future__ import division
+
 import math
 
 from flask import abort, current_app
