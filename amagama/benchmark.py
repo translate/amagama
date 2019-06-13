@@ -26,6 +26,13 @@ from flask import current_app
 from flask_script import Command, Option
 from translate.storage import factory
 
+try:
+    unicode
+    # Python 2
+except NameError:
+    # Python 3
+    unicode = str
+
 
 class BenchmarkTMDB(Command):
     """Benchmark the application by querying for all strings in the given file.

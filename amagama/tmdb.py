@@ -31,6 +31,12 @@ from translate.search.lshtein import LevenshteinComparer
 from amagama import postgres
 from amagama.normalise import indexing_version
 
+try:
+    unicode
+    # Python 2
+except NameError:
+    # Python 3
+    unicode = str
 
 _table_name_cache = {}
 
@@ -358,7 +364,7 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
 
         current_app.cache.set_many(
                 (build_cache_key(k, source_lang), v)
-                for (k, v) in already_stored.iteritems()
+                for (k, v) in already_stored.items()
         )
 
     def add_store(self, store, source_lang, target_lang, project_style=None,
@@ -449,7 +455,7 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
 
         lang_config = lang_to_config(slang)
 
-        if isinstance(unit_source, str):
+        if isinstance(unit_source, bytes):
             unit_source = unicode(unit_source, "utf-8")
 
         checker = project_checker(project_style, source_lang)

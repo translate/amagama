@@ -16,7 +16,7 @@ class TestURLs(object):
         amagama.register_blueprint(web.web_ui, url_prefix='')
         response = client.get('/')
         assert response.status_code == 200
-        assert "Search" in response.data
+        assert b"Search" in response.data
 
     def test_languages(self, amagama):
         client = amagama.test_client()
@@ -60,7 +60,7 @@ class TestURLs(object):
 
         response = client.get('/tmserver/en/af/unit/Network?jsoncallback=xyz123456')
         assert response.status_code == 200
-        assert "xyz123456(" in response.data
+        assert b"xyz123456(" in response.data
 
     def test_404s(self, amagama):
         client = amagama.test_client()

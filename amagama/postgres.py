@@ -50,12 +50,11 @@ class PersistentConnectionPool(AbstractConnectionPool):
 
         # we we'll need the thread module, to determine thread ids, so we
         # import it here and copy it in an instance variable
-        import thread as _thread  # work around for 2to3 bug - see ticket #348
-        self.__thread = _thread
+        self.__threading = threading
 
     def getconn(self):
         """Generate thread id and return a connection."""
-        key = self.__thread.get_ident()
+        key = self.__threading.current_thread().ident
         self._lock.acquire()
         try:
             return self._getconn(key)
@@ -64,7 +63,7 @@ class PersistentConnectionPool(AbstractConnectionPool):
 
     def putconn(self, conn=None, close=False):
         """Put away an unused connection."""
-        key = self.__thread.get_ident()
+        key = self.__threading.current_thread().ident
         self._lock.acquire()
         try:
             if not conn:
