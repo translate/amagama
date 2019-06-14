@@ -37,9 +37,11 @@ class AmagamaServer(Flask):
 def amagama_server_factory():
     app = AmagamaServer("settings.py", __name__)
     app.register_blueprint(api.read_api, url_prefix='/tmserver')
+    app.register_blueprint(api.read_api, url_prefix='/api/v1')
 
     if app.config['ENABLE_DATA_ALTERING_API']:
         app.register_blueprint(api.write_api, url_prefix='/tmserver')
+        app.register_blueprint(api.write_api, url_prefix='/api/v1')
 
     if app.config['ENABLE_WEB_UI']:
         from amagama.views import web

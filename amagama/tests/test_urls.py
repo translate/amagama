@@ -21,9 +21,11 @@ class TestURLs(object):
     def test_languages(self, amagama):
         client = amagama.test_client()
         response = client.get('/tmserver/languages/')
+        response_v1 = client.get('/api/v1/languages/')
         data = response.json
         assert 'sourceLanguages' in data
         assert 'targetLanguages' in data
+        assert data == response_v1.json
 
         source_langs = data['sourceLanguages']
         assert 'en' in source_langs
@@ -34,9 +36,11 @@ class TestURLs(object):
         with amagama.app_context():
             amagama.tmdb.add_test_unit('Network', 'Netwerk')
         response = client.get('/tmserver/languages/')
+        response_v1 = client.get('/api/v1/languages/')
         data = response.json
         target_langs = data['targetLanguages']
         assert target_langs == ['af']
+        assert data == response_v1.json
 
     def test_translate_unit(self, amagama):
         with amagama.app_context():
@@ -45,11 +49,14 @@ class TestURLs(object):
 
         # no response:
         response = client.get('/tmserver/en/af/unit/xyz-')
-        assert response.status_code == 200
+        response_v1 = client.get('/api/v1/en/af/unit/xyz-')
+        assert response.status_code == 200 == response_v1.status_code
         assert len(response.json) == 0
+        assert response.json == response_v1.json
 
         # some response:
         response = client.get('/tmserver/en/af/unit/Network')
+        response_v1 = client.get('/api/v1/en/af/unit/Network')
         assert response.status_code == 200
         data = response.json
         assert len(data) > 0
@@ -57,16 +64,21 @@ class TestURLs(object):
         for key in ('quality', 'source', 'target'):
             assert key in entry0
         assert float(entry0['quality']) == 100.0
+        assert data == response_v1.json
 
         response = client.get('/tmserver/en/af/unit/Network?jsoncallback=xyz123456')
-        assert response.status_code == 200
+        response_v1 = client.get('/api/v1/en/af/unit/Network?jsoncallback=xyz123456')
+        assert response.status_code == 200 == response_v1.status_code
         assert b"xyz123456(" in response.data
+        assert response.data == response_v1.data
 
     def test_404s(self, amagama):
         client = amagama.test_client()
 
         response = client.get('/tmserver/en/en/unit/File')
-        assert response.status_code == 404
+        response_v1 = client.get('/api/v1/en/en/unit/File')
+        assert response.status_code == 404 == response_v1.status_code
 
         response = client.get('/tmserver/xx/en/unit/File')
-        assert response.status_code == 404
+        response_v1 = client.get('/api/v1/xx/en/unit/File')
+        assert response.status_code == 404 == response_v1.status_code
