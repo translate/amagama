@@ -31,6 +31,7 @@ class AmagamaServer(Flask):
     def __init__(self, settings, *args, **kwargs):
         super(AmagamaServer, self).__init__(*args, **kwargs)
         self.config.from_pyfile(settings)
+        self.config.from_envvar('AMAGAMA_CONFIG', silent=True)
         self.tmdb = tmdb.TMDB(self)
 
 

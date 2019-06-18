@@ -8,6 +8,13 @@ a detailed description for each setting and its default values.
 
 amaGama settings are stored in :file:`amagama/settings.py`.
 
+Alternatively you can specify settings in a separate file to overeride the
+built-in settings in :file:`amagama/settings.py`. This avoids having to edit a
+file that is tracked in the version control system. To use these settings, set
+the environment variable `AMAGAMA_CONFIG` to the full path of your file. This
+should be used as overrides to the default settings, so whatever is specified
+in this file will take precedence over the file :file:`settings.py`.
+
 
 .. _settings#global-settings:
 
