@@ -85,7 +85,8 @@ list containing zero or more results. The results contain the following fields:
 | quality   | A Levenshtein distance measure of     |
 |           | quality as percent                    |
 +-----------+---------------------------------------+
-| rank      | ?                                     |
+| rank      | An internal quantity that might       |
+|           | disappear. Ignore.                    |
 +-----------+---------------------------------------+
 
 An example:

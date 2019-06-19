@@ -71,8 +71,6 @@
           else {
             resultsHTML.push(resultQuality);
           }
-          resultsHTML.push('</td><td>');
-          resultsHTML.push(currentResult.rank.toFixed(2));
           resultsHTML.push('</td></tr>');
         }
 

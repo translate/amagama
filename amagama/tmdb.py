@@ -479,6 +479,7 @@ SELECT * from (SELECT s.text AS source, t.text AS target, TS_RANK(s.vector, quer
     AND s.vector @@ query) sub WHERE rank > %%(minrank)s
     ORDER BY rank DESC
 """ % (slang, slang)
+        # TODO: stop returning "rank" once we're happy we have no users.
         try:
             cursor.execute(query, {
                 'search_str': indexing_version(unit_source, checker),
