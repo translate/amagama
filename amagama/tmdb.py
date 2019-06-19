@@ -494,7 +494,6 @@ SELECT * from (SELECT s.text AS source, t.text AS target, TS_RANK(s.vector, quer
             # thrown. The error is still present if any number of other letters
             # are included between any of the characters in the example string.
             cursor.connection.rollback()
-            self.pool.putconn(cursor.connection)
             return []
 
         results = []
