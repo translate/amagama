@@ -214,5 +214,5 @@ class BuildTMDB(Command):
         path, name = os.path.split(dirname)
         if name in {"CVS", ".svn", "_darcs", ".git", ".hg", ".bzr"}:
             return
-        entries = os.listdir(dirname)
+        entries = (f for f in os.listdir(dirname) if not f.endswith('.txt'))
         self.handlefiles(dirname, entries, verbose)
