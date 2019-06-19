@@ -46,6 +46,9 @@ class TestTMDB(object):
             assert result0["source"] == "Network"
             assert result0["quality"] < 100
 
+            # Was giving traceback psycopg2.ProgrammingError:
+            amagama.tmdb.translate_unit('<a "\\b">', "en", "af")
+
     @pytest.mark.xfail
     def test_ca_valencia(self, amagama):
         with amagama.app_context():
