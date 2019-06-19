@@ -212,7 +212,7 @@ class BuildTMDB(Command):
 
     def handledir(self, dirname, verbose):
         path, name = os.path.split(dirname)
-        if name in ["CVS", ".svn", "_darcs", ".git", ".hg", ".bzr"]:
+        if name in {"CVS", ".svn", "_darcs", ".git", ".hg", ".bzr"}:
             return
         entries = os.listdir(dirname)
         self.handlefiles(dirname, entries, verbose)
