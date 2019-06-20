@@ -208,11 +208,14 @@ class BuildTMDB(Command):
             if os.path.isdir(pathname):
                 self.handledir(pathname, verbose)
             else:
-                self.handlefile(pathname, verbose)
+               ext = os.path.splitext(pathname)[-1]
+               if ext.lower() in {'.txt', '.utf8', '.pot'}:
+                   continue
+               self.handlefile(pathname, verbose)
 
     def handledir(self, dirname, verbose):
         path, name = os.path.split(dirname)
         if name in {"CVS", ".svn", "_darcs", ".git", ".hg", ".bzr"}:
             return
-        entries = (f for f in os.listdir(dirname) if not f.endswith('.txt'))
+        entries = os.listdir(dirname)
         self.handlefiles(dirname, entries, verbose)
