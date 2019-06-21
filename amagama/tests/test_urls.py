@@ -78,6 +78,17 @@ class TestURLs(object):
         assert b"xyz123456(" in response.data
         assert response.data == response_v1.data
 
+    def test_limits(self, amagama):
+        with amagama.app_context():
+            for i in range(100):
+                amagama.tmdb.add_test_unit('String number %d' % i, str(i))
+        client = amagama.test_client()
+
+        response = client.get('/tmserver/en/af/unit/?source=String%20number%201&max_candidates=100')
+        assert response.status_code == 200
+        data = response.json
+        assert len(data) <= 50  # assuming default setting of max_candidates=30
+
     def test_404s(self, amagama):
         client = amagama.test_client()
 
