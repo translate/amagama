@@ -66,6 +66,12 @@ class TestURLs(object):
         assert float(entry0['quality']) == 100.0
         assert data == response_v1.json
 
+        for url in ('/tmserver/en/af/unit/?source=Network',
+                    '/api/v1/en/af/unit/?source=Network'):
+            response = client.get(url)
+            assert response.status_code == 200
+            assert data == response.json
+
         response = client.get('/tmserver/en/af/unit/Network?jsoncallback=xyz123456')
         response_v1 = client.get('/api/v1/en/af/unit/Network?jsoncallback=xyz123456')
         assert response.status_code == 200 == response_v1.status_code
