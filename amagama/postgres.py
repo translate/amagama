@@ -170,6 +170,13 @@ class PostGres(object):
         cursor.execute(query, {'table': table})
         return cursor.fetchone()[0]
 
+    def prepared_statement_exists(self, statement):
+        """Check if statement already exists in the database."""
+        query = """SELECT EXISTS(SELECT name FROM pg_prepared_statements WHERE name = %(stmt)s)"""
+        cursor = self.get_cursor()
+        cursor.execute(query, {'stmt': statement})
+        return cursor.fetchone()[0]
+
     def drop_table(self, table):
         """Drop the table if it exists."""
         query = """DROP TABLE IF EXISTS %s CASCADE;""" % table

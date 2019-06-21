@@ -152,6 +152,20 @@ DROP INDEX targets_%(slang)s_unique_idx;
 CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
 """
 
+    PREPARE_LOOKUP = """
+PREPARE lookup_%(slang)s AS
+SELECT * from (
+    SELECT s.text AS source, t.text AS target, TS_RANK(s.vector, query, 32) * 1744.93406073519 AS rank
+    FROM sources_%(slang)s s JOIN targets_%(slang)s t ON s.sid = t.sid,
+    TO_TSQUERY($1, prepare_ortsquery($2)) query
+    WHERE t.lang = $3 AND s.length BETWEEN $4 AND $5
+    AND s.vector @@ query
+) sub
+WHERE rank > $6
+ORDER BY rank DESC;
+"""
+    # TODO: stop returning "rank" once we're happy we have no users.
+
     def __init__(self, *args, **kwargs):
         super(TMDB, self).__init__(*args, **kwargs)
         self._available_langs = {}
@@ -163,6 +177,7 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
         offset = len('sources_')
         for row in cursor:
             self.source_langs.add(row['relname'][offset:])
+        self._prepared_statements = set()
 
     def init_db(self, source_langs):
         cursor = self.get_cursor()
@@ -440,6 +455,16 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
             self._comparer = LevenshteinComparer(max_length)
         return self._comparer
 
+    def _translate_query(self, cursor, slang, tlang, query, min_len, max_len, min_rank):
+        stmt = "lookup_%s" % slang
+        if slang not in self._prepared_statements:
+            if not self.prepared_statement_exists(stmt):
+                cursor.execute(self.PREPARE_LOOKUP % {'slang': slang})
+            self._prepared_statements.add(slang)
+        lang_config = lang_to_config(slang)
+        cursor.execute("EXECUTE %(stmt)s (%%s, %%s, %%s, %%s, %%s, %%s)" % {'stmt': stmt},
+                       (lang_config, query, tlang, min_len, max_len, min_rank))
+
     def translate_unit(self, unit_source, source_lang, target_lang,
                        project_style=None, min_similarity=None,
                        max_candidates=None):
@@ -452,8 +477,6 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
         if slang == tlang:
             # We really don't want to serve en->en requests.
             abort(404)
-
-        lang_config = lang_to_config(slang)
 
         if isinstance(unit_source, bytes):
             unit_source = unicode(unit_source, "utf-8")
@@ -471,24 +494,10 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
         minrank = max(min_similarity / 2, 30)
 
         cursor = self.get_cursor()
-        query = """
-SELECT * from (SELECT s.text AS source, t.text AS target, TS_RANK(s.vector, query, 32) * 1744.93406073519 AS rank
-    FROM sources_%s s JOIN targets_%s t ON s.sid = t.sid,
-    TO_TSQUERY(%%(lang_config)s, prepare_ortsquery(%%(search_str)s)) query
-    WHERE t.lang = %%(tlang)s AND s.length BETWEEN %%(minlen)s AND %%(maxlen)s
-    AND s.vector @@ query) sub WHERE rank > %%(minrank)s
-    ORDER BY rank DESC
-""" % (slang, slang)
-        # TODO: stop returning "rank" once we're happy we have no users.
         try:
-            cursor.execute(query, {
-                'search_str': indexing_version(unit_source, checker),
-                'tlang': tlang,
-                'lang_config': lang_config,
-                'minrank': minrank,
-                'minlen': minlen,
-                'maxlen': maxlen,
-            })
+            self._translate_query(cursor, slang, tlang,
+                                  indexing_version(unit_source, checker),
+                                  minlen, maxlen, minrank)
         except postgres.psycopg2.ProgrammingError:
             # Avoid problems parsing strings like '<a "\b">'. If any of the
             # characters in the example string is not present, then no error is
