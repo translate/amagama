@@ -2,6 +2,7 @@ import pytest
 
 from . import PY2
 
+from amagama import tmdb
 # fixtures:
 # from amagama.tests.conftest import amagama
 
@@ -48,6 +49,13 @@ class TestTMDB(object):
 
             # Was giving traceback psycopg2.ProgrammingError:
             amagama.tmdb.translate_unit('<a "\\b">', "en", "af")
+
+    def test_length_bounds(self):
+        assert tmdb.min_levenshtein_length(100, 70) == 70
+        assert tmdb.max_levenshtein_length(100, 70, 1000) == 142
+        # We want these functions to return integers.
+        assert type(tmdb.min_levenshtein_length(100, 70)) == int
+        assert type(tmdb.max_levenshtein_length(100, 70, 1000)) == int
 
     @pytest.mark.xfail
     def test_ca_valencia(self, amagama):
