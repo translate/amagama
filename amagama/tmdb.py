@@ -221,8 +221,8 @@ ORDER BY rank DESC;
                 target_results = cursor.fetchall()
 
                 for result in target_results:
-                    slang = result[0]
-                    target_languages.add(slang)
+                    tlang = result[0]
+                    target_languages.add(tlang)
 
             source_languages.sort()
             target_languages = list(target_languages)
