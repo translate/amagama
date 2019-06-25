@@ -98,8 +98,6 @@ class TMDBStats(Command):
         print("sources_en (table only):\t%s" % result[3])
         print("targets_en (table only):\t%s" % result[4])
 
-        # On postgres 8.3 the casts below are required. They are not needed for
-        # postgres 8.4.
         query = """COPY (
             SELECT relname,
                    indexrelname,
