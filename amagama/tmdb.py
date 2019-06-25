@@ -194,7 +194,7 @@ ORDER BY rank DESC;
             slang = lang_to_table(slang)
             self.drop_table('sources_%s' % slang)
             self.drop_table('targets_%s' % slang)
-            self.source_langs.remove(slang)
+            self.source_langs.discard(slang)
 
     @property
     def available_languages(self):
