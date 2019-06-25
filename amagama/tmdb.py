@@ -106,15 +106,6 @@ def split_cache_key(key):
 
 
 class TMDB(postgres.PostGres):
-    # array_agg() is only available since Postgres 8.4, so we provide it if it
-    # doesn't exist. This is from http://wiki.postgresql.org/wiki/Array_agg
-    ARRAY_AGG_CODE = """
-CREATE AGGREGATE array_agg(anyelement) (
-SFUNC=array_append,
-STYPE=anyarray,
-INITCOND='{}'
-);
-"""
 
     INIT_FUNCTIONS = """
 CREATE FUNCTION prepare_ortsquery(text) RETURNS text AS $$
@@ -181,8 +172,6 @@ ORDER BY rank DESC;
 
     def init_db(self, source_langs):
         cursor = self.get_cursor()
-        if not self.function_exists('array_agg'):
-            cursor.execute(self.ARRAY_AGG_CODE)
         if not self.function_exists('prepare_ortsquery'):
             cursor.execute(self.INIT_FUNCTIONS)
 
