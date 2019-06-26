@@ -108,7 +108,7 @@ def split_cache_key(key):
 class TMDB(postgres.PostGres):
 
     INIT_FUNCTIONS = """
-CREATE FUNCTION prepare_ortsquery(text) RETURNS text AS $$
+CREATE FUNCTION public.prepare_ortsquery(text) RETURNS text AS $$
     SELECT ARRAY_TO_STRING((SELECT ARRAY_AGG(quote_literal(token)) FROM TS_PARSE('default', $1) WHERE tokid != 12), '|');
 $$ LANGUAGE SQL;
 """
@@ -148,7 +148,7 @@ PREPARE lookup_%(slang)s AS
 SELECT * from (
     SELECT s.text AS source, t.text AS target, TS_RANK(s.vector, query, 32) * 1744.93406073519 AS rank
     FROM sources_%(slang)s s JOIN targets_%(slang)s t ON s.sid = t.sid,
-    TO_TSQUERY($1, prepare_ortsquery($2)) query
+    TO_TSQUERY($1, public.prepare_ortsquery($2)) query
     WHERE t.lang = $3 AND s.length BETWEEN $4 AND $5
     AND s.vector @@ query
 ) sub
