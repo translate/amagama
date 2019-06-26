@@ -26,6 +26,8 @@ from flask import current_app
 from flask_script import Command, Option
 from translate.storage import factory
 
+from amagama.commands import ensure_source_exists
+
 try:
     unicode
     # Python 2
@@ -58,6 +60,7 @@ class BenchmarkTMDB(Command):
 
     def run(self, slang, tlang, project_style, min_similarity, max_candidates,
             filename):
+        ensure_source_exists()
         self.source_lang = slang
         self.target_lang = tlang
         self.project_style = project_style

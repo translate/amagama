@@ -30,6 +30,13 @@ from translate.lang.data import langcode_ire
 from translate.storage import factory
 
 
+def ensure_source_exists():
+    db_name = current_app.config.get("DB_NAME")
+    if not current_app.tmdb.source_langs:
+        print("No source language is configured in database %s." % db_name)
+        exit(1)
+
+
 class InitDB(Command):
     """Create the database tables."""
     option_list = (
@@ -54,6 +61,7 @@ class DropDB(Command):
     )
 
     def run(self, source_langs):
+        ensure_source_exists()
         if prompt_bool("This will permanently destroy all data in the "
                        "configured database. Continue?"):
             current_app.tmdb.drop_db(source_langs)
@@ -65,6 +73,7 @@ class DeployDB(Command):
     """Optimise the database for deployment."""
 
     def run(self):
+        ensure_source_exists()
         if prompt_bool("This will permanently alter the database. Continue?"):
             tmdb = current_app.tmdb
             cursor = tmdb.get_cursor("en")
@@ -77,6 +86,7 @@ class TMDBStats(Command):
     """Print some (possibly) interesting figures about the TM DB."""
 
     def run(self):
+        ensure_source_exists()
         cursor = current_app.tmdb.get_cursor("en")
         db_name = current_app.config.get("DB_NAME")
         query = """SELECT
@@ -125,6 +135,7 @@ class BuildTMDB(Command):
 
     def run(self, slang, tlang, project_style, filename, profile_name, verbose):
         """Wrapper to implement profiling if requested."""
+        ensure_source_exists()
         if profile_name:
             import cProfile
             from amagama.profiling import KCacheGrind
