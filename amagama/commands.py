@@ -102,7 +102,7 @@ class TMDBStats(Command):
             SELECT relname,
                    indexrelname,
                    pg_size_pretty(pg_relation_size(CAST(indexrelname as text)))
-            FROM pg_stat_all_indexes
+            FROM pg_stat_user_indexes
             WHERE schemaname = 'en'
             ORDER BY pg_relation_size(CAST(indexrelname as text)) DESC
         ) TO STDOUT
