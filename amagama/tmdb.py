@@ -114,40 +114,40 @@ $$ LANGUAGE SQL;
 """
 
     INIT_SOURCE = """
-CREATE TABLE sources_%(slang)s (
+CREATE TABLE sources (
     sid SERIAL PRIMARY KEY,
     text TEXT NOT NULL,
     vector TSVECTOR NOT NULL,
     length INTEGER NOT NULL
 );
-CREATE UNIQUE INDEX sources_%(slang)s_text_unique_idx ON sources_%(slang)s (text);
-CREATE INDEX sources_%(slang)s_text_idx ON sources_%(slang)s USING gin(vector);
+CREATE UNIQUE INDEX sources_text_unique_idx ON sources (text);
+CREATE INDEX sources_text_idx ON sources USING gin(vector);
 """
 
     INIT_TARGET = """
-CREATE TABLE targets_%(slang)s (
+CREATE TABLE targets (
     tid SERIAL PRIMARY KEY,
     sid INTEGER NOT NULL,
     text TEXT NOT NULL,
     lang VARCHAR(32) NOT NULL,
-    FOREIGN KEY (sid) references sources_%(slang)s(sid)
+    FOREIGN KEY (sid) references sources(sid)
 );
-CREATE UNIQUE INDEX targets_%(slang)s_unique_idx ON targets_%(slang)s (sid, text, lang);
+CREATE UNIQUE INDEX targets_unique_idx ON targets (sid, text, lang);
 """
 
     DEPLOY_QUERY = """
-ALTER TABLE sources_%(slang)s DROP CONSTRAINT sources_%(slang)s_pkey CASCADE;
-ALTER TABLE targets_%(slang)s DROP COLUMN tid;
-DROP INDEX sources_%(slang)s_text_unique_idx;
-DROP INDEX targets_%(slang)s_unique_idx;
-CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
+ALTER TABLE sources DROP CONSTRAINT sources_pkey CASCADE;
+ALTER TABLE targets DROP COLUMN tid;
+DROP INDEX sources_text_unique_idx;
+DROP INDEX targets_unique_idx;
+CREATE INDEX targets_sid_lang_idx ON targets(sid, lang);
 """
 
     PREPARE_LOOKUP = """
-PREPARE lookup_%(slang)s AS
+PREPARE lookup AS
 SELECT * from (
     SELECT s.text AS source, t.text AS target, TS_RANK(s.vector, query, 32) * 1744.93406073519 AS rank
-    FROM sources_%(slang)s s JOIN targets_%(slang)s t ON s.sid = t.sid,
+    FROM sources s JOIN targets t ON s.sid = t.sid,
     TO_TSQUERY($1, public.prepare_ortsquery($2)) query
     WHERE t.lang = $3 AND s.length BETWEEN $4 AND $5
     AND s.vector @@ query
@@ -161,51 +161,54 @@ ORDER BY rank DESC;
         super(TMDB, self).__init__(*args, **kwargs)
         self._available_langs = {}
         # Initialize list of source languages.
-        query = "SELECT relname FROM pg_class WHERE relkind='r' AND relname LIKE 'sources_%'"
+        query = "SELECT schemaname FROM pg_tables WHERE tablename = 'sources'"
         cursor = self.get_cursor()
         cursor.execute(query)
         self.source_langs = set()
-        offset = len('sources_')
         for row in cursor:
-            self.source_langs.add(row['relname'][offset:])
+            self.source_langs.add(row['schemaname'])
         self._prepared_statements = set()
 
     def init_db(self, source_langs):
-        cursor = self.get_cursor()
         if not self.function_exists('prepare_ortsquery'):
+            cursor = self.get_cursor()
             cursor.execute(self.INIT_FUNCTIONS)
+            cursor.connection.commit()
 
         for slang in source_langs:
             slang = lang_to_table(slang)
             if slang in self.source_langs:
                 continue
+            cursor = self.get_cursor(slang)
+            cursor.execute("CREATE SCHEMA %s" % slang)
 
-            if not self.table_exists('sources_%s' % slang):
-                query = self.INIT_SOURCE % {'slang': slang}
+            if not self.table_exists('sources'):
+                query = self.INIT_SOURCE
                 cursor.execute(query)
-            if not self.table_exists('targets_%s' % slang):
-                query = self.INIT_TARGET % {'slang': slang}
+            if not self.table_exists('targets'):
+                query = self.INIT_TARGET
                 cursor.execute(query)
             self.source_langs.add(slang)
-        cursor.connection.commit()
+            cursor.connection.commit()
 
     def drop_db(self, source_langs):
         for slang in source_langs:
             slang = lang_to_table(slang)
-            self.drop_table('sources_%s' % slang)
-            self.drop_table('targets_%s' % slang)
+            cursor = self.get_cursor()
+            cursor.execute("DROP SCHEMA IF EXISTS %s CASCADE" % slang)
+            cursor.connection.commit()
             self.source_langs.discard(slang)
 
     @property
     def available_languages(self):
         if not self._available_langs:
-            cursor = self.get_cursor()
             source_languages = list(self.source_langs)
             target_languages = set()
 
             # Get all the target languages.
             for slang in source_languages:
-                query = "SELECT DISTINCT lang FROM targets_%s" % slang
+                cursor = self.get_cursor(slang)
+                query = "SELECT DISTINCT lang FROM targets"
                 cursor.execute(query)
                 target_results = cursor.fetchall()
 
@@ -234,7 +237,7 @@ ORDER BY rank DESC;
         if sid:
             return sid
 
-        query = """SELECT sid FROM sources_%s WHERE text=%%(source)s""" % slang
+        query = """SELECT sid FROM sources WHERE text=%(source)s"""
         cursor.execute(query, unit_dict)
         result = cursor.fetchone()
         if result:
@@ -254,7 +257,7 @@ ORDER BY rank DESC;
         lang_config = lang_to_config(slang)
 
         if cursor is None:
-            cursor = self.get_cursor()
+            cursor = self.get_cursor(slang)
         try:
             unitdict = {
                 'source': unicode(unit.source),
@@ -277,14 +280,13 @@ ORDER BY rank DESC;
 
         The caller is expected to handle errors.
         """
-        slang = unit['source_lang']
         unit['sid'] = self.get_sid(unit, cursor)
-        query = """SELECT COUNT(*) FROM targets_%s WHERE
-        sid=%%(sid)s AND lang=%%(target_lang)s AND text=%%(target)s""" % slang
+        query = """SELECT COUNT(*) FROM targets WHERE
+        sid=%(sid)s AND lang=%(target_lang)s AND text=%(target)s"""
         cursor.execute(query, unit)
         if not cursor.fetchone()[0]:
-            query = """INSERT INTO targets_%s (sid, text, lang) VALUES (
-            %%(sid)s, %%(target)s, %%(target_lang)s)""" % slang
+            query = """INSERT INTO targets (sid, text, lang) VALUES (
+            %(sid)s, %(target)s, %(target_lang)s)"""
             cursor.execute(query, unit)
 
     def get_all_sids(self, units, source_lang, project_style):
@@ -307,9 +309,9 @@ ORDER BY rank DESC;
 
         checker = project_checker(project_style, source_lang)
 
-        cursor = self.get_cursor()
-        select_query = """SELECT text, sid FROM sources_%s WHERE
-        text IN %%(list)s""" % source_lang
+        cursor = self.get_cursor(source_lang)
+        select_query = """SELECT text, sid FROM sources WHERE
+        text IN %(list)s"""
 
         to_store = set()
         already_stored = {}
@@ -331,12 +333,12 @@ ORDER BY rank DESC;
                     break
 
                 # Some source strings still need to be stored.
-                insert_query = """INSERT INTO sources_%s (text, vector, length)
+                insert_query = """INSERT INTO sources (text, vector, length)
                 VALUES(
-                    %%(source)s,
-                    TO_TSVECTOR(%%(lang_config)s, %%(indexed_source)s),
-                    %%(length)s
-                ) RETURNING sid""" % source_lang
+                    %(source)s,
+                    TO_TSVECTOR(%(lang_config)s, %(indexed_source)s),
+                    %(length)s
+                ) RETURNING sid"""
 
                 lang_config = lang_to_config(source_lang)
                 params = [{
@@ -402,7 +404,7 @@ ORDER BY rank DESC;
 
         self.get_all_sids(units, source_lang, project_style)
 
-        cursor = self.get_cursor()
+        cursor = self.get_cursor(slang)
         try:
             # We sort to avoid deadlocks during parallel import.
             units.sort(key=lambda x: x['target'])
@@ -445,13 +447,12 @@ ORDER BY rank DESC;
         return self._comparer
 
     def _translate_query(self, cursor, slang, tlang, query, min_len, max_len, min_rank):
-        stmt = "lookup_%s" % slang
         if slang not in self._prepared_statements:
-            if not self.prepared_statement_exists(stmt):
-                cursor.execute(self.PREPARE_LOOKUP % {'slang': slang})
+            if not self.prepared_statement_exists("lookup"):
+                cursor.execute(self.PREPARE_LOOKUP)
             self._prepared_statements.add(slang)
         lang_config = lang_to_config(slang)
-        cursor.execute("EXECUTE %(stmt)s (%%s, %%s, %%s, %%s, %%s, %%s)" % {'stmt': stmt},
+        cursor.execute("EXECUTE lookup (%s, %s, %s, %s, %s, %s)",
                        (lang_config, query, tlang, min_len, max_len, min_rank))
 
     def translate_unit(self, unit_source, source_lang, target_lang,
@@ -482,7 +483,7 @@ ORDER BY rank DESC;
 
         minrank = max(min_similarity / 2, 30)
 
-        cursor = self.get_cursor()
+        cursor = self.get_cursor(slang)
         try:
             self._translate_query(cursor, slang, tlang,
                                   indexing_version(unit_source, checker),

@@ -67,8 +67,8 @@ class DeployDB(Command):
     def run(self):
         if prompt_bool("This will permanently alter the database. Continue?"):
             tmdb = current_app.tmdb
-            cursor = tmdb.get_cursor()
-            cursor.execute(tmdb.DEPLOY_QUERY % {'slang': 'en'})
+            cursor = tmdb.get_cursor("en")
+            cursor.execute(tmdb.DEPLOY_QUERY)
             tmdb.connection.commit()
             print("Successfully altered the database for deployment.")
 
@@ -77,14 +77,14 @@ class TMDBStats(Command):
     """Print some (possibly) interesting figures about the TM DB."""
 
     def run(self):
-        cursor = current_app.tmdb.get_cursor()
+        cursor = current_app.tmdb.get_cursor("en")
         db_name = current_app.config.get("DB_NAME")
         query = """SELECT
             pg_size_pretty(pg_database_size(%s)),
-            pg_size_pretty(pg_total_relation_size('sources_en')),
-            pg_size_pretty(pg_total_relation_size('targets_en')),
-            pg_size_pretty(pg_relation_size('sources_en')),
-            pg_size_pretty(pg_relation_size('targets_en'))
+            pg_size_pretty(pg_total_relation_size('sources')),
+            pg_size_pretty(pg_total_relation_size('targets')),
+            pg_size_pretty(pg_relation_size('sources')),
+            pg_size_pretty(pg_relation_size('targets'))
         ;"""
         data = (
             db_name,
@@ -93,17 +93,17 @@ class TMDBStats(Command):
 
         result = cursor.fetchone()
         print("Complete database (%s):\t%s" % (db_name, result[0]))
-        print("Complete size of sources_en:\t%s" % result[1])
-        print("Complete size of targets_en:\t%s" % result[2])
-        print("sources_en (table only):\t%s" % result[3])
-        print("targets_en (table only):\t%s" % result[4])
+        print("Complete size of sources:\t%s" % result[1])
+        print("Complete size of targets:\t%s" % result[2])
+        print("sources (table only):\t%s" % result[3])
+        print("targets (table only):\t%s" % result[4])
 
         query = """COPY (
             SELECT relname,
                    indexrelname,
                    pg_size_pretty(pg_relation_size(CAST(indexrelname as text)))
             FROM pg_stat_all_indexes
-            WHERE schemaname = 'public'
+            WHERE schemaname = 'en'
             ORDER BY pg_relation_size(CAST(indexrelname as text)) DESC
         ) TO STDOUT
         ;"""
