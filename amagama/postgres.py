@@ -87,6 +87,7 @@ class PostGres(object):
     def __init__(self, app=None):
         self.app = None
         self.pool = None
+        self._last_schema = {}  # id(conn)-> last used schema on conn
 
         if app:
             self.init_app(app)
@@ -143,10 +144,20 @@ class PostGres(object):
 
         return self.pool.getconn()
 
-    def get_cursor(self):
-        """Get a database cursor object to be used for making queries."""
+    def get_cursor(self, schema=None):
+        """Get a database cursor object to be used for making queries.
+
+        The optional schema indicated will cause a SET SCHEMA command, but
+        only if required. If schema is None, it means that any previous SET
+        SCHEMA command on the connection won't matter (the queries will use
+        explicit schemas)."""
         #FIXME: maybe use server side cursors?
-        return self.connection.cursor(cursor_factory=DictCursor)
+        conn = self.connection
+        cursor = conn.cursor(cursor_factory=DictCursor)
+        if schema and self._last_schema.get(id(conn)) != schema:
+            cursor.execute("SET SCHEMA '%s'" % schema)
+            self._last_schema[id(conn)] = schema
+        return cursor
 
     def init_db(self, *args, **kwargs):
         """Initialize the database."""
