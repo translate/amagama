@@ -25,6 +25,7 @@ from __future__ import division
 import math
 
 from flask import abort, current_app
+from psycopg2 import sql
 from translate.lang import data
 from translate.search.lshtein import LevenshteinComparer
 
@@ -180,7 +181,7 @@ ORDER BY rank DESC;
             if slang in self.source_langs:
                 continue
             cursor = self.get_cursor(slang)
-            cursor.execute("CREATE SCHEMA %s" % slang)
+            cursor.execute(sql.SQL("CREATE SCHEMA {}").format(sql.Identifier(slang)))
 
             if not self.table_exists('sources'):
                 query = self.INIT_SOURCE

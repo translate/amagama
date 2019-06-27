@@ -1,4 +1,4 @@
 blinker>=0.9
 Flask>=0.8
-psycopg2>=2.2
+psycopg2>=2.7
 translate-toolkit>=1.8.0

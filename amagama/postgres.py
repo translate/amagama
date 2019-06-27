@@ -21,6 +21,7 @@
 """PostgreSQL access and helpers."""
 
 import psycopg2.extensions
+from psycopg2 import sql
 from flask import g, got_request_exception
 from psycopg2.extras import DictCursor
 from psycopg2.pool import AbstractConnectionPool
@@ -155,7 +156,7 @@ class PostGres(object):
         conn = self.connection
         cursor = conn.cursor(cursor_factory=DictCursor)
         if schema and self._last_schema.get(id(conn)) != schema:
-            cursor.execute("SET SCHEMA '%s'" % schema)
+            cursor.execute(sql.SQL("SET SCHEMA {}").format(sql.Literal(schema)))
             self._last_schema[id(conn)] = schema
         return cursor
 
