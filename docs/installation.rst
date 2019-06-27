@@ -14,7 +14,7 @@ Dependencies
 
 amaGama requires the following dependencies:
 
-- **Python 2**: 2.6 or later.
+- **Python**: 2.7 or later. Python 3 is also supported.
 - **PostgreSQL**: 8.4 or later.
 
 There are also some dependencies that we strongly recommend to use, but are optional:
