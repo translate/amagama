@@ -182,13 +182,8 @@ ORDER BY rank DESC;
                 continue
             cursor = self.get_cursor(slang)
             cursor.execute(sql.SQL("CREATE SCHEMA {}").format(sql.Identifier(slang)))
-
-            if not self.table_exists('sources'):
-                query = self.INIT_SOURCE
-                cursor.execute(query)
-            if not self.table_exists('targets'):
-                query = self.INIT_TARGET
-                cursor.execute(query)
+            cursor.execute(self.INIT_SOURCE)
+            cursor.execute(self.INIT_TARGET)
             self.source_langs.add(slang)
             cursor.connection.commit()
 
