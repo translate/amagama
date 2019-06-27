@@ -109,7 +109,7 @@ def split_cache_key(key):
 class TMDB(postgres.PostGres):
 
     INIT_FUNCTIONS = """
-CREATE FUNCTION public.prepare_ortsquery(text) RETURNS text AS $$
+CREATE FUNCTION public.prepare_or_tsquery(text) RETURNS text AS $$
     SELECT ARRAY_TO_STRING((SELECT ARRAY_AGG(quote_literal(token)) FROM TS_PARSE('default', $1) WHERE tokid != 12), '|');
 $$ LANGUAGE SQL;
 """
@@ -149,7 +149,7 @@ PREPARE lookup AS
 SELECT * from (
     SELECT s.text AS source, t.text AS target, TS_RANK(s.vector, query, 32) * 1744.93406073519 AS rank
     FROM sources s JOIN targets t ON s.sid = t.sid,
-    TO_TSQUERY($1, public.prepare_ortsquery($2)) query
+    TO_TSQUERY($1, public.prepare_or_tsquery($2)) query
     WHERE t.lang = $3 AND s.length BETWEEN $4 AND $5
     AND s.vector @@ query
 ) sub
@@ -171,7 +171,7 @@ ORDER BY rank DESC;
         self._prepared_statements = set()
 
     def init_db(self, source_langs):
-        if not self.function_exists('prepare_ortsquery'):
+        if not self.function_exists('prepare_or_tsquery'):
             cursor = self.get_cursor()
             cursor.execute(self.INIT_FUNCTIONS)
             cursor.connection.commit()
