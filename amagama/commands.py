@@ -26,6 +26,8 @@ import sys
 
 from flask import current_app
 from flask_script import Command, Option, prompt_bool
+from psycopg2 import sql
+
 from translate.lang.data import langcode_ire
 from translate.storage import factory
 
@@ -87,38 +89,46 @@ class TMDBStats(Command):
 
     def run(self):
         ensure_source_exists()
-        cursor = current_app.tmdb.get_cursor("en")
         db_name = current_app.config.get("DB_NAME")
-        query = """SELECT
-            pg_size_pretty(pg_database_size(%s)),
-            pg_size_pretty(pg_total_relation_size('sources')),
-            pg_size_pretty(pg_total_relation_size('targets')),
-            pg_size_pretty(pg_relation_size('sources')),
-            pg_size_pretty(pg_relation_size('targets'))
-        ;"""
-        data = (
-            db_name,
-        )
-        cursor.execute(query, data)
 
+        cursor = current_app.tmdb.get_cursor()
+        query = """SELECT pg_size_pretty(pg_database_size(%s))"""
+        cursor.execute(query, (db_name,))
         result = cursor.fetchone()
         print("Complete database (%s):\t%s" % (db_name, result[0]))
-        print("Complete size of sources:\t%s" % result[1])
-        print("Complete size of targets:\t%s" % result[2])
-        print("sources (table only):\t%s" % result[3])
-        print("targets (table only):\t%s" % result[4])
 
-        query = """COPY (
-            SELECT relname,
-                   indexrelname,
-                   pg_size_pretty(pg_relation_size(CAST(indexrelname as text)))
-            FROM pg_stat_user_indexes
-            WHERE schemaname = 'en'
-            ORDER BY pg_relation_size(CAST(indexrelname as text)) DESC
-        ) TO STDOUT
-        ;"""
-        logging.info("\nIndex sizes:")
-        cursor.copy_expert(query, sys.stdout)
+        for slang in current_app.tmdb.source_langs:
+            print()
+            print("Source language:", slang)
+            cursor = current_app.tmdb.get_cursor(slang)
+            query = """SELECT
+                pg_size_pretty(pg_total_relation_size('sources')),
+                pg_size_pretty(pg_total_relation_size('targets')),
+                pg_size_pretty(pg_relation_size('sources')),
+                pg_size_pretty(pg_relation_size('targets'))
+            ;"""
+            data = (
+                db_name,
+            )
+            cursor.execute(query, data)
+
+            result = cursor.fetchone()
+            print("Complete size of sources:\t%s" % result[0])
+            print("Complete size of targets:\t%s" % result[1])
+            print("sources (table only):\t%s" % result[2])
+            print("targets (table only):\t%s" % result[3])
+
+            query = sql.SQL("""COPY (
+                SELECT relname,
+                       indexrelname,
+                       pg_size_pretty(pg_relation_size(CAST(indexrelname as text)))
+                FROM pg_stat_user_indexes
+                WHERE schemaname = {}
+                ORDER BY pg_relation_size(CAST(indexrelname as text)) DESC
+            ) TO STDOUT
+            ;""").format(sql.Literal(slang))
+            logging.info("\nIndex sizes:")
+            cursor.copy_expert(query, sys.stdout)
 
 
 class BuildTMDB(Command):
