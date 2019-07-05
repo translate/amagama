@@ -197,7 +197,7 @@ class BuildTMDB(Command):
                     target_lang = short
                 else:
                     short = os.path.split(os.path.split(filename)[0])[1]
-                    if langcode_ire.match(short) and short != 'po':
+                    if langcode_ire.match(short) and short not in ('po', 'www', 'gtk'):
                         target_lang = short
 
             if not source_lang or not target_lang:
@@ -228,7 +228,7 @@ class BuildTMDB(Command):
                 self.handledir(pathname, verbose)
             else:
                 ext = os.path.splitext(pathname)[-1]
-                if ext.lower() in {'.txt', '.utf8', '.pot'}:
+                if ext.lower() in {'.txt', '.utf8', '.pot', '.csv', '.tab'}:
                     continue
                 self.handlefile(pathname, verbose)
 
