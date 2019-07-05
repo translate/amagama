@@ -21,6 +21,7 @@
 
 import logging
 import os
+import time
 
 from flask import current_app
 from flask_script import Command, Option
@@ -113,14 +114,36 @@ class BenchmarkTMDB(Command):
             return
 
         translate_unit = current_app.tmdb.translate_unit
+        times = []
         try:
             for unit in store.units:
                 if unit.istranslatable():
+                    # TODO: rather time.monotonic in Python 3
+                    before = time.time()
                     # We need an explicit unicode (not multistring), otherwise
                     # psycopg2 can't adapt it:
                     translate_unit(unicode(unit.source), source_lang,
                                    target_lang, project_style, min_similarity,
                                    max_candidates)
+                    duration = time.time() - before
+                    if duration > .4 or \
+                       duration > .04 + (len(unit.source)/1000):
+                        print("Slow (%.3fs): %r" % (duration, unit.source))
+                    times.append(duration)
         except Exception:
             logging.exception("Error when translating unit")
             raise
+
+        try:
+            import numpy
+        except ImportError:
+            print("Install numpy for an analysis of the timings")
+            return
+        arr = numpy.array(times)
+        print("Timings:")
+        print("Avg.:\t%.3f" % arr.mean(), "± %.3f" % arr.std())
+        print("min:\t%.5f" % arr.min())
+        print("MAX:\t%.3f" % arr.max())
+        print("Percentiles:")
+        for i in range(50, 101, 5):
+            print("%d:\t%.4f" % (i, numpy.percentile(arr, i)))
