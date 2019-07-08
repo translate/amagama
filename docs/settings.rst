@@ -172,6 +172,9 @@ Settings for Levenshtein algorithm. See :ref:`Levenshtein distance
 
   The minimum similarity between the query string and the candidate strings.
 
-  This can be overridden by providing another value using a :ref:`query string
-  <api#providing-options>`, but there is a hardcoded minimum possible value of
-  ``30``. If a lower value is provided then ``30`` will be used.
+  This can be overridden by providing a higher value using a :ref:`query string
+  <api#providing-options>`, but the setting is considered a lower limit. This
+  setting is used during database deployment to determine optimal settings for
+  the database indexes. It will be detrimental to performance to lower this
+  setting after deploying the database, up to the point of possibly enabling
+  denial of service attacks.

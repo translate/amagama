@@ -19,8 +19,7 @@
       if (searchTerms) {
         //TODO look for a way to specify min_similarity and max_candidates on
         // the search box instead of hardcoding them here.
-        var minSimilarity = 30,
-            maxCandidates = 20,
+        var maxCandidates = 20,
             sourceLanguage = $('#js-source-language').val(),
             targetLanguage = $('#js-target-language').val();
 
@@ -30,7 +29,6 @@
 
         var URLParams = $.param({
           'source': searchTerms,
-          'min_similarity': minSimilarity,
           'max_candidates': maxCandidates
         });
 

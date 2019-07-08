@@ -526,7 +526,7 @@ ORDER BY rank DESC;
         checker = project_checker(project_style, source_lang)
 
         max_length = current_app.config.get('MAX_LENGTH', 2000)
-        min_similarity = max(min_similarity or current_app.config.get('MIN_SIMILARITY', 70), 30)
+        min_similarity = max(min_similarity or current_app.config.get('MIN_SIMILARITY', 70), 70)
         max_candidates = min(max_candidates or current_app.config.get('MAX_CANDIDATES', 5), 30)
 
         source_len = len(unit_source)
