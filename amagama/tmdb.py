@@ -22,6 +22,26 @@
 
 from __future__ import division
 
+# We want to estimate PostgreSQL's compression of TEXT fields
+try:
+    # The text compression is an LZ type compression
+    from lz4.frame import compress
+    COMPRESSED_LIMIT = 2900
+except ImportError:
+    # With a different limit, this is a reasonable estimation
+    #Python 3 only version:
+    #from gzip import compress
+
+    # Python 2+3
+    from gzip import GzipFile
+    from io import BytesIO
+    def compress(s):
+        buf = BytesIO()
+        with GzipFile(mode='wb', fileobj=buf) as zfile:
+            zfile.write(s)
+        return buf.getvalue()
+    COMPRESSED_LIMIT = 2000
+
 import math
 
 from flask import abort, current_app
@@ -169,6 +189,10 @@ ORDER BY rank DESC;
         for row in cursor:
             self.source_langs.add(row['schemaname'])
         self._prepared_statements = set()
+
+    def init_app(self, app):
+        super(TMDB, self).init_app(app)
+        self.max_import_len = app.config.get('MAX_LENGTH', 2000)
 
     def init_db(self, source_langs):
         if not self.function_exists('prepare_or_tsquery'):
@@ -369,15 +393,36 @@ ORDER BY rank DESC;
                 for (k, v) in already_stored.items()
         )
 
+    @staticmethod
+    def _indexable_string(s):
+        # The indexes can't handle strings of arbitrary length, but there isn't
+        # a fixed limit, since compression is applied.
+        # See https://github.com/translate/amagama/issues/3184
+        # We don't implement the same compression, and we don't take the other
+        # columns going into the index into account. So we have to play on the
+        # safe side.
+        # The limit is a third of a buffer page, usually 2712 bytes.
+
+        # Shortcut to avoid the compression most of the time before testing
+        # with compression:
+        return len(s) < 1000 or \
+               len(compress(s.encode('utf-8'))) < COMPRESSED_LIMIT
+
+    def _usable_unit(self, u):
+        return u.istranslatable() and \
+               u.istranslated() and \
+               len(u.source) <= self.max_import_len and \
+               self._indexable_string(u.source) and \
+               self._indexable_string(u.target)
+
     def add_store(self, store, source_lang, target_lang, project_style=None,
                   commit=True):
         """Insert all units in store in database."""
         units = [{
             'source': unicode(u.source),
             'target': unicode(u.target),
-        } for u in store.units if u.istranslatable() and u.istranslated()]
+        } for u in store.units if self._usable_unit(u)]
 
-        #TODO: maybe filter out very short and very long strings?
         if not units:
             return 0
         return self.add_list(units, source_lang, target_lang, project_style,

@@ -68,7 +68,6 @@ class TestTMDB(object):
             assert 'ca' not in targets
             assert 'ca_valencia' in targets
 
-    @pytest.mark.xfail
     def test_too_long(self, amagama):
         # https://github.com/translate/amagama/issues/3184
         import base64
@@ -77,6 +76,6 @@ class TestTMDB(object):
         if PY2:
             long_str = base64.encodestring(bytes(getrandbits(10000)))
         else:
-            long_str = str(base64.encodebytes(bytes(getrandbits(10000))))
+            long_str = str(base64.encodebytes(bytes(getrandbits(10000).to_bytes(13000, 'big'))))
         with amagama.app_context():
             amagama.tmdb.add_test_unit('The long one', long_str)

@@ -40,7 +40,7 @@ def amagama(pg_connection):
     """Returns an amagama app already connected to a database."""
     app = amagama_server_factory()
     app.testing = True
-    app.tmdb = TempTMDB(connection=pg_connection)
+    app.tmdb = TempTMDB(connection=pg_connection, app=app)
     app.tmdb.init_db(['en'])
     from flask_caching import Cache
     cache = Cache(app, config={
