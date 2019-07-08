@@ -155,10 +155,14 @@ Settings for Levenshtein algorithm. See :ref:`Levenshtein distance
 .. setting:: MAX_LENGTH
 
 ``MAX_LENGTH``
-  Default: ``1000``
+  Default: ``2000``
 
-  Maximum length of result strings. If a string is longer, then it won't be
-  matched or returned in the results.
+  Maximum length of source strings. If a string is longer, then it won't be
+  matched or returned in the results. This setting is also used during import
+  to filter out source strings. It is therefore not very meaningful to increase
+  this after importing translations. Note that a value above 3000 characters
+  (or even less for CJK languages) might give problems, and is less likely to
+  be useful to users. It is after all about a whole page of text in one string!
 
 
 .. setting:: MIN_SIMILARITY

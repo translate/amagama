@@ -42,6 +42,7 @@ except ImportError:
         return buf.getvalue()
     COMPRESSED_LIMIT = 2000
 
+import logging
 import math
 
 from flask import abort, current_app
@@ -193,6 +194,8 @@ ORDER BY rank DESC;
     def init_app(self, app):
         super(TMDB, self).init_app(app)
         self.max_import_len = app.config.get('MAX_LENGTH', 2000)
+        if self.max_import_len > 4000:
+            logging.warn("Very high value for MAX_LENGTH. Please reconsider. Continuing anyway...")
 
     def init_db(self, source_langs):
         if not self.function_exists('prepare_or_tsquery'):
@@ -483,7 +486,7 @@ ORDER BY rank DESC;
     @property
     def comparer(self):
         if not hasattr(self, '_comparer'):
-            max_length = current_app.config.get('MAX_LENGTH', 1000)
+            max_length = current_app.config.get('MAX_LENGTH', 2000)
             self._comparer = LevenshteinComparer(max_length)
         return self._comparer
 
@@ -514,7 +517,7 @@ ORDER BY rank DESC;
 
         checker = project_checker(project_style, source_lang)
 
-        max_length = current_app.config.get('MAX_LENGTH', 1000)
+        max_length = current_app.config.get('MAX_LENGTH', 2000)
         min_similarity = max(min_similarity or current_app.config.get('MIN_SIMILARITY', 70), 30)
         max_candidates = min(max_candidates or current_app.config.get('MAX_CANDIDATES', 5), 30)
 
