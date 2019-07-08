@@ -112,9 +112,8 @@ class DeployDB(Command):
                     )
                 lower_bound = upper_bound + 1
 
-            # The last index indexes (length, vector) to reduce candidates
             cursor.execute("""
-                CREATE INDEX sources_long_idx ON sources USING gin(length, vector)
+                CREATE INDEX sources_long_idx ON sources USING gin(vector)
                 WHERE length >= %s""",
                            (min_leven(lower_bound, SIMILARITY),))
             cursor.connection.commit()
