@@ -148,7 +148,6 @@ CREATE INDEX sources_text_idx ON sources USING gin(vector);
 
     INIT_TARGET = """
 CREATE TABLE targets (
-    tid SERIAL PRIMARY KEY,
     sid INTEGER NOT NULL,
     text TEXT NOT NULL,
     lang VARCHAR(32) NOT NULL,
@@ -159,7 +158,6 @@ CREATE UNIQUE INDEX targets_unique_idx ON targets (sid, text, lang);
 
     DEPLOY_QUERY = """
 ALTER TABLE sources DROP CONSTRAINT sources_pkey CASCADE;
-ALTER TABLE targets DROP COLUMN tid;
 DROP INDEX sources_text_unique_idx;
 DROP INDEX targets_unique_idx;
 CREATE INDEX targets_sid_lang_idx ON targets(sid, lang);
