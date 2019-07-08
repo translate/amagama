@@ -156,11 +156,11 @@ CREATE UNIQUE INDEX targets_unique_idx ON targets (sid, text, lang);
 """
 
     DEPLOY_QUERY = """
-ALTER TABLE sources DROP CONSTRAINT sources_pkey CASCADE;
-DROP INDEX sources_text_unique_idx;
-DROP INDEX targets_unique_idx;
+ALTER TABLE sources DROP CONSTRAINT IF EXISTS sources_pkey CASCADE;
 CREATE INDEX targets_sid_lang_idx ON targets(sid, lang);
 CREATE INDEX sources_text_idx ON sources USING gin(vector);
+DROP INDEX IF EXISTS sources_text_unique_idx;
+DROP INDEX IF EXISTS targets_unique_idx;
 """
 
     PREPARE_LOOKUP = """
