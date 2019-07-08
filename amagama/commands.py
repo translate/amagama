@@ -31,6 +31,10 @@ from psycopg2 import sql
 from translate.lang.data import langcode_ire
 from translate.storage import factory
 
+from amagama.tmdb import (
+    min_levenshtein_length as min_leven,
+    max_levenshtein_length as max_leven,
+)
 
 def ensure_source_exists():
     db_name = current_app.config.get("DB_NAME")
@@ -76,12 +80,46 @@ class DeployDB(Command):
 
     def run(self):
         ensure_source_exists()
-        if prompt_bool("This will permanently alter the database. Continue?"):
-            tmdb = current_app.tmdb
-            cursor = tmdb.get_cursor("en")
+        if not prompt_bool("This will permanently alter the database. Continue?"):
+            return
+        tmdb = current_app.tmdb
+        SIMILARITY = current_app.config.get("MIN_SIMILARITY")
+        MAX_LENGTH = current_app.config.get("MAX_LENGTH")
+        for slang in current_app.tmdb.source_langs:
+            print('Optimising source language "%s"...' % slang)
+            cursor = tmdb.get_cursor(slang)
             cursor.execute(tmdb.DEPLOY_QUERY)
-            tmdb.connection.commit()
-            print("Successfully altered the database for deployment.")
+            upper_bounds = (28, 93)
+            lower_bound = 0
+            for upper_bound in upper_bounds:
+                idx_name = "sources_up_to_%d_text_idx" % upper_bound
+                if lower_bound == 0:
+                    cursor.execute(sql.SQL("""
+                        CREATE INDEX {} ON sources USING gin(vector)
+                        WHERE length <= %s""").format(
+                            sql.Identifier(idx_name),
+                        ),
+                       (max_leven(upper_bound, SIMILARITY, MAX_LENGTH),))
+                else:
+                    bounds = (min_leven(lower_bound, SIMILARITY),
+                              max_leven(upper_bound, SIMILARITY, MAX_LENGTH))
+                    cursor.execute(sql.SQL("""
+                        CREATE INDEX {} ON sources USING gin(vector)
+                        WHERE length BETWEEN %s AND %s""").format(
+                            sql.Identifier(idx_name)
+                        ),
+                        bounds
+                    )
+                lower_bound = upper_bound + 1
+
+            # The last index indexes (length, vector) to reduce candidates
+            cursor.execute("""
+                CREATE INDEX sources_long_idx ON sources USING gin(length, vector)
+                WHERE length >= %s""",
+                           (min_leven(lower_bound, SIMILARITY),))
+            cursor.connection.commit()
+            print("Finished optimising for language %s" % slang)
+        print("Successfully altered the database for deployment.")
 
 
 class TMDBStats(Command):

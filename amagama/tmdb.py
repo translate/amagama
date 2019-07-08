@@ -157,7 +157,6 @@ CREATE UNIQUE INDEX targets_unique_idx ON targets (sid, text, lang);
 
     DEPLOY_QUERY = """
 ALTER TABLE sources DROP CONSTRAINT IF EXISTS sources_pkey CASCADE;
-CREATE INDEX sources_text_idx ON sources USING gin(vector);
 DROP INDEX IF EXISTS sources_text_unique_idx;
 DROP INDEX IF EXISTS targets_unique_idx;
 
@@ -171,6 +170,7 @@ CREATE INDEX targets_cluster_idx ON targets (lang, length(text), text) WITH (fil
 CLUSTER targets USING targets_cluster_idx;
 DROP INDEX targets_cluster_idx;  -- was only for CLUSTER
 CREATE INDEX targets_lang_sid_idx ON targets (lang, sid) WITH (fillfactor = 100);
+--- The rest is handled in the code.
 """
 
     PREPARE_LOOKUP = """
