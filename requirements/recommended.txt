@@ -1,5 +1,8 @@
 -r required.txt
 
+# For running bin/amagama without a WSGI server
+cheroot
+
 # For better performance
 # 0.11.0 is broken using pip, later versions are fixed
 python-Levenshtein>=0.10.2,!=0.11.0
