@@ -29,6 +29,7 @@ from flask_script import Command, Option, prompt_bool
 from psycopg2 import sql
 
 from translate.lang.data import langcode_ire
+from translate.lang.identify import LanguageIdentifier
 from translate.storage import factory
 
 from amagama.tmdb import (
@@ -233,9 +234,16 @@ class BuildTMDB(Command):
                 if langcode_ire.match(short):
                     target_lang = short
                 else:
-                    short = os.path.split(os.path.split(filename)[0])[1]
+                    long, short = os.path.split(os.path.split(filename)[0])
                     if langcode_ire.match(short) and short not in ('po', 'www', 'gtk'):
                         target_lang = short
+                    else:
+                        short = os.path.split(long)[1]
+                        if langcode_ire.match(short) and short not in ('po', 'www', 'gtk'):
+                            detected = LanguageIdentifier().identify_target_lang(store.units)
+                            if short == detected:
+                                target_lang = short
+                                print('Guessing language "%s" for %s' % (short, filename))
 
             if not source_lang or not target_lang:
                 logging.error("Missing source or target language. Won't "
