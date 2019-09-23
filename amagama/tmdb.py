@@ -42,6 +42,7 @@ except ImportError:
         return buf.getvalue()
     COMPRESSED_LIMIT = 2000
 
+from collections import defaultdict
 import logging
 import math
 
@@ -197,7 +198,8 @@ ORDER BY rank DESC;
         self.source_langs = set()
         for row in cursor:
             self.source_langs.add(row['schemaname'])
-        self._prepared_statements = set()
+        # set of languages with prepared statements per connection key:
+        self._prepared_statements = defaultdict(set)
 
     def init_app(self, app):
         super(TMDB, self).init_app(app)
@@ -499,10 +501,10 @@ ORDER BY rank DESC;
         return self._comparer
 
     def _translate_query(self, cursor, slang, tlang, query, min_len, max_len, min_rank):
-        if slang not in self._prepared_statements:
+        if slang not in self._prepared_statements[id(cursor.connection)]:
             if not self.prepared_statement_exists("lookup"):
                 cursor.execute(self.PREPARE_LOOKUP)
-            self._prepared_statements.add(slang)
+            self._prepared_statements[id(cursor.connection)].add(slang)
         lang_config = lang_to_config(slang)
         cursor.execute("EXECUTE lookup (%s, %s, %s, %s, %s, %s)",
                        (lang_config, query, tlang, min_len, max_len, min_rank))
