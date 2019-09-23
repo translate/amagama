@@ -4,4 +4,4 @@ numpy
 pep8
 Sphinx>=1.1
 pytest
-pytest-postgresql
+pytest-postgresql<2.0.0
