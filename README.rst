@@ -1,3 +1,11 @@
+.. image:: https://img.shields.io/travis/translate/amagama/master.svg?style=flat-square
+    :alt: Build Status
+    :target: https://travis-ci.org/translate/amagama
+
+.. image:: https://img.shields.io/pypi/l/translate-toolkit.svg?style=flat-square
+    :target: https://pypi.python.org/pypi/translate-toolkit/
+    :alt: License
+
 amaGama: a web translation memory server
 ========================================
 
