@@ -38,7 +38,7 @@ just run:
 
 .. code-block:: bash
 
-   $ mkvirtualenv amagama
+   $ virtualenv amagama
 
 
 .. _installation#getting-amagama:
