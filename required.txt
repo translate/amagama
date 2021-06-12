@@ -1,0 +1,4 @@
+blinker>=0.9
+Flask==1.1.4
+psycopg2>=2.7
+translate-toolkit>=1.8.0
