@@ -1,0 +1,10 @@
+**/.git
+*.rst
+*.yml
+**/docs
+Dockerfile
+Makefile
+.gitignore
+.gitmodules
+LICENSE
+
