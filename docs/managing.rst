@@ -67,9 +67,9 @@ options:
 
     $ amagama-manage deploy_db
     This will permanently alter the database. Continue? [n] y
-    Succesfully altered the database for deployment.
+    Successfully altered the database for deployment.
 
-.. note:: This is an irreveresible step that alters the database permanently.
+.. note:: This is an irreversible step that alters the database permanently.
 
 .. _managing#dropdb:
 
