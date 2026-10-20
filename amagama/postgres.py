@@ -146,7 +146,16 @@ class PostGres(object):
     def get_cursor(self):
         """Get a database cursor object to be used for making queries."""
         #FIXME: maybe use server side cursors?
-        return self.connection.cursor(cursor_factory=DictCursor)
+        conn = self.connection
+        try:
+            return conn.cursor(cursor_factory=DictCursor)
+        except (psycopg2.InterfaceError, psycopg2.OperationalError):
+            # Connection died silently (e.g. an idle-connection cutoff
+            # somewhere between here and the DB server) - discard it and
+            # get a fresh one from the pool instead of failing the request.
+            self.pool.putconn(conn, close=True)
+            conn = self.connection
+            return conn.cursor(cursor_factory=DictCursor)
 
     def init_db(self, *args, **kwargs):
         """Initialize the database."""
