@@ -253,8 +253,8 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
             cursor = self.get_cursor()
         try:
             unitdict = {
-                'source': unicode(unit.source),
-                'target': unicode(unit.target),
+                'source': str(unit.source),
+                'target': str(unit.target),
                 'source_lang': slang,
                 'target_lang': tlang,
                 'lang_config': lang_config,
@@ -371,8 +371,8 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
                   commit=True):
         """Insert all units in store in database."""
         units = [{
-            'source': unicode(u.source),
-            'target': unicode(u.target),
+            'source': str(u.source),
+            'target': str(u.target),
         } for u in store.units if u.istranslatable() and u.istranslated()]
 
         #TODO: maybe filter out very short and very long strings?
@@ -456,7 +456,7 @@ CREATE INDEX targets_%(slang)s_sid_lang_idx ON targets_%(slang)s (sid, lang);
         lang_config = lang_to_config(slang)
 
         if isinstance(unit_source, bytes):
-            unit_source = unicode(unit_source, "utf-8")
+            unit_source = unit_source.decode("utf-8")
 
         checker = project_checker(project_style, source_lang)
 
