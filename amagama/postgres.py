@@ -21,7 +21,7 @@
 """PostgreSQL access and helpers."""
 
 import psycopg2.extensions
-from flask import g, got_request_exception
+from flask import g, got_request_exception, has_request_context
 from psycopg2.extras import DictCursor
 from psycopg2.pool import AbstractConnectionPool
 
@@ -97,6 +97,9 @@ class PostGres(object):
         # queries?
         if getattr(g, 'transaction_dirty', False):
             connection = self.connection
+            if connection.closed:
+                self.pool.putconn(connection, close=True)
+                return response
             if response.status_code < 400:
                 connection.commit()
             else:
@@ -143,19 +146,28 @@ class PostGres(object):
 
         return self.pool.getconn()
 
+    def _live_connection(self):
+        """Get this thread's connection, replacing any the server has closed."""
+        for _ in range(self.pool.maxconn + 1):
+            conn = self.connection
+            try:
+                with conn.cursor() as cursor:
+                    cursor.execute("SELECT 1")
+                return conn
+            except (psycopg2.InterfaceError, psycopg2.OperationalError):
+                self.pool.putconn(conn, close=True)
+        return self.connection
+
     def get_cursor(self):
         """Get a database cursor object to be used for making queries."""
         #FIXME: maybe use server side cursors?
-        conn = self.connection
-        try:
-            return conn.cursor(cursor_factory=DictCursor)
-        except (psycopg2.InterfaceError, psycopg2.OperationalError):
-            # Connection died silently (e.g. an idle-connection cutoff
-            # somewhere between here and the DB server) - discard it and
-            # get a fresh one from the pool instead of failing the request.
-            self.pool.putconn(conn, close=True)
+        if has_request_context() and g.get('connection_live'):
             conn = self.connection
-            return conn.cursor(cursor_factory=DictCursor)
+        else:
+            conn = self._live_connection()
+            if has_request_context():
+                g.connection_live = True
+        return conn.cursor(cursor_factory=DictCursor)
 
     def init_db(self, *args, **kwargs):
         """Initialize the database."""
