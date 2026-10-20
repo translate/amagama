@@ -1,0 +1,19 @@
+[Unit]
+Description=Old amagama API (no web UI)
+
+[Service]
+ExecStart=/usr/bin/uwsgi \
+        --ini /var/www/sites/amagama_fw/uwsgi.ini \
+        --socket /run/amagama/uwsgi.socket
+RuntimeDirectory=amagama
+User=www-data
+Group=www-data
+Restart=on-failure
+KillSignal=SIGQUIT
+Type=notify
+#Requires a newer systemd:
+#StandardError=append:/var/www/sites/amagama_fw/logs/uwsgi.log
+NotifyAccess=all
+
+[Install]
+WantedBy=multi-user.target
