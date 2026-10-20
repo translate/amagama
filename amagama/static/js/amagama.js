@@ -2,12 +2,16 @@
 
   window.MGM = window.MGM || {};
 
+  function escapeHTML(text) {
+    return $('<div>').text(text).html().replace(/"/g, '&quot;');
+  }
+
   MGM.search = {
 
     init: function () {
       $(document).on('submit', '#js-amagama-form', MGM.search.doSearch);
       $.getJSON('/tmserver/languages/', MGM.search.displayLanguages);
-      $('#js-search-box').focus();
+      $('#js-search-box').trigger('focus');
     },
 
     doSearch: function (event) {
@@ -57,9 +61,9 @@
           currentResult = data[i];
 
           resultsHTML.push('<tr><td>');
-          resultsHTML.push(currentResult.source);
+          resultsHTML.push(escapeHTML(currentResult.source));
           resultsHTML.push('</td><td>');
-          resultsHTML.push(currentResult.target);
+          resultsHTML.push(escapeHTML(currentResult.target));
           resultsHTML.push('</td><td>');
 
           resultQuality = currentResult.quality.toFixed(2);
@@ -89,9 +93,9 @@
 
       for (var i = 0; i < languages.length; i++) {
         langsHTML.push('<option value="');
-        langsHTML.push(languages[i]);
+        langsHTML.push(escapeHTML(languages[i]));
         langsHTML.push('">');
-        langsHTML.push(languages[i]);
+        langsHTML.push(escapeHTML(languages[i]));
         langsHTML.push('</option>');
       }
 
