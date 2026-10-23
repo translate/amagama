@@ -64,7 +64,30 @@ def pg_connection(pg_server):
 
 
 @pytest.fixture
-def amagama(pg_connection):
+def amagama_config(pg_server, pg_connection, tmp_path, monkeypatch):
+    """Point AMAGAMA_CONFIG at the test database; returns a function that
+    adds settings."""
+    path = tmp_path / "settings.py"
+    settings = {
+        "DB_NAME": "amagama_test",
+        "DB_USER": pg_server.user,
+        "DB_PASSWORD": pg_server.password or "",
+        "DB_HOST": pg_server.host,
+        "DB_PORT": pg_server.port,
+    }
+
+    def configure(**extra):
+        settings.update(extra)
+        path.write_text("".join(
+            "%s = %r\n" % item for item in settings.items()))
+
+    configure()
+    monkeypatch.setenv("AMAGAMA_CONFIG", str(path))
+    return configure
+
+
+@pytest.fixture
+def amagama(amagama_config, pg_connection):
     """Returns an amagama app already connected to a database."""
     app = amagama_server_factory()
     app.testing = True
