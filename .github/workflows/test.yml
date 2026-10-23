@@ -67,3 +67,14 @@ jobs:
           python-version: "3.14"
       - run: pip install Sphinx
       - run: make docs
+
+  checks:
+    needs: [test, package, docs]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if any job failed
+        run: |
+          if [ "${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}" = "true" ]; then
+            exit 1
+          fi
