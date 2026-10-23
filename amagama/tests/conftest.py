@@ -48,7 +48,6 @@ def pg_connection(pg_server):
         host=pg_server.host,
         port=pg_server.port,
         dbname="amagama_test",
-        version=pg_server.version,
         password=pg_server.password,
     )
     with janitor:
