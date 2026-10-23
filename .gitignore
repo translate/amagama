@@ -16,3 +16,9 @@ assets/
 # Requirements generation
 .reqs
 requirements/min-versions.txt
+
+# Packaging / venvs
+.venv*
+build/
+*.egg-info/
+dist/

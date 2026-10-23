@@ -1,0 +1,55 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "amagama"
+description = "A web translation memory server"
+readme = "README.rst"
+license = "GPL-3.0-or-later"
+requires-python = ">=3.11"
+dynamic = ["version"]
+authors = [
+    { name = "Translate", email = "translate-devel@lists.sourceforge.net" },
+]
+urls = { Homepage = "http://amagama.translatehouse.org", Source = "https://github.com/translate/amagama" }
+
+dependencies = [
+    "blinker>=1.6",
+    "Flask>=3.0",
+    "Flask-Caching>=2.0",
+    "psycopg2>=2.9",
+    "translate-toolkit>=3.0",
+]
+
+[project.optional-dependencies]
+recommended = [
+    # For running the "amagama" dev server without a separate WSGI server
+    "cheroot",
+    # For better performance
+    "python-Levenshtein>=0.10.2,!=0.11.0",
+    # For management commands
+    "click",
+    "lz4",
+]
+dev = [
+    "amagama[recommended]",
+    "numpy",
+    "ruff",
+    "Sphinx>=1.1",
+    "pytest",
+    "pytest-postgresql>=6",
+]
+
+[project.scripts]
+amagama = "amagama.devserver:main"
+amagama-manage = "amagama.cli:manage"
+
+[tool.setuptools]
+packages = ["amagama", "amagama.tests", "amagama.views"]
+
+[tool.setuptools.package-data]
+amagama = ["templates/*", "static/**/*"]
+
+[tool.setuptools.dynamic]
+version = { attr = "amagama.__version__" }
