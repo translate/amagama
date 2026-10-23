@@ -106,6 +106,7 @@ def profile_func(filename=None, mode='w+'):
 
             logging.info('Profiling function %s' % (f.__name__))
 
+            retval = None
             try:
                 profile_file = open(filename or '%s_func.profile' % (f.__name__), mode)
                 profiler = cProfile.Profile()
@@ -114,7 +115,7 @@ def profile_func(filename=None, mode='w+'):
                 k_cache_grind.output(profile_file)
                 profile_file.close()
             except IOError:
-                logging.exception(_("Could not open profile file '%(filename)s'") % {"filename": filename})
+                logging.exception("Could not open profile file '%s'" % (filename,))
 
             return retval
 
