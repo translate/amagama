@@ -29,13 +29,6 @@ from translate.storage import factory
 
 from amagama.commands import ensure_source_exists
 
-try:
-    unicode
-    # Python 2
-except NameError:
-    # Python 3
-    unicode = str
-
 
 class BenchmarkTMDB(Command):
     """Benchmark the application by querying for all strings in the given file.
@@ -118,14 +111,13 @@ class BenchmarkTMDB(Command):
         try:
             for unit in store.units:
                 if unit.istranslatable():
-                    # TODO: rather time.monotonic in Python 3
-                    before = time.time()
-                    # We need an explicit unicode (not multistring), otherwise
+                    before = time.monotonic()
+                    # We need an explicit str (not multistring), otherwise
                     # psycopg2 can't adapt it:
-                    translate_unit(unicode(unit.source), source_lang,
+                    translate_unit(str(unit.source), source_lang,
                                    target_lang, project_style, min_similarity,
                                    max_candidates)
-                    duration = time.time() - before
+                    duration = time.monotonic() - before
                     if duration > .4 or \
                        duration > .04 + (len(unit.source)/1000):
                         print("Slow (%.3fs): %r" % (duration, unit.source))

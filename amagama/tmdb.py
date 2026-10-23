@@ -20,8 +20,6 @@
 
 """Module to provide a translation memory database."""
 
-from __future__ import division
-
 # We want to estimate PostgreSQL's compression of TEXT fields
 try:
     # The text compression is an LZ type compression
@@ -29,17 +27,7 @@ try:
     COMPRESSED_LIMIT = 2900
 except ImportError:
     # With a different limit, this is a reasonable estimation
-    #Python 3 only version:
-    #from gzip import compress
-
-    # Python 2+3
-    from gzip import GzipFile
-    from io import BytesIO
-    def compress(s):
-        buf = BytesIO()
-        with GzipFile(mode='wb', fileobj=buf) as zfile:
-            zfile.write(s)
-        return buf.getvalue()
+    from gzip import compress
     COMPRESSED_LIMIT = 2000
 
 from collections import defaultdict
@@ -53,13 +41,6 @@ from translate.search.lshtein import LevenshteinComparer
 
 from amagama import postgres
 from amagama.normalise import indexing_version
-
-try:
-    unicode
-    # Python 2
-except NameError:
-    # Python 3
-    unicode = str
 
 _table_name_cache = {}
 
@@ -293,8 +274,8 @@ ORDER BY rank DESC;
             cursor = self.get_cursor(slang)
         try:
             unitdict = {
-                'source': unicode(unit.source),
-                'target': unicode(unit.target),
+                'source': str(unit.source),
+                'target': str(unit.target),
                 'source_lang': slang,
                 'target_lang': tlang,
                 'lang_config': lang_config,
@@ -432,8 +413,8 @@ ORDER BY rank DESC;
                   commit=True):
         """Insert all units in store in database."""
         units = [{
-            'source': unicode(u.source),
-            'target': unicode(u.target),
+            'source': str(u.source),
+            'target': str(u.target),
         } for u in store.units if self._usable_unit(u)]
 
         if not units:
@@ -523,7 +504,7 @@ ORDER BY rank DESC;
             abort(404)
 
         if isinstance(unit_source, bytes):
-            unit_source = unicode(unit_source, "utf-8")
+            unit_source = str(unit_source, "utf-8")
 
         checker = project_checker(project_style, source_lang)
 

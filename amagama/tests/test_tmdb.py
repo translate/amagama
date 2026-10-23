@@ -1,7 +1,5 @@
 import pytest
 
-from . import PY2
-
 from amagama import tmdb
 # fixtures:
 # from amagama.tests.conftest import amagama
@@ -73,9 +71,6 @@ class TestTMDB(object):
         import base64
         from random import getrandbits
         # a long string that won't compress:
-        if PY2:
-            long_str = base64.encodestring(bytes(getrandbits(10000)))
-        else:
-            long_str = str(base64.encodebytes(bytes(getrandbits(10000).to_bytes(13000, 'big'))))
+        long_str = str(base64.encodebytes(bytes(getrandbits(10000).to_bytes(13000, 'big'))))
         with amagama.app_context():
             amagama.tmdb.add_test_unit('The long one', long_str)
