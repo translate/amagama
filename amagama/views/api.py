@@ -119,10 +119,10 @@ def add_store(slang, tlang, sid):
 @write_api.route('/<slang>/<tlang>/store/<path:sid>', methods=('PUT', ))
 def upload_store(slang, tlang, sid):
     """Add units from the uploaded file to tmdb."""
-    import StringIO
+    from io import BytesIO
     from translate.storage import factory
 
-    data = StringIO.StringIO(request.data)
+    data = BytesIO(request.data)
     data.name = sid
     store = factory.getobject(data)
     project_style = request.args.get('style', None)
