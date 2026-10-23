@@ -9,5 +9,4 @@ python-Levenshtein>=0.10.2,!=0.11.0
 
 # For management commands
 click
-Flask-Caching
 lz4

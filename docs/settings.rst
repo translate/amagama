@@ -134,6 +134,26 @@ Settings for the database pool.
   Minimum number of connections in the database pool.
 
 
+.. _settings#cache-settings:
+
+Cache settings
+==============
+
+amaGama uses `Flask-Caching <https://flask-caching.readthedocs.io/>`_ to
+cache source-id lookups. Any of Flask-Caching's ``CACHE_*`` settings can be
+set here to configure it.
+
+.. setting:: CACHE_TYPE
+
+``CACHE_TYPE``
+  Default: ``SimpleCache``
+
+  The Flask-Caching backend to use. The default is a simple per-process
+  in-memory cache. For a deployment running multiple worker processes, a
+  shared backend such as ``RedisCache`` (with ``CACHE_REDIS_URL``) gives a
+  better cache hit rate.
+
+
 .. _settings#levenshtein-settings:
 
 Levenshtein settings
