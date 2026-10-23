@@ -10,7 +10,7 @@ File                     Installed as
 nginx-amagama.conf       /etc/nginx/sites-enabled/amagama
 uwsgi.ini                /var/www/sites/amagama_fw/uwsgi.ini
 amagama.uwsgi.service    /etc/systemd/system/amagama.uwsgi.service
-requirements.txt         /var/www/sites/amagama_fw/env3 (pip freeze)
+requirements.txt         /var/www/sites/amagama_fw/env3 (pip install -r)
 ======================== =============================================
 
 The checkout is /var/www/sites/amagama_fw/amagama.  Settings, including the
