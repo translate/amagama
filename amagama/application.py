@@ -22,6 +22,7 @@
 with clients using JSON over HTTP."""
 
 from flask import Flask
+from flask_caching import Cache
 
 from amagama import tmdb
 from amagama.views import api
@@ -32,6 +33,13 @@ class AmagamaServer(Flask):
         super(AmagamaServer, self).__init__(*args, **kwargs)
         self.config.from_pyfile(settings)
         self.config.from_envvar('AMAGAMA_CONFIG', silent=True)
+        # tmdb.py caches source-id lookups on current_app.cache; without
+        # this, every write-API request (add_unit/add_store/upload_store/
+        # etc.) crashes with AttributeError. Defaults to a simple
+        # per-process cache; set CACHE_TYPE (and friends) to use a shared
+        # backend like Redis across multiple worker processes.
+        self.config.setdefault('CACHE_TYPE', 'SimpleCache')
+        self.cache = Cache(self)
         self.tmdb = tmdb.TMDB(self)
 
 
