@@ -18,50 +18,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
-from argparse import ArgumentParser
+"""Thin wrapper kept for git-checkout/PYTHONPATH use; `pip install`-ed
+setups should use the `amagama` console script instead."""
 
-from translate.misc import wsgi
-
-from amagama.application import amagama_server_factory
-
-
-def main():
-    parser = ArgumentParser()
-    parser.add_argument(
-        "-b", "--bind",
-        default="localhost",
-        help="adress to bind server to (default: %(default)s)"
-    )
-    parser.add_argument(
-        "-p", "--port",
-        default=8888,
-        type=int,
-        help="port to listen on (default: %(default)s)"
-    )
-    parser.add_argument(
-        "--debug",
-        action="store_true",
-        default=False,
-        help="enable debugging features"
-    )
-
-    args = parser.parse_args()
-
-    # Setup logging.
-    if args.debug:
-        level = logging.DEBUG
-        format = ('%(levelname)7s %(module)s.%(funcName)s:%(lineno)d: '
-                  '%(message)s')
-    else:
-        level = logging.WARNING
-        format = '%(asctime)s %(levelname)s %(message)s'
-
-    logging.basicConfig(level=level, format=format)
-
-    application = amagama_server_factory()
-    wsgi.launch_server(args.bind, args.port, application)
-
+from amagama.devserver import main
 
 if __name__ == '__main__':
     main()
