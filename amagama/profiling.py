@@ -85,39 +85,3 @@ class KCacheGrind(object):
             print('calls=%d %d' % (
                 subentry.callcount, code.co_firstlineno), file=out_file)
         print('%d %d' % (lineno, totaltime), file=out_file)
-
-
-def profile_func(filename=None, mode='w+'):
-    """Function/method decorator that will cause only the decorated callable to
-    be profiled (with a :class:`KCacheGrind` profiler) and saved to the
-    specified file.
-
-    :type filename: str
-    :param filename: The filename to write the profile to. If not specified the
-                     decorated function's name is used, followed by
-                     ``_func.profile``.
-    :type mode: str
-    :param mode: The mode in which to open ``filename``. Default is ``w+``.
-    """
-    def proffunc(f):
-        def profiled_func(*args, **kwargs):
-            import cProfile
-            import logging
-
-            logging.info('Profiling function %s' % (f.__name__))
-
-            retval = None
-            try:
-                profile_file = open(filename or '%s_func.profile' % (f.__name__), mode)
-                profiler = cProfile.Profile()
-                retval = profiler.runcall(f, *args, **kwargs)
-                k_cache_grind = KCacheGrind(profiler)
-                k_cache_grind.output(profile_file)
-                profile_file.close()
-            except IOError:
-                logging.exception("Could not open profile file '%s'" % (filename,))
-
-            return retval
-
-        return profiled_func
-    return proffunc
