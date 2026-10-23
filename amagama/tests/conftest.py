@@ -44,7 +44,7 @@ def amagama(pg_connection):
     app.tmdb.init_db(['en'])
     from flask_caching import Cache
     cache = Cache(app, config={
-        'CACHE_TYPE': 'simple',
+        'CACHE_TYPE': 'SimpleCache',
         'CACHE_THRESHOLD': 100000,
     })
     app.cache = cache

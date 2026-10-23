@@ -202,7 +202,7 @@ class BuildTMDB(Command):
         # A simple local cache to help speed up imports
         from flask_caching import Cache
         cache = Cache(current_app, config={
-            'CACHE_TYPE': 'simple',
+            'CACHE_TYPE': 'SimpleCache',
             'CACHE_THRESHOLD': 100000,
         })
         current_app.cache = cache
