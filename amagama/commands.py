@@ -22,8 +22,9 @@ import logging
 import os
 import sys
 
+import click
 from flask import current_app
-from flask_script import Command, Option, prompt_bool
+from flask.cli import with_appcontext
 from psycopg2 import sql
 
 from translate.lang.data import langcode_ire
@@ -39,145 +40,133 @@ def ensure_source_exists():
     db_name = current_app.config.get("DB_NAME")
     if not current_app.tmdb.source_langs:
         print("No source language is configured in database %s." % db_name)
-        exit(1)
+        raise SystemExit(1)
 
 
-class InitDB(Command):
+source_language_option = click.option(
+    '--source-language', '-s', 'source_langs', multiple=True, required=True,
+    help="Source language to use (may be repeated).",
+)
+
+
+@click.command('initdb')
+@source_language_option
+@with_appcontext
+def initdb(source_langs):
     """Create the database tables."""
-    option_list = (
-        Option('--source-language', '-s', dest='source_langs',
-               action='append'),
-    )
-
-    def run(self, source_langs):
-        if not source_langs:
-            print("Provide source language with -s or --source-language.")
-            return 1
-        current_app.tmdb.init_db(source_langs)
-        langs = "', '".join(source_langs)
-        print("Successfully initialized the database for '%s'." % langs)
+    current_app.tmdb.init_db(source_langs)
+    langs = "', '".join(source_langs)
+    print("Successfully initialized the database for '%s'." % langs)
 
 
-class DropDB(Command):
+@click.command('dropdb')
+@source_language_option
+@with_appcontext
+def dropdb(source_langs):
     """Drop the database."""
-    option_list = (
-        Option('--source-language', '-s', dest='source_langs',
-               action='append'),
-    )
-
-    def run(self, source_langs):
-        ensure_source_exists()
-        if prompt_bool("This will permanently destroy all data in the "
-                       "configured database. Continue?"):
-            current_app.tmdb.drop_db(source_langs)
-            langs = "', '".join(source_langs)
-            print("Successfully dropped the database for '%s'." % langs)
+    ensure_source_exists()
+    if click.confirm("This will permanently destroy all data in the "
+                     "configured database. Continue?"):
+        current_app.tmdb.drop_db(source_langs)
+        langs = "', '".join(source_langs)
+        print("Successfully dropped the database for '%s'." % langs)
 
 
-class DeployDB(Command):
+@click.command('deploy_db')
+@with_appcontext
+def deploy_db():
     """Optimise the database for deployment."""
+    ensure_source_exists()
+    if not click.confirm("This will permanently alter the database. Continue?"):
+        return
+    tmdb = current_app.tmdb
+    SIMILARITY = current_app.config.get("MIN_SIMILARITY")
+    MAX_LENGTH = current_app.config.get("MAX_LENGTH")
+    for slang in current_app.tmdb.source_langs:
+        print('Optimising source language "%s"...' % slang)
+        cursor = tmdb.get_cursor(slang)
+        cursor.execute(tmdb.DEPLOY_QUERY)
+        upper_bounds = (28, 93)
+        lower_bound = 0
+        for upper_bound in upper_bounds:
+            idx_name = "sources_up_to_%d_text_idx" % upper_bound
+            if lower_bound == 0:
+                cursor.execute(sql.SQL("""
+                    CREATE INDEX {} ON sources USING gin(vector)
+                    WHERE length <= %s""").format(
+                        sql.Identifier(idx_name),
+                    ),
+                   (max_leven(upper_bound, SIMILARITY, MAX_LENGTH),))
+            else:
+                bounds = (min_leven(lower_bound, SIMILARITY),
+                          max_leven(upper_bound, SIMILARITY, MAX_LENGTH))
+                cursor.execute(sql.SQL("""
+                    CREATE INDEX {} ON sources USING gin(vector)
+                    WHERE length BETWEEN %s AND %s""").format(
+                        sql.Identifier(idx_name)
+                    ),
+                    bounds
+                )
+            lower_bound = upper_bound + 1
 
-    def run(self):
-        ensure_source_exists()
-        if not prompt_bool("This will permanently alter the database. Continue?"):
-            return
-        tmdb = current_app.tmdb
-        SIMILARITY = current_app.config.get("MIN_SIMILARITY")
-        MAX_LENGTH = current_app.config.get("MAX_LENGTH")
-        for slang in current_app.tmdb.source_langs:
-            print('Optimising source language "%s"...' % slang)
-            cursor = tmdb.get_cursor(slang)
-            cursor.execute(tmdb.DEPLOY_QUERY)
-            upper_bounds = (28, 93)
-            lower_bound = 0
-            for upper_bound in upper_bounds:
-                idx_name = "sources_up_to_%d_text_idx" % upper_bound
-                if lower_bound == 0:
-                    cursor.execute(sql.SQL("""
-                        CREATE INDEX {} ON sources USING gin(vector)
-                        WHERE length <= %s""").format(
-                            sql.Identifier(idx_name),
-                        ),
-                       (max_leven(upper_bound, SIMILARITY, MAX_LENGTH),))
-                else:
-                    bounds = (min_leven(lower_bound, SIMILARITY),
-                              max_leven(upper_bound, SIMILARITY, MAX_LENGTH))
-                    cursor.execute(sql.SQL("""
-                        CREATE INDEX {} ON sources USING gin(vector)
-                        WHERE length BETWEEN %s AND %s""").format(
-                            sql.Identifier(idx_name)
-                        ),
-                        bounds
-                    )
-                lower_bound = upper_bound + 1
-
-            cursor.execute("""
-                CREATE INDEX sources_long_idx ON sources USING gin(vector)
-                WHERE length >= %s""",
-                           (min_leven(lower_bound, SIMILARITY),))
-            cursor.connection.commit()
-            print("Finished optimising for language %s" % slang)
-        print("Successfully altered the database for deployment.")
+        cursor.execute("""
+            CREATE INDEX sources_long_idx ON sources USING gin(vector)
+            WHERE length >= %s""",
+                       (min_leven(lower_bound, SIMILARITY),))
+        cursor.connection.commit()
+        print("Finished optimising for language %s" % slang)
+    print("Successfully altered the database for deployment.")
 
 
-class TMDBStats(Command):
+@click.command('tmdb_stats')
+@with_appcontext
+def tmdb_stats():
     """Print some (possibly) interesting figures about the TM DB."""
+    ensure_source_exists()
+    db_name = current_app.config.get("DB_NAME")
 
-    def run(self):
-        ensure_source_exists()
-        db_name = current_app.config.get("DB_NAME")
+    cursor = current_app.tmdb.get_cursor()
+    query = """SELECT pg_size_pretty(pg_database_size(%s))"""
+    cursor.execute(query, (db_name,))
+    result = cursor.fetchone()
+    print("Complete database (%s):\t%s" % (db_name, result[0]))
 
-        cursor = current_app.tmdb.get_cursor()
-        query = """SELECT pg_size_pretty(pg_database_size(%s))"""
-        cursor.execute(query, (db_name,))
+    for slang in current_app.tmdb.source_langs:
+        print()
+        print("Source language:", slang)
+        cursor = current_app.tmdb.get_cursor(slang)
+        query = """SELECT
+            pg_size_pretty(pg_total_relation_size('sources')),
+            pg_size_pretty(pg_total_relation_size('targets')),
+            pg_size_pretty(pg_relation_size('sources')),
+            pg_size_pretty(pg_relation_size('targets'))
+        ;"""
+        data = (
+            db_name,
+        )
+        cursor.execute(query, data)
+
         result = cursor.fetchone()
-        print("Complete database (%s):\t%s" % (db_name, result[0]))
+        print("Complete size of sources:\t%s" % result[0])
+        print("Complete size of targets:\t%s" % result[1])
+        print("sources (table only):\t%s" % result[2])
+        print("targets (table only):\t%s" % result[3])
 
-        for slang in current_app.tmdb.source_langs:
-            print()
-            print("Source language:", slang)
-            cursor = current_app.tmdb.get_cursor(slang)
-            query = """SELECT
-                pg_size_pretty(pg_total_relation_size('sources')),
-                pg_size_pretty(pg_total_relation_size('targets')),
-                pg_size_pretty(pg_relation_size('sources')),
-                pg_size_pretty(pg_relation_size('targets'))
-            ;"""
-            data = (
-                db_name,
-            )
-            cursor.execute(query, data)
-
-            result = cursor.fetchone()
-            print("Complete size of sources:\t%s" % result[0])
-            print("Complete size of targets:\t%s" % result[1])
-            print("sources (table only):\t%s" % result[2])
-            print("targets (table only):\t%s" % result[3])
-
-            query = sql.SQL("""COPY (
-                SELECT relname,
-                       indexrelname,
-                       pg_size_pretty(pg_relation_size(CAST(indexrelname as text)))
-                FROM pg_stat_user_indexes
-                WHERE schemaname = {}
-                ORDER BY pg_relation_size(CAST(indexrelname as text)) DESC
-            ) TO STDOUT
-            ;""").format(sql.Literal(slang))
-            logging.info("\nIndex sizes:")
-            cursor.copy_expert(query, sys.stdout)
+        query = sql.SQL("""COPY (
+            SELECT relname,
+                   indexrelname,
+                   pg_size_pretty(pg_relation_size(CAST(indexrelname as text)))
+            FROM pg_stat_user_indexes
+            WHERE schemaname = {}
+            ORDER BY pg_relation_size(CAST(indexrelname as text)) DESC
+        ) TO STDOUT
+        ;""").format(sql.Literal(slang))
+        logging.info("\nIndex sizes:")
+        cursor.copy_expert(query, sys.stdout)
 
 
-class BuildTMDB(Command):
+class BuildTMDB(object):
     """Populate Translation Memory database from bilingual translation files"""
-
-    option_list = (
-        Option('--source-language', '-s', dest='slang'),
-        Option('--target-language', '-t', dest='tlang'),
-        Option('--project-style', dest='project_style'),
-        Option('--input', '-i', dest='filename'),
-        Option('--profile', '-p', dest='profile_name'),
-        Option('--verbose', action='store_true', dest='verbose'),
-    )
 
     def run(self, slang, tlang, project_style, filename, profile_name, verbose):
         """Wrapper to implement profiling if requested."""
@@ -281,3 +270,27 @@ class BuildTMDB(Command):
             return
         entries = os.listdir(dirname)
         self.handlefiles(dirname, entries, verbose)
+
+
+@click.command('build_tmdb')
+@click.option('--source-language', '-s', 'slang', default=None)
+@click.option('--target-language', '-t', 'tlang', default=None)
+@click.option('--project-style', default=None)
+@click.option('--input', '-i', 'filename', required=True,
+             help="A file or directory to use")
+@click.option('--profile', '-p', 'profile_name', default=None,
+             help="Write cProfile/KCacheGrind output to this file")
+@click.option('--verbose', is_flag=True, default=False)
+@with_appcontext
+def build_tmdb(slang, tlang, project_style, filename, profile_name, verbose):
+    """Populate Translation Memory database from bilingual translation files"""
+    BuildTMDB().run(slang, tlang, project_style, filename, profile_name, verbose)
+
+
+cli_commands = (
+    initdb,
+    dropdb,
+    deploy_db,
+    tmdb_stats,
+    build_tmdb,
+)
