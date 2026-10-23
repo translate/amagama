@@ -281,6 +281,10 @@ ORDER BY rank DESC;
                 'lang_config': lang_config,
             }
 
+            # Unlike add_list()/add_store(), this inserts a single unit, so
+            # the source string won't already be in the sources table
+            # (add_dict()'s get_sid() only looks one up, it doesn't insert).
+            self.get_all_sids([unitdict], source_lang, None)
             self.add_dict(unitdict, cursor)
 
             if commit:
