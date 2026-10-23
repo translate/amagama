@@ -22,7 +22,7 @@
 
 import psycopg2.extensions
 from psycopg2 import sql
-from flask import g, got_request_exception
+from flask import g, got_request_exception, has_request_context
 from psycopg2.extras import DictCursor
 from psycopg2.pool import AbstractConnectionPool
 
@@ -99,6 +99,9 @@ class PostGres(object):
         # queries?
         if getattr(g, 'transaction_dirty', False):
             connection = self.connection
+            if connection.closed:
+                self._discard(connection)
+                return response
             if response.status_code < 400:
                 connection.commit()
             else:
@@ -145,6 +148,27 @@ class PostGres(object):
 
         return self.pool.getconn()
 
+    def forget_connection(self, conn):
+        """Drop what is remembered about a connection that is going away."""
+        self._last_schema.pop(id(conn), None)
+
+    def _discard(self, conn):
+        """Close a connection and take it out of the pool."""
+        self.forget_connection(conn)
+        self.pool.putconn(conn, close=True)
+
+    def _live_connection(self):
+        """Get this thread's connection, replacing any the server has closed."""
+        for _ in range(self.pool.maxconn + 1):
+            conn = self.connection
+            try:
+                with conn.cursor() as cursor:
+                    cursor.execute("SELECT 1")
+                return conn
+            except (psycopg2.InterfaceError, psycopg2.OperationalError):
+                self._discard(conn)
+        return self.connection
+
     def get_cursor(self, schema=None):
         """Get a database cursor object to be used for making queries.
 
@@ -153,7 +177,12 @@ class PostGres(object):
         SCHEMA command on the connection won't matter (the queries will use
         explicit schemas)."""
         #FIXME: maybe use server side cursors?
-        conn = self.connection
+        if has_request_context() and g.get('connection_live'):
+            conn = self.connection
+        else:
+            conn = self._live_connection()
+            if has_request_context():
+                g.connection_live = True
         cursor = conn.cursor(cursor_factory=DictCursor)
         if schema and self._last_schema.get(id(conn)) != schema:
             cursor.execute(sql.SQL("SET SCHEMA {}").format(sql.Literal(schema)))

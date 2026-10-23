@@ -182,6 +182,10 @@ ORDER BY rank DESC;
         # set of languages with prepared statements per connection key:
         self._prepared_statements = defaultdict(set)
 
+    def forget_connection(self, conn):
+        super(TMDB, self).forget_connection(conn)
+        self._prepared_statements.pop(id(conn), None)
+
     def init_app(self, app):
         super(TMDB, self).init_app(app)
         self.max_import_len = app.config.get('MAX_LENGTH', 2000)
