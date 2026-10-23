@@ -382,10 +382,10 @@ ORDER BY rank DESC;
             newly_stored = dict(cursor.fetchall())
             already_stored.update(newly_stored)
 
-        current_app.cache.set_many(
-                (build_cache_key(k, source_lang), v)
+        current_app.cache.set_many({
+                build_cache_key(k, source_lang): v
                 for (k, v) in already_stored.items()
-        )
+        })
 
     @staticmethod
     def _indexable_string(s):
