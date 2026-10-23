@@ -8,8 +8,52 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
-  noop:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.12", "3.13", "3.14", "3.15"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+      - run: pip install -e ".[dev]"
+      - name: pytest
+        run: |
+          pg_ctl=(/usr/lib/postgresql/*/bin/pg_ctl)
+          pytest --postgresql-exec="${pg_ctl[-1]}"
+
+  package:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "Placeholder until the test workflow lands."
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+      - run: pip wheel --no-deps -w dist .
+      - name: Wheel has the web UI files
+        run: |
+          python -m zipfile -l dist/amagama-*.whl > files.txt
+          for f in templates/translate.html static/js/amagama.js static/css/amagama.css; do
+            grep -q "amagama/$f" files.txt || { echo "::error::$f missing from the wheel"; exit 1; }
+          done
+
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+      - run: pip install Sphinx
+      - run: make docs
