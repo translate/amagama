@@ -4,16 +4,19 @@
 
 class TestURLs(object):
 
-    def test_index(self, amagama):
+    def test_index_disabled(self, amagama):
+        # web UI disabled (the default):
         client = amagama.test_client()
-
-        # web UI disabled:
         response = client.get('/')
         assert response.status_code == 404
 
-        # web UI enabled:
+    def test_index_enabled(self, amagama):
+        # Blueprints must be registered before the app handles its first
+        # request, so this needs its own app instance/client rather than
+        # reusing one that has already served a request.
         from amagama.views import web
         amagama.register_blueprint(web.web_ui, url_prefix='')
+        client = amagama.test_client()
         response = client.get('/')
         assert response.status_code == 200
         assert b"Search" in response.data
