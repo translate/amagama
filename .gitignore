@@ -17,6 +17,10 @@ assets/
 .reqs
 requirements/min-versions.txt
 
+# Coverage
+.coverage
+coverage.xml
+
 # Packaging / venvs
 .venv*
 build/

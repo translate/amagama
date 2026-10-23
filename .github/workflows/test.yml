@@ -29,7 +29,17 @@ jobs:
       - name: pytest
         run: |
           pg_ctl=(/usr/lib/postgresql/*/bin/pg_ctl)
-          pytest --postgresql-exec="${pg_ctl[-1]}"
+          pytest --postgresql-exec="${pg_ctl[-1]}" --cov --cov-report=xml
+      - name: Coverage summary
+        if: matrix.python == '3.14'
+        run: coverage report --format=markdown >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload coverage to Codecov
+        if: matrix.python == '3.14'
+        uses: codecov/codecov-action@v7
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage.xml
+          fail_ci_if_error: false
 
   package:
     runs-on: ubuntu-latest

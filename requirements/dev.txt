@@ -4,4 +4,5 @@ numpy
 pep8
 Sphinx>=1.1
 pytest
+pytest-cov
 pytest-postgresql>=6

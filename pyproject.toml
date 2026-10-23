@@ -38,6 +38,7 @@ dev = [
     "ruff",
     "Sphinx>=1.1",
     "pytest",
+    "pytest-cov",
     "pytest-postgresql>=6",
 ]
 
@@ -53,3 +54,10 @@ amagama = ["templates/*", "static/**/*"]
 
 [tool.setuptools.dynamic]
 version = { attr = "amagama.__version__" }
+
+[tool.coverage.run]
+source = ["amagama"]
+omit = ["amagama/tests/*"]
+
+[tool.coverage.report]
+fail_under = 45
