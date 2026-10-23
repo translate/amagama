@@ -1,0 +1,29 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      python-dependencies:
+        patterns:
+          - "*"
+
+  # The live server's pins; each update needs a deploy.
+  - package-ecosystem: "pip"
+    directory: "/deploy"
+    schedule:
+      interval: "weekly"
+    groups:
+      deploy-dependencies:
+        patterns:
+          - "*"
