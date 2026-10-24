@@ -111,7 +111,10 @@ class Fetcher(object):
 
 
 class TarballPerLanguage(Fetcher):
-    """One tarball per language (and per kind, if the site splits them)."""
+    """One tarball per language (and per kind, if the site splits them).
+
+    Downloads are pause seconds apart.
+    """
 
     # Whether each tarball already has its files under <lang>/.
     has_lang_dir = False
@@ -135,6 +138,7 @@ class TarballPerLanguage(Fetcher):
                     path = os.path.join(tmp, "download")
                     download(url, path)
                     extract_tarball(path, dest if self.has_lang_dir else lang_dir)
+                    time.sleep(self.settings.get("pause", 1))
                 if os.path.isdir(lang_dir):
                     files.extend((os.path.join(lang, f), lang) for f in files_under(lang_dir))
         return files
@@ -148,7 +152,7 @@ class DamnedLies(TarballPerLanguage):
     """
 
     required = ("release",)
-    optional = ("tarballs", "base_url")
+    optional = ("tarballs", "base_url", "pause")
 
     @property
     def base_url(self):
@@ -182,7 +186,7 @@ class DamnedLies(TarballPerLanguage):
 class TranslationProject(TarballPerLanguage):
     """The Translation Project's monthly per-language backups."""
 
-    optional = ("base_url",)
+    optional = ("base_url", "pause")
 
     @property
     def base_url(self):

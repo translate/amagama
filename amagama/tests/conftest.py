@@ -1,5 +1,7 @@
 """pytest fixtures"""
 
+import types
+
 import psycopg2
 import pytest
 
@@ -10,6 +12,7 @@ from translate.storage.po import pofile
 
 from amagama.application import amagama_server_factory
 from amagama import tmdb
+from amagama.updater import fetchers
 
 
 class TempTMDB(tmdb.TMDB):
@@ -99,3 +102,11 @@ def amagama(amagama_config, pg_connection):
     })
     app.cache = cache
     return app
+
+
+@pytest.fixture(autouse=True)
+def pauses(monkeypatch):
+    """The fetchers' pauses, recorded instead of slept."""
+    slept = []
+    monkeypatch.setattr(fetchers, "time", types.SimpleNamespace(sleep=slept.append))
+    return slept

@@ -229,7 +229,8 @@ Source types
   Data kept in the database by :ref:`snapshot_db <managing#snapshot-db>`,
   named by ``snapshot``; nothing is downloaded and it never changes.
 
-Both tarball sources take ``base_url`` to use a mirror.
+Both tarball sources take ``base_url`` to use a mirror, and ``pause``
+(default 1), the seconds between downloads.
 
 
 Change detection
