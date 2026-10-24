@@ -8,8 +8,8 @@ import tomllib
 
 from amagama.licences import normalise_licence
 from amagama.updater.fetchers import FETCHERS, FetchError
-from amagama.updater.filemask import Selection
-from amagama.updater.formats import check_format
+from amagama.updater.filemask import Selection, compile_mask, fill, wildcards
+from amagama.updater.formats import check_format, is_monolingual
 from amagama.updater.languages import map_language
 
 DEFAULT_SOURCES = os.path.join(os.path.dirname(__file__), "sources.toml")
@@ -19,7 +19,8 @@ STATE_FILE = "fetched.json"
 class Block(object):
 
     def __init__(self, id, name, title, source, version=None, licence=None, files=None,
-                 exclude=None, languages=None, format=None, **settings):
+                 exclude=None, languages=None, format=None, template=None, exclude_ids=None,
+                 **settings):
         self.id = id
         self.name = name
         self.title = title
@@ -41,6 +42,30 @@ class Block(object):
         if format is not None:
             check_format(format)
         self.format = format
+        self.template = template
+        if format and is_monolingual(format) and not template:
+            raise ValueError("format %s needs a template: the English file" % format)
+        if template is not None:
+            if not format or not is_monolingual(format):
+                raise ValueError("template is for monolingual formats only")
+            if not isinstance(template, str) or "{lang}" in template:
+                raise ValueError("template must be a path, without {lang}")
+            compile_mask(template, allow_lang=False)
+            if not files or any(wildcards(mask) != wildcards(template) for mask in files):
+                raise ValueError("template must have the same wildcards as each of files")
+        if exclude_ids is not None and (not isinstance(exclude_ids, list) or not all(
+                isinstance(pattern, str) for pattern in exclude_ids)):
+            raise ValueError("exclude_ids must be a list of patterns")
+        self.exclude_ids = exclude_ids or []
+
+    def template_for(self, path):
+        """The English template path for a selected file, if the block pairs."""
+        if not self.template:
+            return None
+        for mask in self.selection.masks:
+            match = mask.match(path.replace("\\", "/"))
+            if match:
+                return fill(self.template, match)
 
     @property
     def display_title(self):
@@ -81,15 +106,21 @@ class Block(object):
         try:
             files = []
             unknown = set()
+            fetched = self.fetcher.fetch(new)
+            templates = {self.template_for(path) for path, lang in fetched} - {None}
             # Templates (.pot) are never imported; GNOME repeats them for
-            # every language.
-            for path, lang in self.fetcher.fetch(new):
+            # every language. An English template is kept but not imported.
+            for path, lang in fetched:
                 lang = self.selection.select(path, lang)
                 code = lang and map_language(lang, self.languages)
+                if path in templates:
+                    continue
                 if code is None:
                     if lang and lang not in self.languages:
                         unknown.add(lang)
                     os.remove(os.path.join(new, path))
+                elif self.template:
+                    files.append((path, code, self.template_for(path)))
                 else:
                     files.append((path, code))
             for dirpath, dirnames, filenames in os.walk(new, topdown=False):

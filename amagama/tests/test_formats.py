@@ -48,8 +48,8 @@ def test_extension_without_format(tmp_path):
 
 
 def test_unknown_format():
-    with pytest.raises(ValueError, match="format must be one of csv, mo, nextcloud-json"):
-        check_format("android")
+    with pytest.raises(ValueError, match="format must be one of android, csv, dtd"):
+        check_format("yaml")
 
 
 def test_update_with_format(amagama_config, tmp_path):

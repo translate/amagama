@@ -33,6 +33,8 @@ recommended = [
     "license-expression>=30",
     "lz4",
     "spdx-license-list>=3.29",
+    # Monolingual sources: PHP and Fluent readers
+    "translate-toolkit[fluent,php]>=3.0",
 ]
 dev = [
     "amagama[recommended]",

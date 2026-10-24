@@ -7,10 +7,11 @@ from flask import current_app
 from amagama.commands import file_checksum
 from amagama.tmdb import BUILD_PREFIX, OLD_PREFIX, lang_to_table
 from amagama.updater.formats import open_store
+from amagama.updater.pairing import paired_store
 from amagama.updater.sources import load_sources
 
 
-def import_file(path, slang, tlang, block, licence, format=None):
+def import_file(path, slang, tlang, block, licence, format=None, template=None, exclude_ids=()):
     """Import one file into the build schema.
 
     Returns (units, skipped), or a reason the file can't be read; database
@@ -21,6 +22,10 @@ def import_file(path, slang, tlang, block, licence, format=None):
         return "unknown language %s" % tlang
     try:
         store = open_store(path, format)
+        if template is not None:
+            if not os.path.exists(template):
+                return "no English template %s" % os.path.basename(template)
+            store = paired_store(store, open_store(template, format), exclude_ids)
     except Exception as e:
         return "%s: %s" % (type(e).__name__, e)
     units = tmdb.add_store(store, slang, tlang, commit=False)
@@ -117,9 +122,10 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
         if block.source == "snapshot":
             continue
         directory = block.directory(cache_dir)
-        tasks += [(os.path.join(directory, path), slang, lang, block.name, block.licence,
-                   block.format)
-                  for path, lang in block.state(cache_dir)["files"]]
+        for path, lang, *template in block.state(cache_dir)["files"]:
+            tasks.append((os.path.join(directory, path), slang, lang, block.name, block.licence,
+                          block.format, os.path.join(directory, *template) if template else None,
+                          block.exclude_ids))
     results = import_files(tasks, workers)
     counts = [result for result in results if isinstance(result, tuple)]
     out("Imported %d files: %d units (%d skipped)." % (
