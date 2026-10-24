@@ -183,7 +183,8 @@ tmdb_stats
 ----------
 
 This subcommand is used to print out some figures about the amaGama database,
-or with ``--build`` the build schemas:
+or with ``--build`` the build schemas, including a summary of the
+:ref:`recorded imports <importing#record>`:
 
 .. code-block:: bash
 

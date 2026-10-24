@@ -9,4 +9,6 @@ python-Levenshtein>=0.10.2,!=0.11.0
 
 # For management commands
 click
+license-expression>=30
 lz4
+spdx-license-list>=3.29

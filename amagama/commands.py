@@ -18,6 +18,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import functools
+import hashlib
 import logging
 import os
 import sys
@@ -25,6 +27,8 @@ import sys
 import click
 from flask import current_app
 from flask.cli import with_appcontext
+import spdx_license_list
+from license_expression import LicenseSymbol, Licensing
 from psycopg2 import sql
 
 from translate.lang.data import langcode_ire
@@ -187,12 +191,52 @@ def tmdb_stats(build):
             ORDER BY pg_relation_size(CAST(indexrelname as text)) DESC
         ) TO STDOUT
         ;""").format(sql.Literal(current_app.tmdb.schema(slang)))
+        summary = current_app.tmdb.import_summary(slang)
+        if summary:
+            print("Imports (block, files, languages, units, skipped, last):")
+        for block, files, langs, units, skipped, last in summary:
+            print("%s\t%d\t%d\t%d\t%d\t%s" % (
+                block or '-', files, langs, units, skipped, last.date()))
         logging.info("\nIndex sizes:")
         cursor.copy_expert(query, sys.stdout)
 
 
+@functools.cache
+def spdx_licensing():
+    """Current (non-deprecated) SPDX License List identifiers."""
+    symbols = [LicenseSymbol(key, aliases=(key.lower(),))
+               for key, licence in spdx_license_list.LICENSES.items()
+               if not licence.deprecated_id]
+    symbols += [LicenseSymbol(key, aliases=(key.lower(),), is_exception=True)
+                for key, exception in spdx_license_list.EXCEPTIONS.items()
+                if not exception.deprecated_id]
+    return Licensing(symbols)
+
+
+def spdx_expression(ctx, param, value):
+    if value is None:
+        return None
+    info = spdx_licensing().validate(value, strict=True)
+    if info.errors:
+        raise click.BadParameter("not a current SPDX licence expression: %s"
+                                 % "; ".join(info.errors))
+    return info.normalized_expression
+
+
+def file_checksum(filename):
+    digest = hashlib.sha256()
+    with open(filename, 'rb') as f:
+        for chunk in iter(lambda: f.read(1 << 20), b''):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
 class BuildTMDB(object):
     """Populate Translation Memory database from bilingual translation files"""
+
+    def __init__(self, block=None, licence=None):
+        self.block = block
+        self.licence = licence
 
     def run(self, slang, tlang, project_style, filename, profile_name, verbose):
         """Wrapper to implement profiling if requested."""
@@ -221,6 +265,9 @@ class BuildTMDB(object):
             'CACHE_THRESHOLD': 100000,
         })
         current_app.cache = cache
+
+        for source_lang in current_app.tmdb.source_langs:
+            current_app.tmdb.init_imports(source_lang)
 
         if not os.path.exists(filename):
             logging.error("Cannot process %s: does not exist", filename)
@@ -273,8 +320,12 @@ class BuildTMDB(object):
         # Do something useful with the store and the database.
         try:
             logging.info("Importing strings from: %s", filename)
-            current_app.tmdb.add_store(store, source_lang, target_lang,
-                                       project_style, commit=True)
+            units = current_app.tmdb.add_store(store, source_lang, target_lang,
+                                               project_style, commit=False)
+            skipped = sum(1 for u in store.units if u.istranslatable()) - units
+            current_app.tmdb.record_import(
+                source_lang, target_lang, filename, file_checksum(filename),
+                units, skipped, self.block, self.licence)
         except Exception:
             logging.exception("Error importing strings from: %s", filename)
             raise
@@ -307,12 +358,17 @@ class BuildTMDB(object):
 @click.option('--profile', '-p', 'profile_name', default=None,
              help="Write cProfile/KCacheGrind output to this file")
 @click.option('--verbose', is_flag=True, default=False)
+@click.option('--block', default=None,
+              help="Name the set these files belong to, e.g. gnome-51")
+@click.option('--licence', default=None, callback=spdx_expression,
+              help="SPDX licence expression of the files, e.g. GPL-2.0-or-later")
 @build_option
 @with_appcontext
-def build_tmdb(slang, tlang, project_style, filename, profile_name, verbose, build):
+def build_tmdb(slang, tlang, project_style, filename, profile_name, verbose,
+               block, licence, build):
     """Populate Translation Memory database from bilingual translation files"""
     use_build_schemas(build)
-    BuildTMDB().run(slang, tlang, project_style, filename, profile_name, verbose)
+    BuildTMDB(block, licence).run(slang, tlang, project_style, filename, profile_name, verbose)
 
 
 @click.command('migrate_db')
