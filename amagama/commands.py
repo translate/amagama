@@ -287,10 +287,29 @@ def build_tmdb(slang, tlang, project_style, filename, profile_name, verbose):
     BuildTMDB().run(slang, tlang, project_style, filename, profile_name, verbose)
 
 
+@click.command('migrate_db')
+@with_appcontext
+def migrate_db():
+    """Copy an old database (sources_<lang> tables) into per-language schemas."""
+    tmdb = current_app.tmdb
+    langs = tmdb.old_layout_langs()
+    if not langs:
+        print("No old sources_<lang> tables found.")
+        return
+    for slang in langs:
+        if slang in tmdb.source_langs:
+            print("Skipping '%s': already migrated." % slang)
+            continue
+        sources, targets = tmdb.migrate_old_layout(slang)
+        print("Copied '%s': %d sources, %d targets." % (slang, sources, targets))
+    print("The old tables are unchanged. Run deploy_db to build the search indexes.")
+
+
 cli_commands = (
     initdb,
     dropdb,
     deploy_db,
+    migrate_db,
     tmdb_stats,
     build_tmdb,
 )

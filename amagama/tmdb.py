@@ -209,6 +209,58 @@ ORDER BY rank DESC;
             self.source_langs.add(slang)
             cursor.connection.commit()
 
+    def old_layout_langs(self):
+        """Source languages stored in the old public.sources_<lang> tables."""
+        cursor = self.get_cursor()
+        cursor.execute("""SELECT tablename FROM pg_tables
+                          WHERE schemaname = 'public' AND tablename LIKE 'sources\\_%'""")
+        return sorted(row['tablename'][len('sources_'):] for row in cursor)
+
+    def migrate_old_layout(self, slang):
+        """Copy public.sources_<slang> and targets_<slang> into the <slang> schema.
+
+        Returns the number of sources and targets copied. The old tables are
+        left in place. An old database that went through deploy_db is copied
+        into the deployed layout: no sid key and no unique indexes, which
+        also can't hold strings longer than a btree entry.
+        """
+        if not self.function_exists('prepare_or_tsquery'):
+            cursor = self.get_cursor()
+            cursor.execute(self.INIT_FUNCTIONS)
+            cursor.connection.commit()
+
+        old_sources = sql.Identifier('public', 'sources_%s' % slang)
+        old_targets = sql.Identifier('public', 'targets_%s' % slang)
+        cursor = self.get_cursor(slang)
+        try:
+            cursor.execute("""SELECT NOT EXISTS(SELECT 1 FROM information_schema.columns
+                WHERE table_schema = 'public' AND table_name = %s
+                AND column_name = 'tid')""", ('targets_%s' % slang,))
+            deployed = cursor.fetchone()[0]
+            cursor.execute(sql.SQL("CREATE SCHEMA {}").format(sql.Identifier(slang)))
+            cursor.execute(self.INIT_SOURCE)
+            cursor.execute(self.INIT_TARGET)
+            if deployed:
+                cursor.execute("""
+                    ALTER TABLE sources DROP CONSTRAINT sources_pkey CASCADE;
+                    DROP INDEX sources_text_unique_idx;
+                    DROP INDEX targets_unique_idx;""")
+            cursor.execute(sql.SQL("""INSERT INTO sources (sid, text, vector, length)
+                SELECT sid, text, vector, length FROM {}""").format(old_sources))
+            sources = cursor.rowcount
+            cursor.execute("""SELECT setval(pg_get_serial_sequence('sources', 'sid'),
+                COALESCE(MAX(sid), 0) + 1, false) FROM sources""")
+            cursor.execute(sql.SQL("""INSERT INTO targets (sid, text, lang)
+                SELECT sid, text, lang FROM {}""").format(old_targets))
+            targets = cursor.rowcount
+            cursor.connection.commit()
+        except Exception:
+            cursor.connection.rollback()
+            self.forget_connection(cursor.connection)
+            raise
+        self.source_langs.add(slang)
+        return sources, targets
+
     def drop_db(self, source_langs):
         for slang in source_langs:
             slang = lang_to_table(slang)
