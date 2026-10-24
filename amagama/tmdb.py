@@ -143,12 +143,12 @@ DROP INDEX IF EXISTS sources_text_unique_idx;
 DROP INDEX IF EXISTS targets_unique_idx;
 
 -- CLUSTER sources so that it is physically sorted from short to long
-CREATE INDEX sources_cluster_idx ON sources (length, text) WITH (fillfactor = 100);
+CREATE INDEX sources_cluster_idx ON sources (length) WITH (fillfactor = 100);
 CLUSTER sources USING sources_cluster_idx;
 DROP INDEX sources_cluster_idx;  -- was only for CLUSTER
 
 -- CLUSTER targets so that one language's strings are physically contiguous
-CREATE INDEX targets_cluster_idx ON targets (lang, length(text), text) WITH (fillfactor = 100);
+CREATE INDEX targets_cluster_idx ON targets (lang, length(text)) WITH (fillfactor = 100);
 CLUSTER targets USING targets_cluster_idx;
 DROP INDEX targets_cluster_idx;  -- was only for CLUSTER
 CREATE INDEX targets_lang_sid_idx ON targets (lang, sid) WITH (fillfactor = 100);

@@ -1,3 +1,6 @@
+import random
+import string
+
 import pytest
 from click.testing import CliRunner
 
@@ -87,6 +90,30 @@ class TestCLI(object):
         result = run('deploy_db', input='y\n')
         assert result.exit_code == 0, result.output
         assert "Successfully altered the database for deployment." in result.output
+
+    def test_deploy_db_long_strings(self, run, po_dir, pg_connection):
+        # Longer than any btree index entry, and random so it can't compress.
+        # Such strings only fit once the unique indexes are gone, as in a
+        # database that was deployed before.
+        long_text = ''.join(random.choice(string.ascii_letters) for _ in range(9000))
+        run('initdb', '-s', 'en')
+        run('build_tmdb', '-s', 'en', '-t', 'af', '-i', str(po_dir / 'af.po'))
+        with pg_connection.cursor() as cursor:
+            cursor.execute("""
+                ALTER TABLE en.sources DROP CONSTRAINT sources_pkey CASCADE;
+                DROP INDEX en.sources_text_unique_idx;
+                DROP INDEX en.targets_unique_idx;""")
+            cursor.execute("""
+                INSERT INTO en.sources (text, vector, length)
+                VALUES (%(text)s, TO_TSVECTOR('english', %(text)s), LENGTH(%(text)s))
+                RETURNING sid""", {'text': long_text})
+            sid = cursor.fetchone()[0]
+            cursor.execute("INSERT INTO en.targets (sid, text, lang) VALUES (%s, %s, 'af')",
+                           (sid, long_text))
+        pg_connection.commit()
+        result = run('deploy_db', input='y\n')
+        assert result.exit_code == 0, result.output
+        assert lookup('Open file') == [('Open file', 'Maak lêer oop')]
 
     def test_dropdb(self, run):
         run('initdb', '-s', 'en')
