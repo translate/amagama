@@ -82,8 +82,12 @@ CODE_CONFIG_MAP = {
 }
 
 
+# Keyed by schema name, so a code and its schema (pt_BR, pt_br) agree.
+_SCHEMA_CONFIG_MAP = {lang_to_table(code): config for code, config in CODE_CONFIG_MAP.items()}
+
+
 def lang_to_config(code):
-    return CODE_CONFIG_MAP.get(code, 'simple')
+    return CODE_CONFIG_MAP.get(code) or _SCHEMA_CONFIG_MAP.get(lang_to_table(code), 'simple')
 
 
 def project_checker(project_style, source_lang):
@@ -452,7 +456,7 @@ ORDER BY rank DESC;
 
         checker = project_checker(project_style, source_lang)
 
-        cursor = self.get_cursor(source_lang)
+        cursor = self.get_cursor(lang_to_table(source_lang))
         select_query = """SELECT text, sid FROM sources WHERE
         text IN %(list)s"""
 

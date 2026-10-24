@@ -48,6 +48,23 @@ class TestTMDB(object):
             # Was giving traceback psycopg2.ProgrammingError:
             amagama.tmdb.translate_unit('<a "\\b">', "en", "af")
 
+    def test_source_lang_with_region_code(self, amagama):
+        with amagama.app_context():
+            amagama.tmdb.init_db(['pt_BR'])
+            amagama.tmdb.add_test_unit('Hello', 'Ola', 'pt_BR', 'fr')
+            result0 = amagama.tmdb.translate_unit("Hello", "pt_BR", "fr")[0]
+            assert result0["source"] == "Hello"
+            assert result0["target"] == "Ola"
+            assert result0["quality"] == 100
+
+    @pytest.mark.parametrize('code, config', [
+        ('pt_BR', 'portuguese'), ('pt_br', 'portuguese'), ('pt-BR', 'portuguese'),
+        ('en', 'english'), ('en_US', 'english'), ('zu', 'simple'),
+    ])
+    def test_lang_to_config(self, code, config):
+        # A code and its schema name give the same configuration.
+        assert tmdb.lang_to_config(code) == config
+
     def test_length_bounds(self):
         assert tmdb.min_levenshtein_length(100, 70) == 70
         assert tmdb.max_levenshtein_length(100, 70, 1000) == 142
