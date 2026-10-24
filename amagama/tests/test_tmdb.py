@@ -65,6 +65,14 @@ class TestTMDB(object):
         # A code and its schema name give the same configuration.
         assert tmdb.lang_to_config(code) == config
 
+    def test_drop_table(self, amagama):
+        with amagama.app_context():
+            cursor = amagama.tmdb.get_cursor()
+            cursor.execute("CREATE TABLE scratch (id integer)")
+            cursor.connection.commit()
+            amagama.tmdb.drop_table('scratch')
+            assert not amagama.tmdb.table_exists('scratch')
+
     def test_length_bounds(self):
         assert tmdb.min_levenshtein_length(100, 70) == 70
         assert tmdb.max_levenshtein_length(100, 70, 1000) == 142

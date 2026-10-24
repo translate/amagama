@@ -220,7 +220,7 @@ class PostGres(object):
 
     def drop_table(self, table):
         """Drop the table if it exists."""
-        query = """DROP TABLE IF EXISTS %s CASCADE;""" % table
+        query = sql.SQL("DROP TABLE IF EXISTS {} CASCADE").format(sql.Identifier(table))
         cursor = self.get_cursor()
         cursor.execute(query)
         cursor.connection.commit()

@@ -195,7 +195,7 @@ ORDER BY rank DESC;
         super(TMDB, self).init_app(app)
         self.max_import_len = app.config.get('MAX_LENGTH', 2000)
         if self.max_import_len > 4000:
-            logging.warn("Very high value for MAX_LENGTH. Please reconsider. Continuing anyway...")
+            logging.warning("Very high value for MAX_LENGTH. Please reconsider. Continuing anyway...")
 
     def init_db(self, source_langs):
         if not self.function_exists('prepare_or_tsquery'):
@@ -338,7 +338,7 @@ ORDER BY rank DESC;
         for slang in source_langs:
             slang = lang_to_table(slang)
             cursor = self.get_cursor()
-            cursor.execute("DROP SCHEMA IF EXISTS %s CASCADE" % slang)
+            cursor.execute(sql.SQL("DROP SCHEMA IF EXISTS {} CASCADE").format(sql.Identifier(slang)))
             cursor.connection.commit()
             self.source_langs.discard(slang)
 
