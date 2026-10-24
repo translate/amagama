@@ -107,3 +107,13 @@ class TestRepairMojibake(object):
         assert result.exit_code == 0, result.output
         assert targets(mangled_database, 'File') == [('af', 'Lêer')]
         assert lookup('fr', 'Create file') == [('Create file', 'Fichier créé')]
+
+    def test_failed_apply_changes_nothing(self, mangled_database, monkeypatch):
+        def fail(*args):
+            raise RuntimeError("indexing failed")
+        monkeypatch.setattr('amagama.tmdb.indexing_version', fail)
+        result = run('repair_mojibake', '--apply')
+        assert result.exit_code != 0
+        assert targets(mangled_database, 'File') == sorted(
+            [('af', 'Lêer'), ('af', mangle('Lêer'))])
+        assert targets(mangled_database, 'Create file') == [('fr', mangle('Fichier créé'))]

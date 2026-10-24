@@ -176,6 +176,17 @@ class TestMigrateDB(object):
             cursor.execute("SELECT sid FROM en.sources WHERE text = 'Save file'")
             assert cursor.fetchone()[0] > 100
 
+    def test_failed_migrate_changes_nothing(self, old_database):
+        with old_database.cursor() as cursor:
+            cursor.execute("ALTER TABLE targets_en DROP CONSTRAINT targets_en_sid_fkey")
+            cursor.execute("""INSERT INTO targets_en (sid, text, lang)
+                VALUES (999, 'Weeskind', 'af')""")
+        old_database.commit()
+        result = run('migrate_db')
+        assert result.exit_code != 0
+        assert amagama_server_factory().tmdb.source_langs == set()
+        assert count(old_database, 'public.targets_en') == 5
+
     def test_nothing_to_migrate(self, amagama_config, pg_connection):
         result = run('migrate_db')
         assert result.exit_code == 0, result.output
