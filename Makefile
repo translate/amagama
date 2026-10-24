@@ -43,7 +43,7 @@ requirements.txt: $(REQFILE) requirements/required.txt # by inclusion
 	     trap 'if [ "$$?" != 0 ]; then rm -f $@; fi' 0;		\
 	     (cd $(REQS) && ls *.tar* |					\
 	      sed -e 's/-\([0-9]\)/==\1/' -e 's/\.tar.*$$//') > $@;	\
-	 esac; 
+	 esac;
 
 requirements/min-versions.txt: requirements/*.txt
 	@if grep -q '>[0-9]' $^; then				\
