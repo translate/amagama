@@ -33,7 +33,6 @@ from translate.lang.data import langcode_ire
 from translate.lang.identify import LanguageIdentifier
 from translate.storage import factory
 
-from amagama import poparser_compat  # noqa: F401 - patches the PO parser on import
 from amagama.licences import normalise_licence
 from amagama.updater.fetchers import FetchError
 from amagama.updater.sources import load_sources
