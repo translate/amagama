@@ -209,6 +209,15 @@ Source types
   repository doesn't say which files are translations, so ``files`` is
   required and every mask must contain ``{lang}``.
 
+``http``
+  One file per language under a directory listing, such as Debian's
+  compendia: ``base_url`` is the listing, whose subdirectories are the
+  languages, and ``path`` the file under it, with ``{lang}``. Where that file
+  is missing (403 or 404), ``fallback``, a filemask with ``{lang}`` and
+  ``*``, picks the last matching file in the listing of its directory; a
+  language with neither is skipped. ``pause`` (default 1) is the seconds
+  between downloads.
+
 ``svn``
   A Subversion tree with one directory per language, such as KDE's
   ``l10n-kf6``. ``url`` (required) is the tree; ``dirs`` lists what to export

@@ -4,9 +4,11 @@ Each fetcher downloads one block's files into a directory and reports their
 target languages, and computes a fingerprint cheaply enough to check weekly.
 """
 
+import fnmatch
 import hashlib
 import json
 import os
+import posixpath
 import re
 import shutil
 import subprocess
@@ -24,7 +26,10 @@ TIMEOUT = 120
 
 
 class FetchError(Exception):
-    pass
+
+    def __init__(self, message, status=None):
+        super(FetchError, self).__init__(message)
+        self.status = status
 
 
 def _request(url, method="GET"):
@@ -32,7 +37,7 @@ def _request(url, method="GET"):
     try:
         return urllib.request.urlopen(request, timeout=TIMEOUT)
     except (urllib.error.URLError, OSError) as e:
-        raise FetchError("%s: %s" % (url, e))
+        raise FetchError("%s: %s" % (url, e), getattr(e, "code", None))
 
 
 def http_text(url):
@@ -210,6 +215,88 @@ def run_tool(tool, *args):
         raise FetchError("%s %s: %s %s" % (tool, args[0], e, stderr.strip()))
 
 
+class HttpPerLanguage(Fetcher):
+    """One file per language, in the directories of a listing (Debian's compendia).
+
+    path is the file under base_url, with {lang}. Where it is missing (403 or
+    404), the last file in the language's directory matching fallback (a
+    filemask with {lang} and *) is used instead; a language with neither is
+    skipped. Downloads are pause seconds apart.
+    """
+
+    required = ("base_url", "path")
+    optional = ("fallback", "pause")
+
+    def __init__(self, settings):
+        super(HttpPerLanguage, self).__init__(settings)
+        for key in ("path", "fallback"):
+            if key in settings and "{lang}" not in settings[key]:
+                raise ValueError("%s must contain {lang}" % key)
+
+    @property
+    def base_url(self):
+        return self.settings["base_url"].rstrip("/") + "/"
+
+    @staticmethod
+    def _listed(url, directories=False):
+        pattern = r'href="([^"/?#.][^"/?#]*)/"' if directories else r'href="([^"/?#]+)"'
+        return sorted({urllib.parse.unquote(name) for name in re.findall(pattern, http_text(url))})
+
+    def languages(self):
+        if not hasattr(self, "_languages"):
+            self._languages = self._listed(self.base_url, directories=True)
+        return self._languages
+
+    def _url(self, path, lang):
+        return self.base_url + urllib.parse.quote(path.replace("{lang}", lang))
+
+    def url(self, lang):
+        return self._url(self.settings["path"], lang)
+
+    def fallback_url(self, lang):
+        """The last listed file matching fallback, or None."""
+        if "fallback" not in self.settings:
+            return None
+        mask = self.settings["fallback"].replace("{lang}", lang)
+        directory = posixpath.dirname(mask)
+        names = [name for name in self._listed(self._url(directory + "/", lang))
+                 if fnmatch.fnmatchcase(name, posixpath.basename(mask))]
+        return self._url(posixpath.join(directory, names[-1]), lang) if names else None
+
+    def _get(self, lang, action):
+        """action(url) for path, else for fallback; None if neither exists."""
+        try:
+            return action(self.url(lang))
+        except FetchError as e:
+            if e.status not in (403, 404):
+                raise
+        url = self.fallback_url(lang)
+        return action(url) if url else None
+
+    def fingerprint(self):
+        return combine([(lang, self._get(lang, http_fingerprint) or "missing")
+                        for lang in self.languages()])
+
+    def fetch(self, dest):
+        files = []
+        for lang in self.languages():
+            def save(url):
+                path = posixpath.join(lang, posixpath.basename(urllib.parse.unquote(url)))
+                os.makedirs(os.path.join(dest, lang), exist_ok=True)
+                try:
+                    download(url, os.path.join(dest, path))
+                except FetchError:
+                    if not os.listdir(os.path.join(dest, lang)):
+                        os.rmdir(os.path.join(dest, lang))
+                    raise
+                return path
+            path = self._get(lang, save)
+            if path:
+                files.append((path, lang))
+            time.sleep(self.settings.get("pause", 1))
+        return files
+
+
 class Git(Fetcher):
     """A shallow clone of one branch or tag; files gives each file's language."""
 
@@ -296,6 +383,7 @@ FETCHERS = {
     "damned-lies": DamnedLies,
     "translationproject": TranslationProject,
     "git": Git,
+    "http": HttpPerLanguage,
     "svn": Svn,
     "snapshot": Snapshot,
 }
