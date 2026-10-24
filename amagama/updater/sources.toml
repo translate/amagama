@@ -25,6 +25,15 @@ segment = true
 versions = ["44", "45", "46", "47", "48", "49", "50", "51"]
 
 [[block]]
+name = "kde"
+title = "KDE"
+source = "svn"
+url = "svn://anonsvn.kde.org/home/kde/trunk/l10n-kf6"
+dirs = ["messages"]
+# Paced: KDE's anonymous svn is shared.
+pause = 1.5
+
+[[block]]
 name = "translationproject"
 title = "Translation Project"
 source = "translationproject"
