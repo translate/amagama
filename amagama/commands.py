@@ -36,12 +36,7 @@ from translate.storage import factory
 from amagama.licences import normalise_licence
 from amagama.updater.fetchers import FetchError
 from amagama.updater.sources import load_sources
-from amagama.tmdb import (
-    BUILD_PREFIX,
-    OLD_PREFIX,
-    min_levenshtein_length as min_leven,
-    max_levenshtein_length as max_leven,
-)
+from amagama.tmdb import BUILD_PREFIX, OLD_PREFIX
 
 def ensure_source_exists():
     db_name = current_app.config.get("DB_NAME")
@@ -108,41 +103,9 @@ def deploy_db(build):
     ensure_source_exists()
     if not click.confirm("This will permanently alter the database. Continue?"):
         return
-    tmdb = current_app.tmdb
-    SIMILARITY = current_app.config.get("MIN_SIMILARITY")
-    MAX_LENGTH = current_app.config.get("MAX_LENGTH")
     for slang in current_app.tmdb.source_langs:
         print('Optimising source language "%s"...' % slang)
-        cursor = tmdb.get_cursor(tmdb.schema(slang))
-        cursor.execute(tmdb.DEPLOY_QUERY)
-        upper_bounds = (28, 93)
-        lower_bound = 0
-        for upper_bound in upper_bounds:
-            idx_name = "sources_up_to_%d_text_idx" % upper_bound
-            if lower_bound == 0:
-                cursor.execute(sql.SQL("""
-                    CREATE INDEX {} ON sources USING gin(vector)
-                    WHERE length <= %s""").format(
-                        sql.Identifier(idx_name),
-                    ),
-                   (max_leven(upper_bound, SIMILARITY, MAX_LENGTH),))
-            else:
-                bounds = (min_leven(lower_bound, SIMILARITY),
-                          max_leven(upper_bound, SIMILARITY, MAX_LENGTH))
-                cursor.execute(sql.SQL("""
-                    CREATE INDEX {} ON sources USING gin(vector)
-                    WHERE length BETWEEN %s AND %s""").format(
-                        sql.Identifier(idx_name)
-                    ),
-                    bounds
-                )
-            lower_bound = upper_bound + 1
-
-        cursor.execute("""
-            CREATE INDEX sources_long_idx ON sources USING gin(vector)
-            WHERE length >= %s""",
-                       (min_leven(lower_bound, SIMILARITY),))
-        cursor.connection.commit()
+        current_app.tmdb.deploy(slang)
         print("Finished optimising for language %s" % slang)
     print("Successfully altered the database for deployment.")
 
