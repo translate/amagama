@@ -660,13 +660,13 @@ ORDER BY rank DESC;
         The caller is expected to handle errors.
         """
         unit['sid'] = self.get_sid(unit, cursor)
-        query = """SELECT COUNT(*) FROM targets WHERE
-        sid=%(sid)s AND lang=%(target_lang)s AND text=%(target)s"""
-        cursor.execute(query, unit)
-        if not cursor.fetchone()[0]:
-            query = """INSERT INTO targets (sid, text, lang) VALUES (
-            %(sid)s, %(target)s, %(target_lang)s)"""
-            cursor.execute(query, unit)
+        # ON CONFLICT covers a parallel import adding the same target; NOT
+        # EXISTS a deployed schema, which has no unique index.
+        cursor.execute("""INSERT INTO targets (sid, text, lang)
+            SELECT %(sid)s, %(target)s, %(target_lang)s
+            WHERE NOT EXISTS (SELECT 1 FROM targets
+                WHERE sid = %(sid)s AND lang = %(target_lang)s AND text = %(target)s)
+            ON CONFLICT DO NOTHING""", unit)
 
     def get_all_sids(self, units, source_lang, project_style):
         """Ensure that all source strings are in the database+cache."""
@@ -693,60 +693,24 @@ ORDER BY rank DESC;
         select_query = """SELECT text, sid FROM sources WHERE
         text IN %(list)s"""
 
-        to_store = set()
-        already_stored = {}
-        for i in range(1, 4):
-            # During parallel import, another process could have INSERTed a
-            # record just after we SELECTed and just before we INSERTed,
-            # causing a duplicate key. So let's expect that and retry a few
-            # times before we give up:
-            try:
-                cursor.execute(select_query, {"list": uncached})
-                already_stored = dict(cursor.fetchall())
-
-                to_store = all_sources - already_cached - set(already_stored)
-                if not to_store:
-                    # Note that we could technically leak the savepoint
-                    # "before_sids" (below) if this is not the first iteration
-                    # of the loop. It shouldn't matter, and will be destroyed
-                    # when we commit anyway.
-                    break
-
-                # Some source strings still need to be stored.
-                insert_query = """INSERT INTO sources (text, vector, length)
-                VALUES(
-                    %(source)s,
-                    TO_TSVECTOR(%(lang_config)s, %(indexed_source)s),
-                    %(length)s
-                ) RETURNING sid"""
-
-                lang_config = lang_to_config(source_lang)
-                params = [{
-                        "lang_config": lang_config,
-                        "source": s,
-                        "indexed_source": indexing_version(s, checker),
-                        "length": len(s),
-                    } for s in to_store
-                ]
-                # We sort to avoid deadlocks during parallel import.
-                params.sort(key=lambda x: x['source'])
-
-                cursor.execute("SAVEPOINT before_sids")
-                cursor.executemany(insert_query, params)
-                cursor.execute("RELEASE SAVEPOINT before_sids")
-            except postgres.psycopg2.IntegrityError:
-                cursor.execute("ROLLBACK TO SAVEPOINT before_sids")
-            else:
-                # No exception means we can break the retry loop.
-                break
-        else:
-            raise Exception("Failed 3 times to import sources")
-
+        cursor.execute(select_query, {"list": uncached})
+        already_stored = dict(cursor.fetchall())
+        to_store = all_sources - already_cached - set(already_stored)
         if to_store:
-            # get the inserted rows back so that we have their IDs
+            lang_config = lang_to_config(source_lang)
+            params = [{
+                    "lang_config": lang_config,
+                    "source": s,
+                    "indexed_source": indexing_version(s, checker),
+                    "length": len(s),
+                } for s in sorted(to_store)  # sorted to avoid deadlocks
+            ]
+            # A parallel import may add the same source first.
+            cursor.executemany("""INSERT INTO sources (text, vector, length)
+                VALUES (%(source)s, TO_TSVECTOR(%(lang_config)s, %(indexed_source)s), %(length)s)
+                ON CONFLICT DO NOTHING""", params)
             cursor.execute(select_query, {"list": tuple(to_store)})
-            newly_stored = dict(cursor.fetchall())
-            already_stored.update(newly_stored)
+            already_stored.update(cursor.fetchall())
 
         current_app.cache.set_many({
                 build_cache_key(k, schema): v
@@ -809,27 +773,15 @@ ORDER BY rank DESC;
         try:
             # We sort to avoid deadlocks during parallel import.
             units.sort(key=lambda x: x['target'])
-            for i in range(1, 4):
-                count = 0
-                try:
-                    cursor.execute("SAVEPOINT after_sids")
-                    for unit in units:
-                        unit.update({
-                            'source_lang': slang,
-                            'target_lang': tlang,
-                            'lang_config': lang_config,
-                        })
-                        self.add_dict(unit, cursor=cursor)
-                        count += 1
-                except postgres.psycopg2.IntegrityError:
-                    # Similar to above, it seems some other process inserted
-                    # the target before we could. Let's just ignore it, since
-                    # we don't need any information about it.
-                    cursor.execute("ROLLBACK TO SAVEPOINT after_sids")
-                else:
-                    # No exception means we can break the retry loop.
-                    break
-            cursor.execute("RELEASE SAVEPOINT after_sids")
+            count = 0
+            for unit in units:
+                unit.update({
+                    'source_lang': slang,
+                    'target_lang': tlang,
+                    'lang_config': lang_config,
+                })
+                self.add_dict(unit, cursor=cursor)
+                count += 1
             if commit:
                 cursor.connection.commit()
         except Exception:
