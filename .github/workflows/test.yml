@@ -75,8 +75,8 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: "3.14"
-      - run: pip install ruff==0.16.4
-      - run: ruff check --output-format=github .
+      - run: pip install prek
+      - run: prek run --all-files --show-diff-on-failure
 
   docker:
     runs-on: ubuntu-latest
