@@ -8,6 +8,7 @@ b+sr+Latn).
 
 import re
 
+TOKENS = re.compile(r"(\*\*/|\*\*|\*|\{lang\})")
 LANG_PATTERN = r"[a-z]{1,3}(?:[_@+-][A-Za-z0-9]{1,8})*"
 
 
@@ -19,18 +20,36 @@ def compile_mask(mask, allow_lang=True):
         raise ValueError("bad filemask %r: {lang} at most once%s"
                          % (mask, "" if allow_lang else ", and not in exclude"))
     pattern = ""
-    for token in re.split(r"(\*\*/|\*\*|\*|\{lang\})", mask):
-        if token == "**/":
-            pattern += "(?:.*/)?"
-        elif token == "**":
-            pattern += ".*"
-        elif token == "*":
-            pattern += "[^/]*?"
+    wildcard = 0
+    # Wildcards capture w0, w1, ... so a template can reuse what they matched.
+    for token in TOKENS.split(mask):
+        if token in ("**/", "**", "*"):
+            pattern += "(?P<w%d>%s)" % (wildcard, {"**/": "(?:.*/)?", "**": ".*",
+                                                    "*": "[^/]*?"}[token])
+            wildcard += 1
         elif token == "{lang}":
             pattern += "(?P<lang>%s)" % LANG_PATTERN
         else:
             pattern += re.escape(token)
     return re.compile(pattern + r"\Z")
+
+
+def wildcards(mask):
+    """The wildcard tokens of mask, in order."""
+    return [token for token in TOKENS.split(mask) if token in ("**/", "**", "*")]
+
+
+def fill(template, match):
+    """template with each wildcard replaced by what the same one in match took."""
+    parts = []
+    wildcard = 0
+    for token in TOKENS.split(template):
+        if token in ("**/", "**", "*"):
+            parts.append(match.group("w%d" % wildcard))
+            wildcard += 1
+        else:
+            parts.append(token)
+    return "".join(parts)
 
 
 class Selection(object):

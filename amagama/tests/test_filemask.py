@@ -1,6 +1,6 @@
 import pytest
 
-from amagama.updater.filemask import Selection, compile_mask
+from amagama.updater.filemask import Selection, compile_mask, fill, wildcards
 
 
 @pytest.mark.parametrize("masks, path, lang", [
@@ -51,3 +51,17 @@ def test_gives_language():
 def test_bad_mask(mask):
     with pytest.raises(ValueError, match="bad filemask"):
         compile_mask(mask)
+
+
+@pytest.mark.parametrize("mask, template, path, expected", [
+    ("res/values-{lang}/strings.xml", "res/values/strings.xml",
+     "res/values-af/strings.xml", "res/values/strings.xml"),
+    ("{lang}/*.php", "en/*.php", "af/moodle.php", "en/moodle.php"),
+    ("{lang}/*.ini", "en-GB/*.ini", "af-ZA/com_content.ini", "en-GB/com_content.ini"),
+    ("**/i18n/{lang}.json", "**/i18n/en.json", "extensions/Foo/i18n/af.json",
+     "extensions/Foo/i18n/en.json"),
+    ("**/i18n/{lang}.json", "**/i18n/en.json", "i18n/af.json", "i18n/en.json"),
+])
+def test_fill(mask, template, path, expected):
+    assert fill(template, compile_mask(mask).match(path)) == expected
+    assert wildcards(template) == wildcards(mask)

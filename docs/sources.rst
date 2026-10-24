@@ -75,6 +75,32 @@ such as one GNOME release:
   ``nextcloud-json`` (Nextcloud's ``l10n/<lang>.json``, keyed by the English
   text). Without it the extension picks the reader.
 
+  Monolingual formats hold one language per file, keyed by an id, and need a
+  ``template``: ``android`` (:file:`strings.xml`), ``php``, ``properties``,
+  ``joomla-ini``, ``json`` (key to message), ``fluent`` and ``dtd``.
+
+``template``
+  For a monolingual format, the English file each translation pairs with by
+  id: a path with the same wildcards as ``files``, each taking what it
+  matched in the translation's path:
+
+  .. code-block:: toml
+
+      files = ["res/values-{lang}/strings.xml"]
+      template = "res/values/strings.xml"
+
+      files = ["{lang}/*.php"]
+      template = "en/*.php"
+
+  The template is kept but not imported itself. Messages with no English,
+  and plurals, are left out; a translation whose template is missing is
+  listed as unreadable.
+
+``exclude_ids``
+  Optional patterns of message ids to leave out when pairing, such as
+  ``["@metadata*"]`` (MediaWiki) or ``["*.description"]`` (Signal). JSON ids
+  are matched without their leading ``.``.
+
 Templates (:file:`.pot`) are never imported.
 
 Every language code is turned into one form, language with optional
