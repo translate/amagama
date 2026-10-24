@@ -243,6 +243,25 @@ class TestFetch(object):
         assert "tp: not language codes, skipped: x!" in result.output
         assert [lang for path, lang in fetched(run.cache, "tp")] == ["af", "zu"]
 
+    def test_merged_languages(self, run, git_repo):
+        repo, git = git_repo
+        (repo / "po/de.po").write_text("de")
+        (repo / "po/de-formal.po").write_text("de")
+        (repo / "po/sr-Latn.po").write_text("sr")
+        (repo / "po/sr@latin.po").write_text("sr")
+        git("add", ".")
+        git("commit", "-q", "-m", "variants")
+        result = run(block("x", "git", url=repo.as_uri(), files=["po/{lang}.po"],
+                           languages={"de-formal": "de"}))
+        assert result.exit_code == 0, result.output
+        # Accepted in languages: not reported; sr-Latn and sr@latin weren't.
+        assert "x: codes merged: sr-Latn, sr@latin -> sr@latin" in result.output
+        assert "-> de" not in result.output
+        with open(run.cache / "x/fetched.json") as f:
+            state = json.load(f)
+        assert state["languages"]["de"] == ["de", "de-formal"]
+        assert list(state["merged_languages"]) == ["sr@latin"]
+
     def test_git(self, run, git_repo):
         repo, git = git_repo
         (repo / "README").write_text("not a translation")

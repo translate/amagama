@@ -124,6 +124,7 @@ class Block(object):
         try:
             files = []
             unknown = set()
+            codes = {}
             fetched = self.fetcher.fetch(new)
             templates = {self.template_for(path) for path, lang in fetched} - {None}
             # Templates (.pot) are never imported; GNOME repeats them for
@@ -138,10 +139,12 @@ class Block(object):
                     if lang and lang not in self.languages:
                         unknown.add(lang)
                     os.remove(os.path.join(new, path))
-                elif self.template:
-                    files.append((path, code, self.template_for(path)))
                 else:
-                    files.append((path, code))
+                    codes.setdefault(code, set()).add(lang)
+                    if self.template:
+                        files.append((path, code, self.template_for(path)))
+                    else:
+                        files.append((path, code))
             for dirpath, dirnames, filenames in os.walk(new, topdown=False):
                 if dirpath != new and not os.listdir(dirpath):
                     os.rmdir(dirpath)
@@ -164,6 +167,10 @@ class Block(object):
             "fetched": datetime.datetime.now(datetime.timezone.utc).isoformat(),
             "files": sorted(files),
             "unknown_languages": sorted(unknown),
+            "languages": {code: sorted(sources) for code, sources in sorted(codes.items())},
+            # Different codes normalised to one, not by the block's languages.
+            "merged_languages": {code: sorted(sources) for code, sources in sorted(codes.items())
+                                 if len(sources - set(self.languages)) > 1},
         }
         with open(os.path.join(new, STATE_FILE), "w", encoding="utf-8") as f:
             json.dump(state, f, indent=1)
