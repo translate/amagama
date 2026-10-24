@@ -45,7 +45,8 @@ Recording imports
 =================
 
 Every imported file is recorded in the ``imports`` table of its source
-language: the file name, its SHA-256 checksum, the target language, how many
+language: the file name, its SHA-256 checksum (none for a :ref:`snapshot
+<managing#load-snapshot>`), the target language, how many
 units were loaded and how many were skipped (untranslated or fuzzy), and when.
 Name the set of files with ``--block`` and give their licence as an `SPDX
 licence expression <https://spdx.org/licenses/>`_ with ``--licence``, such as

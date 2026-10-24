@@ -107,6 +107,27 @@ languages. The following example creates the tables for English and French:
 With ``--build`` it creates the build schemas instead.
 
 
+.. _managing#load-snapshot:
+
+load_snapshot
+-------------
+
+This subcommand copies a snapshot made by :ref:`snapshot_db
+<managing#snapshot-db>` into an empty build schema, before any other import, so
+that a rebuild keeps data that can't be imported from files again:
+
+.. code-block:: bash
+
+    $ amagama-manage initdb -s en --build
+    $ amagama-manage load_snapshot -s en --name legacy --block legacy-2019
+    Loaded _legacy_en into _build_en: 1000 sources (2 skipped), 5000 targets (3 skipped).
+
+Source ids are kept. Text that an import would also refuse is skipped: sources
+longer than ``MAX_LENGTH``, and text too long for the database indexes. Each
+target language is recorded as an :ref:`import <importing#record>` under the
+given ``--block`` and optional ``--licence``.
+
+
 .. _managing#migrate-db:
 
 migrate_db
@@ -151,6 +172,23 @@ is merged into it. Text is only changed when all of it converts, and text that
 looks mangled but doesn't convert is listed and left alone.
 
 
+.. _managing#snapshot-db:
+
+snapshot_db
+-----------
+
+This subcommand copies a source language's live data into ``_<name>_<lang>``,
+which isn't served, for :ref:`load_snapshot <managing#load-snapshot>` to load
+into each rebuild:
+
+.. code-block:: bash
+
+    $ amagama-manage snapshot_db -s en --name legacy
+    Saved 'en' as _legacy_en: 782372 sources, 21101176 targets.
+
+The name is lower-case letters and digits; ``build`` and ``old`` are reserved.
+
+
 .. _managing#swap-db:
 
 swap_db
@@ -165,6 +203,7 @@ served. Then swap it in:
 .. code-block:: bash
 
     $ amagama-manage initdb -s en --build
+    $ amagama-manage load_snapshot -s en --name legacy --block legacy-2019
     $ amagama-manage build_tmdb -s en -t af -i af.po --build
     $ amagama-manage deploy_db --build
     $ amagama-manage swap_db -s en
