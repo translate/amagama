@@ -4,14 +4,13 @@ import multiprocessing
 import os
 
 from flask import current_app
-from translate.storage import factory
-
 from amagama.commands import file_checksum
 from amagama.tmdb import BUILD_PREFIX, OLD_PREFIX, lang_to_table
+from amagama.updater.formats import open_store
 from amagama.updater.sources import load_sources
 
 
-def import_file(path, slang, tlang, block, licence):
+def import_file(path, slang, tlang, block, licence, format=None):
     """Import one file into the build schema.
 
     Returns (units, skipped), or a reason the file can't be read; database
@@ -21,7 +20,7 @@ def import_file(path, slang, tlang, block, licence):
     if not lang_to_table(tlang):
         return "unknown language %s" % tlang
     try:
-        store = factory.getobject(path)
+        store = open_store(path, format)
     except Exception as e:
         return "%s: %s" % (type(e).__name__, e)
     units = tmdb.add_store(store, slang, tlang, commit=False)
@@ -63,7 +62,7 @@ def _import_task(task):
 
 
 def import_files(tasks, workers):
-    """Import (path, slang, tlang, block, licence) tasks; stop on the first error."""
+    """Import (path, slang, tlang, block, licence, format) tasks; stop on the first error."""
     if workers <= 1:
         return [import_file(*task) for task in tasks]
     with multiprocessing.get_context("spawn").Pool(workers, initializer=_start_worker) as pool:
@@ -118,7 +117,8 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
         if block.source == "snapshot":
             continue
         directory = block.directory(cache_dir)
-        tasks += [(os.path.join(directory, path), slang, lang, block.name, block.licence)
+        tasks += [(os.path.join(directory, path), slang, lang, block.name, block.licence,
+                   block.format)
                   for path, lang in block.state(cache_dir)["files"]]
     results = import_files(tasks, workers)
     counts = [result for result in results if isinstance(result, tuple)]

@@ -147,6 +147,7 @@ class TestSourcesFile(object):
         (block("a", "translationproject", files=["{lang}/{lang}.po"]), "{lang} at most once"),
         (block("a", "translationproject", exclude=["{lang}.po"]), "not in exclude"),
         (block("a", "translationproject", languages=["af"]), "languages must map codes"),
+        (block("a", "translationproject", format="android"), "format must be one of"),
         (block("a", "translationproject", licence="GPL2"), "not a current SPDX licence expression"),
         ('[[block]\n', "sources.toml"),
         ('[[block]]\nname = "a"\ntitle = "A"\nsource = "translationproject"',

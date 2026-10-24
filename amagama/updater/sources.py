@@ -9,6 +9,7 @@ import tomllib
 from amagama.licences import normalise_licence
 from amagama.updater.fetchers import FETCHERS, FetchError
 from amagama.updater.filemask import Selection
+from amagama.updater.formats import check_format
 from amagama.updater.languages import map_language
 
 DEFAULT_SOURCES = os.path.join(os.path.dirname(__file__), "sources.toml")
@@ -18,7 +19,7 @@ STATE_FILE = "fetched.json"
 class Block(object):
 
     def __init__(self, id, name, title, source, version=None, licence=None, files=None,
-                 exclude=None, languages=None, **settings):
+                 exclude=None, languages=None, format=None, **settings):
         self.id = id
         self.name = name
         self.title = title
@@ -37,6 +38,9 @@ class Block(object):
                 isinstance(value, str) for value in languages.values())):
             raise ValueError("languages must map codes to codes, or to \"\" to skip")
         self.languages = languages or {}
+        if format is not None:
+            check_format(format)
+        self.format = format
 
     @property
     def display_title(self):
