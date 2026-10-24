@@ -1,6 +1,7 @@
 # Global config
 
 DEBUG = False
+# A placeholder: amaGama warns at startup until you set your own.
 SECRET_KEY = "foobar"
 ENABLE_WEB_UI = False
 ENABLE_DATA_ALTERING_API = False
