@@ -1,0 +1,53 @@
+name: Propose a translation memory source
+description: Suggest translations for amaGama to import.
+title: "Source: "
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Tell us where the translations are and under what licence. We review each proposal before importing anything.
+  - type: input
+    id: link
+    attributes:
+      label: Where are the translations?
+      description: A link to the files or the repository they live in.
+      placeholder: https://
+    validations:
+      required: true
+  - type: input
+    id: licence
+    attributes:
+      label: Licence
+      description: The licence the translations are published under, as an SPDX identifier if you know it (for example GPL-2.0-or-later, CC-BY-4.0).
+    validations:
+      required: true
+  - type: input
+    id: copyright
+    attributes:
+      label: Copyright holder
+      description: Who holds the copyright, if known.
+  - type: input
+    id: languages
+    attributes:
+      label: Languages
+      description: Source and target languages, for example "English to Afrikaans, Zulu".
+    validations:
+      required: true
+  - type: input
+    id: format
+    attributes:
+      label: File format
+      description: For example PO, XLIFF, TMX, Qt TS.
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything else
+      description: Size, how often it changes, the project it comes from, quality notes.
+  - type: checkboxes
+    id: permission
+    attributes:
+      label: Permission
+      options:
+        - label: As far as I know, these translations may be redistributed under the licence above.
+          required: true
