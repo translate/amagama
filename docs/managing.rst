@@ -257,3 +257,33 @@ or with ``--build`` the build schemas, including a summary of the
     sources_en	sources_en_text_unique_idx	53 MB
     targets_en	targets_en_pkey	16 MB
     sources_en	sources_en_pkey	13 MB
+
+
+.. _managing#update:
+
+update
+------
+
+This subcommand refreshes a source language from the :ref:`sources file
+<sources>`. It fetches the blocks that changed and, if any did (or with
+``--force``), rebuilds from every block and swaps the result in:
+
+.. code-block:: bash
+
+    $ amagama-manage update -s en
+    Fetched gnome-51: 6908 files.
+    Loaded legacy-2019: 5000 targets (3 skipped).
+    Imported 120 files: 9000 units (40 skipped).
+    Swapped in 'en'; the replaced copy is _old_en.
+
+The build starts empty: snapshot blocks are loaded first, then every file of
+every other block, :setting:`UPDATER_WORKERS` at a time, each with its known
+target language, block name and licence. Files that can't be read are listed
+and left out. A fetch or database error stops it before the swap, leaving the
+live data as it was. The previous copy is kept as ``_old_<lang>`` until the
+next update (``swap_db --rollback`` restores it).
+
+When nothing changed it prints ``Nothing changed.`` and exits, so it can run
+from a timer. It refuses to run while a snapshot block's snapshot is missing
+and the live data holds anything the blocks don't re-import, such as a
+migrated database: run :ref:`snapshot_db <managing#snapshot-db>` first.

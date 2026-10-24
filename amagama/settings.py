@@ -37,6 +37,8 @@ DB_MAX_CONNECTIONS = 20
 # translations are kept.
 UPDATER_SOURCES = None
 UPDATER_CACHE_DIR = "~/.cache/amagama-updater"
+# Parallel import processes.
+UPDATER_WORKERS = 4
 
 
 # Levenshtein config
