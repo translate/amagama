@@ -11,7 +11,7 @@ import pytest
 from click.testing import CliRunner
 
 from amagama.cli import manage
-from amagama.updater.fetchers import combine
+from amagama.updater.fetchers import DamnedLies, combine
 from amagama.updater.sources import load_sources
 
 
@@ -209,6 +209,17 @@ class TestFetch(object):
         assert not (run.cache / "gnome-51/af/glib.glib-2-90.pot").exists()
         # Nothing translated: not downloaded (its tarball would be only templates).
         assert not (run.cache / "gnome-51/ach").exists()
+
+    def test_damned_lies_languages_per_tarball(self, site):
+        root, url = site
+        (root / "api/v1/releases/gnome-51/stats").write_text(json.dumps({"statistics": [
+            {"lang_locale": "af", "ui": {"translated": 5}, "doc": {"translated": 2}},
+            {"lang_locale": "zu", "ui": {"translated": 5}, "doc": {"translated": 0}},
+        ]}))
+        help_block = DamnedLies({"release": "gnome-51", "tarballs": ["doc"], "base_url": url})
+        ui_block = DamnedLies({"release": "gnome-51", "base_url": url})
+        assert help_block.languages() == ["af"]
+        assert ui_block.languages() == ["af", "zu"]
 
     def test_translationproject(self, run, site):
         root, url = site
