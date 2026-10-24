@@ -24,6 +24,7 @@ the API, and is usable from `Virtaal <https://virtaal.translatehouse.org>`_ and 
    settings
    managing
    importing
+   sources
    running
    virtaal_integration
 
