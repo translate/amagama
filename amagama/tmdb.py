@@ -46,6 +46,13 @@ from amagama.normalise import indexing_version
 
 _table_name_cache = {}
 
+# Sources whose "translation" is the translators' names or addresses (GNOME,
+# KDE), never imported.
+TRANSLATOR_CREDITS = frozenset({
+    "translator-credits", "translator_credits", "Your names", "Your emails",
+    "ROLES_OF_TRANSLATORS", "CREDIT_FOR_TRANSLATORS",
+})
+
 # Schemas named with these prefixes hold a source language's rebuild and its
 # previous copy. Schemas starting with "_" are never served.
 BUILD_PREFIX = '_build_'
@@ -744,6 +751,7 @@ ORDER BY rank DESC;
     def _usable_unit(self, u):
         return u.istranslatable() and \
                bool(u.source) and \
+               str(u.source) not in TRANSLATOR_CREDITS and \
                self._translated(u) and \
                len(u.source) <= self.max_import_len and \
                self._indexable_string(u.source) and \
