@@ -305,11 +305,29 @@ def migrate_db():
     print("The old tables are unchanged. Run deploy_db to build the search indexes.")
 
 
+@click.command('repair_mojibake')
+@click.option('--apply', is_flag=True,
+              help="Write the fixes. Without it, only report them.")
+@with_appcontext
+def repair_mojibake(apply):
+    """Undo UTF-8 text that was imported as Latin-1 or Windows-1252."""
+    ensure_source_exists()
+    for slang in sorted(current_app.tmdb.source_langs):
+        sources, targets, unconverted = current_app.tmdb.repair_mojibake(slang, apply)
+        print("%s '%s': %d sources, %d targets." % (
+            "Fixed" if apply else "Would fix", slang, sources, targets))
+        for table, text in unconverted:
+            print("  Not converted (%s): %r" % (table, text))
+    if not apply:
+        print("Nothing was changed. Run with --apply to write the fixes.")
+
+
 cli_commands = (
     initdb,
     dropdb,
     deploy_db,
     migrate_db,
+    repair_mojibake,
     tmdb_stats,
     build_tmdb,
 )

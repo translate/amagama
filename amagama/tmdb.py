@@ -40,6 +40,7 @@ from translate.lang import data
 from translate.search.lshtein import LevenshteinComparer
 
 from amagama import postgres
+from amagama.mojibake import CANDIDATE_REGEX, unmangle
 from amagama.normalise import indexing_version
 
 _table_name_cache = {}
@@ -260,6 +261,74 @@ ORDER BY rank DESC;
             raise
         self.source_langs.add(slang)
         return sources, targets
+
+    def repair_mojibake(self, slang, apply=False):
+        """Find, and with apply fix, mojibake in the slang schema.
+
+        Returns the number of sources and targets that convert, and the
+        (table, text) of those that look mangled but don't.
+        """
+        cursor = self.get_cursor(slang)
+        unconverted = []
+
+        cursor.execute("SELECT DISTINCT sid, lang, text FROM targets WHERE text ~ %s",
+                       (CANDIDATE_REGEX,))
+        targets = []
+        for sid, lang, text in cursor.fetchall():
+            fixed = unmangle(text)
+            if fixed is None:
+                unconverted.append(('targets', text))
+            else:
+                targets.append((sid, lang, text, fixed))
+
+        cursor.execute("SELECT sid, text FROM sources WHERE text ~ %s", (CANDIDATE_REGEX,))
+        sources = []
+        for sid, text in cursor.fetchall():
+            fixed = unmangle(text)
+            if fixed is None:
+                unconverted.append(('sources', text))
+            else:
+                sources.append((sid, fixed))
+
+        if not apply:
+            return len(sources), len(targets), unconverted
+
+        lang_config = lang_to_config(slang)
+        checker = project_checker(None, slang)
+        try:
+            for sid, lang, text, fixed in targets:
+                cursor.execute("DELETE FROM targets WHERE sid = %s AND lang = %s AND text = %s",
+                               (sid, lang, text))
+                cursor.execute("""INSERT INTO targets (sid, text, lang)
+                    SELECT %(sid)s, %(text)s, %(lang)s WHERE NOT EXISTS (
+                        SELECT 1 FROM targets
+                        WHERE sid = %(sid)s AND lang = %(lang)s AND text = %(text)s)""",
+                    {'sid': sid, 'text': fixed, 'lang': lang})
+            for sid, fixed in sources:
+                cursor.execute("SELECT sid FROM sources WHERE text = %s", (fixed,))
+                existing = cursor.fetchone()
+                if existing:
+                    # Move the targets to the existing source, dropping ones
+                    # it already has.
+                    cursor.execute("""DELETE FROM targets t WHERE t.sid = %(old)s AND EXISTS (
+                        SELECT 1 FROM targets u WHERE u.sid = %(new)s
+                        AND u.lang = t.lang AND u.text = t.text)""",
+                        {'old': sid, 'new': existing[0]})
+                    cursor.execute("UPDATE targets SET sid = %s WHERE sid = %s",
+                                   (existing[0], sid))
+                    cursor.execute("DELETE FROM sources WHERE sid = %s", (sid,))
+                else:
+                    cursor.execute("""UPDATE sources SET text = %(text)s, length = %(length)s,
+                        vector = TO_TSVECTOR(%(lang_config)s, %(indexed)s)
+                        WHERE sid = %(sid)s""", {
+                        'text': fixed, 'length': len(fixed), 'lang_config': lang_config,
+                        'indexed': indexing_version(fixed, checker), 'sid': sid})
+            cursor.connection.commit()
+        except Exception:
+            cursor.connection.rollback()
+            raise
+        current_app.cache.clear()
+        return len(sources), len(targets), unconverted
 
     def drop_db(self, source_langs):
         for slang in source_langs:
