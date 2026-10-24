@@ -149,3 +149,13 @@ def test_xliff_states(tmp_path, states, expected):
         store = open_store(str(path), format, xliff_states=states)
         assert [u.source for u in store.units] == expected
         assert all(u.istranslated() for u in store.units)
+
+
+def test_nextcloud_plurals(tmp_path):
+    path = tmp_path / "de.json"
+    path.write_text('{"translations": {"Save file": "Datei speichern", '
+                    '"_%n file_::_%n files_": ["%n Datei", "%n Dateien"]}, '
+                    '"pluralForm": "nplurals=2; plural=(n != 1);"}', encoding="utf-8")
+    store = open_store(str(path), "nextcloud-json")
+    assert [(u.source, u.target) for u in store.units] == [
+        ("Save file", "Datei speichern"), ("%n file", "%n Datei")]
