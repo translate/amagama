@@ -87,7 +87,7 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
     """
     slang = lang_to_table(slang)
     tmdb = current_app.tmdb
-    blocks = sorted(load_sources(sources_path), key=lambda block: block.id)
+    blocks = load_sources(sources_path)
     # Without its snapshot, a rebuild would drop data that only the live
     # schema still has.
     cursor = tmdb.get_cursor()

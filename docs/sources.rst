@@ -11,7 +11,6 @@ such as one GNOME release:
 .. code-block:: toml
 
     [[block]]
-    id = 9
     name = "gnome-51"
     title = "GNOME"
     version = "51"
@@ -19,13 +18,10 @@ such as one GNOME release:
     release = "gnome-51"
     licence = "GPL-2.0-or-later"
 
-``id``
-  A unique positive integer that identifies the block for good: never reuse
-  or change it. Blocks are listed in id order.
-
 ``name``
-  Unique; it names the block's directory in the cache and its
-  :ref:`imports <importing#record>`.
+  The block's fixed reference: it names the block's directory in the cache
+  and its :ref:`imports <importing#record>`, so never rename or reuse one.
+  Blocks are read in the order they appear in the file.
 
 ``title``
   The name shown to people, such as ``GNOME`` or ``Legacy OSS``. Titles are

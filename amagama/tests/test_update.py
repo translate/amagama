@@ -46,10 +46,10 @@ def run(amagama_config, tmp_path, site):
     root, url = site
     sources = tmp_path / "sources.toml"
     sources.write_text(
-        block("legacy-2019", "snapshot", 1, snapshot="legacy")
-        + block("gnome-51", "damned-lies", 2, release="gnome-51", base_url=url,
+        block("legacy-2019", "snapshot", snapshot="legacy")
+        + block("gnome-51", "damned-lies", release="gnome-51", base_url=url,
                 licence="GPL-2.0-or-later")
-        + block("tp", "translationproject", 3, base_url=url + "/backups/last/"))
+        + block("tp", "translationproject", base_url=url + "/backups/last/"))
     settings = {"UPDATER_SOURCES": str(sources), "UPDATER_CACHE_DIR": str(tmp_path / "cache"),
                 "UPDATER_WORKERS": 1}
     amagama_config(**settings)

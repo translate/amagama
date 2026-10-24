@@ -26,9 +26,9 @@ def write_tarball(path, members):
             tar.addfile(info, io.BytesIO(data))
 
 
-def block(name, source, block_id=1, **settings):
+def block(name, source, **settings):
     """One [[block]] of a sources file."""
-    lines = ['[[block]]', 'id = %d' % block_id, 'title = "%s"' % name,
+    lines = ['[[block]]', 'title = "%s"' % name,
              'name = "%s"' % name, 'source = "%s"' % source]
     def toml(value):
         if isinstance(value, dict):
@@ -111,7 +111,6 @@ def fetched(cache, block):
 
 GNOME = '''
 [[block]]
-id = 1
 title = "T"
 name = "gnome-51"
 source = "damned-lies"
@@ -124,7 +123,7 @@ class TestSourcesFile(object):
 
     def test_shipped_sources(self):
         blocks = load_sources()
-        assert [block.id for block in blocks] == list(range(1, 11))
+        assert len(blocks) == 10
         assert (blocks[0].name, blocks[0].title, blocks[0].source) == \
             ("legacy-2019", "Legacy OSS", "snapshot")
         assert [block.name for block in blocks[1:9]] == ["gnome-%d" % n for n in range(44, 52)]
@@ -136,7 +135,7 @@ class TestSourcesFile(object):
         ('[[block]]\nsource = "git"', "block 1: no name"),
         (block("a/b", "translationproject"), "can't contain /"),
         (block("a", "svn"), "source must be one of"),
-        (block("a", "translationproject") + block("a", "translationproject", 2),
+        (block("a", "translationproject") + block("a", "translationproject"),
          "block a: duplicate name"),
         (block("a", "damned-lies"), "block a: missing release"),
         (block("a", "translationproject", branch="x"), "unknown branch"),
@@ -177,20 +176,11 @@ class TestSourcesFile(object):
         (block("a", "translationproject", refetch_days=1.5), "refetch_days must be a whole number"),
         (block("a", "translationproject", licence="GPL2"), "not a current SPDX licence expression"),
         ('[[block]\n', "sources.toml"),
-        ('[[block]]\nname = "a"\ntitle = "A"\nsource = "translationproject"',
-         "block a: id must be a positive integer"),
-        ('[[block]]\nname = "a"\nid = 0\ntitle = "A"\nsource = "translationproject"',
-         "id must be a positive integer"),
-        ('[[block]]\nname = "a"\nid = true\ntitle = "A"\nsource = "translationproject"',
-         "id must be a positive integer"),
-        ('[[block]]\nname = "a"\nid = 1\ntitle = "A"\nsource = "translationproject"\n'
-         '[[block]]\nname = "b"\nid = 1\ntitle = "B"\nsource = "translationproject"',
-         "block b: duplicate id 1"),
-        ('[[block]]\nname = "a"\nid = 1\ntitle = " "\nsource = "translationproject"',
+        ('[[block]]\nname = "a"\ntitle = " "\nsource = "translationproject"',
          "block a: no title"),
-        ('[[block]]\nname = "a"\nid = 1\ntitle = "A"\nsource = "snapshot"',
+        ('[[block]]\nname = "a"\ntitle = "A"\nsource = "snapshot"',
          "block a: missing snapshot"),
-        ('[[block]]\nname = "a"\nid = 1\ntitle = "A"\nversion = 51\nsource = "translationproject"',
+        ('[[block]]\nname = "a"\ntitle = "A"\nversion = 51\nsource = "translationproject"',
          "block a: version must be a non-empty string"),
     ])
     def test_invalid(self, tmp_path, text, error):
@@ -308,7 +298,7 @@ class TestFetch(object):
         assert os.listdir(run.cache) == []
 
     def test_snapshot(self, run):
-        text = '[[block]]\nid = 1\ntitle = "Legacy OSS"\nname = "legacy-2019"\n' \
+        text = '[[block]]\ntitle = "Legacy OSS"\nname = "legacy-2019"\n' \
             'source = "snapshot"\nsnapshot = "legacy"'
         result = run(text)
         assert result.exit_code == 0, result.output
@@ -336,7 +326,7 @@ class TestFetch(object):
 
     def test_only_named_block(self, run, site):
         root, url = site
-        text = GNOME % url + block("tp", "translationproject", 2, base_url=url + "/backups/last/")
+        text = GNOME % url + block("tp", "translationproject", base_url=url + "/backups/last/")
         result = run(text, "--block", "tp")
         assert result.exit_code == 0, result.output
         assert os.listdir(run.cache) == ["tp"]
