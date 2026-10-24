@@ -1,5 +1,9 @@
+import itertools
+import logging
 import random
 import string
+import sys
+import types
 
 import pytest
 from click.testing import CliRunner
@@ -39,6 +43,14 @@ def lookup(source, tlang='af'):
         return [(c['source'], c['target']) for c in response.get_json()]
 
 
+NO_LANGUAGE_PO_FILE = PO_FILE.replace('Open file', 'Save file').replace(
+    'Maak lêer oop', 'Stoor lêer')
+
+
+def errors(caplog):
+    return [r.getMessage() for r in caplog.records if r.levelno >= logging.ERROR]
+
+
 class TestCLI(object):
 
     def test_initdb(self, run):
@@ -64,6 +76,59 @@ class TestCLI(object):
         result = run('build_tmdb', '-s', 'en', '-i', str(po_dir))
         assert result.exit_code == 0, result.output
         assert lookup('Open file') == [('Open file', 'Maak lêer oop')]
+
+    def test_build_tmdb_language_from_directory(self, run, tmp_path):
+        (tmp_path / 'af').mkdir()
+        (tmp_path / 'af' / 'messages.po').write_text(PO_FILE, encoding='utf-8')
+        run('initdb', '-s', 'en')
+        result = run('build_tmdb', '-s', 'en', '-i', str(tmp_path))
+        assert result.exit_code == 0, result.output
+        assert lookup('Open file') == [('Open file', 'Maak lêer oop')]
+
+    def test_build_tmdb_po_directory_is_not_a_language(self, run, tmp_path, caplog):
+        (tmp_path / 'po').mkdir()
+        (tmp_path / 'po' / 'messages.po').write_text(PO_FILE, encoding='utf-8')
+        run('initdb', '-s', 'en')
+        result = run('build_tmdb', '-s', 'en', '-i', str(tmp_path))
+        assert result.exit_code == 0, result.output
+        assert any("Missing source or target language" in e for e in errors(caplog))
+        assert lookup('Open file') == []
+
+    def test_build_tmdb_skips(self, run, po_dir, caplog):
+        # Templates, other file types and version control directories.
+        (po_dir / 'af.pot').write_text(NO_LANGUAGE_PO_FILE, encoding='utf-8')
+        (po_dir / 'notes.txt').write_text('Save file', encoding='utf-8')
+        (po_dir / 'notes.xyz').write_text('Save file', encoding='utf-8')
+        (po_dir / '.git').mkdir()
+        (po_dir / '.git' / 'af.po').write_text(NO_LANGUAGE_PO_FILE, encoding='utf-8')
+        run('initdb', '-s', 'en')
+        result = run('build_tmdb', '-s', 'en', '-i', str(po_dir))
+        assert result.exit_code == 0, result.output
+        assert errors(caplog) == []
+        assert lookup('Open file') == [('Open file', 'Maak lêer oop')]
+        assert lookup('Save file') == []
+
+    def test_build_tmdb_broken_file(self, run, po_dir, caplog):
+        (po_dir / 'nl.po').write_text('msgid "Open', encoding='utf-8')
+        run('initdb', '-s', 'en')
+        result = run('build_tmdb', '-s', 'en', '-i', str(po_dir))
+        assert result.exit_code == 0, result.output
+        assert any("nl.po" in e for e in errors(caplog))
+        assert lookup('Open file') == [('Open file', 'Maak lêer oop')]
+
+    def test_build_tmdb_missing_input(self, run, tmp_path, caplog):
+        run('initdb', '-s', 'en')
+        result = run('build_tmdb', '-s', 'en', '-i', str(tmp_path / 'af.po'))
+        assert result.exit_code == 0, result.output
+        assert any("does not exist" in e for e in errors(caplog))
+
+    def test_build_tmdb_verbose(self, run, po_dir):
+        run('initdb', '-s', 'en')
+        po = str(po_dir / 'af.po')
+        result = run('build_tmdb', '-s', 'en', '-t', 'af', '-i', po, '--verbose')
+        assert result.exit_code == 0, result.output
+        assert "Importing %s" % po in result.output
+        assert "Successfully imported %s" % po in result.output
 
     def test_build_tmdb_profile(self, run, po_dir, tmp_path):
         run('initdb', '-s', 'en')
@@ -141,3 +206,38 @@ class TestCLI(object):
         result = run('benchmark_tmdb', '-s', 'en', '-t', 'af', '-i', po)
         assert result.exit_code == 0, result.output
         assert "Percentiles:" in result.output
+
+    def test_benchmark_tmdb_directory(self, run, po_dir):
+        (po_dir / '.git').mkdir()
+        (po_dir / '.git' / 'af.po').write_text(PO_FILE, encoding='utf-8')
+        run('initdb', '-s', 'en')
+        result = run('benchmark_tmdb', '-s', 'en', '-t', 'af', '-i', str(po_dir))
+        assert result.exit_code == 0, result.output
+        assert result.output.count("Percentiles:") == 1
+
+    @pytest.mark.parametrize('name, message', [
+        ('', "Please specify a file or directory"),
+        ('missing.po', "does not exist"),
+        ('messages.po', "Missing source or target language"),
+        ('broken.po', "Error while processing"),
+    ])
+    def test_benchmark_tmdb_errors(self, run, tmp_path, caplog, name, message):
+        (tmp_path / 'messages.po').write_text(PO_FILE, encoding='utf-8')
+        (tmp_path / 'broken.po').write_text('msgid "Open', encoding='utf-8')
+        run('initdb', '-s', 'en')
+        path = str(tmp_path / name) if name else ''
+        result = run('benchmark_tmdb', '-s', 'en', '-i', path)
+        assert result.exit_code == 0, result.output
+        assert any(message in e for e in errors(caplog))
+
+    def test_benchmark_tmdb_slow_without_numpy(self, run, po_dir, monkeypatch):
+        run('initdb', '-s', 'en')
+        clock = itertools.count()
+        monkeypatch.setattr('amagama.benchmark.time',
+                            types.SimpleNamespace(monotonic=lambda: next(clock)))
+        monkeypatch.setitem(sys.modules, 'numpy', None)
+        result = run('benchmark_tmdb', '-s', 'en', '-t', 'af',
+                     '-i', str(po_dir / 'af.po'))
+        assert result.exit_code == 0, result.output
+        assert "Slow (1.000s): 'Open file'" in result.output
+        assert "Install numpy for an analysis of the timings" in result.output
