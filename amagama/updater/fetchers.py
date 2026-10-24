@@ -158,9 +158,10 @@ class DamnedLies(TarballPerLanguage):
         return self._statistics
 
     def languages(self):
-        """Languages with anything translated in the release."""
+        """Languages with something translated in the tarballs the block takes."""
+        kinds = {"doc" if tarball == "doc" else "ui" for tarball in self.settings.get("tarballs", ["ui"])}
         return sorted(lang["lang_locale"] for lang in self.statistics()
-                      if any(lang.get(kind, {}).get("translated") for kind in ("ui", "doc")))
+                      if any(lang.get(kind, {}).get("translated") for kind in kinds))
 
     def fingerprint(self):
         stats = json.dumps(sorted(self.statistics(), key=lambda lang: lang["lang_locale"]),
