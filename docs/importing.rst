@@ -26,7 +26,9 @@ are specified they will override the languages metadata in the translation
 file.
 
 All bilingual formats supported by the Translate Toolkit are supported,
-including **PO**, **TMX** and **XLIFF**.
+including **PO**, **TMX** and **XLIFF**. An XLIFF unit counts as translated
+when it is ``approved="yes"`` or its target's state is ``translated``,
+``final`` or ``signed-off``.
 
 If a directory is passed to the :option:`-i` option, then its content will be
 read recursively:

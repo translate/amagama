@@ -96,6 +96,18 @@ such as one GNOME release:
   and plurals, are left out; a translation whose template is missing is
   listed as unreadable.
 
+``columns`` and ``header_row``
+  For ``format = "csv"``: what each column holds, from ``"source"``,
+  ``"target"`` and ``"location"``, with ``""`` for a column to ignore; and
+  whether the first row is a header to skip. Files are then read as plain
+  comma-separated values:
+
+  .. code-block:: toml
+
+      format = "csv"
+      columns = ["", "source", "target"]
+      header_row = true
+
 ``exclude_ids``
   Optional patterns of message ids to leave out when pairing, such as
   ``["@metadata*"]`` (MediaWiki) or ``["*.description"]`` (Signal). JSON ids
