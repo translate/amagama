@@ -91,6 +91,14 @@ exclude = ["languages/i18n/qqq.json"]
 format = "json"
 template = "languages/i18n/en.json"
 exclude_ids = ["@metadata*"]
+# Accepted merges: register variants, an old code, two romanisations.
+languages.de-formal = "de"
+languages.es-formal = "es"
+languages.hu-formal = "hu"
+languages.nl-informal = "nl"
+languages.kk-cyrl = "kk"
+languages.mo = "ro"
+languages.nan-latn-tailo = "nan@latin"
 licence = "GPL-2.0-or-later"
 versions = [
   { version = "1.43", ref = "REL1_43" },

@@ -108,6 +108,8 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
         same.append(state["same_as_last"])
         out("Fetched %s: %d files%s." % (block.name, len(state["files"]),
                                         ", as last time" if state["same_as_last"] else ""))
+        for code, sources in state["merged_languages"].items():
+            out("Codes merged in %s: %s -> %s" % (block.name, ", ".join(sources), code))
         if state["unknown_languages"]:
             out("Not language codes in %s, skipped: %s" % (
                 block.name, ", ".join(state["unknown_languages"])))

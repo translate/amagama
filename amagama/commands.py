@@ -433,6 +433,8 @@ def fetch_sources(block_names, check):
                 state = block.fetch(cache_dir)
                 print("%s: %d files, %d languages." % (
                     block.name, len(state['files']), len({lang for _, lang in state['files']})))
+                for code, sources in state['merged_languages'].items():
+                    print("%s: codes merged: %s -> %s" % (block.name, ", ".join(sources), code))
                 if state['unknown_languages']:
                     print("%s: not language codes, skipped: %s" % (
                         block.name, ", ".join(state['unknown_languages'])))
