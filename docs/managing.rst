@@ -90,6 +90,25 @@ With ``--build`` it drops the build schemas instead, and with ``--old`` the
 copies that :ref:`swap_db <managing#swap-db>` replaced.
 
 
+.. _managing#fetch-sources:
+
+fetch_sources
+-------------
+
+This subcommand downloads the blocks in the :ref:`sources file <sources>`
+into :setting:`UPDATER_CACHE_DIR`, or with ``--block`` only the named ones:
+
+.. code-block:: bash
+
+    $ amagama-manage fetch_sources --block gnome-51
+    gnome-51: 6908 files, 167 languages.
+
+Templates (``.pot``) are not kept. A block's previous download is replaced
+only once its new one is complete; a failure names the block and leaves the
+previous download in place. With ``--check`` it downloads nothing and lists
+the blocks that changed since they were last fetched.
+
+
 .. _managing#initdb:
 
 initdb

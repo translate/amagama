@@ -31,6 +31,14 @@ DB_MAX_CONNECTIONS = 20
 #CACHE_REDIS_URL = "redis://localhost:6379/0"
 
 
+# Updater config
+#
+# The sources file (None: the one in amagama/updater) and where fetched
+# translations are kept.
+UPDATER_SOURCES = None
+UPDATER_CACHE_DIR = "~/.cache/amagama-updater"
+
+
 # Levenshtein config
 
 MAX_LENGTH = 2000

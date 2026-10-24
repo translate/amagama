@@ -34,6 +34,8 @@ from translate.lang.identify import LanguageIdentifier
 from translate.storage import factory
 
 from amagama.licences import normalise_licence
+from amagama.updater.fetchers import FetchError
+from amagama.updater.sources import load_sources
 from amagama.tmdb import (
     BUILD_PREFIX,
     OLD_PREFIX,
@@ -439,6 +441,42 @@ def load_snapshot(source_langs, name, block, licence):
               % ((name, slang, BUILD_PREFIX, slang) + counts))
 
 
+@click.command('fetch_sources')
+@click.option('--block', 'block_names', multiple=True,
+              help="Only this block (may be repeated).")
+@click.option('--check', is_flag=True,
+              help="Only list the blocks that changed since they were last fetched.")
+@with_appcontext
+def fetch_sources(block_names, check):
+    """Download the translations in the sources file."""
+    cache_dir = os.path.expanduser(current_app.config.get('UPDATER_CACHE_DIR'))
+    try:
+        blocks = load_sources(current_app.config.get('UPDATER_SOURCES'))
+    except (OSError, ValueError) as e:
+        print(e)
+        raise SystemExit(1)
+    unknown = set(block_names) - {block.name for block in blocks}
+    if unknown:
+        raise click.UsageError("No block named %s." % ", ".join(sorted(unknown)))
+    if block_names:
+        blocks = [block for block in blocks if block.name in block_names]
+    failed = False
+    for block in blocks:
+        try:
+            if check:
+                if block.changed(cache_dir):
+                    print(block.name)
+            else:
+                state = block.fetch(cache_dir)
+                print("%s: %d files, %d languages." % (
+                    block.name, len(state['files']), len({lang for _, lang in state['files']})))
+        except FetchError as e:
+            print("%s: failed: %s" % (block.name, e))
+            failed = True
+    if failed:
+        raise SystemExit(1)
+
+
 @click.command('swap_db')
 @source_language_option
 @click.option('--rollback', is_flag=True,
@@ -468,5 +506,6 @@ cli_commands = (
     build_tmdb,
     snapshot_db,
     load_snapshot,
+    fetch_sources,
     swap_db,
 )

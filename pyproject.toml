@@ -50,10 +50,11 @@ amagama = "amagama.devserver:main"
 amagama-manage = "amagama.cli:manage"
 
 [tool.setuptools]
-packages = ["amagama", "amagama.tests", "amagama.views"]
+packages = ["amagama", "amagama.tests", "amagama.updater", "amagama.views"]
 
 [tool.setuptools.package-data]
 amagama = ["templates/*", "static/**/*"]
+"amagama.updater" = ["sources.toml"]
 
 [tool.setuptools.dynamic]
 version = { attr = "amagama.__version__" }

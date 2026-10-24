@@ -1,0 +1,80 @@
+# Blocks of translations amaGama imports. See docs/sources.rst.
+# Never reuse or change a block's id. Titles will be translated; keep release
+# numbers in version.
+
+[[block]]
+id = 1
+name = "legacy-2019"
+title = "Legacy OSS"
+source = "snapshot"
+snapshot = "legacy"
+
+[[block]]
+id = 2
+name = "gnome-44"
+title = "GNOME"
+version = "44"
+source = "damned-lies"
+release = "gnome-44"
+
+[[block]]
+id = 3
+name = "gnome-45"
+title = "GNOME"
+version = "45"
+source = "damned-lies"
+release = "gnome-45"
+
+[[block]]
+id = 4
+name = "gnome-46"
+title = "GNOME"
+version = "46"
+source = "damned-lies"
+release = "gnome-46"
+
+[[block]]
+id = 5
+name = "gnome-47"
+title = "GNOME"
+version = "47"
+source = "damned-lies"
+release = "gnome-47"
+
+[[block]]
+id = 6
+name = "gnome-48"
+title = "GNOME"
+version = "48"
+source = "damned-lies"
+release = "gnome-48"
+
+[[block]]
+id = 7
+name = "gnome-49"
+title = "GNOME"
+version = "49"
+source = "damned-lies"
+release = "gnome-49"
+
+[[block]]
+id = 8
+name = "gnome-50"
+title = "GNOME"
+version = "50"
+source = "damned-lies"
+release = "gnome-50"
+
+[[block]]
+id = 9
+name = "gnome-51"
+title = "GNOME"
+version = "51"
+source = "damned-lies"
+release = "gnome-51"
+
+[[block]]
+id = 10
+name = "translationproject"
+title = "Translation Project"
+source = "translationproject"

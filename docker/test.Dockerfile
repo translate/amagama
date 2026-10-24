@@ -3,7 +3,7 @@
 FROM python:3.14-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        build-essential libpq-dev postgresql \
+        build-essential git libpq-dev postgresql \
     && rm -rf /var/lib/apt/lists/* \
     && useradd --create-home --uid 1000 tester
 

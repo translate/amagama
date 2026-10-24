@@ -155,6 +155,29 @@ set here to configure it.
   better cache hit rate.
 
 
+.. _settings#updater-settings:
+
+Updater settings
+================
+
+Settings for fetching translations to import, see :ref:`sources`.
+
+.. setting:: UPDATER_CACHE_DIR
+
+``UPDATER_CACHE_DIR``
+  Default: ``~/.cache/amagama-updater``
+
+  Where fetched translations are kept, one directory per block.
+
+
+.. setting:: UPDATER_SOURCES
+
+``UPDATER_SOURCES``
+  Default: ``None``
+
+  The sources file to use instead of :file:`amagama/updater/sources.toml`.
+
+
 .. _settings#levenshtein-settings:
 
 Levenshtein settings
