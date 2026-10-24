@@ -26,8 +26,8 @@ The URL structure for requesting TM suggestions is
 .. note:: ``<SOURCE_LANGUAGE>`` and ``<TARGET_LANGUAGE>`` should be language
    codes in the form of **LANG** OR **LANG_COUNTRY**. **LANG**
    should be a language code from `ISO 639
-   <http://en.wikipedia.org/wiki/List_of_ISO_639-1_codes>`_ and **COUNTRY** a
-   country code from `ISO 3166 <http://en.wikipedia.org/wiki/ISO_3166-1>`_. The
+   <https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes>`_ and **COUNTRY** a
+   country code from `ISO 3166 <https://en.wikipedia.org/wiki/ISO_3166-1>`_. The
    following are valid examples: ar, de, en, en_GB, es_AR, fr, gl, hi, tlh,...
    For the public server the code en is used for the source language for most
    of the FOSS localization files, not en_US.
@@ -35,7 +35,7 @@ The URL structure for requesting TM suggestions is
 
 For example::
 
-    http://amagama.locamotion.org/tmserver/en/af/unit/Computer
+    https://amagama-live.translatehouse.org/tmserver/en/af/unit/Computer
 
 
 .. _api#providing-options:
@@ -44,7 +44,7 @@ Providing options
 +++++++++++++++++
 
 It is possible to provide some options in the request URL by using a `query
-string <http://en.wikipedia.org/wiki/Query_string>`_ with one or more or the
+string <https://en.wikipedia.org/wiki/Query_string>`_ with one or more or the
 following fields.
 
 
@@ -64,7 +64,7 @@ following fields.
 
 For example::
 
-    http://amagama.locamotion.org/tmserver/en/gl/unit/window?min_similarity=31&max_candidates=500
+    https://amagama-live.translatehouse.org/tmserver/en/gl/unit/window?min_similarity=31&max_candidates=500
 
 
 .. _api#tm-suggestion-results:

@@ -48,20 +48,8 @@ against your checkout:
     $ docker compose run --rm test
 
 
-TODO
-----
+Planned work
+------------
 
-An incomplete list of possible TODO items:
-
-- Improve web interface
-- Custom index config for source languages not supported by default PostgreSQL
-  install
-- Keep track of file's mtime to avoid expensive reparses
-- Use memcached to cache results
-- Use more permanent caching of Levenshtein distances?
-- Use PostgreSQL built-in Levenshtein functions?
-- Full text search
-- Other search methods and options
-- Further documenting of API
-- Document the commands
-- Document how to deploy amaGama using Apache or other web server
+Planned work and known problems are tracked in the `issue tracker
+<https://github.com/translate/amagama/issues>`_.
