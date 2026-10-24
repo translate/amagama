@@ -260,6 +260,11 @@ class TestFetch(object):
         os.utime(path, (mtime, mtime))
         assert run(text, "--check").output == "debian\n"
 
+    def test_tarballs_paced(self, run, site, pauses):
+        root, url = site
+        run(block("tp", "translationproject", base_url=url + "/backups/last/", pause=2))
+        assert pauses == [2, 2]
+
     def test_translationproject(self, run, site):
         root, url = site
         result = run(block("tp", "translationproject", base_url=url + "/backups/last/"))
