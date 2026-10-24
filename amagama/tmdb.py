@@ -38,6 +38,7 @@ from flask import abort, current_app
 from psycopg2 import sql
 from translate.lang import data
 from translate.search.lshtein import LevenshteinComparer
+from translate.storage import xliff
 
 from amagama import postgres
 from amagama.mojibake import CANDIDATE_REGEX, unmangle
@@ -732,9 +733,17 @@ ORDER BY rank DESC;
         return len(s) < 1000 or \
                len(compress(s.encode('utf-8'))) < COMPRESSED_LIMIT
 
+    @staticmethod
+    def _translated(u):
+        # Translate Toolkit counts an XLIFF target as translated only with
+        # approved="yes"; state="translated", "final" or "signed-off" means it too.
+        if isinstance(u, xliff.xliffunit):
+            return bool(u.target) and u.get_state_n() >= u.S_UNREVIEWED
+        return u.istranslated()
+
     def _usable_unit(self, u):
         return u.istranslatable() and \
-               u.istranslated() and \
+               self._translated(u) and \
                len(u.source) <= self.max_import_len and \
                self._indexable_string(u.source) and \
                self._indexable_string(u.target)
