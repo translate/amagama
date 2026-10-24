@@ -13,6 +13,7 @@ import subprocess
 import tarfile
 import tempfile
 import urllib.error
+import urllib.parse
 import urllib.request
 
 from amagama import __version__
@@ -181,13 +182,14 @@ class TranslationProject(TarballPerLanguage):
     def languages(self):
         if not hasattr(self, "_languages"):
             listing = http_text(self.base_url)
-            self._languages = sorted(set(re.findall(r'href="([^"/]+)\.tgz"', listing)))
+            self._languages = sorted({urllib.parse.unquote(name) for name in
+                                      re.findall(r'href="([^"/]+)\.tgz"', listing)})
         return self._languages
 
     has_lang_dir = True
 
     def urls(self, lang):
-        return [self.base_url + lang + ".tgz"]
+        return [self.base_url + urllib.parse.quote(lang) + ".tgz"]
 
 
 class Git(Fetcher):
