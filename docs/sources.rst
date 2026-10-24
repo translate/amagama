@@ -42,7 +42,8 @@ such as one GNOME release:
   for ``build_tmdb``.
 
 :ref:`fetch_sources <managing#fetch-sources>` downloads the blocks into
-:setting:`UPDATER_CACHE_DIR`.
+:setting:`UPDATER_CACHE_DIR`, and :ref:`update <managing#update>` rebuilds the
+database from them.
 
 
 Source types

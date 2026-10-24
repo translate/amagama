@@ -440,6 +440,23 @@ def fetch_sources(block_names, check):
         raise SystemExit(1)
 
 
+@click.command('update')
+@source_language_option
+@click.option('--force', is_flag=True, help="Rebuild even if no source changed.")
+@with_appcontext
+def update(source_langs, force):
+    """Fetch the sources, rebuild from them and swap the result in."""
+    from amagama.updater.pipeline import update as update_from_sources
+    cache_dir = os.path.expanduser(current_app.config.get('UPDATER_CACHE_DIR'))
+    try:
+        for slang in source_langs:
+            update_from_sources(slang, cache_dir, current_app.config.get('UPDATER_SOURCES'),
+                                current_app.config.get('UPDATER_WORKERS', 4), force)
+    except (OSError, ValueError, FetchError) as e:
+        print(e)
+        raise SystemExit(1)
+
+
 @click.command('swap_db')
 @source_language_option
 @click.option('--rollback', is_flag=True,
@@ -470,5 +487,6 @@ cli_commands = (
     snapshot_db,
     load_snapshot,
     fetch_sources,
+    update,
     swap_db,
 )

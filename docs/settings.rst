@@ -178,6 +178,15 @@ Settings for fetching translations to import, see :ref:`sources`.
   The sources file to use instead of :file:`amagama/updater/sources.toml`.
 
 
+.. setting:: UPDATER_WORKERS
+
+``UPDATER_WORKERS``
+  Default: ``4``
+
+  How many files :ref:`update <managing#update>` imports at once, each in its
+  own process with its own database connection.
+
+
 .. _settings#levenshtein-settings:
 
 Levenshtein settings
