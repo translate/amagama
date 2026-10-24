@@ -1,0 +1,8 @@
+# For prek (https://github.com/j178/prek) or pre-commit (https://pre-commit.com).
+# Install once per checkout with `prek install`.
+
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.4
+    hooks:
+      - id: ruff-check

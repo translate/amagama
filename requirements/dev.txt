@@ -1,7 +1,8 @@
 -r recommended.txt
 
 numpy
-pep8
+prek
+ruff
 Sphinx>=1.1
 pytest
 pytest-cov
