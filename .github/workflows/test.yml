@@ -78,8 +78,24 @@ jobs:
       - run: pip install ruff==0.16.4
       - run: ruff check --output-format=github .
 
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Start PostgreSQL and amaGama
+        run: docker compose up -d --build --wait postgres app
+      - name: Initialise a source language and query the API
+        run: |
+          docker compose exec -T app amagama-manage initdb -s en
+          docker compose restart app
+          for _ in $(seq 1 30); do curl -fs http://localhost:8888/api/v1/languages/ && break; sleep 2; done
+          curl -fs http://localhost:8888/api/v1/languages/ | grep -q '"en"'
+      - name: Logs
+        if: failure()
+        run: docker compose logs
+
   checks:
-    needs: [test, package, docs, lint]
+    needs: [test, package, docs, lint, docker]
     if: always()
     runs-on: ubuntu-latest
     steps:
