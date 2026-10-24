@@ -154,7 +154,7 @@ CREATE TABLE IF NOT EXISTS imports (
     iid SERIAL PRIMARY KEY,
     block TEXT,
     filename TEXT NOT NULL,
-    checksum CHAR(64) NOT NULL,
+    checksum CHAR(64),
     lang VARCHAR(32) NOT NULL,
     licence TEXT,
     units INTEGER NOT NULL,
@@ -270,6 +270,106 @@ ORDER BY rank DESC;
             (block, filename, checksum, lang_to_table(tlang), licence, units, skipped))
         if commit:
             cursor.connection.commit()
+
+    def snapshot(self, slang, name):
+        """Copy the live slang schema to _<name>_<slang>, which isn't served.
+
+        Returns the number of sources and targets copied.
+        """
+        slang = lang_to_table(slang)
+        snapshot = '_%s_%s' % (name, slang)
+        cursor = self.get_cursor()
+        try:
+            if not self._schema_exists(cursor, slang):
+                raise ValueError("Schema %s doesn't exist." % slang)
+            if self._schema_exists(cursor, snapshot):
+                raise ValueError("Schema %s already exists." % snapshot)
+            cursor.execute(sql.SQL("CREATE SCHEMA {}").format(sql.Identifier(snapshot)))
+            counts = []
+            for table in ('sources', 'targets'):
+                cursor.execute(sql.SQL("CREATE TABLE {} AS TABLE {}").format(
+                    sql.Identifier(snapshot, table), sql.Identifier(slang, table)))
+                counts.append(cursor.rowcount)
+            cursor.connection.commit()
+        except Exception:
+            cursor.connection.rollback()
+            raise
+        return tuple(counts)
+
+    def load_snapshot(self, slang, name, block=None, licence=None):
+        """Copy _<name>_<slang> into the empty slang schema, keeping sids.
+
+        Skips what an import would also refuse: sources longer than
+        MAX_LENGTH, and text too long for the unique indexes. Records an
+        import per target language. Returns the number of sources and
+        targets loaded and skipped.
+        """
+        slang = lang_to_table(slang)
+        snapshot = '_%s_%s' % (name, slang)
+        snap_sources = sql.Identifier(snapshot, 'sources')
+        snap_targets = sql.Identifier(snapshot, 'targets')
+        cursor = self.get_cursor(self.schema(slang))
+        try:
+            if not self._schema_exists(cursor, snapshot):
+                raise ValueError("Schema %s doesn't exist." % snapshot)
+            cursor.execute("SELECT to_regclass('sources_text_unique_idx') IS NOT NULL")
+            if not cursor.fetchone()[0]:
+                raise ValueError("Schema %s was deployed; load snapshots before deploy_db."
+                                 % self.schema(slang))
+            cursor.execute("SELECT EXISTS(SELECT 1 FROM sources)")
+            if cursor.fetchone()[0]:
+                raise ValueError("Schema %s isn't empty." % self.schema(slang))
+
+            # Text under 1000 characters always fits the indexes.
+            cursor.execute(sql.SQL("""INSERT INTO sources (sid, text, vector, length)
+                SELECT sid, text, vector, length FROM {}
+                WHERE length <= %s AND length(text) < 1000
+                ON CONFLICT DO NOTHING""").format(snap_sources), (self.max_import_len,))
+            cursor.execute(sql.SQL("""SELECT sid, text, vector, length FROM {}
+                WHERE length <= %s AND length(text) >= 1000""").format(snap_sources),
+                (self.max_import_len,))
+            long_sources = [row for row in cursor.fetchall()
+                            if self._indexable_string(row['text'])]
+            cursor.executemany("""INSERT INTO sources (sid, text, vector, length)
+                VALUES (%s, %s, %s, %s) ON CONFLICT DO NOTHING""",
+                [tuple(row) for row in long_sources])
+            cursor.execute("""SELECT setval(pg_get_serial_sequence('sources', 'sid'),
+                COALESCE(MAX(sid), 0) + 1, false) FROM sources""")
+
+            cursor.execute(sql.SQL("""INSERT INTO targets (sid, text, lang)
+                SELECT t.sid, t.text, t.lang FROM {} t JOIN sources s ON s.sid = t.sid
+                WHERE length(t.text) < 1000
+                ON CONFLICT DO NOTHING""").format(snap_targets))
+            cursor.execute(sql.SQL("""SELECT t.sid, t.text, t.lang FROM {} t
+                JOIN sources s ON s.sid = t.sid
+                WHERE length(t.text) >= 1000""").format(snap_targets))
+            long_targets = [tuple(row) for row in cursor.fetchall()
+                            if self._indexable_string(row['text'])]
+            cursor.executemany("""INSERT INTO targets (sid, text, lang)
+                VALUES (%s, %s, %s) ON CONFLICT DO NOTHING""", long_targets)
+
+            cursor.execute(sql.SQL("""SELECT
+                (SELECT COUNT(*) FROM sources), (SELECT COUNT(*) FROM {})""").format(
+                snap_sources))
+            sources, snapshot_sources = cursor.fetchone()
+            cursor.execute(sql.SQL("""SELECT s.lang, s.total, COALESCE(t.loaded, 0)
+                FROM (SELECT lang, COUNT(*) AS total FROM {} GROUP BY lang) s
+                LEFT JOIN (SELECT lang, COUNT(*) AS loaded FROM targets GROUP BY lang) t
+                ON s.lang = t.lang ORDER BY s.lang""").format(snap_targets))
+            per_lang = cursor.fetchall()
+            for lang, total, loaded in per_lang:
+                cursor.execute("""INSERT INTO imports
+                    (block, filename, lang, licence, units, skipped)
+                    VALUES (%s, %s, %s, %s, %s, %s)""",
+                    (block, snapshot, lang, licence, loaded, total - loaded))
+            cursor.connection.commit()
+        except Exception:
+            cursor.connection.rollback()
+            raise
+        targets = sum(row[2] for row in per_lang)
+        snapshot_targets = sum(row[1] for row in per_lang)
+        return (sources, snapshot_sources - sources,
+                targets, snapshot_targets - targets)
 
     def import_summary(self, slang):
         """Files, target languages and units per block, oldest block first."""

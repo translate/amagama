@@ -22,6 +22,7 @@ import functools
 import hashlib
 import logging
 import os
+import re
 import sys
 
 import click
@@ -406,6 +407,53 @@ def repair_mojibake(apply):
         print("Nothing was changed. Run with --apply to write the fixes.")
 
 
+def snapshot_name(ctx, param, value):
+    if not re.fullmatch('[a-z][a-z0-9]*', value) or value in ('build', 'old'):
+        raise click.BadParameter("use lower-case letters and digits, not build or old")
+    return value
+
+
+snapshot_option = click.option(
+    '--name', required=True, callback=snapshot_name,
+    help="Snapshot name: the schema is _<name>_<lang>, e.g. _legacy_en",
+)
+
+
+@click.command('snapshot_db')
+@source_language_option
+@snapshot_option
+@with_appcontext
+def snapshot_db(source_langs, name):
+    """Keep a copy of the live data that each rebuild can load."""
+    for slang in source_langs:
+        try:
+            sources, targets = current_app.tmdb.snapshot(slang, name)
+        except ValueError as e:
+            print(e)
+            raise SystemExit(1)
+        print("Saved '%s' as _%s_%s: %d sources, %d targets." % (slang, name, slang, sources, targets))
+
+
+@click.command('load_snapshot')
+@source_language_option
+@snapshot_option
+@click.option('--block', default=None, help="Name to record the snapshot under, e.g. legacy-2019")
+@click.option('--licence', default=None, callback=spdx_expression,
+              help="SPDX licence expression of the snapshot")
+@with_appcontext
+def load_snapshot(source_langs, name, block, licence):
+    """Copy a snapshot into the empty build schemas."""
+    current_app.tmdb.use_schemas(BUILD_PREFIX)
+    for slang in source_langs:
+        try:
+            counts = current_app.tmdb.load_snapshot(slang, name, block, licence)
+        except ValueError as e:
+            print(e)
+            raise SystemExit(1)
+        print("Loaded _%s_%s into %s%s: %d sources (%d skipped), %d targets (%d skipped)."
+              % ((name, slang, BUILD_PREFIX, slang) + counts))
+
+
 @click.command('swap_db')
 @source_language_option
 @click.option('--rollback', is_flag=True,
@@ -433,5 +481,7 @@ cli_commands = (
     repair_mojibake,
     tmdb_stats,
     build_tmdb,
+    snapshot_db,
+    load_snapshot,
     swap_db,
 )
