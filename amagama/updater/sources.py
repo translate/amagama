@@ -20,11 +20,10 @@ STATE_FILE = "fetched.json"
 
 class Block(object):
 
-    def __init__(self, id, name, title, source, version=None, licence=None, files=None,
+    def __init__(self, name, title, source, version=None, licence=None, files=None,
                  exclude=None, keep=None, languages=None, format=None, template=None,
                  exclude_ids=None, columns=None, header_row=None, xliff_states=None,
                  refetch_days=30, **settings):
-        self.id = id
         self.name = name
         self.title = title
         self.version = version
@@ -187,7 +186,6 @@ def load_sources(path=None):
             raise ValueError("%s: %s" % (path, e))
     blocks = []
     names = set()
-    ids = set()
     for i, entry in enumerate(data.get("block", []), 1):
         entry = dict(entry)
         name = entry.pop("name", None)
@@ -199,12 +197,6 @@ def load_sources(path=None):
         if "/" in name or name.startswith("."):
             raise ValueError("%s: name can't contain / or start with ." % where)
         names.add(name)
-        block_id = entry.pop("id", None)
-        if type(block_id) is not int or block_id < 1:
-            raise ValueError("%s: id must be a positive integer" % where)
-        if block_id in ids:
-            raise ValueError("%s: duplicate id %d" % (where, block_id))
-        ids.add(block_id)
         title = entry.pop("title", None)
         if not isinstance(title, str) or not title.strip():
             raise ValueError("%s: no title" % where)
@@ -218,7 +210,7 @@ def load_sources(path=None):
         try:
             if licence is not None:
                 licence = normalise_licence(licence)
-            blocks.append(Block(block_id, name, title, source, version, licence, **entry))
+            blocks.append(Block(name, title, source, version, licence, **entry))
         except ValueError as e:
             raise ValueError("%s: %s" % (where, e))
     return blocks
