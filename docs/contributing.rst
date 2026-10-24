@@ -34,6 +34,17 @@ To check the whole tree:
 
     $ prek run --all-files
 
+Running the tests
+-----------------
+
+The tests start their own PostgreSQL server with pytest-postgresql, which needs
+PostgreSQL's server binaries installed. Without them, run the tests in Docker
+against your checkout:
+
+.. code-block:: bash
+
+    $ docker compose run --rm test
+
 
 TODO
 ----
