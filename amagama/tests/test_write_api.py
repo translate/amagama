@@ -59,3 +59,42 @@ class TestWriteAPI(object):
         assert response.status_code == 200
         assert response.data == b'added 1 units from x.po'
         assert lookup(client, 'Open file') == [('Open file', 'Maak lêer oop')]
+
+    @pytest.mark.parametrize('method', ['put', 'post'])
+    def test_unit_source_in_query(self, client, method):
+        send = getattr(client, method)
+        response = send('/api/v1/en/af/unit/?source=Save file',
+                        json={'source': 'Save file', 'target': 'Stoor lêer'})
+        assert response.status_code == 200
+        assert lookup(client, 'Save file') == [('Save file', 'Stoor lêer')]
+
+    @pytest.mark.parametrize('method', ['get', 'put', 'post'])
+    def test_unit_source_missing_from_query(self, client, method):
+        send = getattr(client, method)
+        response = send('/api/v1/en/af/unit/',
+                        json={'source': 'Save file', 'target': 'Stoor lêer'})
+        assert response.status_code == 404
+
+    def test_failed_unit_is_rolled_back(self, client, monkeypatch):
+        def fail(*args):
+            raise RuntimeError("add_dict failed")
+        client.application.testing = False
+        monkeypatch.setattr(client.application.tmdb, 'add_dict', fail)
+        response = client.put('/api/v1/en/af/unit/Save file',
+                              json={'source': 'Save file', 'target': 'Stoor lêer'})
+        assert response.status_code == 500
+        monkeypatch.undo()
+        assert lookup(client, 'Save file') == []
+        response = client.put('/api/v1/en/af/unit/Open file',
+                              json={'source': 'Open file', 'target': 'Maak lêer oop'})
+        assert response.status_code == 200
+        assert lookup(client, 'Open file') == [('Open file', 'Maak lêer oop')]
+
+    def test_failed_store_is_rolled_back(self, client):
+        client.application.testing = False
+        response = client.post('/api/v1/en/af/store/x.po', json=[
+            {'source': 'Open file', 'target': 'Maak lêer oop'},
+            {'source': 'Save file'},
+        ])
+        assert response.status_code == 500
+        assert lookup(client, 'Open file') == []
