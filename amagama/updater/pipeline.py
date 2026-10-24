@@ -6,7 +6,8 @@ import os
 from flask import current_app
 from amagama.commands import file_checksum
 from amagama.tmdb import BUILD_PREFIX, OLD_PREFIX, lang_to_table
-from amagama.updater.formats import open_store
+from amagama.updater import chromium
+from amagama.updater.formats import CHROMIUM, open_store
 from amagama.updater.pairing import paired_store
 from amagama.updater.sources import load_sources
 
@@ -22,11 +23,14 @@ def import_file(path, slang, tlang, block, licence, format=None, template=None, 
     if not lang_to_table(tlang):
         return "unknown language %s" % tlang
     try:
-        store = open_store(path, format, **(reader_options or {}))
-        if template is not None:
-            if not os.path.exists(template):
-                return "no English template %s" % os.path.basename(template)
-            store = paired_store(store, open_store(template, format), exclude_ids)
+        if template is not None and not os.path.exists(template):
+            return "no English template %s" % os.path.basename(template)
+        if format == CHROMIUM:
+            store = chromium.paired_store(path, template)
+        else:
+            store = open_store(path, format, **(reader_options or {}))
+            if template is not None:
+                store = paired_store(store, open_store(template, format), exclude_ids)
     except Exception as e:
         return "%s: %s" % (type(e).__name__, e)
     units = tmdb.add_store(store, slang, tlang, commit=False)

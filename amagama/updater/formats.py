@@ -36,14 +36,19 @@ MONOLINGUAL = {
 }
 
 
+# Chromium's .xtb translations, joined with their .grd English by grit id.
+CHROMIUM = "xtb"
+
+
 def check_format(name):
-    if name not in FORMATS and name not in MONOLINGUAL:
+    if name not in FORMATS and name not in MONOLINGUAL and name != CHROMIUM:
         raise ValueError("format must be one of %s"
-                         % ", ".join(sorted(list(FORMATS) + list(MONOLINGUAL))))
+                         % ", ".join(sorted(list(FORMATS) + list(MONOLINGUAL) + [CHROMIUM])))
 
 
 def is_monolingual(name):
-    return name in MONOLINGUAL
+    """Whether files of this format need their English template."""
+    return name in MONOLINGUAL or name == CHROMIUM
 
 
 CSV_COLUMNS = ("source", "target", "location", "")
