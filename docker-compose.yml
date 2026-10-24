@@ -1,0 +1,40 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: amagama
+      POSTGRES_PASSWORD: amagama
+      POSTGRES_DB: amagama
+    volumes:
+      - amagama-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U amagama"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_NAME: amagama
+      DB_USER: amagama
+      DB_PASSWORD: amagama
+      AMAGAMA_SECRET_KEY: change-me
+      AMAGAMA_ENABLE_DATA_ALTERING_API: "false"
+    ports:
+      - "8888:8888"
+
+  test:
+    build:
+      context: .
+      dockerfile: docker/test.Dockerfile
+    volumes:
+      - .:/src
+    profiles: [test]
+
+volumes:
+  amagama-db:

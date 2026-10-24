@@ -146,6 +146,35 @@ each source language you will use (you can add more languages later):
     $ amagama-manage initdb -s en -s fr
 
 
+.. _installation#docker:
+
+Running under Docker
+====================
+
+As an alternative to the steps above, ``docker-compose.yml`` runs amaGama and
+PostgreSQL together (``docker-compose`` works the same as ``docker compose``):
+
+.. code-block:: bash
+
+    $ docker compose up -d --build
+    $ docker compose exec app amagama-manage initdb -s en
+    $ docker compose restart app
+
+amaGama is then at http://localhost:8888/. The image reads its settings from
+environment variables (see ``docker/settings.py``): ``DB_HOST``, ``DB_PORT``,
+``DB_NAME``, ``DB_USER``, ``DB_PASSWORD``, ``AMAGAMA_SECRET_KEY``,
+``AMAGAMA_ENABLE_WEB_UI`` and ``AMAGAMA_ENABLE_DATA_ALTERING_API``.
+
+.. note:: amaGama reads the list of source languages when it starts, so
+   restart the ``app`` container after ``initdb`` adds one.
+
+Run other management commands the same way, for example:
+
+.. code-block:: bash
+
+    $ docker compose exec app amagama-manage tmdb_stats
+
+
 .. _installation#next-steps:
 
 Next steps
