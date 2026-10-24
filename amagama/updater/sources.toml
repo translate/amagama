@@ -16,6 +16,15 @@ release = "gnome-{version}"
 versions = ["44", "45", "46", "47", "48", "49", "50", "51"]
 
 [[block]]
+name = "gnome-help-{version}"
+title = "GNOME Help"
+source = "damned-lies"
+release = "gnome-{version}"
+tarballs = ["doc"]
+segment = true
+versions = ["44", "45", "46", "47", "48", "49", "50", "51"]
+
+[[block]]
 name = "translationproject"
 title = "Translation Project"
 source = "translationproject"
@@ -33,6 +42,19 @@ versions = [
   { version = "24.8", ref = "libreoffice-24-8" },
   { version = "25.2", ref = "libreoffice-25-2" },
   { version = "25.8", ref = "libreoffice-25-8" },
+  { version = "26.2", ref = "libreoffice-26-2" },
+  { version = "26.8", ref = "libreoffice-26-8" },
+]
+
+[[block]]
+name = "libreoffice-help-{version}"
+title = "LibreOffice Help"
+source = "git"
+url = "https://git.libreoffice.org/translations"
+files = ["source/{lang}/helpcontent2/**/*.po"]
+segment = true
+licence = "MPL-2.0"
+versions = [
   { version = "26.2", ref = "libreoffice-26-2" },
   { version = "26.8", ref = "libreoffice-26-8" },
 ]
