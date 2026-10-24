@@ -120,3 +120,32 @@ def test_update_csv(amagama_config, tmp_path):
         assert [c["target"] for c in response.get_json()] == ["Stoor lêer"]
         assert client.get("/api/v1/en/af/unit/English").status_code == 404 or \
             client.get("/api/v1/en/af/unit/English").get_json() == []
+
+
+XLIFF = ('<?xml version="1.0"?><xliff version="1.2" '
+         'xmlns="urn:oasis:names:tc:xliff:document:1.2"><file original="x" '
+         'source-language="en" target-language="af" datatype="plaintext"><body>'
+         '<trans-unit id="1"><source>No state</source><target>Geen</target></trans-unit>'
+         '<trans-unit id="2"><source>Translated</source>'
+         '<target state="translated">Vertaal</target></trans-unit>'
+         '<trans-unit id="3"><source>Review</source>'
+         '<target state="needs-review-translation">Hersien</target></trans-unit>'
+         '<trans-unit id="4" approved="yes"><source>Approved</source>'
+         '<target state="new">Goedgekeur</target></trans-unit>'
+         '<trans-unit id="5"><source>Custom</source><target state="x-done">Klaar</target></trans-unit>'
+         '<trans-unit id="6"><source>Empty</source><target state="translated"></target></trans-unit>'
+         '</body></file></xliff>')
+
+
+@pytest.mark.parametrize("states, expected", [
+    (["translated", "final", "signed-off"], ["Translated", "Approved"]),
+    (["none", "translated"], ["No state", "Translated", "Approved"]),
+    (["x-done"], ["Approved", "Custom"]),
+])
+def test_xliff_states(tmp_path, states, expected):
+    path = tmp_path / "af.xlf"
+    path.write_text(XLIFF, encoding="utf-8")
+    for format in (None, "xliff"):
+        store = open_store(str(path), format, xliff_states=states)
+        assert [u.source for u in store.units] == expected
+        assert all(u.istranslated() for u in store.units)

@@ -10,7 +10,7 @@ import csv
 import importlib
 import io
 
-from translate.storage import factory
+from translate.storage import factory, xliff
 from translate.storage.base import TranslationStore, TranslationUnit
 
 FORMATS = {
@@ -49,6 +49,41 @@ def is_monolingual(name):
 CSV_COLUMNS = ("source", "target", "location", "")
 
 
+# XLIFF 1.2 target states, and "none" for a target without one.
+XLIFF_STATES = (
+    "none", "new", "needs-translation", "needs-adaptation", "needs-l10n",
+    "needs-review-translation", "needs-review-adaptation", "needs-review-l10n",
+    "translated", "final", "signed-off",
+)
+
+
+def check_xliff_states(format, states):
+    if states is None:
+        return
+    if format not in (None, "xliff"):
+        raise ValueError("xliff_states is for XLIFF files only")
+    if not isinstance(states, list) or not states or not all(
+            isinstance(state, str) and (state in XLIFF_STATES or state.startswith("x-"))
+            for state in states):
+        raise ValueError("xliff_states must list XLIFF states (%s) or x- ones"
+                         % ", ".join(XLIFF_STATES))
+
+
+def _accepted_xliff(store, states):
+    """The units approved, or whose target's state is in states."""
+    accepted = TranslationStore()
+    accepted.filename = store.filename
+    for unit in store.units:
+        target = unit.xmlelement.find(unit.namespaced("target"))
+        if not unit.target or target is None:
+            continue
+        if unit.isapproved() or (target.get("state") or "none") in states:
+            plain = TranslationUnit(unit.source)
+            plain.target = unit.target
+            accepted.addunit(plain)
+    return accepted
+
+
 def check_csv_options(format, columns, header_row):
     if columns is None and header_row is None:
         return
@@ -65,21 +100,25 @@ def check_csv_options(format, columns, header_row):
         raise ValueError("header_row needs columns")
 
 
-def open_store(path, format=None, columns=None, header_row=False):
+def open_store(path, format=None, columns=None, header_row=False, xliff_states=None):
     """Read path with the named reader, or the one its extension picks.
 
     For CSV, columns names each column, and header_row drops the first row.
+    For XLIFF, xliff_states lists the target states that count as translated.
     """
-    if format is None:
-        return factory.getobject(path)
     if format == "csv" and columns:
         return _read_csv(path, columns, header_row)
-    module, name, kwargs = FORMATS.get(format) or MONOLINGUAL[format]
-    store = getattr(importlib.import_module(module), name)(**kwargs)
-    store.filename = path
-    with open(path, "rb") as f:
-        # Not store_class(f): NextcloudJsonFile then fails on _metadata.
-        store.parse(f.read())
+    if format is None:
+        store = factory.getobject(path)
+    else:
+        module, name, kwargs = FORMATS.get(format) or MONOLINGUAL[format]
+        store = getattr(importlib.import_module(module), name)(**kwargs)
+        store.filename = path
+        with open(path, "rb") as f:
+            # Not store_class(f): NextcloudJsonFile then fails on _metadata.
+            store.parse(f.read())
+    if xliff_states and isinstance(store, xliff.xlifffile):
+        return _accepted_xliff(store, xliff_states)
     return store
 
 
