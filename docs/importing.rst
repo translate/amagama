@@ -3,8 +3,8 @@
 Importing translations
 **********************
 
-.. note:: Please make sure that the :command:`amagama-manage` command :ref:`is
-   accessible <installation#commands>` and that the source language is already
+.. note:: Please make sure that amaGama :ref:`is installed
+   <installation#requirements>` and that the source language is already
    initialized in the database with the :command:`initdb` command.
 
 To populate the amaGama database the :command:`amagama-manage` command

@@ -12,33 +12,14 @@ requirements.
 Dependencies
 ============
 
-amaGama requires the following dependencies:
+amaGama requires:
 
-- **Python**: 2.7 or later. Python 3 is also supported.
-- **PostgreSQL**: 8.4 or later.
+- **Python** 3.11 or later.
+- **PostgreSQL**. amaGama is tested with PostgreSQL 16.
+- **git**, to get amaGama.
 
-There are also some dependencies that we strongly recommend to use, but are optional:
-
-- **git**: Necessary to get amaGama.
-- **virtualenv**: Provides an isolated environment or virtualenv.
-- **virtualenvwrapper**: To ease handling virtualenvs.
-
-Consult the specifics for your operating system in order to get each above
-package installed successfully.
-
-
-.. _installation#setup-virtualenv:
-
-Setting up a virtualenv
-=======================
-
-The use of virtualenvs allows to install all the requirements at specific
-versions without interfering with system-wide packages. To create a virtualenv
-just run:
-
-.. code-block:: bash
-
-   $ mkvirtualenv amagama
+Consult the specifics for your operating system in order to get each of these
+installed.
 
 
 .. _installation#getting-amagama:
@@ -46,29 +27,43 @@ just run:
 Getting amaGama
 ===============
 
-There is no package for amaGama, so you will need to run it from a git
-checkout:
+Get the source from git:
 
 .. code-block:: bash
 
-   (amagama) $ git clone https://github.com/translate/amagama.git
-   (amagama) $ cd amagama
+   $ git clone https://github.com/translate/amagama.git
+   $ cd amagama
+
+
+.. _installation#setup-virtualenv:
+
+Setting up a virtual environment
+================================
+
+A virtual environment keeps amaGama's requirements apart from system-wide
+packages. Create and activate one:
+
+.. code-block:: bash
+
+   $ python3 -m venv .venv
+   $ source .venv/bin/activate
 
 
 .. _installation#requirements:
 
-Installing the requirements
-===========================
+Installing amaGama
+==================
 
-Then install the requirements:
+Install amaGama with its recommended extras (a standalone web server, faster
+string comparison and the management commands):
 
 .. code-block:: bash
 
-   (amagama) $ pip install -r requirements/recommended.txt
+   (.venv) $ pip install -e '.[recommended]'
 
-
-After installing the amaGama requirements, you can safely start amaGama
-installation.
+This puts the :command:`amagama` and :command:`amagama-manage` commands on
+your path. For development, install ``'.[dev]'`` instead, which adds the test
+and documentation tools.
 
 
 .. _installation#creating-database:
@@ -118,19 +113,6 @@ connection configuration, and perhaps change any other setting. Check the
 
    This is a side effect of how PostgreSQL is installed on Ubuntu and other
    systems.
-
-
-.. _installation#commands:
-
-Making the commands accessible
-==============================
-
-Since amaGama is not installed we need to make its commands accessible:
-
-.. code-block:: bash
-
-   $ export PATH=$(pwd)/bin:$PATH
-   $ export PYTHONPATH=$(pwd):$PYTHONPATH
 
 
 .. _installation#preparing-database:

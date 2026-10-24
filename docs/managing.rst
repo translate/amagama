@@ -3,8 +3,8 @@
 Managing amaGama
 ****************
 
-.. note:: Please make sure that the :command:`amagama-manage` command :ref:`is
-   accessible <installation#commands>` in order to be able to use it.
+.. note:: The :command:`amagama-manage` command comes with the
+   :ref:`installation <installation#requirements>`.
 
 amaGama is managed through the :command:`amagama-manage` command. Try running
 it with no arguments for usage help:
