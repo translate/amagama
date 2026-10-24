@@ -68,3 +68,125 @@ release = "gnome-51"
 name = "translationproject"
 title = "Translation Project"
 source = "translationproject"
+
+[[block]]
+name = "libreoffice-26-2"
+title = "LibreOffice"
+version = "26.2"
+source = "git"
+url = "https://git.libreoffice.org/translations"
+ref = "libreoffice-26-2"
+files = ["source/{lang}/**/*.po"]
+exclude = ["source/*/helpcontent2/**"]
+licence = "MPL-2.0"
+
+[[block]]
+name = "libreoffice-26-8"
+title = "LibreOffice"
+version = "26.8"
+source = "git"
+url = "https://git.libreoffice.org/translations"
+ref = "libreoffice-26-8"
+files = ["source/{lang}/**/*.po"]
+exclude = ["source/*/helpcontent2/**"]
+licence = "MPL-2.0"
+
+[[block]]
+name = "django-6-1"
+title = "Django"
+version = "6.1"
+source = "git"
+url = "https://github.com/django/django"
+ref = "stable/6.1.x"
+files = ["django/conf/locale/{lang}/LC_MESSAGES/*.po",
+         "django/contrib/*/locale/{lang}/LC_MESSAGES/*.po"]
+languages = { en = "" }
+licence = "BSD-3-Clause"
+
+[[block]]
+name = "odoo-20"
+title = "Odoo"
+version = "20"
+source = "git"
+url = "https://github.com/odoo/odoo"
+ref = "20.0"
+files = ["addons/*/i18n/{lang}.po", "odoo/addons/*/i18n/{lang}.po"]
+licence = "LGPL-3.0-only"
+
+[[block]]
+name = "qt-6-12"
+title = "Qt"
+version = "6.12"
+source = "git"
+url = "https://github.com/qt/qttranslations"
+ref = "6.12"
+files = ["translations/*_{lang}.ts"]
+# The open licences the .ts files are offered under (also Qt commercial).
+licence = "LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only"
+
+[[block]]
+name = "nextcloud-35"
+title = "Nextcloud"
+version = "35"
+source = "git"
+url = "https://github.com/nextcloud/server"
+ref = "stable35"
+files = ["core/l10n/{lang}.json", "lib/l10n/{lang}.json", "apps/*/l10n/{lang}.json"]
+format = "nextcloud-json"
+licence = "AGPL-3.0-only OR AGPL-3.0-or-later"
+
+[[block]]
+name = "mediawiki-1-46"
+title = "MediaWiki"
+version = "1.46"
+source = "git"
+url = "https://github.com/wikimedia/mediawiki"
+ref = "REL1_46"
+files = ["languages/i18n/{lang}.json"]
+exclude = ["languages/i18n/qqq.json"]
+format = "json"
+template = "languages/i18n/en.json"
+exclude_ids = ["@metadata*"]
+licence = "GPL-2.0-or-later"
+
+[[block]]
+name = "gnome-circle"
+title = "GNOME Circle"
+source = "damned-lies"
+release = "gnome-circle"
+
+[[block]]
+name = "gnome-extras-stable"
+title = "GNOME Other Apps"
+source = "damned-lies"
+release = "gnome-extras-stable"
+
+[[block]]
+name = "evolution"
+title = "Evolution"
+source = "damned-lies"
+release = "evolution"
+
+[[block]]
+name = "freedesktop-org"
+title = "freedesktop.org"
+source = "damned-lies"
+release = "freedesktop-org"
+
+[[block]]
+name = "phosh"
+title = "Phosh"
+source = "damned-lies"
+release = "phosh"
+
+[[block]]
+name = "gnome-gimp"
+title = "GIMP"
+source = "damned-lies"
+release = "gnome-gimp"
+
+[[block]]
+name = "gnome-infrastructure"
+title = "GNOME Infrastructure"
+source = "damned-lies"
+release = "gnome-infrastructure"
