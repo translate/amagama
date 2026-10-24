@@ -108,6 +108,18 @@ such as one GNOME release:
       columns = ["", "source", "target"]
       header_row = true
 
+``xliff_states``
+  For XLIFF files: the target states that count as translated, from XLIFF
+  1.2's ``new``, ``needs-translation``, ``needs-review-translation``,
+  ``translated``, ``final``, ``signed-off`` and the like, ``x-`` custom
+  states, and ``"none"`` for a target without a state. A unit with
+  ``approved="yes"`` always counts. Without it, ``translated``, ``final`` and
+  ``signed-off`` count:
+
+  .. code-block:: toml
+
+      xliff_states = ["none", "translated", "final", "signed-off"]
+
 ``exclude_ids``
   Optional patterns of message ids to leave out when pairing, such as
   ``["@metadata*"]`` (MediaWiki) or ``["*.description"]`` (Signal). JSON ids

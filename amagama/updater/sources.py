@@ -9,7 +9,8 @@ import tomllib
 from amagama.licences import normalise_licence
 from amagama.updater.fetchers import FETCHERS, FetchError
 from amagama.updater.filemask import Selection, compile_mask, fill, wildcards
-from amagama.updater.formats import check_csv_options, check_format, is_monolingual
+from amagama.updater.formats import (check_csv_options, check_format, check_xliff_states,
+                                     is_monolingual)
 from amagama.updater.languages import map_language
 
 DEFAULT_SOURCES = os.path.join(os.path.dirname(__file__), "sources.toml")
@@ -20,7 +21,7 @@ class Block(object):
 
     def __init__(self, id, name, title, source, version=None, licence=None, files=None,
                  exclude=None, languages=None, format=None, template=None, exclude_ids=None,
-                 columns=None, header_row=None, **settings):
+                 columns=None, header_row=None, xliff_states=None, **settings):
         self.id = id
         self.name = name
         self.title = title
@@ -58,7 +59,9 @@ class Block(object):
             raise ValueError("exclude_ids must be a list of patterns")
         self.exclude_ids = exclude_ids or []
         check_csv_options(format, columns, header_row)
-        self.reader_options = {"columns": columns, "header_row": bool(header_row)}
+        check_xliff_states(format, xliff_states)
+        self.reader_options = {"columns": columns, "header_row": bool(header_row),
+                               "xliff_states": xliff_states}
 
     def template_for(self, path):
         """The English template path for a selected file, if the block pairs."""
