@@ -45,6 +45,11 @@ from amagama.normalise import indexing_version
 
 _table_name_cache = {}
 
+# Schemas named with these prefixes hold a source language's rebuild and its
+# previous copy. Schemas starting with "_" are never served.
+BUILD_PREFIX = '_build_'
+OLD_PREFIX = '_old_'
+
 
 def lang_to_table(code):
     if code in _table_name_cache:
@@ -176,18 +181,35 @@ ORDER BY rank DESC;
 """
     # TODO: stop returning "rank" once we're happy we have no users.
 
+    schema_prefix = ''
+
     def __init__(self, *args, **kwargs):
         super(TMDB, self).__init__(*args, **kwargs)
         self._available_langs = {}
-        # Initialize list of source languages.
-        query = "SELECT schemaname FROM pg_tables WHERE tablename = 'sources'"
-        cursor = self.get_cursor()
-        cursor.execute(query)
-        self.source_langs = set()
-        for row in cursor:
-            self.source_langs.add(row['schemaname'])
+        self._load_source_langs()
         # set of languages with prepared statements per connection key:
         self._prepared_statements = defaultdict(set)
+
+    def _load_source_langs(self):
+        cursor = self.get_cursor()
+        cursor.execute("SELECT schemaname FROM pg_tables WHERE tablename = 'sources'")
+        self.source_langs = set()
+        for row in cursor:
+            name = row['schemaname']
+            if self.schema_prefix:
+                if name.startswith(self.schema_prefix):
+                    self.source_langs.add(name[len(self.schema_prefix):])
+            elif not name.startswith('_'):
+                self.source_langs.add(name)
+
+    def use_schemas(self, prefix):
+        """Work on the schemas named <prefix><lang> instead of the live ones."""
+        self.schema_prefix = prefix
+        self._available_langs = {}
+        self._load_source_langs()
+
+    def schema(self, slang):
+        return self.schema_prefix + slang
 
     def forget_connection(self, conn):
         super(TMDB, self).forget_connection(conn)
@@ -209,8 +231,8 @@ ORDER BY rank DESC;
             slang = lang_to_table(slang)
             if slang in self.source_langs:
                 continue
-            cursor = self.get_cursor(slang)
-            cursor.execute(sql.SQL("CREATE SCHEMA {}").format(sql.Identifier(slang)))
+            cursor = self.get_cursor(self.schema(slang))
+            cursor.execute(sql.SQL("CREATE SCHEMA {}").format(sql.Identifier(self.schema(slang))))
             cursor.execute(self.INIT_SOURCE)
             cursor.execute(self.INIT_TARGET)
             self.source_langs.add(slang)
@@ -238,13 +260,13 @@ ORDER BY rank DESC;
 
         old_sources = sql.Identifier('public', 'sources_%s' % slang)
         old_targets = sql.Identifier('public', 'targets_%s' % slang)
-        cursor = self.get_cursor(slang)
+        cursor = self.get_cursor(self.schema(slang))
         try:
             cursor.execute("""SELECT NOT EXISTS(SELECT 1 FROM information_schema.columns
                 WHERE table_schema = 'public' AND table_name = %s
                 AND column_name = 'tid')""", ('targets_%s' % slang,))
             deployed = cursor.fetchone()[0]
-            cursor.execute(sql.SQL("CREATE SCHEMA {}").format(sql.Identifier(slang)))
+            cursor.execute(sql.SQL("CREATE SCHEMA {}").format(sql.Identifier(self.schema(slang))))
             cursor.execute(self.INIT_SOURCE)
             cursor.execute(self.INIT_TARGET)
             if deployed:
@@ -274,7 +296,7 @@ ORDER BY rank DESC;
         Returns the number of sources and targets that convert, and the
         (table, text) of those that look mangled but don't.
         """
-        cursor = self.get_cursor(slang)
+        cursor = self.get_cursor(self.schema(slang))
         unconverted = []
 
         cursor.execute("SELECT DISTINCT sid, lang, text FROM targets WHERE text ~ %s",
@@ -340,9 +362,46 @@ ORDER BY rank DESC;
         for slang in source_langs:
             slang = lang_to_table(slang)
             cursor = self.get_cursor()
-            cursor.execute(sql.SQL("DROP SCHEMA IF EXISTS {} CASCADE").format(sql.Identifier(slang)))
+            cursor.execute(sql.SQL("DROP SCHEMA IF EXISTS {} CASCADE").format(
+                sql.Identifier(self.schema(slang))))
             cursor.connection.commit()
             self.source_langs.discard(slang)
+
+    def _schema_exists(self, cursor, name):
+        cursor.execute("SELECT 1 FROM pg_namespace WHERE nspname = %s", (name,))
+        return cursor.fetchone() is not None
+
+    def swap(self, slang, rollback=False):
+        """Make the slang build schema live, keeping the live one as old.
+
+        With rollback, make the old schema live again, and the live one the
+        build schema. Both renames happen in one transaction.
+        """
+        slang = lang_to_table(slang)
+        live, build, old = slang, BUILD_PREFIX + slang, OLD_PREFIX + slang
+        if rollback:
+            needed, in_the_way = old, build
+            renames = [(live, build), (old, live)]
+        else:
+            needed, in_the_way = build, old
+            renames = [(live, old), (build, live)]
+        cursor = self.get_cursor()
+        try:
+            if not self._schema_exists(cursor, needed):
+                raise ValueError("Schema %s doesn't exist." % needed)
+            if self._schema_exists(cursor, in_the_way):
+                raise ValueError("Schema %s already exists." % in_the_way)
+            for old_name, new_name in renames:
+                if self._schema_exists(cursor, old_name):
+                    cursor.execute(sql.SQL("ALTER SCHEMA {} RENAME TO {}").format(
+                        sql.Identifier(old_name), sql.Identifier(new_name)))
+            cursor.connection.commit()
+        except Exception:
+            cursor.connection.rollback()
+            raise
+        self._available_langs = {}
+        self._load_source_langs()
+        current_app.cache.clear()
 
     @property
     def available_languages(self):
@@ -352,7 +411,7 @@ ORDER BY rank DESC;
 
             # Get all the target languages.
             for slang in source_languages:
-                cursor = self.get_cursor(slang)
+                cursor = self.get_cursor(self.schema(slang))
                 query = "SELECT DISTINCT lang FROM targets"
                 cursor.execute(query)
                 target_results = cursor.fetchall()
@@ -375,7 +434,7 @@ ORDER BY rank DESC;
     def get_sid(self, unit_dict, cursor):
         source = unit_dict['source']
         slang = unit_dict['source_lang']
-        key = build_cache_key(source, slang)
+        key = build_cache_key(source, self.schema(slang))
         sid = current_app.cache.get(key)
         #TODO: when using memcached, check that we got the right one since
         # collisions on key names are possible.
@@ -402,7 +461,7 @@ ORDER BY rank DESC;
         lang_config = lang_to_config(slang)
 
         if cursor is None:
-            cursor = self.get_cursor(slang)
+            cursor = self.get_cursor(self.schema(slang))
         try:
             unitdict = {
                 'source': str(unit.source),
@@ -441,9 +500,10 @@ ORDER BY rank DESC;
     def get_all_sids(self, units, source_lang, project_style):
         """Ensure that all source strings are in the database+cache."""
         all_sources = set(u['source'] for u in units)
+        schema = self.schema(lang_to_table(source_lang))
 
         d = current_app.cache.get_dict(*(
-                build_cache_key(k, source_lang) for k in all_sources
+                build_cache_key(k, schema) for k in all_sources
         ))
         # Filter out None results (keys not found).
         already_cached = set(filter(lambda x: d[x] is not None, d))
@@ -458,7 +518,7 @@ ORDER BY rank DESC;
 
         checker = project_checker(project_style, source_lang)
 
-        cursor = self.get_cursor(lang_to_table(source_lang))
+        cursor = self.get_cursor(schema)
         select_query = """SELECT text, sid FROM sources WHERE
         text IN %(list)s"""
 
@@ -518,7 +578,7 @@ ORDER BY rank DESC;
             already_stored.update(newly_stored)
 
         current_app.cache.set_many({
-                build_cache_key(k, source_lang): v
+                build_cache_key(k, schema): v
                 for (k, v) in already_stored.items()
         })
 
@@ -574,7 +634,7 @@ ORDER BY rank DESC;
 
         self.get_all_sids(units, source_lang, project_style)
 
-        cursor = self.get_cursor(slang)
+        cursor = self.get_cursor(self.schema(slang))
         try:
             # We sort to avoid deadlocks during parallel import.
             units.sort(key=lambda x: x['target'])
@@ -653,7 +713,7 @@ ORDER BY rank DESC;
 
         minrank = max(min_similarity / 2, 30)
 
-        cursor = self.get_cursor(slang)
+        cursor = self.get_cursor(self.schema(slang))
         try:
             self._translate_query(cursor, slang, tlang,
                                   indexing_version(unit_source, checker),

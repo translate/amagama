@@ -52,7 +52,8 @@ build_tmdb
 
 This subcommand is used to import translations into amaGama from bilingual
 translation files. Please refer to the :ref:`importing translations
-<importing>` section for a complete usage example.
+<importing>` section for a complete usage example. With ``--build`` it imports
+into the build schema (see :ref:`swap_db <managing#swap-db>`).
 
 
 .. _managing#deploy-db:
@@ -60,8 +61,8 @@ translation files. Please refer to the :ref:`importing translations
 deploy_db
 ---------
 
-This subcommand is used to optimize the database for deployment. It has no
-options:
+This subcommand is used to optimize the database for deployment, or with
+``--build`` the build schemas:
 
 .. code-block:: bash
 
@@ -85,6 +86,9 @@ from the amaGama database:
     This will permanently destroy all data in the configured database. Continue? [n] y
     Successfully dropped the database for 'fr', 'de'.
 
+With ``--build`` it drops the build schemas instead, and with ``--old`` the
+copies that :ref:`swap_db <managing#swap-db>` replaced.
+
 
 .. _managing#initdb:
 
@@ -99,6 +103,8 @@ languages. The following example creates the tables for English and French:
 
     $ amagama-manage initdb -s en -s fr
     Successfully initialized the database for 'en', 'fr'.
+
+With ``--build`` it creates the build schemas instead.
 
 
 .. _managing#migrate-db:
@@ -145,13 +151,39 @@ is merged into it. Text is only changed when all of it converts, and text that
 looks mangled but doesn't convert is listed and left alone.
 
 
+.. _managing#swap-db:
+
+swap_db
+-------
+
+This subcommand replaces a source language's data with a rebuilt copy. Build
+the copy with ``--build`` on :ref:`initdb <managing#initdb>`,
+:ref:`build_tmdb <managing#build-tmdb>` and :ref:`deploy_db
+<managing#deploy-db>`: it goes into the ``_build_<lang>`` schema, which isn't
+served. Then swap it in:
+
+.. code-block:: bash
+
+    $ amagama-manage initdb -s en --build
+    $ amagama-manage build_tmdb -s en -t af -i af.po --build
+    $ amagama-manage deploy_db --build
+    $ amagama-manage swap_db -s en
+    Swapped in 'en'; the replaced copy is _old_en.
+
+The live and build schemas are renamed in one transaction, so lookups switch
+to the new data at once, without a restart. The replaced data stays in
+``_old_<lang>``: ``swap_db --rollback`` puts it back, and ``dropdb --old``
+removes it. The language list served by the API refreshes when amaGama is
+restarted.
+
+
 .. _managing#tmdb-stats:
 
 tmdb_stats
 ----------
 
-This subcommand is used to print out some figures about the amaGama database.
-It has no options:
+This subcommand is used to print out some figures about the amaGama database,
+or with ``--build`` the build schemas:
 
 .. code-block:: bash
 

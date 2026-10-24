@@ -32,6 +32,8 @@ from translate.lang.identify import LanguageIdentifier
 from translate.storage import factory
 
 from amagama.tmdb import (
+    BUILD_PREFIX,
+    OLD_PREFIX,
     min_levenshtein_length as min_leven,
     max_levenshtein_length as max_leven,
 )
@@ -48,12 +50,24 @@ source_language_option = click.option(
     help="Source language to use (may be repeated).",
 )
 
+build_option = click.option(
+    '--build', is_flag=True,
+    help="Use the build schemas (%s<lang>) instead of the live ones." % BUILD_PREFIX,
+)
+
+
+def use_build_schemas(build):
+    if build:
+        current_app.tmdb.use_schemas(BUILD_PREFIX)
+
 
 @click.command('initdb')
 @source_language_option
+@build_option
 @with_appcontext
-def initdb(source_langs):
+def initdb(source_langs, build):
     """Create the database tables."""
+    use_build_schemas(build)
     current_app.tmdb.init_db(source_langs)
     langs = "', '".join(source_langs)
     print("Successfully initialized the database for '%s'." % langs)
@@ -61,9 +75,17 @@ def initdb(source_langs):
 
 @click.command('dropdb')
 @source_language_option
+@build_option
+@click.option('--old', is_flag=True,
+              help="Drop the copies (%s<lang>) that swap_db replaced." % OLD_PREFIX)
 @with_appcontext
-def dropdb(source_langs):
+def dropdb(source_langs, build, old):
     """Drop the database."""
+    if build and old:
+        raise click.UsageError("Use only one of --build and --old.")
+    use_build_schemas(build)
+    if old:
+        current_app.tmdb.use_schemas(OLD_PREFIX)
     ensure_source_exists()
     if click.confirm("This will permanently destroy all data in the "
                      "configured database. Continue?"):
@@ -73,9 +95,11 @@ def dropdb(source_langs):
 
 
 @click.command('deploy_db')
+@build_option
 @with_appcontext
-def deploy_db():
+def deploy_db(build):
     """Optimise the database for deployment."""
+    use_build_schemas(build)
     ensure_source_exists()
     if not click.confirm("This will permanently alter the database. Continue?"):
         return
@@ -84,7 +108,7 @@ def deploy_db():
     MAX_LENGTH = current_app.config.get("MAX_LENGTH")
     for slang in current_app.tmdb.source_langs:
         print('Optimising source language "%s"...' % slang)
-        cursor = tmdb.get_cursor(slang)
+        cursor = tmdb.get_cursor(tmdb.schema(slang))
         cursor.execute(tmdb.DEPLOY_QUERY)
         upper_bounds = (28, 93)
         lower_bound = 0
@@ -119,9 +143,11 @@ def deploy_db():
 
 
 @click.command('tmdb_stats')
+@build_option
 @with_appcontext
-def tmdb_stats():
+def tmdb_stats(build):
     """Print some (possibly) interesting figures about the TM DB."""
+    use_build_schemas(build)
     ensure_source_exists()
     db_name = current_app.config.get("DB_NAME")
 
@@ -134,7 +160,7 @@ def tmdb_stats():
     for slang in current_app.tmdb.source_langs:
         print()
         print("Source language:", slang)
-        cursor = current_app.tmdb.get_cursor(slang)
+        cursor = current_app.tmdb.get_cursor(current_app.tmdb.schema(slang))
         query = """SELECT
             pg_size_pretty(pg_total_relation_size('sources')),
             pg_size_pretty(pg_total_relation_size('targets')),
@@ -160,7 +186,7 @@ def tmdb_stats():
             WHERE schemaname = {}
             ORDER BY pg_relation_size(CAST(indexrelname as text)) DESC
         ) TO STDOUT
-        ;""").format(sql.Literal(slang))
+        ;""").format(sql.Literal(current_app.tmdb.schema(slang)))
         logging.info("\nIndex sizes:")
         cursor.copy_expert(query, sys.stdout)
 
@@ -281,9 +307,11 @@ class BuildTMDB(object):
 @click.option('--profile', '-p', 'profile_name', default=None,
              help="Write cProfile/KCacheGrind output to this file")
 @click.option('--verbose', is_flag=True, default=False)
+@build_option
 @with_appcontext
-def build_tmdb(slang, tlang, project_style, filename, profile_name, verbose):
+def build_tmdb(slang, tlang, project_style, filename, profile_name, verbose, build):
     """Populate Translation Memory database from bilingual translation files"""
+    use_build_schemas(build)
     BuildTMDB().run(slang, tlang, project_style, filename, profile_name, verbose)
 
 
@@ -322,6 +350,25 @@ def repair_mojibake(apply):
         print("Nothing was changed. Run with --apply to write the fixes.")
 
 
+@click.command('swap_db')
+@source_language_option
+@click.option('--rollback', is_flag=True,
+              help="Make the replaced copy live again.")
+@with_appcontext
+def swap_db(source_langs, rollback):
+    """Make the build schemas live, keeping the replaced ones."""
+    for slang in source_langs:
+        try:
+            current_app.tmdb.swap(slang, rollback)
+        except ValueError as e:
+            print(e)
+            raise SystemExit(1)
+        if rollback:
+            print("Rolled back '%s'; the replaced copy is %s%s again." % (slang, BUILD_PREFIX, slang))
+        else:
+            print("Swapped in '%s'; the replaced copy is %s%s." % (slang, OLD_PREFIX, slang))
+
+
 cli_commands = (
     initdb,
     dropdb,
@@ -330,4 +377,5 @@ cli_commands = (
     repair_mojibake,
     tmdb_stats,
     build_tmdb,
+    swap_db,
 )
