@@ -743,6 +743,7 @@ ORDER BY rank DESC;
 
     def _usable_unit(self, u):
         return u.istranslatable() and \
+               bool(u.source) and \
                self._translated(u) and \
                len(u.source) <= self.max_import_len and \
                self._indexable_string(u.source) and \
