@@ -9,60 +9,11 @@ source = "snapshot"
 snapshot = "legacy"
 
 [[block]]
-name = "gnome-44"
+name = "gnome-{version}"
 title = "GNOME"
-version = "44"
 source = "damned-lies"
-release = "gnome-44"
-
-[[block]]
-name = "gnome-45"
-title = "GNOME"
-version = "45"
-source = "damned-lies"
-release = "gnome-45"
-
-[[block]]
-name = "gnome-46"
-title = "GNOME"
-version = "46"
-source = "damned-lies"
-release = "gnome-46"
-
-[[block]]
-name = "gnome-47"
-title = "GNOME"
-version = "47"
-source = "damned-lies"
-release = "gnome-47"
-
-[[block]]
-name = "gnome-48"
-title = "GNOME"
-version = "48"
-source = "damned-lies"
-release = "gnome-48"
-
-[[block]]
-name = "gnome-49"
-title = "GNOME"
-version = "49"
-source = "damned-lies"
-release = "gnome-49"
-
-[[block]]
-name = "gnome-50"
-title = "GNOME"
-version = "50"
-source = "damned-lies"
-release = "gnome-50"
-
-[[block]]
-name = "gnome-51"
-title = "GNOME"
-version = "51"
-source = "damned-lies"
-release = "gnome-51"
+release = "gnome-{version}"
+versions = ["44", "45", "46", "47", "48", "49", "50", "51"]
 
 [[block]]
 name = "translationproject"
@@ -70,84 +21,74 @@ title = "Translation Project"
 source = "translationproject"
 
 [[block]]
-name = "libreoffice-26-2"
+name = "libreoffice-{version}"
 title = "LibreOffice"
-version = "26.2"
 source = "git"
 url = "https://git.libreoffice.org/translations"
-ref = "libreoffice-26-2"
 files = ["source/{lang}/**/*.po"]
 exclude = ["source/*/helpcontent2/**"]
 licence = "MPL-2.0"
+versions = [
+  { version = "26.2", ref = "libreoffice-26-2" },
+  { version = "26.8", ref = "libreoffice-26-8" },
+]
 
 [[block]]
-name = "libreoffice-26-8"
-title = "LibreOffice"
-version = "26.8"
-source = "git"
-url = "https://git.libreoffice.org/translations"
-ref = "libreoffice-26-8"
-files = ["source/{lang}/**/*.po"]
-exclude = ["source/*/helpcontent2/**"]
-licence = "MPL-2.0"
-
-[[block]]
-name = "django-6-1"
+name = "django-{version}"
 title = "Django"
-version = "6.1"
 source = "git"
 url = "https://github.com/django/django"
-ref = "stable/6.1.x"
+ref = "stable/{version}.x"
 files = ["django/conf/locale/{lang}/LC_MESSAGES/*.po",
          "django/contrib/*/locale/{lang}/LC_MESSAGES/*.po"]
 languages = { en = "" }
 licence = "BSD-3-Clause"
+versions = ["6.1"]
 
 [[block]]
-name = "odoo-20"
+name = "odoo-{version}"
 title = "Odoo"
-version = "20"
 source = "git"
 url = "https://github.com/odoo/odoo"
-ref = "20.0"
+ref = "{version}.0"
 files = ["addons/*/i18n/{lang}.po", "odoo/addons/*/i18n/{lang}.po"]
 licence = "LGPL-3.0-only"
+versions = ["20"]
 
 [[block]]
-name = "qt-6-12"
+name = "qt-{version}"
 title = "Qt"
-version = "6.12"
 source = "git"
 url = "https://github.com/qt/qttranslations"
-ref = "6.12"
+ref = "{version}"
 files = ["translations/*_{lang}.ts"]
 # The open licences the .ts files are offered under (also Qt commercial).
 licence = "LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only"
+versions = ["6.12"]
 
 [[block]]
-name = "nextcloud-35"
+name = "nextcloud-{version}"
 title = "Nextcloud"
-version = "35"
 source = "git"
 url = "https://github.com/nextcloud/server"
-ref = "stable35"
+ref = "stable{version}"
 files = ["core/l10n/{lang}.json", "lib/l10n/{lang}.json", "apps/*/l10n/{lang}.json"]
 format = "nextcloud-json"
 licence = "AGPL-3.0-only OR AGPL-3.0-or-later"
+versions = ["35"]
 
 [[block]]
-name = "mediawiki-1-46"
+name = "mediawiki-{version}"
 title = "MediaWiki"
-version = "1.46"
 source = "git"
 url = "https://github.com/wikimedia/mediawiki"
-ref = "REL1_46"
 files = ["languages/i18n/{lang}.json"]
 exclude = ["languages/i18n/qqq.json"]
 format = "json"
 template = "languages/i18n/en.json"
 exclude_ids = ["@metadata*"]
 licence = "GPL-2.0-or-later"
+versions = [{ version = "1.46", ref = "REL1_46" }]
 
 [[block]]
 name = "gnome-circle"
