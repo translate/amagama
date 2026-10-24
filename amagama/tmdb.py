@@ -512,6 +512,32 @@ ORDER BY rank DESC;
             cursor.connection.commit()
             self.source_langs.discard(slang)
 
+    def deploy(self, slang):
+        """Optimise the slang schema for lookups; imports no longer fit."""
+        similarity = current_app.config.get("MIN_SIMILARITY")
+        max_length = current_app.config.get("MAX_LENGTH")
+        cursor = self.get_cursor(self.schema(slang))
+        cursor.execute(self.DEPLOY_QUERY)
+        lower_bound = 0
+        for upper_bound in (28, 93):
+            idx_name = sql.Identifier("sources_up_to_%d_text_idx" % upper_bound)
+            if lower_bound == 0:
+                cursor.execute(sql.SQL("""
+                    CREATE INDEX {} ON sources USING gin(vector)
+                    WHERE length <= %s""").format(idx_name),
+                    (max_levenshtein_length(upper_bound, similarity, max_length),))
+            else:
+                cursor.execute(sql.SQL("""
+                    CREATE INDEX {} ON sources USING gin(vector)
+                    WHERE length BETWEEN %s AND %s""").format(idx_name),
+                    (min_levenshtein_length(lower_bound, similarity),
+                     max_levenshtein_length(upper_bound, similarity, max_length)))
+            lower_bound = upper_bound + 1
+        cursor.execute("""
+            CREATE INDEX sources_long_idx ON sources USING gin(vector)
+            WHERE length >= %s""", (min_levenshtein_length(lower_bound, similarity),))
+        cursor.connection.commit()
+
     def _schema_exists(self, cursor, name):
         cursor.execute("SELECT 1 FROM pg_namespace WHERE nspname = %s", (name,))
         return cursor.fetchone() is not None
