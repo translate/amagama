@@ -9,6 +9,7 @@ paired with its template first.
 import csv
 import importlib
 import io
+import re
 
 from translate.storage import factory, xliff
 from translate.storage.base import TranslationStore, TranslationUnit
@@ -124,7 +125,25 @@ def open_store(path, format=None, columns=None, header_row=False, xliff_states=N
             store.parse(f.read())
     if xliff_states and isinstance(store, xliff.xlifffile):
         return _accepted_xliff(store, xliff_states)
+    if format == "nextcloud-json":
+        return _nextcloud_singulars(store)
     return store
+
+
+_NEXTCLOUD_PLURAL = re.compile(r"_(.*)_::_.*_", re.DOTALL)
+
+
+def _nextcloud_singulars(store):
+    """Nextcloud keys a plural "_<singular>_::_<plural>_"; keep the singular."""
+    plain = TranslationStore()
+    plain.filename = store.filename
+    for unit in store.units:
+        match = _NEXTCLOUD_PLURAL.fullmatch(str(unit.source))
+        target = getattr(unit.target, "strings", [unit.target])
+        converted = TranslationUnit(match.group(1) if match else str(unit.source))
+        converted.target = str(target[0]) if target else ""
+        plain.addunit(converted)
+    return plain
 
 
 def _read_csv(path, columns, header_row):
