@@ -159,6 +159,14 @@ such as one GNOME release:
 
       xliff_states = ["none", "translated", "final", "signed-off"]
 
+``segment``
+  Optional ``true`` to also import each multi-sentence message as sentence
+  pairs, so a single sentence of a long message can match: worthwhile for
+  documentation. A message is split only when its English and translation
+  have the same number of sentences and no inline tag crosses a sentence
+  (an element around the whole message, such as LibreOffice's ``<ahelp>``,
+  is set aside first). The whole message is imported too.
+
 ``refetch_days``
   For a source whose server gives no fingerprint: how many days after a fetch
   it counts as changed again (default 30).

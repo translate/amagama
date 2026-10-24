@@ -23,7 +23,7 @@ class Block(object):
     def __init__(self, name, title, source, version=None, licence=None, files=None,
                  exclude=None, keep=None, languages=None, format=None, template=None,
                  exclude_ids=None, columns=None, header_row=None, xliff_states=None,
-                 refetch_days=30, **settings):
+                 refetch_days=30, segment=False, **settings):
         self.name = name
         self.title = title
         self.version = version
@@ -68,6 +68,9 @@ class Block(object):
         if type(refetch_days) is not int or refetch_days < 0:
             raise ValueError("refetch_days must be a whole number of days")
         self.refetch_days = refetch_days
+        if not isinstance(segment, bool):
+            raise ValueError("segment must be true or false")
+        self.segment = segment
 
     def template_for(self, path):
         """The English template path for a selected file, if the block pairs."""
