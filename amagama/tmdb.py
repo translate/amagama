@@ -149,6 +149,20 @@ CREATE TABLE targets (
 CREATE UNIQUE INDEX targets_unique_idx ON targets (sid, text, lang);
 """
 
+    INIT_IMPORTS = """
+CREATE TABLE IF NOT EXISTS imports (
+    iid SERIAL PRIMARY KEY,
+    block TEXT,
+    filename TEXT NOT NULL,
+    checksum CHAR(64) NOT NULL,
+    lang VARCHAR(32) NOT NULL,
+    licence TEXT,
+    units INTEGER NOT NULL,
+    skipped INTEGER NOT NULL,
+    imported TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+"""
+
     DEPLOY_QUERY = """
 ALTER TABLE sources DROP CONSTRAINT IF EXISTS sources_pkey CASCADE;
 DROP INDEX IF EXISTS sources_text_unique_idx;
@@ -235,8 +249,38 @@ ORDER BY rank DESC;
             cursor.execute(sql.SQL("CREATE SCHEMA {}").format(sql.Identifier(self.schema(slang))))
             cursor.execute(self.INIT_SOURCE)
             cursor.execute(self.INIT_TARGET)
+            cursor.execute(self.INIT_IMPORTS)
             self.source_langs.add(slang)
             cursor.connection.commit()
+
+    def init_imports(self, slang):
+        """Create the imports table in a schema made before it existed."""
+        cursor = self.get_cursor(self.schema(slang))
+        # Parallel imports would race on CREATE TABLE IF NOT EXISTS.
+        cursor.execute("SELECT pg_advisory_xact_lock(hashtext(%s))", (self.schema(slang),))
+        cursor.execute(self.INIT_IMPORTS)
+        cursor.connection.commit()
+
+    def record_import(self, slang, tlang, filename, checksum, units, skipped,
+                      block=None, licence=None, commit=True):
+        cursor = self.get_cursor(self.schema(lang_to_table(slang)))
+        cursor.execute("""INSERT INTO imports
+            (block, filename, checksum, lang, licence, units, skipped)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)""",
+            (block, filename, checksum, lang_to_table(tlang), licence, units, skipped))
+        if commit:
+            cursor.connection.commit()
+
+    def import_summary(self, slang):
+        """Files, target languages and units per block, oldest block first."""
+        cursor = self.get_cursor(self.schema(slang))
+        cursor.execute("SELECT to_regclass('imports') IS NOT NULL")
+        if not cursor.fetchone()[0]:
+            return []
+        cursor.execute("""SELECT block, COUNT(*), COUNT(DISTINCT lang),
+                                 SUM(units), SUM(skipped), MAX(imported)
+                          FROM imports GROUP BY block ORDER BY MIN(imported)""")
+        return cursor.fetchall()
 
     def old_layout_langs(self):
         """Source languages stored in the old public.sources_<lang> tables."""
@@ -269,6 +313,7 @@ ORDER BY rank DESC;
             cursor.execute(sql.SQL("CREATE SCHEMA {}").format(sql.Identifier(self.schema(slang))))
             cursor.execute(self.INIT_SOURCE)
             cursor.execute(self.INIT_TARGET)
+            cursor.execute(self.INIT_IMPORTS)
             if deployed:
                 cursor.execute("""
                     ALTER TABLE sources DROP CONSTRAINT sources_pkey CASCADE;
