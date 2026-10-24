@@ -134,7 +134,7 @@ class TestSourcesFile(object):
     @pytest.mark.parametrize("text, error", [
         ('[[block]]\nsource = "git"', "block 1: no name"),
         (block("a/b", "translationproject"), "can't contain /"),
-        (block("a", "svn"), "source must be one of"),
+        (block("a", "cvs"), "source must be one of"),
         (block("a", "translationproject") + block("a", "translationproject"),
          "block a: duplicate name"),
         (block("a", "damned-lies"), "block a: missing release"),
@@ -369,7 +369,7 @@ class TestFetch(object):
         assert "No block named kde." in result.output
 
     def test_bad_sources_file(self, run):
-        result = run(block("a", "svn"))
+        result = run(block("a", "cvs"))
         assert result.exit_code == 1
         assert "source must be one of" in result.output
 

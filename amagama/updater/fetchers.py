@@ -12,6 +12,7 @@ import shutil
 import subprocess
 import tarfile
 import tempfile
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -195,6 +196,20 @@ class TranslationProject(TarballPerLanguage):
         return [self.base_url + urllib.parse.quote(lang) + ".tgz"]
 
 
+def run_tool(tool, *args):
+    """A version-control command's output, run outside any repository.
+
+    The caller's GIT_DIR and friends are left out.
+    """
+    env = {key: value for key, value in os.environ.items() if not key.startswith("GIT_")}
+    try:
+        return subprocess.run((tool,) + args, check=True, capture_output=True, text=True,
+                              timeout=3600, cwd=tempfile.gettempdir(), env=env).stdout
+    except (subprocess.SubprocessError, OSError) as e:
+        stderr = getattr(e, "stderr", None) or ""
+        raise FetchError("%s %s: %s %s" % (tool, args[0], e, stderr.strip()))
+
+
 class Git(Fetcher):
     """A shallow clone of one branch or tag; files gives each file's language."""
 
@@ -203,14 +218,7 @@ class Git(Fetcher):
     gives_language = False
 
     def _git(self, *args):
-        # Outside any repository, and without a caller's GIT_DIR and friends.
-        env = {key: value for key, value in os.environ.items() if not key.startswith("GIT_")}
-        try:
-            return subprocess.run(("git",) + args, check=True, capture_output=True, text=True,
-                                  timeout=3600, cwd=tempfile.gettempdir(), env=env).stdout
-        except (subprocess.SubprocessError, OSError) as e:
-            stderr = getattr(e, "stderr", None) or ""
-            raise FetchError("git %s: %s %s" % (args[0], e, stderr.strip()))
+        return run_tool("git", *args)
 
     def fingerprint(self):
         ref = self.settings.get("ref", "HEAD")
@@ -226,6 +234,50 @@ class Git(Fetcher):
         self._git(*(args + [self.settings["url"], dest]))
         shutil.rmtree(os.path.join(dest, ".git"))
         return [(path, None) for path in files_under(dest)]
+
+
+class Svn(Fetcher):
+    """A Subversion tree with one directory per language (KDE's l10n-kf6).
+
+    dirs lists what to export from each language's directory (default: all
+    of it). Exports are paced, pause seconds apart, to go easy on the server.
+    """
+
+    required = ("url",)
+    optional = ("dirs", "pause")
+
+    @property
+    def url(self):
+        return self.settings["url"].rstrip("/")
+
+    def languages(self):
+        """The top-level directories; files there (KDE's teamnames) aren't languages."""
+        if not hasattr(self, "_languages"):
+            self._languages = sorted(name[:-1] for name in run_tool("svn", "ls", self.url).split()
+                                     if name.endswith("/"))
+        return self._languages
+
+    def fingerprint(self):
+        return run_tool("svn", "info", "--show-item", "last-changed-revision", self.url).strip()
+
+    def fetch(self, dest):
+        files = []
+        for lang in self.languages():
+            for directory in self.settings.get("dirs", [""]):
+                target = os.path.join(dest, lang, directory)
+                os.makedirs(os.path.dirname(target.rstrip(os.sep)), exist_ok=True)
+                url = "/".join(part for part in (self.url, lang, directory) if part)
+                try:
+                    run_tool("svn", "export", "--quiet", "--force", url, target)
+                except FetchError as e:
+                    # Not every language has every directory.
+                    if "E170000" not in str(e) and "doesn't exist" not in str(e):
+                        raise
+                time.sleep(self.settings.get("pause", 1))
+            if os.path.isdir(os.path.join(dest, lang)):
+                files.extend((os.path.join(lang, path), lang)
+                             for path in files_under(os.path.join(dest, lang)))
+        return files
 
 
 class Snapshot(Fetcher):
@@ -244,5 +296,6 @@ FETCHERS = {
     "damned-lies": DamnedLies,
     "translationproject": TranslationProject,
     "git": Git,
+    "svn": Svn,
     "snapshot": Snapshot,
 }

@@ -26,6 +26,8 @@ jobs:
           python-version: ${{ matrix.python }}
           cache: pip
       - run: pip install -e ".[dev]"
+      - name: Install Subversion
+        run: command -v svn || (sudo apt-get update && sudo apt-get install -y subversion)
       - name: pytest
         run: |
           pg_ctl=(/usr/lib/postgresql/*/bin/pg_ctl)

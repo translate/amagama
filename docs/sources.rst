@@ -209,6 +209,13 @@ Source types
   repository doesn't say which files are translations, so ``files`` is
   required and every mask must contain ``{lang}``.
 
+``svn``
+  A Subversion tree with one directory per language, such as KDE's
+  ``l10n-kf6``. ``url`` (required) is the tree; ``dirs`` lists what to export
+  from each language's directory (default: all of it), such as
+  ``["messages"]``; ``pause`` (default 1) is the seconds between exports, to
+  go easy on a shared server. Needs the ``svn`` command.
+
 ``snapshot``
   Data kept in the database by :ref:`snapshot_db <managing#snapshot-db>`,
   named by ``snapshot``; nothing is downloaded and it never changes.
