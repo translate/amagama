@@ -41,6 +41,28 @@ such as one GNOME release:
   Optional `SPDX licence expression <https://spdx.org/licenses/>`_, checked as
   for ``build_tmdb``.
 
+``files``
+  Optional filemasks choosing which of the block's files to import, relative
+  to its directory. ``*`` matches within a directory, ``**`` any number of
+  directories, and ``{lang}`` the target language (a code such as ``af``,
+  ``pt_BR``, ``sr@latin`` or ``b+sr+Latn``), which then overrides the
+  language the source gives:
+
+  .. code-block:: toml
+
+      files = ["addons/*/i18n/{lang}.po"]
+      files = ["translations/*_{lang}.ts"]
+      files = ["**/locale/{lang}/LC_MESSAGES/django.po"]
+
+  Without it every file is imported. A block whose masks match no file
+  fails, rather than loading nothing.
+
+``exclude``
+  Optional masks, without ``{lang}``, of files to leave out, such as
+  ``["**/qqq.json"]``.
+
+Templates (:file:`.pot`) are never imported.
+
 :ref:`fetch_sources <managing#fetch-sources>` downloads the blocks into
 :setting:`UPDATER_CACHE_DIR`, and :ref:`update <managing#update>` rebuilds the
 database from them.
@@ -60,10 +82,9 @@ Source types
   of every package, one tarball per language.
 
 ``git``
-  A shallow clone of ``url`` at ``ref`` (default: the default branch).
-  ``layout`` is ``"gnu"`` for one :file:`<lang>.po` per directory, or
-  ``"nongnu"`` for a :file:`<lang>/` directory of files. ``paths`` (default:
-  the repository root) lists the directories to read.
+  A shallow clone of ``url`` at ``ref`` (default: the default branch). A
+  repository doesn't say which files are translations, so ``files`` is
+  required and every mask must contain ``{lang}``.
 
 ``snapshot``
   Data kept in the database by :ref:`snapshot_db <managing#snapshot-db>`,

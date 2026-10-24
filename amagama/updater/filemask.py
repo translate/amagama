@@ -1,0 +1,59 @@
+"""Filemasks select a block's files and read their language from the path.
+
+A mask is a path relative to the block's directory, with ``*`` (within one
+directory), ``**`` (any number of directories) and ``{lang}`` (the target
+language, shaped like a language code: af, pt_BR, sr@latin, zh-Hans,
+b+sr+Latn).
+"""
+
+import re
+
+LANG_PATTERN = r"[a-z]{1,3}(?:[_@+-][A-Za-z0-9]{1,8})*"
+
+
+def compile_mask(mask, allow_lang=True):
+    """The regular expression for mask; raises ValueError if it's malformed."""
+    if not mask or mask.startswith("/") or ".." in mask.split("/"):
+        raise ValueError("bad filemask %r" % mask)
+    if mask.count("{lang}") > 1 or (not allow_lang and "{lang}" in mask):
+        raise ValueError("bad filemask %r: {lang} at most once%s"
+                         % (mask, "" if allow_lang else ", and not in exclude"))
+    pattern = ""
+    for token in re.split(r"(\*\*/|\*\*|\*|\{lang\})", mask):
+        if token == "**/":
+            pattern += "(?:.*/)?"
+        elif token == "**":
+            pattern += ".*"
+        elif token == "*":
+            pattern += "[^/]*?"
+        elif token == "{lang}":
+            pattern += "(?P<lang>%s)" % LANG_PATTERN
+        else:
+            pattern += re.escape(token)
+    return re.compile(pattern + r"\Z")
+
+
+class Selection(object):
+    """The files a block imports: those matching a mask and no exclude."""
+
+    def __init__(self, masks=None, excludes=None):
+        self.mask_texts = list(masks or [])
+        self.masks = [compile_mask(mask) for mask in self.mask_texts]
+        self.excludes = [compile_mask(mask, allow_lang=False) for mask in excludes or []]
+
+    @property
+    def gives_language(self):
+        return bool(self.masks) and all("lang" in mask.groupindex for mask in self.masks)
+
+    def select(self, path, lang):
+        """The file's language if it's selected, else None."""
+        path = path.replace("\\", "/")
+        if path.endswith(".pot") or any(exclude.match(path) for exclude in self.excludes):
+            return None
+        if not self.masks:
+            return lang
+        for mask in self.masks:
+            match = mask.match(path)
+            if match:
+                return match.groupdict().get("lang") or lang
+        return None
