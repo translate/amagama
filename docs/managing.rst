@@ -101,6 +101,50 @@ languages. The following example creates the tables for English and French:
     Successfully initialized the database for 'en', 'fr'.
 
 
+.. _managing#migrate-db:
+
+migrate_db
+----------
+
+This subcommand copies a database made by older amaGama releases, which keep
+each source language in ``public.sources_<lang>`` and ``public.targets_<lang>``
+tables, into the per-language schemas current amaGama uses. It has no options:
+
+.. code-block:: bash
+
+    $ amagama-manage migrate_db
+    Copied 'en': 782372 sources, 21101176 targets.
+    The old tables are unchanged. Run deploy_db to build the search indexes.
+
+Each source language is copied in one transaction, and a language that is
+already migrated is skipped, so the command can be run again. The old tables
+are left in place, so the old code keeps working until you switch over; drop
+them once the new version is in use. Run :ref:`deploy_db <managing#deploy-db>`
+afterwards.
+
+
+.. _managing#repair-mojibake:
+
+repair_mojibake
+---------------
+
+This subcommand finds text that was UTF-8 decoded as Latin-1 or Windows-1252
+before import (``LÃªer`` for ``Lêer``) and converts it back. Without options
+it only reports what it would fix:
+
+.. code-block:: bash
+
+    $ amagama-manage repair_mojibake
+    Would fix 'en': 4 sources, 1420 targets.
+    Nothing was changed. Run with --apply to write the fixes.
+
+With ``--apply`` it writes the fixes, one transaction per source
+language: a broken target beside a correct copy is removed, other broken
+targets and sources are replaced, and a source whose fixed text already exists
+is merged into it. Text is only changed when all of it converts, and text that
+looks mangled but doesn't convert is listed and left alone.
+
+
 .. _managing#tmdb-stats:
 
 tmdb_stats
