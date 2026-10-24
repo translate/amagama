@@ -18,7 +18,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import functools
 import hashlib
 import logging
 import os
@@ -28,14 +27,13 @@ import sys
 import click
 from flask import current_app
 from flask.cli import with_appcontext
-import spdx_license_list
-from license_expression import LicenseSymbol, Licensing
 from psycopg2 import sql
 
 from translate.lang.data import langcode_ire
 from translate.lang.identify import LanguageIdentifier
 from translate.storage import factory
 
+from amagama.licences import normalise_licence
 from amagama.tmdb import (
     BUILD_PREFIX,
     OLD_PREFIX,
@@ -202,26 +200,13 @@ def tmdb_stats(build):
         cursor.copy_expert(query, sys.stdout)
 
 
-@functools.cache
-def spdx_licensing():
-    """Current (non-deprecated) SPDX License List identifiers."""
-    symbols = [LicenseSymbol(key, aliases=(key.lower(),))
-               for key, licence in spdx_license_list.LICENSES.items()
-               if not licence.deprecated_id]
-    symbols += [LicenseSymbol(key, aliases=(key.lower(),), is_exception=True)
-                for key, exception in spdx_license_list.EXCEPTIONS.items()
-                if not exception.deprecated_id]
-    return Licensing(symbols)
-
-
 def spdx_expression(ctx, param, value):
     if value is None:
         return None
-    info = spdx_licensing().validate(value, strict=True)
-    if info.errors:
-        raise click.BadParameter("not a current SPDX licence expression: %s"
-                                 % "; ".join(info.errors))
-    return info.normalized_expression
+    try:
+        return normalise_licence(value)
+    except ValueError as e:
+        raise click.BadParameter(str(e))
 
 
 def file_checksum(filename):
