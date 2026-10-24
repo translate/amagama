@@ -61,7 +61,23 @@ such as one GNOME release:
   Optional masks, without ``{lang}``, of files to leave out, such as
   ``["**/qqq.json"]``.
 
+``languages``
+  Optional table of a source's language codes to amaGama's, applied before
+  the normalising below; map a code to ``""`` to leave it out:
+
+  .. code-block:: toml
+
+      languages = { no = "nb", xxx = "" }
+
 Templates (:file:`.pot`) are never imported.
+
+Every language code is turned into one form, language with optional
+``_REGION`` and ``@variant``, whichever way the source writes it: ``pt-BR``,
+Android's ``pt-rBR`` and ``pt_br`` become ``pt_BR``; ``sr-Latn``,
+``b+sr+Latn`` and ``sr@Latn`` become ``sr@latin``; ``zh-Hans`` and ``zh-Hant``
+become ``zh_CN`` and ``zh_TW``; ``ca-valencia`` becomes ``ca@valencia``;
+replaced codes such as ``iw`` become ``he``. Codes that aren't languages are
+left out and listed by ``fetch_sources`` and ``update``.
 
 :ref:`fetch_sources <managing#fetch-sources>` downloads the blocks into
 :setting:`UPDATER_CACHE_DIR`, and :ref:`update <managing#update>` rebuilds the

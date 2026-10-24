@@ -96,6 +96,9 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
     for block in changed:
         state = block.fetch(cache_dir)
         out("Fetched %s: %d files." % (block.name, len(state["files"])))
+        if state["unknown_languages"]:
+            out("Not language codes in %s, skipped: %s" % (
+                block.name, ", ".join(state["unknown_languages"])))
 
     tmdb.use_schemas(BUILD_PREFIX)
     tmdb.drop_db([slang])
