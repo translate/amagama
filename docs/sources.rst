@@ -30,6 +30,32 @@ such as one GNOME release:
 ``version``
   Optional release, such as ``"51"``; shown after the title (GNOME 51).
 
+``versions``
+  Instead of ``version``, a list of releases: the block stands for one block
+  per release, with ``{version}`` replaced in every setting, so adding a
+  release is one more item. The name must contain ``{version}``. An item can
+  be a table giving values that differ by release:
+
+  .. code-block:: toml
+
+      [[block]]
+      name = "gnome-{version}"
+      title = "GNOME"
+      source = "damned-lies"
+      release = "gnome-{version}"
+      versions = ["50", "51"]
+
+      [[block]]
+      name = "libreoffice-{version}"
+      title = "LibreOffice"
+      source = "git"
+      url = "https://git.libreoffice.org/translations"
+      files = ["source/{lang}/**/*.po"]
+      versions = [
+        { version = "26.2", ref = "libreoffice-26-2" },
+        { version = "26.8", ref = "libreoffice-26-8" },
+      ]
+
 ``source``
   How to fetch the files; the other keys depend on it (below).
 

@@ -382,3 +382,57 @@ class TestCheck(object):
     def test_no_fingerprint_always_changed(self):
         assert combine([("a", "etag"), ("b", None)]) is None
         assert combine([("a", "1"), ("b", "2")]) == combine([("b", "2"), ("a", "1")])
+
+
+class TestVersions(object):
+
+    def load(self, tmp_path, text):
+        path = tmp_path / "sources.toml"
+        path.write_text(text)
+        return load_sources(str(path))
+
+    def test_expand(self, tmp_path):
+        blocks = self.load(tmp_path, '''
+[[block]]
+name = "lo-{version}"
+title = "LibreOffice"
+source = "git"
+url = "https://example.org/translations"
+ref = "release-{version}"
+files = ["source/{lang}/{version}/*.po"]
+languages = { xx = "x-{version}" }
+refetch_days = 7
+versions = ["26.2", { version = "26.8", ref = "libreoffice-26-8" }]
+''')
+        assert [(b.name, b.version, b.display_title) for b in blocks] == [
+            ("lo-26.2", "26.2", "LibreOffice 26.2"), ("lo-26.8", "26.8", "LibreOffice 26.8")]
+        assert [b.fetcher.settings["ref"] for b in blocks] == ["release-26.2", "libreoffice-26-8"]
+        # {version} is filled inside lists and tables; {lang} is left for the filemask.
+        assert blocks[0].selection.mask_texts == ["source/{lang}/26.2/*.po"]
+        assert blocks[1].languages == {"xx": "x-26.8"}
+        assert [b.refetch_days for b in blocks] == [7, 7]
+
+    @pytest.mark.parametrize("versions, error", [
+        ('"51"', "versions must be a list"),
+        ("[]", "versions must be a list"),
+        ("[51]", "each of versions must be a version, or a table with one"),
+        ('[{ ref = "x" }]', "each of versions must be a version, or a table with one"),
+        ('["51", "51"]', "block gnome-51: duplicate name"),
+    ])
+    def test_invalid(self, tmp_path, versions, error):
+        text = ('[[block]]\nname = "gnome-{version}"\ntitle = "GNOME"\nsource = "damned-lies"\n'
+                'release = "gnome-{version}"\nversions = %s\n' % versions)
+        with pytest.raises(ValueError, match=error):
+            self.load(tmp_path, text)
+
+    def test_name_needs_version(self, tmp_path):
+        with pytest.raises(ValueError, match="a name with versions must contain {version}"):
+            self.load(tmp_path, '[[block]]\nname = "gnome"\ntitle = "GNOME"\n'
+                                'source = "damned-lies"\nrelease = "gnome-{version}"\n'
+                                'versions = ["51"]\n')
+
+    def test_version_and_versions(self, tmp_path):
+        with pytest.raises(ValueError, match="give version or versions, not both"):
+            self.load(tmp_path, '[[block]]\nname = "gnome-{version}"\ntitle = "GNOME"\n'
+                                'version = "50"\nsource = "damned-lies"\n'
+                                'release = "gnome-{version}"\nversions = ["51"]\n')

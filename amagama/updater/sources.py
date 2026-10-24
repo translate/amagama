@@ -176,6 +176,40 @@ class Block(object):
         return state
 
 
+def _fill(value, version):
+    """value with {version} replaced in every string, also inside lists and tables."""
+    if isinstance(value, str):
+        return value.replace("{version}", version)
+    if isinstance(value, list):
+        return [_fill(item, version) for item in value]
+    if isinstance(value, dict):
+        return {key: _fill(item, version) for key, item in value.items()}
+    return value
+
+
+def _expand(entry, where):
+    """One entry per item of the block's versions, or the entry itself."""
+    versions = entry.pop("versions", None)
+    if versions is None:
+        return [entry]
+    if not isinstance(versions, list) or not versions:
+        raise ValueError("%s: versions must be a list" % where)
+    if "version" in entry:
+        raise ValueError("%s: give version or versions, not both" % where)
+    if "{version}" not in str(entry.get("name", "")):
+        raise ValueError("%s: a name with versions must contain {version}" % where)
+    expanded = []
+    for item in versions:
+        if isinstance(item, str):
+            item = {"version": item}
+        if not isinstance(item, dict) or not isinstance(item.get("version"), str) \
+                or not item["version"].strip():
+            raise ValueError("%s: each of versions must be a version, or a table with one"
+                             % where)
+        expanded.append(dict(_fill(entry, item["version"]), **_fill(item, item["version"])))
+    return expanded
+
+
 def load_sources(path=None):
     """Read and check the sources file; return its blocks in file order."""
     path = path or DEFAULT_SOURCES
@@ -186,8 +220,10 @@ def load_sources(path=None):
             raise ValueError("%s: %s" % (path, e))
     blocks = []
     names = set()
+    entries = []
     for i, entry in enumerate(data.get("block", []), 1):
-        entry = dict(entry)
+        entries += _expand(dict(entry), "%s: block %s" % (path, entry.get("name") or i))
+    for i, entry in enumerate(entries, 1):
         name = entry.pop("name", None)
         where = "%s: block %s" % (path, name or i)
         if not name:
