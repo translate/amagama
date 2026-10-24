@@ -135,7 +135,12 @@ class TestSourcesFile(object):
          "block a: duplicate name"),
         (block("a", "damned-lies"), "block a: missing release"),
         (block("a", "translationproject", branch="x"), "unknown branch"),
-        (block("a", "git", url="x", layout="flat"), "layout must be"),
+        (block("a", "git", url="x"), "files must give each file's language with {lang}"),
+        (block("a", "git", url="x", files=["po/*.po"]), "files must give each file's language"),
+        (block("a", "git", url="x", files="po/{lang}.po"), "files must be a list of filemasks"),
+        (block("a", "translationproject", files=["../{lang}.po"]), "bad filemask"),
+        (block("a", "translationproject", files=["{lang}/{lang}.po"]), "{lang} at most once"),
+        (block("a", "translationproject", exclude=["{lang}.po"]), "not in exclude"),
         (block("a", "translationproject", licence="GPL2"), "not a current SPDX licence expression"),
         ('[[block]\n', "sources.toml"),
         ('[[block]]\nname = "a"\ntitle = "A"\nsource = "translationproject"',
@@ -191,7 +196,7 @@ class TestFetch(object):
         (repo / "README").write_text("not a translation")
         git("add", ".")
         git("commit", "-q", "-m", "readme")
-        result = run(block("x", "git", url=repo.as_uri(), layout="gnu", paths=["po"]))
+        result = run(block("x", "git", url=repo.as_uri(), files=["po/{lang}.po"]))
         assert result.exit_code == 0, result.output
         assert fetched(run.cache, "x") == [("po/af.po", "af"), ("po/zu.po", "zu")]
         assert not (run.cache / "x/.git").exists()
@@ -203,11 +208,11 @@ class TestFetch(object):
         (repo / "README").write_text("not in a language directory")
         git("add", ".")
         git("commit", "-q", "-m", "nongnu")
-        result = run(block("x", "git", url=repo.as_uri(), layout="nongnu"))
+        # po/af.po would match too, with "po" as its language.
+        result = run(block("x", "git", url=repo.as_uri(), files=["{lang}/*.po"], exclude=["po/**"]))
         assert result.exit_code == 0, result.output
-        assert ("af/app.po", "af") in fetched(run.cache, "x")
-        assert ("po/af.po", "po") in fetched(run.cache, "x")
-        assert "README" not in [path for path, lang in fetched(run.cache, "x")]
+        assert fetched(run.cache, "x") == [("af/app.po", "af")]
+        assert not (run.cache / "x/README").exists()
 
     def test_git_ref(self, run, git_repo):
         repo, git = git_repo
@@ -216,19 +221,19 @@ class TestFetch(object):
         git("add", ".")
         git("commit", "-q", "-m", "stable")
         git("checkout", "-q", "main")
-        result = run(block("x", "git", url=repo.as_uri(), layout="gnu", ref="stable", paths=["po"]))
+        result = run(block("x", "git", url=repo.as_uri(), ref="stable", files=["po/{lang}.po"]))
         assert result.exit_code == 0, result.output
         assert ("po/nl.po", "nl") in fetched(run.cache, "x")
 
     def test_git_missing_path(self, run, git_repo):
         repo, git = git_repo
-        result = run(block("x", "git", url=repo.as_uri(), layout="gnu", paths=["l10n"]))
+        result = run(block("x", "git", url=repo.as_uri(), files=["l10n/{lang}.po"]))
         assert result.exit_code == 1
-        assert "x: failed:" in result.output and "no directory l10n" in result.output
+        assert "x: failed: no file matches l10n/{lang}.po" in result.output
         assert not run.cache.joinpath("x").exists()
 
     def test_git_unreachable(self, run, tmp_path):
-        result = run(block("x", "git", url=(tmp_path / "missing").as_uri(), layout="gnu"))
+        result = run(block("x", "git", url=(tmp_path / "missing").as_uri(), files=["{lang}.po"]))
         assert result.exit_code == 1
         assert "x: failed: git ls-remote" in result.output
 
@@ -247,6 +252,14 @@ class TestFetch(object):
         assert result.exit_code == 0, result.output
         assert "legacy-2019: 0 files, 0 languages." in result.output
         assert run(text, "--check").output == ""
+
+    def test_select_from_tarballs(self, run, site):
+        root, url = site
+        result = run(block("tp", "translationproject", base_url=url + "/backups/last/",
+                           files=["{lang}/*.po"], exclude=["zu/**"]))
+        assert result.exit_code == 0, result.output
+        assert fetched(run.cache, "tp") == [("af/bash-5.2.af.po", "af")]
+        assert not (run.cache / "tp/zu").exists()
 
     def test_failure_keeps_previous(self, run, site):
         root, url = site
@@ -307,7 +320,7 @@ class TestCheck(object):
 
     def test_git_change(self, run, git_repo):
         repo, git = git_repo
-        text = block("x", "git", url=repo.as_uri(), layout="gnu")
+        text = block("x", "git", url=repo.as_uri(), files=["po/{lang}.po"])
         run(text)
         assert run(text, "--check").output == ""
         (repo / "po/af.po").write_text("af, changed")

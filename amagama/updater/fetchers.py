@@ -84,6 +84,8 @@ class Fetcher(object):
 
     required = ()
     optional = ()
+    # Whether fetch() knows each file's language without a {lang} filemask.
+    gives_language = True
 
     def __init__(self, settings):
         missing = [key for key in self.required if key not in settings]
@@ -193,19 +195,11 @@ class TranslationProject(TarballPerLanguage):
 
 
 class Git(Fetcher):
-    """A shallow clone of one branch or tag.
+    """A shallow clone of one branch or tag; files gives each file's language."""
 
-    layout "gnu" is <dir>/<lang>.po; "nongnu" is <dir>/<lang>/... under each
-    of paths (default: the repository root).
-    """
-
-    required = ("url", "layout")
-    optional = ("ref", "paths")
-
-    def __init__(self, settings):
-        super(Git, self).__init__(settings)
-        if settings["layout"] not in ("gnu", "nongnu"):
-            raise ValueError("layout must be gnu or nongnu")
+    required = ("url",)
+    optional = ("ref",)
+    gives_language = False
 
     def _git(self, *args):
         # Outside any repository, and without a caller's GIT_DIR and friends.
@@ -230,20 +224,7 @@ class Git(Fetcher):
             args += ["--branch", self.settings["ref"]]
         self._git(*(args + [self.settings["url"], dest]))
         shutil.rmtree(os.path.join(dest, ".git"))
-        files = []
-        for top in self.settings.get("paths", ["."]):
-            root = os.path.normpath(os.path.join(dest, top))
-            if not os.path.isdir(root):
-                raise FetchError("%s: no directory %s" % (self.settings["url"], top))
-            for path in files_under(root):
-                if self.settings["layout"] == "gnu":
-                    lang = os.path.splitext(os.path.basename(path))[0]
-                else:
-                    lang = path.split(os.sep)[0]
-                    if lang == path:
-                        continue
-                files.append((os.path.relpath(os.path.join(root, path), dest), lang))
-        return files
+        return [(path, None) for path in files_under(dest)]
 
 
 class Snapshot(Fetcher):

@@ -7,7 +7,8 @@ import shutil
 import tomllib
 
 from amagama.licences import normalise_licence
-from amagama.updater.fetchers import FETCHERS
+from amagama.updater.fetchers import FETCHERS, FetchError
+from amagama.updater.filemask import Selection
 
 DEFAULT_SOURCES = os.path.join(os.path.dirname(__file__), "sources.toml")
 STATE_FILE = "fetched.json"
@@ -15,7 +16,8 @@ STATE_FILE = "fetched.json"
 
 class Block(object):
 
-    def __init__(self, id, name, title, source, version=None, licence=None, **settings):
+    def __init__(self, id, name, title, source, version=None, licence=None, files=None,
+                 exclude=None, **settings):
         self.id = id
         self.name = name
         self.title = title
@@ -23,6 +25,13 @@ class Block(object):
         self.source = source
         self.licence = licence
         self.fetcher = FETCHERS[source](settings)
+        for key, value in (("files", files), ("exclude", exclude)):
+            if value is not None and (not isinstance(value, list) or not value
+                                      or not all(isinstance(mask, str) for mask in value)):
+                raise ValueError("%s must be a list of filemasks" % key)
+        self.selection = Selection(files, exclude)
+        if not self.fetcher.gives_language and not self.selection.gives_language:
+            raise ValueError("files must give each file's language with {lang}")
 
     @property
     def display_title(self):
@@ -62,12 +71,19 @@ class Block(object):
         os.makedirs(new)
         try:
             files = []
-            # Templates are never imported; GNOME repeats them for every language.
+            # Templates (.pot) are never imported; GNOME repeats them for
+            # every language.
             for path, lang in self.fetcher.fetch(new):
-                if path.endswith(".pot"):
+                lang = self.selection.select(path, lang)
+                if lang is None:
                     os.remove(os.path.join(new, path))
                 else:
                     files.append((path, lang))
+            for dirpath, dirnames, filenames in os.walk(new, topdown=False):
+                if dirpath != new and not os.listdir(dirpath):
+                    os.rmdir(dirpath)
+            if self.selection.masks and not files:
+                raise FetchError("no file matches %s" % ", ".join(self.selection.mask_texts))
         except BaseException:
             shutil.rmtree(new, ignore_errors=True)
             raise
