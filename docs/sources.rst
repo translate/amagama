@@ -69,6 +69,12 @@ such as one GNOME release:
 
       languages = { no = "nb", xxx = "" }
 
+``format``
+  Optional reader for the block's files, when their extension doesn't say:
+  ``po``, ``mo``, ``ts``, ``tmx``, ``tbx``, ``xliff``, ``csv`` or
+  ``nextcloud-json`` (Nextcloud's ``l10n/<lang>.json``, keyed by the English
+  text). Without it the extension picks the reader.
+
 Templates (:file:`.pot`) are never imported.
 
 Every language code is turned into one form, language with optional
