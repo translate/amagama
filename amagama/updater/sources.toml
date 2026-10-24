@@ -29,6 +29,10 @@ files = ["source/{lang}/**/*.po"]
 exclude = ["source/*/helpcontent2/**"]
 licence = "MPL-2.0"
 versions = [
+  { version = "24.2", ref = "libreoffice-24-2" },
+  { version = "24.8", ref = "libreoffice-24-8" },
+  { version = "25.2", ref = "libreoffice-25-2" },
+  { version = "25.8", ref = "libreoffice-25-8" },
   { version = "26.2", ref = "libreoffice-26-2" },
   { version = "26.8", ref = "libreoffice-26-8" },
 ]
@@ -43,7 +47,7 @@ files = ["django/conf/locale/{lang}/LC_MESSAGES/*.po",
          "django/contrib/*/locale/{lang}/LC_MESSAGES/*.po"]
 languages = { en = "" }
 licence = "BSD-3-Clause"
-versions = ["6.1"]
+versions = ["5.2", "6.0", "6.1"]
 
 [[block]]
 name = "odoo-{version}"
@@ -53,7 +57,7 @@ url = "https://github.com/odoo/odoo"
 ref = "{version}.0"
 files = ["addons/*/i18n/{lang}.po", "odoo/addons/*/i18n/{lang}.po"]
 licence = "LGPL-3.0-only"
-versions = ["20"]
+versions = ["19", "20"]
 
 [[block]]
 name = "qt-{version}"
@@ -64,7 +68,7 @@ ref = "{version}"
 files = ["translations/*_{lang}.ts"]
 # The open licences the .ts files are offered under (also Qt commercial).
 licence = "LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only"
-versions = ["6.12"]
+versions = ["6.8", "6.11", "6.12"]
 
 [[block]]
 name = "nextcloud-{version}"
@@ -75,7 +79,7 @@ ref = "stable{version}"
 files = ["core/l10n/{lang}.json", "lib/l10n/{lang}.json", "apps/*/l10n/{lang}.json"]
 format = "nextcloud-json"
 licence = "AGPL-3.0-only OR AGPL-3.0-or-later"
-versions = ["35"]
+versions = ["34", "35"]
 
 [[block]]
 name = "mediawiki-{version}"
@@ -88,7 +92,11 @@ format = "json"
 template = "languages/i18n/en.json"
 exclude_ids = ["@metadata*"]
 licence = "GPL-2.0-or-later"
-versions = [{ version = "1.46", ref = "REL1_46" }]
+versions = [
+  { version = "1.43", ref = "REL1_43" },
+  { version = "1.45", ref = "REL1_45" },
+  { version = "1.46", ref = "REL1_46" },
+]
 
 [[block]]
 name = "gnome-circle"
