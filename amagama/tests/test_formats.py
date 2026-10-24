@@ -77,3 +77,46 @@ def test_update_with_format(amagama_config, tmp_path):
     with app.test_client() as client:
         response = client.get("/api/v1/en/af/unit/Save file")
     assert [c["target"] for c in response.get_json()] == ["Stoor lêer"]
+
+
+@pytest.mark.parametrize("text, columns, header_row", [
+    ("Save file,Stoor lêer\n", ["source", "target"], False),
+    ("English,Afrikaans\nSave file,Stoor lêer\n", ["source", "target"], True),
+    ("id,English,Afrikaans\n7,Save file,Stoor lêer\n", ["", "source", "target"], True),
+    # Source in column 3, target in column 5; the rest ignored.
+    ("id,area,English,note,Afrikaans,extra\n7,ui,Save file,button,Stoor lêer,x\n",
+     ["", "", "source", "", "target"], True),
+])
+def test_csv_columns(tmp_path, text, columns, header_row):
+    path = tmp_path / "af.csv"
+    path.write_text(text, encoding="utf-8")
+    store = open_store(str(path), "csv", columns=columns, header_row=header_row)
+    assert [(u.source, u.target) for u in store.units] == [("Save file", "Stoor lêer")]
+
+
+def test_update_csv(amagama_config, tmp_path):
+    repo = tmp_path / "repo"
+    (repo / "glossary").mkdir(parents=True)
+    (repo / "glossary/af.csv").write_text("English,Afrikaans\nSave file,Stoor lêer\n",
+                                          encoding="utf-8")
+
+    def git(*args):
+        subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@example.org",
+                        "-C", str(repo)] + list(args), check=True, capture_output=True)
+    git("init", "-q", "-b", "main")
+    git("add", ".")
+    git("commit", "-q", "-m", "csv")
+    sources = tmp_path / "sources.toml"
+    sources.write_text(block("glossary", "git", url=repo.as_uri(), files=["glossary/{lang}.csv"],
+                             format="csv", columns=["source", "target"], header_row=True))
+    amagama_config(UPDATER_SOURCES=str(sources), UPDATER_CACHE_DIR=str(tmp_path / "cache"),
+                   UPDATER_WORKERS=1)
+    result = CliRunner().invoke(manage, ("update", "-s", "en"))
+    assert result.exit_code == 0, result.output
+    assert "Imported 1 files: 1 units (0 skipped)." in result.output
+    app = amagama_server_factory()
+    with app.test_client() as client:
+        response = client.get("/api/v1/en/af/unit/Save file")
+        assert [c["target"] for c in response.get_json()] == ["Stoor lêer"]
+        assert client.get("/api/v1/en/af/unit/English").status_code == 404 or \
+            client.get("/api/v1/en/af/unit/English").get_json() == []

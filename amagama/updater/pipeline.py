@@ -11,7 +11,8 @@ from amagama.updater.pairing import paired_store
 from amagama.updater.sources import load_sources
 
 
-def import_file(path, slang, tlang, block, licence, format=None, template=None, exclude_ids=()):
+def import_file(path, slang, tlang, block, licence, format=None, template=None, exclude_ids=(),
+                reader_options=None):
     """Import one file into the build schema.
 
     Returns (units, skipped), or a reason the file can't be read; database
@@ -21,7 +22,7 @@ def import_file(path, slang, tlang, block, licence, format=None, template=None, 
     if not lang_to_table(tlang):
         return "unknown language %s" % tlang
     try:
-        store = open_store(path, format)
+        store = open_store(path, format, **(reader_options or {}))
         if template is not None:
             if not os.path.exists(template):
                 return "no English template %s" % os.path.basename(template)
@@ -67,7 +68,7 @@ def _import_task(task):
 
 
 def import_files(tasks, workers):
-    """Import (path, slang, tlang, block, licence, format) tasks; stop on the first error."""
+    """Import import_file() argument tuples; stop on the first error."""
     if workers <= 1:
         return [import_file(*task) for task in tasks]
     with multiprocessing.get_context("spawn").Pool(workers, initializer=_start_worker) as pool:
@@ -125,7 +126,7 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
         for path, lang, *template in block.state(cache_dir)["files"]:
             tasks.append((os.path.join(directory, path), slang, lang, block.name, block.licence,
                           block.format, os.path.join(directory, *template) if template else None,
-                          block.exclude_ids))
+                          block.exclude_ids, block.reader_options))
     results = import_files(tasks, workers)
     counts = [result for result in results if isinstance(result, tuple)]
     out("Imported %d files: %d units (%d skipped)." % (
