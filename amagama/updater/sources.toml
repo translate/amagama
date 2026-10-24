@@ -34,6 +34,15 @@ dirs = ["messages"]
 pause = 1.5
 
 [[block]]
+name = "debian"
+title = "Debian"
+source = "http"
+base_url = "https://i18n.debian.org/compendia/"
+path = "{lang}/compendium-{lang}-LATEST.po"
+# LATEST is missing when msgcat raised no error (Wolof).
+fallback = "{lang}/pre-compendium-{lang}-stamp*.po"
+
+[[block]]
 name = "translationproject"
 title = "Translation Project"
 source = "translationproject"
