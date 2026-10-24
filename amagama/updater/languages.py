@@ -12,23 +12,23 @@ import re
 # Codes ISO 639 replaced.
 RENAMED = {"iw": "he", "in": "id", "ji": "yi", "jw": "jv", "mo": "ro"}
 
-# Script subtags written as a POSIX @modifier, for languages with more than
-# one script in use. A language's usual script is left out (sr-Cyrl is sr).
-SCRIPTS = {
-    ("sr", "latn"): "@latin",
-    ("uz", "cyrl"): "@cyrillic",
-    ("be", "latn"): "@latin",
-    ("ks", "deva"): "@devanagari",
-    ("sd", "deva"): "@devanagari",
+# A language's usual script (CLDR's likely script) is left out: sr-Cyrl is
+# sr. Any other script becomes a POSIX @modifier, so text in two scripts of
+# one language stays apart: sr-Latn is sr@latin, aeb-Arab aeb@arabic.
+USUAL_SCRIPTS = {
+    "az": "latn", "be": "cyrl", "bs": "latn", "ckb": "arab", "ff": "latn", "ha": "latn",
+    "kk": "cyrl", "kmr": "latn", "ks": "arab", "ku": "latn", "ky": "cyrl", "mn": "cyrl",
+    "ms": "latn", "pa": "guru", "sd": "arab", "shi": "tfng", "sr": "cyrl",
+    "tg": "cyrl", "tt": "cyrl", "ug": "arab", "uz": "latn", "yue": "hant",
 }
 
-# Chinese scripts stand for their usual region when the code has none.
+# Scripts written by name in a modifier; others by their lower-case code.
+SCRIPT_NAMES = {"latn": "latin", "cyrl": "cyrillic", "arab": "arabic", "deva": "devanagari"}
+
+# Chinese scripts are left to the region: their usual one if there's none.
 CHINESE = {"hans": "CN", "hant": "TW"}
 
 VARIANTS = {"valencia": "@valencia", "tarask": "@tarask"}
-
-# Modifiers written as script codes (GNOME's sr@Latn).
-MODIFIERS = {"latn": "latin", "cyrl": "cyrillic", "deva": "devanagari"}
 
 _POSIX = re.compile(r"^(?P<lang>[a-z]{2,3})(?:_(?P<region>[A-Za-z]{2}|\d{3}))?"
                     r"(?:@(?P<modifier>[a-z]+))?$", re.IGNORECASE)
@@ -42,7 +42,8 @@ def normalise_language(code):
         lang = RENAMED.get(match["lang"].lower(), match["lang"].lower())
         region = "_" + match["region"].upper() if match["region"] else ""
         modifier = match["modifier"].lower() if match["modifier"] else ""
-        modifier = "@" + MODIFIERS.get(modifier, modifier) if modifier else ""
+        # GNOME writes sr@Latn.
+        modifier = "@" + SCRIPT_NAMES.get(modifier, modifier) if modifier else ""
         return lang + region + modifier
     if code.startswith("b+"):  # Android BCP 47 qualifier
         code = code[2:].replace("+", "-")
@@ -63,10 +64,10 @@ def normalise_language(code):
             continue  # other variants (Mozilla's ja-JP-mac): keep the rest
         else:
             return None
-    if lang == "zh" and script in CHINESE and not region:
-        region = CHINESE[script]
-    else:
-        modifier = SCRIPTS.get((lang, script), "") or modifier
+    if lang == "zh" and script in CHINESE:
+        region = region or CHINESE[script]
+    elif script and script != USUAL_SCRIPTS.get(lang):
+        modifier = "@" + SCRIPT_NAMES.get(script, script)
     return lang + ("_" + region if region else "") + modifier
 
 
