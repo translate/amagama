@@ -1,3 +1,13 @@
+.. image:: https://github.com/translate/amagama/actions/workflows/test.yml/badge.svg?branch=master
+   :target: https://github.com/translate/amagama/actions/workflows/test.yml
+   :alt: Test status
+.. image:: https://codecov.io/gh/translate/amagama/branch/master/graph/badge.svg
+   :target: https://codecov.io/gh/translate/amagama
+   :alt: Coverage
+.. image:: https://img.shields.io/github/license/translate/amagama
+   :target: https://github.com/translate/amagama/blob/master/LICENSE
+   :alt: Licence: GPL-3.0
+
 amaGama: a web translation memory server
 ========================================
 
