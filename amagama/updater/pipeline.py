@@ -9,11 +9,12 @@ from amagama.tmdb import BUILD_PREFIX, OLD_PREFIX, lang_to_table
 from amagama.updater import chromium
 from amagama.updater.formats import CHROMIUM, open_store
 from amagama.updater.pairing import paired_store
+from amagama.updater.segment import segmented
 from amagama.updater.sources import load_sources
 
 
 def import_file(path, slang, tlang, block, licence, format=None, template=None, exclude_ids=(),
-                reader_options=None):
+                reader_options=None, segment=False):
     """Import one file into the build schema.
 
     Returns (units, skipped), or a reason the file can't be read; database
@@ -33,8 +34,13 @@ def import_file(path, slang, tlang, block, licence, format=None, template=None, 
                 store = paired_store(store, open_store(template, format), exclude_ids)
     except Exception as e:
         return "%s: %s" % (type(e).__name__, e)
+    translatable = sum(1 for u in store.units if u.istranslatable())
+    if segment:
+        whole = sum(1 for u in store.units if tmdb._usable_unit(u))
+        store = segmented(store, slang, tlang, tmdb._usable_unit)
     units = tmdb.add_store(store, slang, tlang, commit=False)
-    skipped = sum(1 for u in store.units if u.istranslatable()) - units
+    # Sentence pairs add units; skipped counts the file's own.
+    skipped = translatable - (whole if segment else units)
     tmdb.record_import(slang, tlang, path, file_checksum(path), units, skipped, block, licence)
     return units, skipped
 
@@ -138,7 +144,7 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
         for path, lang, *template in block.state(cache_dir)["files"]:
             tasks.append((os.path.join(directory, path), slang, lang, block.name, block.licence,
                           block.format, os.path.join(directory, *template) if template else None,
-                          block.exclude_ids, block.reader_options))
+                          block.exclude_ids, block.reader_options, block.segment))
     results = import_files(tasks, workers)
     counts = [result for result in results if isinstance(result, tuple)]
     out("Imported %d files: %d units (%d skipped)." % (

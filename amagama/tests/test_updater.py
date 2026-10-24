@@ -174,6 +174,7 @@ class TestSourcesFile(object):
         (block("a", "translationproject", xliff_states=[]), "xliff_states must list"),
         (block("a", "translationproject", refetch_days=-1), "refetch_days must be a whole number"),
         (block("a", "translationproject", refetch_days=1.5), "refetch_days must be a whole number"),
+        (block("a", "translationproject", segment="yes"), "segment must be true or false"),
         (block("a", "translationproject", licence="GPL2"), "not a current SPDX licence expression"),
         ('[[block]\n', "sources.toml"),
         ('[[block]]\nname = "a"\ntitle = " "\nsource = "translationproject"',
