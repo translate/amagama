@@ -7,7 +7,7 @@ Running amaGama
    <installation#requirements>`.
 
 The :command:`amagama` command will try to use the best pure Python WSGI server
-to launch amaGama server listening on port ``8888``. 
+to launch amaGama server listening on port ``8888``.
 
 .. code-block:: bash
 

@@ -54,7 +54,7 @@ def main():
     parser.add_argument(
         "-b", "--bind",
         default="localhost",
-        help="adress to bind server to (default: %(default)s)"
+        help="address to bind server to (default: %(default)s)"
     )
     parser.add_argument(
         "-p", "--port",

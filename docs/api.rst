@@ -125,4 +125,3 @@ An example:
          "rank": 100.0
        }
      ]
-
