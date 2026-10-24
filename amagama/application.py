@@ -21,11 +21,16 @@
 """A translation memory server using tmdb for storage, communicates
 with clients using JSON over HTTP."""
 
+import logging
+
 from flask import Flask
 from flask_caching import Cache
 
 from amagama import tmdb
 from amagama.views import api
+
+# The placeholder in settings.py.
+DEFAULT_SECRET_KEY = "foobar"
 
 
 class AmagamaServer(Flask):
@@ -33,6 +38,9 @@ class AmagamaServer(Flask):
         super(AmagamaServer, self).__init__(*args, **kwargs)
         self.config.from_pyfile(settings)
         self.config.from_envvar('AMAGAMA_CONFIG', silent=True)
+        if self.config.get('SECRET_KEY') == DEFAULT_SECRET_KEY:
+            logging.warning("SECRET_KEY is the placeholder from settings.py; "
+                            "set a long random one in your AMAGAMA_CONFIG file.")
         # tmdb.py caches source-id lookups on current_app.cache; without
         # this, every write-API request (add_unit/add_store/upload_store/
         # etc.) crashes with AttributeError. Defaults to a simple
