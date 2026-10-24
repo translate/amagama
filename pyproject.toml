@@ -61,3 +61,11 @@ omit = ["amagama/tests/*"]
 
 [tool.coverage.report]
 fail_under = 85
+
+[tool.ruff]
+target-version = "py311"
+# Fits the existing long lines (mostly SQL) without reformatting the code.
+line-length = 110
+
+[tool.ruff.lint]
+select = ["E", "F", "W"]

@@ -11,7 +11,9 @@ from amagama.cli import manage
 # The layout created by releases before per-language schemas.
 OLD_LAYOUT = """
 CREATE FUNCTION prepare_ortsquery(text) RETURNS text AS $$
-    SELECT ARRAY_TO_STRING((SELECT ARRAY_AGG(quote_literal(token)) FROM TS_PARSE('default', $1) WHERE tokid != 12), '|');
+    SELECT ARRAY_TO_STRING(
+        (SELECT ARRAY_AGG(quote_literal(token)) FROM TS_PARSE('default', $1) WHERE tokid != 12),
+        '|');
 $$ LANGUAGE SQL;
 CREATE TABLE sources_en (
     sid SERIAL PRIMARY KEY,

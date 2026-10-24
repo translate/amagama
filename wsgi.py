@@ -27,7 +27,7 @@ ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
 sys.path.insert(0, ROOT_DIR)  # Top level directory.
 
 # Keep this import after the path altering.
-import amagama.application
+import amagama.application  # noqa: E402
 
 
 application = amagama.application.amagama_server_factory()

@@ -77,8 +77,8 @@ class TestTMDB(object):
         assert tmdb.min_levenshtein_length(100, 70) == 70
         assert tmdb.max_levenshtein_length(100, 70, 1000) == 142
         # We want these functions to return integers.
-        assert type(tmdb.min_levenshtein_length(100, 70)) == int
-        assert type(tmdb.max_levenshtein_length(100, 70, 1000)) == int
+        assert type(tmdb.min_levenshtein_length(100, 70)) is int
+        assert type(tmdb.max_levenshtein_length(100, 70, 1000)) is int
 
     @pytest.mark.xfail
     def test_ca_valencia(self, amagama):
