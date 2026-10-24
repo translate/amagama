@@ -175,7 +175,7 @@ class TestUpdate(object):
                       {"x!/bash-5.2.x!.po": po("x!", ("Save file", "?"))})
         result = run("update", "-s", "en")
         assert result.exit_code == 0, result.output
-        assert "tp/x!/bash-5.2.x!.po: unknown language x!" in result.output
+        assert "Not language codes in tp, skipped: x!" in result.output
         assert lookup("af", "Save file") == ["Stoor lêer"]
 
     def test_fetch_failure_leaves_live_data(self, run, site, pg_connection):

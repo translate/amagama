@@ -9,6 +9,7 @@ import tomllib
 from amagama.licences import normalise_licence
 from amagama.updater.fetchers import FETCHERS, FetchError
 from amagama.updater.filemask import Selection
+from amagama.updater.languages import map_language
 
 DEFAULT_SOURCES = os.path.join(os.path.dirname(__file__), "sources.toml")
 STATE_FILE = "fetched.json"
@@ -17,7 +18,7 @@ STATE_FILE = "fetched.json"
 class Block(object):
 
     def __init__(self, id, name, title, source, version=None, licence=None, files=None,
-                 exclude=None, **settings):
+                 exclude=None, languages=None, **settings):
         self.id = id
         self.name = name
         self.title = title
@@ -32,6 +33,10 @@ class Block(object):
         self.selection = Selection(files, exclude)
         if not self.fetcher.gives_language and not self.selection.gives_language:
             raise ValueError("files must give each file's language with {lang}")
+        if languages is not None and (not isinstance(languages, dict) or not all(
+                isinstance(value, str) for value in languages.values())):
+            raise ValueError("languages must map codes to codes, or to \"\" to skip")
+        self.languages = languages or {}
 
     @property
     def display_title(self):
@@ -71,14 +76,18 @@ class Block(object):
         os.makedirs(new)
         try:
             files = []
+            unknown = set()
             # Templates (.pot) are never imported; GNOME repeats them for
             # every language.
             for path, lang in self.fetcher.fetch(new):
                 lang = self.selection.select(path, lang)
-                if lang is None:
+                code = lang and map_language(lang, self.languages)
+                if code is None:
+                    if lang and lang not in self.languages:
+                        unknown.add(lang)
                     os.remove(os.path.join(new, path))
                 else:
-                    files.append((path, lang))
+                    files.append((path, code))
             for dirpath, dirnames, filenames in os.walk(new, topdown=False):
                 if dirpath != new and not os.listdir(dirpath):
                     os.rmdir(dirpath)
@@ -92,6 +101,7 @@ class Block(object):
             "fingerprint": fingerprint,
             "fetched": datetime.datetime.now(datetime.timezone.utc).isoformat(),
             "files": sorted(files),
+            "unknown_languages": sorted(unknown),
         }
         with open(os.path.join(new, STATE_FILE), "w", encoding="utf-8") as f:
             json.dump(state, f, indent=1)

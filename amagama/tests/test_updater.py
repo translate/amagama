@@ -30,7 +30,12 @@ def block(name, source, block_id=1, **settings):
     """One [[block]] of a sources file."""
     lines = ['[[block]]', 'id = %d' % block_id, 'title = "%s"' % name,
              'name = "%s"' % name, 'source = "%s"' % source]
-    lines += ['%s = %s' % (key, json.dumps(value)) for key, value in settings.items()]
+    def toml(value):
+        if isinstance(value, dict):
+            return "{%s}" % ", ".join("%s = %s" % (json.dumps(k), json.dumps(v))
+                                      for k, v in value.items())
+        return json.dumps(value)
+    lines += ['%s = %s' % (key, toml(value)) for key, value in settings.items()]
     return "\n".join(lines) + "\n"
 
 
@@ -141,6 +146,7 @@ class TestSourcesFile(object):
         (block("a", "translationproject", files=["../{lang}.po"]), "bad filemask"),
         (block("a", "translationproject", files=["{lang}/{lang}.po"]), "{lang} at most once"),
         (block("a", "translationproject", exclude=["{lang}.po"]), "not in exclude"),
+        (block("a", "translationproject", languages=["af"]), "languages must map codes"),
         (block("a", "translationproject", licence="GPL2"), "not a current SPDX licence expression"),
         ('[[block]\n', "sources.toml"),
         ('[[block]]\nname = "a"\ntitle = "A"\nsource = "translationproject"',
@@ -190,6 +196,34 @@ class TestFetch(object):
         result = run(block("tp", "translationproject", base_url=url + "/backups/last/"))
         assert result.exit_code == 0, result.output
         assert fetched(run.cache, "tp") == [("af/bash-5.2.af.po", "af"), ("zu/bash-5.2.zu.po", "zu")]
+
+    def test_languages_normalised(self, run, git_repo):
+        repo, git = git_repo
+        (repo / "po/pt-BR.po").write_text("pt")
+        (repo / "po/sr-Latn.po").write_text("sr")
+        git("add", ".")
+        git("commit", "-q", "-m", "codes")
+        result = run(block("x", "git", url=repo.as_uri(), files=["po/{lang}.po"],
+                           languages={"zu": ""}))
+        assert result.exit_code == 0, result.output
+        assert fetched(run.cache, "x") == [
+            ("po/af.po", "af"), ("po/pt-BR.po", "pt_BR"), ("po/sr-Latn.po", "sr@latin")]
+        assert "not language codes" not in result.output
+
+    def test_language_overrides(self, run, site):
+        root, url = site
+        result = run(block("tp", "translationproject", base_url=url + "/backups/last/",
+                           languages={"af": "af_ZA", "zu": ""}))
+        assert result.exit_code == 0, result.output
+        assert fetched(run.cache, "tp") == [("af/bash-5.2.af.po", "af_ZA")]
+
+    def test_unknown_language_codes(self, run, site):
+        root, url = site
+        write_tarball(str(root / "backups/last/x!.tgz"), {"x!/bash-5.2.x!.po": "x"})
+        result = run(block("tp", "translationproject", base_url=url + "/backups/last/"))
+        assert result.exit_code == 0, result.output
+        assert "tp: not language codes, skipped: x!" in result.output
+        assert [lang for path, lang in fetched(run.cache, "tp")] == ["af", "zu"]
 
     def test_git(self, run, git_repo):
         repo, git = git_repo
