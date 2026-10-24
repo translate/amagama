@@ -175,6 +175,9 @@ class TestSourcesFile(object):
         (block("a", "translationproject", refetch_days=-1), "refetch_days must be a whole number"),
         (block("a", "translationproject", refetch_days=1.5), "refetch_days must be a whole number"),
         (block("a", "translationproject", segment="yes"), "segment must be true or false"),
+        (block("a", "http", base_url="x", path="all.po"), "path must contain {lang}"),
+        (block("a", "http", base_url="x", path="{lang}.po", fallback="*.po"),
+         "fallback must contain {lang}"),
         (block("a", "translationproject", licence="GPL2"), "not a current SPDX licence expression"),
         ('[[block]\n', "sources.toml"),
         ('[[block]]\nname = "a"\ntitle = " "\nsource = "translationproject"',
@@ -220,6 +223,42 @@ class TestFetch(object):
         ui_block = DamnedLies({"release": "gnome-51", "base_url": url})
         assert help_block.languages() == ["af"]
         assert ui_block.languages() == ["af", "zu"]
+
+    def compendia(self, root):
+        for lang in ("de", "fr"):
+            path = root / "compendia" / lang / ("compendium-%s-LATEST.po" % lang)
+            path.parent.mkdir(parents=True)
+            path.write_text("msgid \"\"\nmsgstr \"\"\n")
+        # Only pre-compendia: the newest is used.
+        for stamp in ("20261023", "20261024"):
+            path = root / "compendia/wo" / ("pre-compendium-wo-stamp%s.po" % stamp)
+            path.parent.mkdir(exist_ok=True)
+            path.write_text("msgid \"\"\nmsgstr \"\"\n")
+        # Listed, but with neither.
+        (root / "compendia/xh").mkdir()
+        return block("debian", "http", base_url=self.url + "/compendia/",
+                     path="{lang}/compendium-{lang}-LATEST.po",
+                     fallback="{lang}/pre-compendium-{lang}-stamp*.po", pause=0)
+
+    def test_http_per_language(self, run, site):
+        root, self.url = site
+        result = run(self.compendia(root))
+        assert result.exit_code == 0, result.output
+        assert fetched(run.cache, "debian") == [
+            ("de/compendium-de-LATEST.po", "de"), ("fr/compendium-fr-LATEST.po", "fr"),
+            ("wo/pre-compendium-wo-stamp20261024.po", "wo")]
+        assert not (run.cache / "debian/xh").exists()
+
+    def test_http_per_language_change(self, run, site):
+        root, self.url = site
+        text = self.compendia(root)
+        run(text)
+        assert run(text, "--check").output == ""
+        path = root / "compendia/fr/compendium-fr-LATEST.po"
+        path.write_text("changed")
+        mtime = os.stat(path).st_mtime + 10
+        os.utime(path, (mtime, mtime))
+        assert run(text, "--check").output == "debian\n"
 
     def test_translationproject(self, run, site):
         root, url = site
