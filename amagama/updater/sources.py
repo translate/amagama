@@ -20,7 +20,8 @@ STATE_FILE = "fetched.json"
 class Block(object):
 
     def __init__(self, id, name, title, source, version=None, licence=None, files=None,
-                 exclude=None, languages=None, format=None, template=None, exclude_ids=None,
+                 exclude=None, keep=None, languages=None, format=None, template=None,
+                 exclude_ids=None,
                  columns=None, header_row=None, xliff_states=None, **settings):
         self.id = id
         self.name = name
@@ -29,11 +30,13 @@ class Block(object):
         self.source = source
         self.licence = licence
         self.fetcher = FETCHERS[source](settings)
-        for key, value in (("files", files), ("exclude", exclude)):
+        for key, value in (("files", files), ("exclude", exclude), ("keep", keep)):
             if value is not None and (not isinstance(value, list) or not value
                                       or not all(isinstance(mask, str) for mask in value)):
                 raise ValueError("%s must be a list of filemasks" % key)
         self.selection = Selection(files, exclude)
+        # Files the import needs beside the translations (.grd parts), not imported.
+        self.keep = [compile_mask(mask, allow_lang=False) for mask in keep or []]
         if not self.fetcher.gives_language and not self.selection.gives_language:
             raise ValueError("files must give each file's language with {lang}")
         if languages is not None and (not isinstance(languages, dict) or not all(
@@ -118,7 +121,8 @@ class Block(object):
             for path, lang in fetched:
                 lang = self.selection.select(path, lang)
                 code = lang and map_language(lang, self.languages)
-                if path in templates:
+                if path in templates or any(mask.match(path.replace("\\", "/"))
+                                            for mask in self.keep):
                     continue
                 if code is None:
                     if lang and lang not in self.languages:

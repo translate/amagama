@@ -61,6 +61,11 @@ such as one GNOME release:
   Optional masks, without ``{lang}``, of files to leave out, such as
   ``["**/qqq.json"]``.
 
+``keep``
+  Optional masks, without ``{lang}``, of files the import needs beside the
+  translations but that aren't imported themselves, such as the
+  :file:`.grdp` parts a Chromium :file:`.grd` includes.
+
 ``languages``
   Optional table of a source's language codes to amaGama's, applied before
   the normalising below; map a code to ``""`` to leave it out:
@@ -78,6 +83,18 @@ such as one GNOME release:
   Monolingual formats hold one language per file, keyed by an id, and need a
   ``template``: ``android`` (:file:`strings.xml`), ``php``, ``properties``,
   ``joomla-ini``, ``json`` (key to message), ``fluent`` and ``dtd``.
+
+  ``xtb`` is Chromium's: each :file:`.xtb` translation is keyed by a
+  fingerprint of the English message, which is in the :file:`.grd` named by
+  ``template`` (and the :file:`.grdp` parts it includes, which ``keep`` must
+  keep):
+
+  .. code-block:: toml
+
+      format = "xtb"
+      files = ["*/strings/translations/*_{lang}.xtb"]
+      template = "*/strings/*.grd"
+      keep = ["**/*.grdp"]
 
 ``template``
   For a monolingual format, the English file each translation pairs with by
