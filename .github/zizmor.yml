@@ -1,0 +1,12 @@
+rules:
+  # SHA-pinning every action is a larger change across all workflows,
+  # tracked separately, as in Virtaal.
+  unpinned-uses:
+    disable: true
+  # No workflow uploads the checkout as an artifact, so the persisted
+  # token can't leak that way.
+  artipacked:
+    disable: true
+  # The grouped Dependabot schedules are intentional.
+  dependabot-cooldown:
+    disable: true

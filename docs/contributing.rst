@@ -19,10 +19,12 @@ Coding style
 
 Please follow the :ref:`Translate Toolkit Style Guide <toolkit:styleguide>`.
 
-Code is linted with `ruff <https://docs.astral.sh/ruff/>`_. Install the git
-pre-commit hook once per checkout with `prek <https://github.com/j178/prek>`_
-(installed by ``requirements/dev.txt``; `pre-commit <https://pre-commit.com>`_
-reads the same config) so it runs on every commit:
+Every commit is checked by the hooks in ``.pre-commit-config.yaml``: ruff,
+codespell, whitespace and file checks, the GitHub workflow files (zizmor and
+their schema) and the commit message (gitlint). Install them once per checkout
+with `prek <https://github.com/j178/prek>`_ (installed by
+``requirements/dev.txt``; `pre-commit <https://pre-commit.com>`_ reads the same
+config); CI runs the same hooks:
 
 .. code-block:: bash
 
