@@ -173,6 +173,8 @@ class TestSourcesFile(object):
          "xliff_states is for XLIFF files only"),
         (block("a", "translationproject", xliff_states=["done"]), "xliff_states must list"),
         (block("a", "translationproject", xliff_states=[]), "xliff_states must list"),
+        (block("a", "translationproject", refetch_days=-1), "refetch_days must be a whole number"),
+        (block("a", "translationproject", refetch_days=1.5), "refetch_days must be a whole number"),
         (block("a", "translationproject", licence="GPL2"), "not a current SPDX licence expression"),
         ('[[block]\n', "sources.toml"),
         ('[[block]]\nname = "a"\ntitle = "A"\nsource = "translationproject"',

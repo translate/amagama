@@ -102,12 +102,18 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
     if not changed and not force:
         out("Nothing changed.")
         return False
+    same = []
     for block in changed:
         state = block.fetch(cache_dir)
-        out("Fetched %s: %d files." % (block.name, len(state["files"])))
+        same.append(state["same_as_last"])
+        out("Fetched %s: %d files%s." % (block.name, len(state["files"]),
+                                        ", as last time" if state["same_as_last"] else ""))
         if state["unknown_languages"]:
             out("Not language codes in %s, skipped: %s" % (
                 block.name, ", ".join(state["unknown_languages"])))
+    if same and all(same) and not force:
+        out("Nothing changed.")
+        return False
 
     tmdb.use_schemas(BUILD_PREFIX)
     tmdb.drop_db([slang])
