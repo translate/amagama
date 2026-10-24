@@ -3,13 +3,17 @@
 amaGama API
 ***********
 
+amaGama answers HTTP requests with JSON. The API lives under ``/api/v1/``;
+``/tmserver/`` is the older path to the same read API and still works.
+
+
 .. _api#tm-suggestion-request:
 
 TM suggestion request
 =====================
 
-The URL structure for requesting TM suggestions is
-``<SERVER>/tmserver/<SOURCE_LANGUAGE>/<TARGET_LANGUAGE>/unit/<QUERY>`` where:
+Request TM suggestions with a ``GET`` of
+``<SERVER>/api/v1/<SOURCE_LANGUAGE>/<TARGET_LANGUAGE>/unit/<QUERY>``, where:
 
 +-------------------+---------------------------------------+
 | Placeholder       | Description                           |
@@ -35,7 +39,12 @@ The URL structure for requesting TM suggestions is
 
 For example::
 
-    https://amagama-live.translatehouse.org/tmserver/en/af/unit/Computer
+    https://amagama-live.translatehouse.org/api/v1/en/af/unit/Computer
+
+The string can also be passed as ``source`` in the query string, which avoids
+problems with ``/`` in the string on some web servers::
+
+    https://amagama-live.translatehouse.org/api/v1/en/af/unit/?source=Open%2FSave
 
 
 .. _api#providing-options:
@@ -44,9 +53,8 @@ Providing options
 +++++++++++++++++
 
 It is possible to provide some options in the request URL by using a `query
-string <https://en.wikipedia.org/wiki/Query_string>`_ with one or more or the
+string <https://en.wikipedia.org/wiki/Query_string>`_ with one or more of the
 following fields.
-
 
 +-------------------+-------------------------------------------+
 | Option            | Description                               |
@@ -54,17 +62,33 @@ following fields.
 | min_similarity    | The minimum similarity between the string |
 |                   | to be searched and the strings to match.  |
 |                   | See :ref:`Levenshtein distance            |
-|                   | <toolkit:levenshtein_distance>`. Minimum  |
-|                   | possible value is 30. Default value is 70.|
+|                   | <toolkit:levenshtein_distance>`. Values   |
+|                   | below 70 are raised to 70. Default:       |
+|                   | :setting:`MIN_SIMILARITY` (70).           |
 +-------------------+-------------------------------------------+
-| max_candidates    | The maximum number of results. Default    |
-|                   | value is 5.                               |
+| max_candidates    | The maximum number of results, at most    |
+|                   | 30. Default: :setting:`MAX_CANDIDATES`    |
+|                   | (5).                                      |
 +-------------------+-------------------------------------------+
-
+| style             | The project's checker style, so that      |
+|                   | accelerators and similar markup are       |
+|                   | matched as that project writes them (``&``|
+|                   | for KDE, ``_`` for GNOME). One of:        |
+|                   | creativecommons, drupal, gnome, ios, kde, |
+|                   | libreoffice, minimal, mozilla, openoffice,|
+|                   | reduced, standard, terminology, wx.       |
++-------------------+-------------------------------------------+
+| jsoncallback      | Wrap the reply in a call to this          |
+|                   | JavaScript function (JSONP).              |
++-------------------+-------------------------------------------+
 
 For example::
 
-    https://amagama-live.translatehouse.org/tmserver/en/gl/unit/window?min_similarity=31&max_candidates=500
+    https://amagama-live.translatehouse.org/api/v1/en/af/unit/File?style=gnome&max_candidates=10
+
+A request returns 404 if the source language isn't in the database, if the
+source and target languages are the same, or if no string is given. Replies
+may be cached for an hour (``Cache-Control: max-age=3600, public``).
 
 
 .. _api#tm-suggestion-results:
@@ -80,7 +104,7 @@ list containing zero or more results. The results contain the following fields:
 +===========+=======================================+
 | source    | Matching unit's source language text  |
 +-----------+---------------------------------------+
-| target    | Matching unit's target language test  |
+| target    | Matching unit's target language text  |
 +-----------+---------------------------------------+
 | quality   | A Levenshtein distance measure of     |
 |           | quality as percent                    |
@@ -125,3 +149,42 @@ An example:
          "rank": 100.0
        }
      ]
+
+
+.. _api#languages:
+
+Available languages
+===================
+
+``GET <SERVER>/api/v1/languages/`` lists the languages in the database:
+
+.. code-block:: json
+
+    {
+      "sourceLanguages": ["en"],
+      "targetLanguages": ["af", "ar", "de"]
+    }
+
+
+.. _api#write:
+
+Adding translations
+===================
+
+When :setting:`ENABLE_DATA_ALTERING_API` is on (it is off by default), the
+API also accepts translations. ``style`` can be passed as for lookups.
+
++--------+-------------------------------------+---------------------------------+
+| Method | Path                                | Body                            |
++========+=====================================+=================================+
+| PUT or | ``/api/v1/<SRC>/<TGT>/unit/<QUERY>``| JSON object with ``source`` and |
+| POST   |                                     | ``target``                      |
++--------+-------------------------------------+---------------------------------+
+| POST   | ``/api/v1/<SRC>/<TGT>/store/<NAME>``| JSON list of objects with       |
+|        |                                     | ``source`` and ``target``       |
++--------+-------------------------------------+---------------------------------+
+| PUT    | ``/api/v1/<SRC>/<TGT>/store/<NAME>``| A translation file; its format  |
+|        |                                     | is taken from ``<NAME>``        |
++--------+-------------------------------------+---------------------------------+
+
+The store requests reply ``added <N> units from <NAME>``.
