@@ -1,6 +1,7 @@
 """The sources file: which blocks of translations to fetch, and from where."""
 
 import datetime
+import hashlib
 import json
 import os
 import shutil
@@ -21,8 +22,8 @@ class Block(object):
 
     def __init__(self, id, name, title, source, version=None, licence=None, files=None,
                  exclude=None, keep=None, languages=None, format=None, template=None,
-                 exclude_ids=None,
-                 columns=None, header_row=None, xliff_states=None, **settings):
+                 exclude_ids=None, columns=None, header_row=None, xliff_states=None,
+                 refetch_days=30, **settings):
         self.id = id
         self.name = name
         self.title = title
@@ -65,6 +66,9 @@ class Block(object):
         check_xliff_states(format, xliff_states)
         self.reader_options = {"columns": columns, "header_row": bool(header_row),
                                "xliff_states": xliff_states}
+        if type(refetch_days) is not int or refetch_days < 0:
+            raise ValueError("refetch_days must be a whole number of days")
+        self.refetch_days = refetch_days
 
     def template_for(self, path):
         """The English template path for a selected file, if the block pairs."""
@@ -92,13 +96,20 @@ class Block(object):
             return None
 
     def changed(self, cache_dir):
-        """Whether the source differs from the last fetch.
+        """Whether the source may differ from the last fetch.
 
-        A source without a usable fingerprint always counts as changed.
+        A source without a usable fingerprint counts as changed once its last
+        fetch is refetch_days old; fetch() then tells whether it really did.
         """
         state = self.state(cache_dir)
+        if state is None:
+            return True
         fingerprint = self.fetcher.fingerprint()
-        return fingerprint is None or state is None or state["fingerprint"] != fingerprint
+        if fingerprint is None:
+            fetched = datetime.datetime.fromisoformat(state["fetched"])
+            age = datetime.datetime.now(datetime.timezone.utc) - fetched
+            return age >= datetime.timedelta(days=self.refetch_days)
+        return state["fingerprint"] != fingerprint
 
     def fetch(self, cache_dir):
         """Fetch into the cache, replacing the last fetch only on success.
@@ -140,9 +151,17 @@ class Block(object):
         except BaseException:
             shutil.rmtree(new, ignore_errors=True)
             raise
+        content = hashlib.sha256()
+        for entry in sorted(files):
+            content.update(json.dumps(entry).encode("utf-8"))
+            with open(os.path.join(new, entry[0]), "rb") as f:
+                content.update(hashlib.sha256(f.read()).digest())
+        previous = self.state(cache_dir)
         state = {
             "block": self.name,
             "fingerprint": fingerprint,
+            "content": content.hexdigest(),
+            "same_as_last": bool(previous) and previous.get("content") == content.hexdigest(),
             "fetched": datetime.datetime.now(datetime.timezone.utc).isoformat(),
             "files": sorted(files),
             "unknown_languages": sorted(unknown),

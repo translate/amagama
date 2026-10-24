@@ -137,6 +137,10 @@ such as one GNOME release:
 
       xliff_states = ["none", "translated", "final", "signed-off"]
 
+``refetch_days``
+  For a source whose server gives no fingerprint: how many days after a fetch
+  it counts as changed again (default 30).
+
 ``exclude_ids``
   Optional patterns of message ids to leave out when pairing, such as
   ``["@metadata*"]`` (MediaWiki) or ``["*.description"]`` (Signal). JSON ids
@@ -190,5 +194,10 @@ release's translation statistics (one request; a reworded translation alone
 doesn't change them), for ``translationproject`` the ETag or Last-Modified
 header of every tarball, for ``git`` the commit of the ref. ``fetch_sources
 --check`` recomputes it without downloading and lists the blocks whose
-fingerprint changed. A server that sends neither header makes its block count
-as changed every time.
+fingerprint changed.
+
+A server that sends neither header gives no fingerprint: such a block counts
+as changed once its last fetch is ``refetch_days`` old (default 30; 0 for
+every run). Every fetch also records a hash of the files it kept, and when
+all the blocks :ref:`update <managing#update>` fetched are the same as last
+time, it doesn't rebuild.

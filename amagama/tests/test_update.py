@@ -116,8 +116,10 @@ class TestUpdate(object):
         assert lookup("af", "Save file") == ["Stoor lêer"]
         assert schemas(pg_connection) == {"en", "_old_en"}
         # Only the last copy is kept for rollback.
+        write_gnome(root, "af", ("Open file", "Lêer oopmaak"))
         write_stats(root, af=3, zu=1)
         run("update", "-s", "en")
+        assert lookup("af", "Open file") == ["Lêer oopmaak"]
         assert schemas(pg_connection) == {"en", "_old_en"}
         assert run("swap_db", "-s", "en", "--rollback").exit_code == 0
         assert lookup("af", "Open file") == ["Open lêer"]
