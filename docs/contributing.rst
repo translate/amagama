@@ -19,6 +19,21 @@ Coding style
 
 Please follow the :ref:`Translate Toolkit Style Guide <toolkit:styleguide>`.
 
+Code is linted with `ruff <https://docs.astral.sh/ruff/>`_. Install the git
+pre-commit hook once per checkout with `prek <https://github.com/j178/prek>`_
+(installed by ``requirements/dev.txt``; `pre-commit <https://pre-commit.com>`_
+reads the same config) so it runs on every commit:
+
+.. code-block:: bash
+
+    $ prek install
+
+To check the whole tree:
+
+.. code-block:: bash
+
+    $ prek run --all-files
+
 
 TODO
 ----

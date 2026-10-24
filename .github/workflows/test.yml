@@ -68,8 +68,18 @@ jobs:
       - run: pip install Sphinx
       - run: make docs
 
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+      - run: pip install ruff==0.16.4
+      - run: ruff check --output-format=github .
+
   checks:
-    needs: [test, package, docs]
+    needs: [test, package, docs, lint]
     if: always()
     runs-on: ubuntu-latest
     steps:

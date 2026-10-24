@@ -35,6 +35,7 @@ recommended = [
 dev = [
     "amagama[recommended]",
     "numpy",
+    "prek",
     "ruff",
     "Sphinx>=1.1",
     "pytest",
