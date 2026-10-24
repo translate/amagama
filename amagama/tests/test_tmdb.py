@@ -29,6 +29,33 @@ class TestTMDB(object):
             targets = amagama.tmdb.available_languages['targetLanguages']
             assert targets == []
 
+    def test_add_empty_store(self, amagama):
+        from translate.storage.po import pofile
+        with amagama.app_context():
+            assert amagama.tmdb.add_store(pofile(), 'en', 'af') == 0
+
+    def test_get_sid_not_cached(self, amagama):
+        with amagama.app_context():
+            amagama.tmdb.add_test_unit('Network', 'Netwerk')
+            amagama.cache.clear()
+            cursor = amagama.tmdb.get_cursor(amagama.tmdb.schema('en'))
+            unit = {'source': 'Network', 'source_lang': 'en'}
+            sid = amagama.tmdb.get_sid(unit, cursor)
+            key = tmdb.build_cache_key('Network', amagama.tmdb.schema('en'))
+            assert amagama.cache.get(key) == sid
+
+    def test_get_sid_missing(self, amagama):
+        with amagama.app_context():
+            cursor = amagama.tmdb.get_cursor(amagama.tmdb.schema('en'))
+            with pytest.raises(Exception, match="sid not found"):
+                amagama.tmdb.get_sid({'source': 'Network', 'source_lang': 'en'}, cursor)
+
+    def test_translate_bytes(self, amagama):
+        with amagama.app_context():
+            amagama.tmdb.add_test_unit('Café', 'Kafee')
+            result0 = amagama.tmdb.translate_unit('Café'.encode('utf-8'), 'en', 'af')[0]
+            assert result0['target'] == 'Kafee'
+
     def test_translate_unit(self, amagama):
         with amagama.app_context():
             amagama.tmdb.add_test_unit('Network', 'Netwerk')

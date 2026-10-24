@@ -21,6 +21,12 @@ class TestURLs(object):
         assert response.status_code == 200
         assert b"Search" in response.data
 
+    def test_debug_json_is_indented(self, amagama):
+        amagama.config['DEBUG'] = True
+        response = amagama.test_client().get('/api/v1/languages/')
+        assert response.status_code == 200
+        assert b'\n    "' in response.data
+
     def test_languages(self, amagama):
         client = amagama.test_client()
         response = client.get('/tmserver/languages/')
