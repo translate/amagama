@@ -15,9 +15,11 @@ import types
 
 import pytest
 from click.testing import CliRunner
+from translate.storage import factory
 
 from amagama.application import amagama_server_factory
 from amagama.cli import manage
+from amagama.updater import formats
 
 
 PO_FILE = '''msgid ""
@@ -77,6 +79,27 @@ class TestCLI(object):
                      '-i', str(po_dir / 'af.po'))
         assert result.exit_code == 0, result.output
         assert lookup('Open file') == [('Open file', 'Maak lêer oop')]
+
+    def test_build_tmdb_xliff_in_pieces(self, run, tmp_path, monkeypatch):
+        monkeypatch.setattr(formats, 'XLIFF_PIECE_SIZE', 200)
+        units = ''.join('<trans-unit id="%d"><source>Open file %d</source>'
+                        '<target state="translated">Maak lêer %d oop</target></trans-unit>'
+                        % (i, i, i) for i in range(10))
+        path = tmp_path / 'corpus.xlf'
+        path.write_text('<?xml version="1.0" encoding="UTF-8"?><xliff version="1.2" '
+                        'xmlns="urn:oasis:names:tc:xliff:document:1.2"><file original="x" '
+                        'source-language="en" target-language="af" datatype="plaintext">'
+                        '<body>%s</body></file></xliff>' % units, encoding='utf-8')
+        assert len(list(formats.xliff_pieces(str(path)))) > 1
+
+        def read_whole(*args):
+            raise AssertionError("read whole")
+        monkeypatch.setattr(factory, 'getobject', read_whole)
+        run('initdb', '-s', 'en')
+        result = run('build_tmdb', '-s', 'en', '-i', str(path))
+        assert result.exit_code == 0, result.output
+        for i in (0, 9):
+            assert ('Open file %d' % i, 'Maak lêer %d oop' % i) in lookup('Open file %d' % i)
 
     def test_build_tmdb_language_from_file_name(self, run, po_dir):
         # Without -t, the target language comes from the file name.
