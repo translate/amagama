@@ -36,7 +36,7 @@ files it includes); a block's own settings take precedence. ``name`` and
 
     [defaults]
     source = "git"
-    min_days = 60
+    min_age_days = 60
 
 ``name``
   The block's fixed reference: it names the block's directory in the cache
@@ -201,15 +201,15 @@ files it includes); a block's own settings take precedence. ``name`` and
   (an element around the whole message, such as LibreOffice's ``<ahelp>``,
   is set aside first). The whole message is imported too.
 
-``refetch_days``
+``max_age_days``
   For a source whose server gives no fingerprint: how many days after a fetch
   it counts as changed again (default 30).
 
-``min_days``
+``min_age_days``
   Days after a fetch before the block is checked again at all (default 0):
   for many small sources, so each is fetched at most that often. Blocks
   first fetched together would all come due on one day, so a block's first
-  refetch comes after a part of ``min_days`` fixed by its name, which keeps
+  refetch comes after a part of ``min_age_days`` fixed by its name, which keeps
   them spread out.
 
 ``exclude_ids``
@@ -368,7 +368,7 @@ JSON on ``googlesource.com``, where ``ls-remote`` is too costly).
 blocks whose fingerprint changed.
 
 A server that sends neither header gives no fingerprint: such a block counts
-as changed once its last fetch is ``refetch_days`` old (default 30; 0 for
+as changed once its last fetch is ``max_age_days`` old (default 30; 0 for
 every run). Every fetch also records a hash of the files it kept, and when
 all the blocks :ref:`update <managing#update>` fetched are the same as last
 time, it doesn't rebuild.

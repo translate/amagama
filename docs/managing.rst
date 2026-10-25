@@ -317,5 +317,5 @@ slugs matching a glob, and ``--docs`` marks documentation projects for
 ``segment``. Left out, and counted: glossaries, components whose source isn't
 English, formats amaGama doesn't read, no-derivatives licences, repositories
 another block already imports, and blocks that wouldn't load. The file's
-``[defaults]`` give every block ``source = "git"`` and ``min_days`` from
-``--min-days`` (default 60).
+``[defaults]`` give every block ``source = "git"`` and ``min_age_days`` from
+``--min-age-days`` (default 60).

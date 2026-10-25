@@ -38,10 +38,10 @@ def site(tmp_path):
 def update(amagama_config, tmp_path, site):
     root, url = site
 
-    def update(refetch_days, *args):
+    def update(max_age_days, *args):
         sources = tmp_path / "sources.toml"
         sources.write_text(block("tp", "translationproject", base_url=url,
-                                 refetch_days=refetch_days))
+                                 max_age_days=max_age_days))
         amagama_config(UPDATER_SOURCES=str(sources), UPDATER_CACHE_DIR=str(tmp_path / "cache"),
                        UPDATER_WORKERS=1)
         return CliRunner().invoke(manage, ("update", "-s", "en") + args)
@@ -62,7 +62,7 @@ def old_copy(pg_connection):
     return found
 
 
-def test_not_refetched_within_refetch_days(update):
+def test_not_refetched_within_max_age_days(update):
     assert update(30).exit_code == 0
     result = update(30)
     assert result.output == "Nothing changed.\n"

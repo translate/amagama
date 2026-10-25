@@ -173,8 +173,8 @@ class TestSourcesFile(object):
          "xliff_states is for XLIFF files only"),
         (block("a", "translationproject", xliff_states=["done"]), "xliff_states must list"),
         (block("a", "translationproject", xliff_states=[]), "xliff_states must list"),
-        (block("a", "translationproject", refetch_days=-1), "refetch_days must be a whole number"),
-        (block("a", "translationproject", refetch_days=1.5), "refetch_days must be a whole number"),
+        (block("a", "translationproject", max_age_days=-1), "max_age_days must be a whole number"),
+        (block("a", "translationproject", max_age_days=1.5), "max_age_days must be a whole number"),
         (block("a", "translationproject", segment="yes"), "segment must be true or false"),
         (block("a", "git", url="x", files=["{lang}.po"], sparse="*.po"),
          "sparse must be a list of patterns"),
@@ -198,12 +198,12 @@ class TestSourcesFile(object):
 
     def test_defaults(self, tmp_path):
         (tmp_path / "sources.toml").write_text(
-            'include = ["w.toml"]\n[defaults]\nsource = "translationproject"\nmin_days = 60\n'
+            'include = ["w.toml"]\n[defaults]\nsource = "translationproject"\nmin_age_days = 60\n'
             '[[block]]\nname = "a"\ntitle = "A"\n'
-            '[[block]]\nname = "b"\ntitle = "B"\nmin_days = 7\n')
+            '[[block]]\nname = "b"\ntitle = "B"\nmin_age_days = 7\n')
         (tmp_path / "w.toml").write_text(block("c", "translationproject"))
         blocks = {b.name: b for b in load_sources(str(tmp_path / "sources.toml"))}
-        assert {name: (b.source, b.min_days) for name, b in blocks.items()} == {
+        assert {name: (b.source, b.min_age_days) for name, b in blocks.items()} == {
             "a": ("translationproject", 60), "b": ("translationproject", 7),
             # An included file's blocks don't take the including file's defaults.
             "c": ("translationproject", 0)}
@@ -535,9 +535,9 @@ class TestCheck(object):
         git("commit", "-q", "-am", "two")
         assert run(text, "--check").output == "x\n"
 
-    def test_min_days(self, run, git_repo, monkeypatch):
+    def test_min_age_days(self, run, git_repo, monkeypatch):
         repo, git = git_repo
-        text = block("x", "git", url=repo.as_uri(), files=["po/{lang}.po"], min_days=10)
+        text = block("x", "git", url=repo.as_uri(), files=["po/{lang}.po"], min_age_days=10)
         run(text)
         (repo / "po/af.po").write_text("af, changed")
         git("commit", "-q", "-am", "two")
@@ -558,7 +558,7 @@ class TestCheck(object):
 
     def test_first_rest_staggered(self):
         def rest(name, fetches):
-            b = load_sources_text(block(name, "translationproject", min_days=60))[0]
+            b = load_sources_text(block(name, "translationproject", min_age_days=60))[0]
             return b.rest({"fetches": fetches}).days
         firsts = {rest("w%d" % i, 1) for i in range(20)}
         # Spread over the period, the same each time for a block.
@@ -587,7 +587,7 @@ url = "https://example.org/translations"
 ref = "release-{version}"
 files = ["source/{lang}/{version}/*.po"]
 languages = { xx = "x-{version}" }
-refetch_days = 7
+max_age_days = 7
 versions = ["26.2", { version = "26.8", ref = "libreoffice-26-8" }]
 ''')
         assert [(b.name, b.version, b.display_title) for b in blocks] == [
@@ -596,7 +596,7 @@ versions = ["26.2", { version = "26.8", ref = "libreoffice-26-8" }]
         # {version} is filled inside lists and tables; {lang} is left for the filemask.
         assert blocks[0].selection.mask_texts == ["source/{lang}/26.2/*.po"]
         assert blocks[1].languages == {"xx": "x-26.8"}
-        assert [b.refetch_days for b in blocks] == [7, 7]
+        assert [b.max_age_days for b in blocks] == [7, 7]
 
     @pytest.mark.parametrize("versions, error", [
         ('"51"', "versions must be a list"),
