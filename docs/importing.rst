@@ -63,3 +63,10 @@ anything is loaded:
         --licence GPL-2.0-or-later
 
 :ref:`tmdb_stats <managing#tmdb-stats>` summarises the imports by block.
+
+Each translation is linked to every import that supplied it, in the
+``target_imports`` table, so a lookup lists its blocks in :ref:`sources
+<api#tm-suggestion-results>`. A translation found again in a later import gets
+another link, not another copy. A :ref:`loaded snapshot <managing#load-snapshot>`
+links its translations to the snapshot's own import. A schema made before
+the links existed still serves, with empty ``sources``.

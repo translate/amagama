@@ -84,6 +84,8 @@ def _import_file(path, recorded, slang, tlang, block, licence, format, template,
                 stores = (without_ids(store, exclude_ids) for store in stores)
     except Exception as e:
         return "%s: %s" % (type(e).__name__, e)
+    # The row goes first, so the targets can link to it.
+    iid = tmdb.start_import(slang, tlang, recorded, block, licence)
     units = skipped = 0
     for store in stores:
         # Entries left out for not decoding are skipped too.
@@ -92,13 +94,13 @@ def _import_file(path, recorded, slang, tlang, block, licence, format, template,
         if segment:
             whole = sum(1 for u in store.units if tmdb._usable_unit(u))
             store = segmented(store, slang, tlang, tmdb._usable_unit)
-        added = tmdb.add_store(store, slang, tlang, commit=in_pieces)
+        added = tmdb.add_store(store, slang, tlang, commit=in_pieces, iid=iid)
         units += added
         # Sentence pairs add units; skipped counts the file's own.
         skipped += translatable - (whole if segment else added)
         # Let this piece go before the next is read.
         del store
-    tmdb.record_import(slang, tlang, recorded, file_checksum(path), units, skipped, block, licence)
+    tmdb.finish_import(slang, iid, units, skipped, file_checksum(path))
     return units, skipped
 
 
