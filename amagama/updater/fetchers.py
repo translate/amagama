@@ -301,6 +301,51 @@ class HttpPerLanguage(Fetcher):
         return files
 
 
+class Pontoon(Fetcher):
+    """Mozilla's Pontoon: each locale's whole translation memory as TMX.
+
+    Pontoon keeps a translation in its memory once it is approved. Locales
+    with fewer than min_approved approved strings are skipped. The files are
+    generated on request, with no fingerprint. Downloads are pause seconds
+    apart.
+    """
+
+    optional = ("base_url", "min_approved", "pause")
+
+    @property
+    def base_url(self):
+        return self.settings.get("base_url", "https://pontoon.mozilla.org").rstrip("/")
+
+    def languages(self):
+        if not hasattr(self, "_languages"):
+            codes = []
+            url = "%s/api/v2/locales/?page_size=500" % self.base_url
+            while url:
+                try:
+                    page = json.loads(http_text(url))
+                    codes += [locale["code"] for locale in page["results"]
+                              if locale["approved_strings"] >= self.settings.get("min_approved", 1)]
+                except (ValueError, KeyError, TypeError) as e:
+                    raise FetchError("%s: %s" % (url, e))
+                url = page.get("next")
+            self._languages = sorted(codes)
+        return self._languages
+
+    def fingerprint(self):
+        return None
+
+    def fetch(self, dest):
+        files = []
+        for lang in self.languages():
+            path = posixpath.join(lang, "%s.all-projects.tmx" % lang)
+            os.makedirs(os.path.join(dest, lang))
+            download("%s/translation-memory/%s.all-projects.tmx"
+                     % (self.base_url, urllib.parse.quote(lang)), os.path.join(dest, path))
+            files.append((path, lang))
+            time.sleep(self.settings.get("pause", 1))
+        return files
+
+
 class Git(Fetcher):
     """A shallow clone of one branch or tag; files gives each file's language."""
 
@@ -388,6 +433,7 @@ FETCHERS = {
     "translationproject": TranslationProject,
     "git": Git,
     "http": HttpPerLanguage,
+    "pontoon": Pontoon,
     "svn": Svn,
     "snapshot": Snapshot,
 }

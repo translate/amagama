@@ -226,6 +226,13 @@ Source types
   ``["messages"]``; ``pause`` (default 1) is the seconds between exports, to
   go easy on a shared server. Needs the ``svn`` command.
 
+``pontoon``
+  Mozilla's `Pontoon <https://pontoon.mozilla.org>`_: each locale's whole
+  translation memory as one TMX file, holding only approved translations,
+  for every locale with at least ``min_approved`` (default 1) approved
+  strings. ``base_url`` can name another Pontoon; ``pause`` (default 1) is
+  the seconds between downloads.
+
 ``snapshot``
   Data kept in the database by :ref:`snapshot_db <managing#snapshot-db>`,
   named by ``snapshot``; nothing is downloaded and it never changes.
@@ -239,7 +246,8 @@ Change detection
 
 Each fetch records a fingerprint of the block: for ``damned-lies`` the
 release's translation statistics (one request; a reworded translation alone
-doesn't change them), for ``translationproject`` the ETag or Last-Modified
+doesn't change them), for ``pontoon`` none (its files are generated on
+request), for ``translationproject`` the ETag or Last-Modified
 header of every tarball, for ``git`` the commit of the ref. ``fetch_sources
 --check`` recomputes it without downloading and lists the blocks whose
 fingerprint changed.
