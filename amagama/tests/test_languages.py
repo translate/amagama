@@ -1,6 +1,6 @@
 import pytest
 
-from amagama.updater.languages import map_language, normalise_language
+from amagama.updater.languages import is_android_locale, map_language, normalise_language
 
 
 @pytest.mark.parametrize("code, expected", [
@@ -69,3 +69,20 @@ def test_overrides():
     assert map_language("pt", overrides) == "pt_PT"
     assert map_language("pt-rBR", overrides) == "pt_BR"
     assert map_language("de") == "de"
+
+
+@pytest.mark.parametrize("qualifier, expected", [
+    ("af", True),
+    ("pt-rBR", True),
+    ("b+sr+Latn", True),
+    ("b+fr+Latn+CA", True),
+    ("af-watch", False),
+    ("fr-feminine", False),
+    ("b+sr+Latn-television", False),
+    ("en-rGB-land", False),
+    ("en-rXC", False),
+    ("ar-rXB", False),
+    ("night", False),
+])
+def test_android_locale(qualifier, expected):
+    assert is_android_locale(qualifier) == expected

@@ -123,6 +123,8 @@ def test_update_android(update, tmp_path):
         "res/values-af/strings.xml": android("save", "Stoor lêer"),
         "res/values-pt-rBR/strings.xml": android("save", "Salvar arquivo"),
         "res/values-night/strings.xml": android("save", "Save file"),
+        "res/values-af-watch/strings.xml": android("save", "Stoor"),
+        "res/values-en-rXC/strings.xml": android("save", "[Šåvé ƒîļé]"),
     })
     result = update(block("android", "git", url=url, format="android",
                           files=["res/values-{lang}/strings.xml"],
@@ -131,6 +133,7 @@ def test_update_android(update, tmp_path):
     assert "Imported 2 files: 2 units (0 skipped)." in result.output
     assert lookup("af", "Save file") == ["Stoor lêer"]
     assert lookup("pt_BR", "Save file") == ["Salvar arquivo"]
+    assert lookup("en_XC", "Save file") == []
 
 
 def test_update_json_template_among_files(update, tmp_path):

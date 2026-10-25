@@ -80,3 +80,18 @@ def map_language(code, overrides=None):
     if overrides and code in overrides:
         return overrides[code] or None
     return normalise_language(code)
+
+
+# Android's pseudo-locales: generated test text, not translations.
+ANDROID_PSEUDO = {"en-rXA", "ar-rXB", "en-rXC"}
+
+_ANDROID_LOCALE = re.compile(r"^(?:[a-z]{2,3}(?:-r[A-Z]{2})?|b\+[a-z]{2,3}(?:\+[A-Za-z0-9]{2,8})*)$")
+
+
+def is_android_locale(qualifier):
+    """Whether a values- directory's qualifier is a locale alone.
+
+    values-af-watch and values-fr-feminine hold variants for a device or
+    grammatical gender, keyed like values-af but with other English.
+    """
+    return bool(_ANDROID_LOCALE.match(qualifier)) and qualifier not in ANDROID_PSEUDO

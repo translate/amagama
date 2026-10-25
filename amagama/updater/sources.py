@@ -12,7 +12,7 @@ from amagama.updater.fetchers import FETCHERS, FetchError
 from amagama.updater.filemask import Selection, compile_mask, fill, wildcards
 from amagama.updater.formats import (check_csv_options, check_format, check_xliff_states,
                                      is_monolingual)
-from amagama.updater.languages import map_language
+from amagama.updater.languages import is_android_locale, map_language
 
 DEFAULT_SOURCES = os.path.join(os.path.dirname(__file__), "sources.toml")
 STATE_FILE = "fetched.json"
@@ -134,6 +134,8 @@ class Block(object):
             # every language. An English template is kept but not imported.
             for path, lang in fetched:
                 lang = self.selection.select(path, lang)
+                if self.format == "android" and lang and not is_android_locale(lang):
+                    lang = None
                 code = lang and map_language(lang, self.languages)
                 if path in templates or any(mask.match(path.replace("\\", "/"))
                                             for mask in self.keep):

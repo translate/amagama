@@ -106,6 +106,11 @@ such as one GNOME release:
   ``template``: ``android`` (:file:`strings.xml`), ``php``, ``properties``,
   ``joomla-ini``, ``json`` (key to message), ``fluent`` and ``dtd``.
 
+  For ``android``, ``{lang}`` must be a locale qualifier alone (``af``,
+  ``pt-rBR``, ``b+sr+Latn``): directories that add another qualifier, such
+  as :file:`values-af-watch` or :file:`values-fr-feminine`, and the
+  pseudo-locales ``en-rXA``, ``ar-rXB`` and ``en-rXC`` are left out.
+
   ``xtb`` is Chromium's: each :file:`.xtb` translation is keyed by a
   fingerprint of the English message, which is in the :file:`.grd` named by
   ``template`` (and the :file:`.grdp` parts it includes, which ``keep`` must
