@@ -13,6 +13,8 @@ from json import dumps
 from flask import Blueprint, abort, current_app, request
 from werkzeug.datastructures import Headers
 
+from amagama.tmdb import lang_to_table
+
 
 # Let's encourage caching for an hour:
 cache_headers = Headers()
@@ -21,6 +23,14 @@ cache_headers['Cache-Control'] = "max-age=3600, public"
 # Create the blueprints.
 read_api = Blueprint('read_api', __name__)
 write_api = Blueprint('write_api', __name__)
+
+
+@write_api.before_request
+def check_languages():
+    """Refuse a write whose source or target language isn't a valid code."""
+    args = request.view_args or {}
+    if not all(lang_to_table(args.get(k)) for k in ('slang', 'tlang')):
+        abort(400)
 
 
 @read_api.route('/<slang>/<tlang>/unit/', methods=('GET', ))
