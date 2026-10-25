@@ -323,3 +323,33 @@ slugs = [
 ]
 files = ["**/*.po"]
 licence = "GPL-2.0-or-later"
+
+[[block]]
+name = "drupal-{version}"
+title = "Drupal"
+source = "drupal"
+projects = ["drupal"]
+core = "{version}"
+# Not translations.
+languages.en = ""
+languages.en-x-simple = ""
+languages.test = ""
+languages.xx-lolspeak = ""
+licence = "GPL-2.0-or-later"
+versions = ["10", "11"]
+
+[[block]]
+name = "drupal-modules"
+title = "Drupal modules"
+source = "drupal"
+# Widely used modules; their releases support Drupal 10 and 11.
+projects = [
+  "token", "ctools", "pathauto", "admin_toolbar", "metatag", "webform", "redirect",
+  "paragraphs", "entity_reference_revisions", "field_group", "simple_sitemap", "captcha",
+  "honeypot", "linkit", "views_bulk_operations",
+]
+languages.en = ""
+languages.en-x-simple = ""
+languages.test = ""
+languages.xx-lolspeak = ""
+licence = "GPL-2.0-or-later"
