@@ -636,6 +636,62 @@ class Drupal(Fetcher):
         return files
 
 
+class Moodle(Fetcher):
+    """Moodle's language packs for a release: a zip per language, listed in
+    the index Moodle's language installer reads, English included.
+
+    The fingerprint is the index, which gives each pack's MD5. Downloads are
+    checked against it, pause seconds apart.
+    """
+
+    required = ("release",)
+    optional = ("base_url", "pause")
+
+    def __init__(self, settings):
+        super(Moodle, self).__init__(settings)
+        if not isinstance(settings["release"], str) or not re.fullmatch(
+                r"\d+\.\d+", settings["release"]):
+            raise ValueError("release must be a Moodle release such as 5.1")
+
+    @property
+    def url(self):
+        return "%s/%s/" % (self.settings.get(
+            "base_url", "https://packaging.moodle.org/langpack").rstrip("/"),
+            self.settings["release"])
+
+    def index(self):
+        """[(language, MD5 of its pack)]"""
+        if not hasattr(self, "_index"):
+            url = self.url + "languages.md5"
+            lines = http_text(url).splitlines()
+            index = [re.match(r"([a-z]{2,3}(?:_[a-z0-9]+)*),([0-9a-f]{32}),", line)
+                     for line in lines if line.strip()]
+            if not index or not all(index):
+                raise FetchError("%s: not a language pack index" % url)
+            self._index = [(match.group(1), match.group(2)) for match in index]
+        return self._index
+
+    def fingerprint(self):
+        return combine(self.index())
+
+    def fetch(self, dest):
+        files = []
+        with tempfile.TemporaryDirectory() as tmp:
+            for lang, md5 in self.index():
+                path = os.path.join(tmp, "pack.zip")
+                url = "%s%s.zip" % (self.url, lang)
+                download(url, path)
+                with open(path, "rb") as f:
+                    if hashlib.md5(f.read()).hexdigest() != md5:
+                        raise FetchError("%s: MD5 doesn't match the index" % url)
+                extract_zip(path, dest)
+                if os.path.isdir(os.path.join(dest, lang)):
+                    files.extend((os.path.join(lang, f), lang)
+                                 for f in files_under(os.path.join(dest, lang)))
+                time.sleep(self.settings.get("pause", 1))
+        return files
+
+
 class Snapshot(Fetcher):
     """Data kept in the database by snapshot_db; nothing to download."""
 
@@ -654,6 +710,7 @@ FETCHERS = {
     "translationproject": TranslationProject,
     "git": Git,
     "http": HttpPerLanguage,
+    "moodle": Moodle,
     "pontoon": Pontoon,
     "wordpress": WordPress,
     "svn": Svn,
