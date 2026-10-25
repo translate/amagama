@@ -35,6 +35,14 @@ def lookup(client, source):
     return [(c['source'], c['target']) for c in response.get_json()]
 
 
+def stored_sources(client):
+    tmdb = client.application.tmdb
+    with client.application.app_context():
+        cursor = tmdb.get_cursor(tmdb.schema('en'))
+        cursor.execute("SELECT text FROM sources")
+        return cursor.fetchall()
+
+
 class TestWriteAPI(object):
 
     def test_disabled_by_default(self, amagama):
@@ -106,3 +114,15 @@ class TestWriteAPI(object):
         ])
         assert response.status_code == 500
         assert lookup(client, 'Open file') == []
+
+    @pytest.mark.parametrize('pair', ['en/French', 'English/af'])
+    @pytest.mark.parametrize('method, path, kwargs', [
+        ('put', 'unit/Open file', {'json': {'source': 'Open file', 'target': 'Ouvrir'}}),
+        ('post', 'unit/Open file', {'json': {'source': 'Open file', 'target': 'Ouvrir'}}),
+        ('post', 'store/x.po', {'json': [{'source': 'Open file', 'target': 'Ouvrir'}]}),
+        ('put', 'store/x.po', {'data': PO_FILE}),
+    ])
+    def test_invalid_language(self, client, pair, method, path, kwargs):
+        response = getattr(client, method)('/api/v1/%s/%s' % (pair, path), **kwargs)
+        assert response.status_code == 400
+        assert stored_sources(client) == []
