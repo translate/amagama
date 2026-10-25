@@ -94,7 +94,8 @@ def blocks(components, prefix, projects=("*",), docs=(), covered=(), taken=()):
     """(blocks, skipped) for the components of projects matching the globs.
 
     Blocks are dicts of sources-file settings; skipped counts components
-    left out, by reason. docs are project globs imported with segmentation;
+    left out, by reason. docs are globs of documentation, imported with
+    segmentation, matched to a project's slug or project/component;
     covered are repositories other blocks already import, and taken their
     names. Each block is checked as the sources file would check it.
     """
@@ -131,7 +132,9 @@ def blocks(components, prefix, projects=("*",), docs=(), covered=(), taken=()):
                 # A bilingual file's template is only its source file.
                 template = (component.get("template") or None) if weblate_format in MONOLINGUAL \
                     else None
-                segment = any(fnmatch.fnmatchcase(project["slug"], glob) for glob in docs)
+                segment = any(fnmatch.fnmatchcase(project["slug"], glob)
+                              or fnmatch.fnmatchcase("%s/%s" % (project["slug"], component["slug"]), glob)
+                              for glob in docs)
                 key = (project["slug"], repo, branch, weblate_format,
                        component["slug"] if template else "", licence, segment)
                 group = groups.setdefault(key, {"project": project, "masks": set(),

@@ -313,8 +313,8 @@ Components of one repository, branch, format and licence share a block, and
 many single-file components under one directory are read as that directory's
 files. A project on several branches gets a block per branch, with a branch
 that looks like a release as its version. ``--project`` limits it to project
-slugs matching a glob, and ``--docs`` marks documentation projects for
-``segment``. Left out, and counted: glossaries, components whose source isn't
+slugs matching a glob, and ``--docs`` marks documentation for ``segment``:
+globs of a project's slug or of ``project/component``. Left out, and counted: glossaries, components whose source isn't
 English, formats amaGama doesn't read, no-derivatives licences, repositories
 another block already imports, and blocks that wouldn't load. The file's
 ``[defaults]`` give every block ``source = "git"`` and ``min_age_days`` from
