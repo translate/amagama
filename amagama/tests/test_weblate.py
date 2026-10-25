@@ -56,6 +56,21 @@ def test_monolingual_block_per_component():
     assert skipped == {"monolingual without a template": 1}
 
 
+def test_bilingual_template_ignored():
+    # Weblate's template for a bilingual format is its source file.
+    found, skipped = generated([component("qt", "ui", "https://git.example/qt", "ts/app_*.ts",
+                                          file_format="ts", template="ts/app_en.ts")])
+    assert "template" not in found["test-qt"]
+    assert found["test-qt"]["format"] == "ts"
+
+
+def test_i18next():
+    found, skipped = generated([component("web", "ui", "https://git.example/web",
+                                          "locales/*/translation.json", file_format="i18nextv4",
+                                          template="locales/en/translation.json")])
+    assert found["test-web"]["format"] == "json"
+
+
 def test_branches_are_versions():
     found, skipped = generated([
         component("app", "ui", "https://git.example/app", "po/*.po", branch="1.2.x"),
