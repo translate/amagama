@@ -259,6 +259,23 @@ Source types
   ``["messages"]``; ``pause`` (default 1) is the seconds between exports, to
   go easy on a shared server. Needs the ``svn`` command.
 
+``joomla``
+  `Joomla <https://www.joomla.org>`_'s accredited language packs for a major
+  ``release`` (required), such as ``"5"``, with the English they translate
+  from: the files of joomla-cms at ``ref`` (required), such as
+  ``"5.4-dev"``, that ``template`` (required) matches. Each pack's files are
+  placed where Joomla installs them, beside the English:
+
+  .. code-block:: toml
+
+      files = ["**/language/{lang}/*.ini"]
+      format = "joomla-ini"
+      template = "**/language/en-GB/*.ini"
+
+  A pack whose SHA-256 doesn't match its details is skipped. ``base_url``
+  and ``repository`` can name mirrors; ``pause`` (default 1) is the seconds
+  between downloads.
+
 ``moodle``
   `Moodle <https://moodle.org>`_'s language packs for ``release`` (required),
   such as ``"5.3"``: a zip per language, English included, from the index
@@ -306,11 +323,12 @@ Change detection
 Each fetch records a fingerprint of the block: for ``damned-lies`` the
 release's translation statistics (one request; a reworded translation alone
 doesn't change them), for ``wordpress`` every pack's version and update time,
-for ``moodle`` the pack index with its MD5s, for ``drupal`` the projects'
-releases (the files are rebuilt daily), for ``pontoon`` none (its files are
-generated on request), for ``translationproject`` the ETag or Last-Modified
-header of every tarball, for ``git`` the commit of the ref (from Gitiles' JSON
-on ``googlesource.com``, where ``ls-remote`` is too costly). ``fetch_sources
+for ``moodle`` the pack index with its MD5s, for ``joomla`` the packs'
+versions and the English ref's commit, for ``drupal`` the projects' releases
+(the files are rebuilt daily), for ``pontoon`` none (its files are generated
+on request), for ``translationproject`` the ETag or Last-Modified header of
+every tarball, for ``git`` the commit of the ref (from Gitiles' JSON on
+``googlesource.com``, where ``ls-remote`` is too costly). ``fetch_sources
 --check`` recomputes it without downloading and lists the blocks whose
 fingerprint changed.
 

@@ -60,6 +60,8 @@ class Block(object):
             compile_mask(template, allow_lang=False)
             if not files or any(wildcards(mask) != wildcards(template) for mask in files):
                 raise ValueError("template must have the same wildcards as each of files")
+        if self.fetcher.needs_template:
+            self.fetcher.use_template(template)
         if exclude_ids is not None and (not isinstance(exclude_ids, list) or not all(
                 isinstance(pattern, str) for pattern in exclude_ids)):
             raise ValueError("exclude_ids must be a list of patterns")
