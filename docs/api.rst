@@ -98,6 +98,12 @@ following fields.
 |                   | list <api#sources>`. ``quality`` itself   |
 |                   | isn't changed.                            |
 +-------------------+-------------------------------------------+
+| licence           | Comma-separated globs of the SPDX licence |
+|                   | identifiers to keep, such as              |
+|                   | ``GPL-*,MIT``, or with ``!`` to leave out,|
+|                   | such as ``!AGPL-*``: see                  |
+|                   | :ref:`api#licences`.                      |
++-------------------+-------------------------------------------+
 | jsoncallback      | Wrap the reply in a call to this          |
 |                   | JavaScript function (JSONP).              |
 +-------------------+-------------------------------------------+
@@ -109,6 +115,63 @@ For example::
 
     https://amagama-live.translatehouse.org/api/v1/en/af/unit/File?style=gnome&max_candidates=10
     https://amagama-live.translatehouse.org/api/v1/en/af/unit/File?exclude=hosted-*&weight=gnome-*:1.5
+
+
+.. _api#licences:
+
+Choosing by licence
++++++++++++++++++++
+
+``licence`` lists the licences a client can use its suggestions under, as
+globs of `SPDX identifiers <https://spdx.org/licenses/>`_ (case doesn't
+matter). Each source's licence is an SPDX expression, and a source is kept
+when the expression can be met with the listed licences alone:
+
+- ``A OR B`` lets you choose either licence, so one of them listed is enough.
+- ``A AND B`` applies both licences, so both must be listed.
+- ``A WITH exception`` only adds permissions to A, so A listed is enough.
+
+With ``licence=GPL-*,MIT``:
+
++--------------------------------------------------+------+----------------------------------+
+| Source's licence                                 | Kept | Because                          |
++==================================================+======+==================================+
+| ``GPL-2.0-or-later``                             | yes  | GPL-* matches it                 |
++--------------------------------------------------+------+----------------------------------+
+| ``LGPL-2.1-or-later``                            | no   | a glob matches the whole         |
+|                                                  |      | identifier: GPL-* isn't LGPL     |
++--------------------------------------------------+------+----------------------------------+
+| ``LGPL-2.1-or-later OR GPL-3.0-only``            | yes  | you can use it under GPL-3.0-only|
++--------------------------------------------------+------+----------------------------------+
+| ``MIT AND Apache-2.0``                           | no   | Apache-2.0 also applies, and     |
+|                                                  |      | isn't listed                     |
++--------------------------------------------------+------+----------------------------------+
+| ``MIT AND (Apache-2.0 OR GPL-2.0-only)``         | yes  | MIT, and GPL-2.0-only for the    |
+|                                                  |      | choice                           |
++--------------------------------------------------+------+----------------------------------+
+| ``GPL-2.0-or-later WITH Classpath-exception-2.0``| yes  | GPL-* matches the licence        |
++--------------------------------------------------+------+----------------------------------+
+
+A glob starting with ``!`` leaves licences out: a licence is allowed when it
+matches a listed glob and no ``!`` one. With only ``!`` globs, every other
+licence is allowed. With ``licence=!AGPL-*``:
+
++--------------------------------------------------+------+----------------------------------+
+| Source's licence                                 | Kept | Because                          |
++==================================================+======+==================================+
+| ``MIT``                                          | yes  | every licence but AGPL is allowed|
++--------------------------------------------------+------+----------------------------------+
+| ``AGPL-3.0-only``                                | no   | AGPL-* is left out               |
++--------------------------------------------------+------+----------------------------------+
+| ``MIT OR AGPL-3.0-only``                         | yes  | you can use it under MIT         |
++--------------------------------------------------+------+----------------------------------+
+| ``MIT AND AGPL-3.0-only``                        | no   | AGPL-3.0-only also applies       |
++--------------------------------------------------+------+----------------------------------+
+
+``licence=GPL-*,!GPL-3.0-*`` keeps GPL-2.0-only but not GPL-3.0-only.
+
+Sources with no known licence, or files under different licences, are left
+out. A suggestion stays while any of its sources is kept, as with ``only``.
 
 A request returns 404 if the source language isn't in the database or if no
 string is given. It returns 400 if the source and target languages are the
