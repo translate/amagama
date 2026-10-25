@@ -8,11 +8,11 @@ Wants=network-online.target
 Type=oneshot
 User=amagama
 Group=amagama
-Environment=AMAGAMA_CONFIG=/var/www/sites/amagama_fw/updater_settings.py
+Environment=AMAGAMA_CONFIG=/srv/amagama/updater_settings.py
 # Not while an update is running: skipped (75) rather than failed.
 ExecStart=/usr/bin/flock --nonblock --conflict-exit-code 75 \
-        /var/www/sites/amagama_fw/cache/.lock \
-        /var/www/sites/amagama_fw/env3/bin/amagama-manage fetch_sources
+        /srv/amagama/cache/.lock \
+        /srv/amagama/venv/bin/amagama-manage fetch_sources
 SuccessExitStatus=75
 Nice=10
 IOSchedulingClass=idle
