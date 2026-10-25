@@ -180,9 +180,15 @@ class BuildTMDB(object):
     def __init__(self, block=None, licence=None):
         self.block = block
         self.licence = licence
+        self.files = self.units = self.skipped = 0
+        # (file, reason) for each file that couldn't be imported.
+        self.failed = []
 
     def run(self, slang, tlang, project_style, filename, profile_name, verbose):
-        """Wrapper to implement profiling if requested."""
+        """Wrapper to implement profiling if requested.
+
+        Returns the files that couldn't be imported, with the reason.
+        """
         ensure_source_exists()
         if profile_name:
             import cProfile
@@ -195,6 +201,7 @@ class BuildTMDB(object):
             profile_file.close()
         else:
             self.real_run(slang, tlang, project_style, filename, verbose)
+        return self.failed
 
     def real_run(self, slang, tlang, project_style, filename, verbose):
         self.source_lang = slang
@@ -214,13 +221,17 @@ class BuildTMDB(object):
 
         if not os.path.exists(filename):
             logging.error("Cannot process %s: does not exist", filename)
+            self.failed.append((filename, "does not exist"))
         elif os.path.isdir(filename):
             self.handledir(filename, verbose)
         else:
             self.handlefile(filename, verbose)
 
-        if verbose:
-            print("Successfully imported %s" % filename)
+        print("Imported %d files: %d units (%d skipped)." % (self.files, self.units, self.skipped))
+        if self.failed:
+            print("Couldn't import %d files:" % len(self.failed))
+            for path, reason in self.failed:
+                print("  %s: %s" % (path, reason))
 
     def handlefile(self, filename, verbose):
         if verbose:
@@ -255,13 +266,16 @@ class BuildTMDB(object):
             if not source_lang or not target_lang:
                 logging.error("Missing source or target language. Won't "
                               "import %s", filename)
+                self.failed.append((filename, "missing source or target language"))
                 return
         except ValueError as e:
             if "Unknown filetype" not in str(e):
                 logging.exception("Error while handling: %s", filename)
+                self.failed.append((filename, "%s: %s" % (type(e).__name__, e)))
             return
-        except Exception:
+        except Exception as e:
             logging.exception("Error while processing: %s", filename)
+            self.failed.append((filename, "%s: %s" % (type(e).__name__, e)))
             return
 
         # Do something useful with the store and the database.
@@ -277,6 +291,9 @@ class BuildTMDB(object):
                 skipped += sum(1 for u in store.units if u.istranslatable()) - added
             current_app.tmdb.finish_import(source_lang, iid, units, skipped,
                                            file_checksum(filename))
+            self.files += 1
+            self.units += units
+            self.skipped += skipped
         except Exception:
             logging.exception("Error importing strings from: %s", filename)
             raise
@@ -319,7 +336,9 @@ def build_tmdb(slang, tlang, project_style, filename, profile_name, verbose,
                block, licence, build):
     """Populate Translation Memory database from bilingual translation files"""
     use_build_schemas(build)
-    BuildTMDB(block, licence).run(slang, tlang, project_style, filename, profile_name, verbose)
+    if BuildTMDB(block, licence).run(slang, tlang, project_style, filename, profile_name,
+                                     verbose):
+        raise SystemExit(1)
 
 
 @click.command('migrate_db')

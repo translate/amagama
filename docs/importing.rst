@@ -14,7 +14,7 @@ To populate the amaGama database the :command:`amagama-manage` command
 
     $ amagama-manage build_tmdb --verbose -s en -t ar -i foo.po
     Importing foo.po
-    Successfully imported foo.po
+    Imported 1 files: 1000 units (100 skipped).
 
 
 This will parse :file:`foo.po`, assuming that source language is *English (en)* and
@@ -40,7 +40,18 @@ read recursively:
     $ amagama-manage build_tmdb --verbose -s en -t gl -i translations/
     Importing translations/foo.po
     Importing translations/bar.po
-    Successfully imported translations/
+    Imported 2 files: 5000 units (100 skipped).
+
+A file that can't be imported (unreadable, or with no target language) is
+left out and listed at the end with the reason, and the command exits with
+status 1:
+
+.. code-block:: console
+
+    $ amagama-manage build_tmdb -s en -i translations/
+    Imported 1 files: 1000 units (100 skipped).
+    Couldn't import 1 files:
+      translations/notes.po: missing source or target language
 
 
 .. _importing#record:
