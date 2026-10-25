@@ -1368,15 +1368,6 @@ sparse = ["po/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
-name = "fedora-websites"
-title = "fedora-websites"
-url = "ssh://pagure.io/fedora-web/translations.git"
-ref = "master"
-files = ["alt.fedoraproject.org/{lang}.po", "arm.fedoraproject.org/{lang}.po", "boot.fedoraproject.org/{lang}.po", "budget.fedoraproject.org/{lang}.po", "fedoracommunity.org/{lang}.po", "getfedora.org-redesign/{lang}/LC_MESSAGES/messages.po", "labs.fedoraproject.org/{lang}.po", "spins.fedoraproject.org/{lang}.po", "start.fedoraproject.org/{lang}.po"]
-sparse = ["alt.fedoraproject.org/*.po", "arm.fedoraproject.org/*.po", "boot.fedoraproject.org/*.po", "budget.fedoraproject.org/*.po", "fedoracommunity.org/*.po", "getfedora.org-redesign/*/LC_MESSAGES/messages.po", "labs.fedoraproject.org/*.po", "spins.fedoraproject.org/*.po", "start.fedoraproject.org/*.po"]
-licence = "CC-BY-3.0"
-
-[[block]]
 name = "fedora-websites-3-0"
 title = "fedora-websites-3.0"
 url = "https://gitlab.com/fedora/websites-apps/fedora-websites/fedora-websites-3.0.git"
@@ -1689,15 +1680,6 @@ ref = "master"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "BSD-3-Clause"
-
-[[block]]
-name = "fedora-libuser"
-title = "libuser"
-url = "https://pagure.io/libuser/"
-ref = "master"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "LGPL-2.0-or-later"
 
 [[block]]
 name = "fedora-libvirt"
@@ -2161,15 +2143,6 @@ sparse = ["master/*.po", "rhel7-branch/*.po", "rhel8-branch/*.po", "rhel9-branch
 licence = "GPL-2.0-or-later"
 
 [[block]]
-name = "fedora-passwd"
-title = "passwd"
-url = "https://pagure.io/passwd"
-ref = "master"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
 name = "fedora-plymouth"
 title = "plymouth"
 url = "https://gitlab.freedesktop.org/plymouth/plymouth.git"
@@ -2280,15 +2253,6 @@ ref = "master"
 files = ["master/{lang}.po", "rhel-8/{lang}.po", "rhel-9/{lang}.po"]
 sparse = ["master/*.po", "rhel-8/*.po", "rhel-9/*.po"]
 licence = "LGPL-3.0-or-later"
-
-[[block]]
-name = "fedora-rhc"
-title = "rhc"
-url = "https://github.com/RedHatInsights/rhc"
-ref = "main"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
 
 [[block]]
 name = "fedora-rpm"
@@ -2438,12 +2402,3 @@ ref = "master"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "GPL-2.0-or-later"
-
-[[block]]
-name = "fedora-volume_key"
-title = "volume_key"
-url = "https://pagure.io/volume_key.git"
-ref = "master"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"

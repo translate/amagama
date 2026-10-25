@@ -132,7 +132,6 @@ licence = "AGPL-3.0-or-later"
 name = "hosted-accrescent"
 title = "Accrescent"
 url = "https://github.com/accrescent/accrescent"
-ref = "master"
 files = ["app/src/main/res/values-{lang}/strings.xml"]
 sparse = ["app/src/main/res/values-*/strings.xml", "app/src/main/res/values/strings.xml"]
 format = "android"
@@ -259,7 +258,7 @@ url = "https://github.com/Alovoa/alovoa.git"
 ref = "master"
 files = ["src/main/resources/i18n/messages_{lang}.properties"]
 sparse = ["src/main/resources/i18n/messages.properties", "src/main/resources/i18n/messages_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "src/main/resources/i18n/messages.properties"
 licence = "AGPL-3.0-only"
 
@@ -284,15 +283,6 @@ sparse = ["app/i18n/*.json", "app/i18n/en.json"]
 format = "json"
 template = "app/i18n/en.json"
 licence = "MIT"
-
-[[block]]
-name = "hosted-alternc"
-title = "AlternC"
-url = "https://github.com/AlternC/AlternC.git"
-ref = "main"
-files = ["{lang}/*.po"]
-sparse = ["*/*.po"]
-licence = "GPL-2.0-or-later"
 
 [[block]]
 name = "hosted-amarok-hider"
@@ -323,7 +313,7 @@ url = "https://github.com/fr3ts0n/AndrOBD.git"
 ref = "master"
 files = ["library/src/main/java/com/fr3ts0n/ecu/prot/obd/res/codes_{lang}.properties"]
 sparse = ["library/src/main/java/com/fr3ts0n/ecu/prot/obd/res/codes.properties", "library/src/main/java/com/fr3ts0n/ecu/prot/obd/res/codes_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "library/src/main/java/com/fr3ts0n/ecu/prot/obd/res/codes.properties"
 licence = "GPL-3.0-or-later"
 
@@ -334,7 +324,7 @@ url = "https://github.com/fr3ts0n/AndrOBD.git"
 ref = "master"
 files = ["library/src/main/java/com/fr3ts0n/ecu/prot/obd/res/messages_{lang}.properties"]
 sparse = ["library/src/main/java/com/fr3ts0n/ecu/prot/obd/res/messages.properties", "library/src/main/java/com/fr3ts0n/ecu/prot/obd/res/messages_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "library/src/main/java/com/fr3ts0n/ecu/prot/obd/res/messages.properties"
 licence = "GPL-3.0-or-later"
 
@@ -741,16 +731,6 @@ sparse = ["app/src/main/res/values-*/strings.xml", "app/src/main/res/values/stri
 format = "android"
 template = "app/src/main/res/values/strings.xml"
 licence = "GPL-3.0-only"
-
-[[block]]
-name = "hosted-aurora-droid"
-title = "Aurora Droid"
-url = "https://gitlab.com/AuroraOSS/auroradroid.git"
-ref = "master"
-files = ["app/src/main/res/values-{lang}/strings.xml"]
-sparse = ["app/src/main/res/values-*/strings.xml", "app/src/main/res/values/strings.xml"]
-format = "android"
-template = "app/src/main/res/values/strings.xml"
 
 [[block]]
 name = "hosted-aurora-store"
@@ -1597,15 +1577,6 @@ template = "app/src/main/res/values/strings.xml"
 licence = "GPL-3.0-only"
 
 [[block]]
-name = "hosted-calcpvautonome"
-title = "CalcPvAutonome"
-url = "https://framagit.org/kepon/CalcPvAutonome.git"
-ref = "master"
-files = ["lang/{lang}/LC_MESSAGES/messages.po"]
-sparse = ["lang/*/LC_MESSAGES/messages.po"]
-licence = "Beerware"
-
-[[block]]
 name = "hosted-calculator-you"
 title = "Calculator You"
 url = "https://github.com/forzzzzz/Calculator-You"
@@ -1800,7 +1771,7 @@ url = "https://github.com/LoadingByte/cinecred.git"
 ref = "master"
 files = ["src/main/resources/l10n/strings_{lang}.properties"]
 sparse = ["src/main/resources/l10n/strings.properties", "src/main/resources/l10n/strings_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "src/main/resources/l10n/strings.properties"
 licence = "GPL-3.0-or-later"
 
@@ -1811,7 +1782,7 @@ url = "https://github.com/LoadingByte/cinecred.git"
 ref = "master"
 files = ["src/main/resources/l10n/keywords_{lang}.properties"]
 sparse = ["src/main/resources/l10n/keywords.properties", "src/main/resources/l10n/keywords_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "src/main/resources/l10n/keywords.properties"
 licence = "GPL-3.0-or-later"
 
@@ -1834,15 +1805,6 @@ sparse = ["frontend/src/lib/i18n/locales/*.json", "frontend/src/lib/i18n/locales
 format = "json"
 template = "frontend/src/lib/i18n/locales/en.json"
 licence = "MPL-2.0"
-
-[[block]]
-name = "hosted-clifm"
-title = "clifm"
-url = "https://github.com/leo-arch/clifm"
-ref = "master"
-files = ["translations/{lang}/*.po"]
-sparse = ["translations/*/*.po"]
-licence = "GPL-2.0-or-later"
 
 [[block]]
 name = "hosted-cloudstream"
@@ -1906,7 +1868,6 @@ licence = "GPL-3.0-or-later"
 name = "hosted-commons-app"
 title = "Commons App"
 url = "https://github.com/commons-app/apps-android-commons.git"
-ref = "master"
 files = ["app/src/main/res/values-{lang}/strings.xml"]
 sparse = ["app/src/main/res/values-*/strings.xml", "app/src/main/res/values/strings.xml"]
 format = "android"
@@ -1981,26 +1942,6 @@ sparse = ["locale/cups_*.po"]
 licence = "Apache-2.0"
 
 [[block]]
-name = "hosted-cutefishos"
-title = "CutefishOS"
-url = "https://github.com/cutefishos/core.git"
-ref = "main"
-files = ["polkit-agent/translations/{lang}.ts", "settings-daemon/translations/{lang}.ts", "shutdown-ui/translations/{lang}.ts"]
-sparse = ["polkit-agent/translations/*.ts", "settings-daemon/translations/*.ts", "shutdown-ui/translations/*.ts"]
-format = "ts"
-licence = "GPL-3.0-or-later"
-
-[[block]]
-name = "hosted-cutefishos-2"
-title = "CutefishOS"
-url = "https://github.com/cutefishos/dock"
-ref = "main"
-files = ["translations/{lang}.ts"]
-sparse = ["translations/*.ts"]
-format = "ts"
-licence = "GPL-3.0-or-later"
-
-[[block]]
 name = "hosted-cutwire-drift"
 title = "CutWire Drift"
 url = "https://github.com/CutWire-Studios/Drift.git"
@@ -2071,17 +2012,6 @@ sparse = ["src/i18n/*.json", "src/i18n/en.json"]
 format = "json"
 template = "src/i18n/en.json"
 licence = "MIT"
-
-[[block]]
-name = "hosted-dbeaver"
-title = "DBeaver"
-url = "https://github.com/dbeaver/dbeaver.git"
-ref = "master"
-files = ["plugins/org.jkiss.dbeaver.ui/src/org/jkiss/dbeaver/bundle/UIMessages_{lang}.properties"]
-sparse = ["plugins/org.jkiss.dbeaver.ui/src/org/jkiss/dbeaver/bundle/UIMessages.properties", "plugins/org.jkiss.dbeaver.ui/src/org/jkiss/dbeaver/bundle/UIMessages_*.properties"]
-format = "properties"
-template = "plugins/org.jkiss.dbeaver.ui/src/org/jkiss/dbeaver/bundle/UIMessages.properties"
-licence = "Apache-2.0"
 
 [[block]]
 name = "hosted-debexpo"
@@ -2206,8 +2136,8 @@ name = "hosted-dino"
 title = "Dino"
 url = "https://github.com/dino/dino.git"
 ref = "master"
-files = ["main/po/{lang}.po", "plugins/omemo/po/{lang}.po", "plugins/openpgp/po/{lang}.po"]
-sparse = ["main/po/*.po", "plugins/omemo/po/*.po", "plugins/openpgp/po/*.po"]
+files = ["main/po/{lang}.po"]
+sparse = ["main/po/*.po"]
 licence = "GPL-3.0-or-later"
 
 [[block]]
@@ -2526,15 +2456,6 @@ sparse = ["i18n/*.json", "i18n/en.json"]
 format = "json"
 template = "i18n/en.json"
 licence = "MIT"
-
-[[block]]
-name = "hosted-eventum"
-title = "Eventum"
-url = "https://github.com/eventum/eventum.git"
-ref = "master"
-files = ["localization/{lang}.po"]
-sparse = ["localization/*.po"]
-licence = "GPL-2.0-or-later"
 
 [[block]]
 name = "hosted-eventyay"
@@ -3195,7 +3116,7 @@ template = "web/src/locales/en/settings.json"
 licence = "GPL-3.0-or-later"
 
 [[block]]
-name = "hosted-fmit"
+name = "hosted-fmit-appdata"
 title = "FMIT"
 url = "https://github.com/gillesdegottex/fmit.git"
 ref = "master"
@@ -3934,15 +3855,6 @@ template = "wear/app/src/main/res/values/strings.xml"
 licence = "Apache-2.0"
 
 [[block]]
-name = "hosted-furtherance"
-title = "Furtherance"
-url = "https://github.com/lakoliu/Furtherance.git"
-ref = "main"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-or-later"
-
-[[block]]
 name = "hosted-fwupd"
 title = "fwupd"
 url = "https://github.com/fwupd/fwupd.git"
@@ -4578,17 +4490,6 @@ files = ["modules/MostRecentFilesAPI/src/main/resources/org/gephi/desktop/mrufil
 sparse = ["modules/MostRecentFilesAPI/src/main/resources/org/gephi/desktop/mrufiles/api/Bundle.properties", "modules/MostRecentFilesAPI/src/main/resources/org/gephi/desktop/mrufiles/api/Bundle_*.properties"]
 format = "properties"
 template = "modules/MostRecentFilesAPI/src/main/resources/org/gephi/desktop/mrufiles/api/Bundle.properties"
-licence = "Apache-2.0"
-
-[[block]]
-name = "hosted-gephi-47"
-title = "Gephi"
-url = "https://github.com/gephi/gephi.git"
-ref = "master"
-files = ["modules/DesktopAppearance/src/main/resources/org/gephi/desktop/partition/Bundle_{lang}.properties"]
-sparse = ["modules/DesktopAppearance/src/main/resources/org/gephi/desktop/partition/Bundle.properties", "modules/DesktopAppearance/src/main/resources/org/gephi/desktop/partition/Bundle_*.properties"]
-format = "properties"
-template = "modules/DesktopAppearance/src/main/resources/org/gephi/desktop/partition/Bundle.properties"
 licence = "Apache-2.0"
 
 [[block]]
@@ -5648,17 +5549,6 @@ template = "modules/ToolsPlugin/src/main/resources/org/gephi/ui/tools/plugin/Bun
 licence = "Apache-2.0"
 
 [[block]]
-name = "hosted-gephi-144"
-title = "Gephi"
-url = "https://github.com/gephi/gephi.git"
-ref = "master"
-files = ["modules/ToolsPlugin/src/main/resources/org/gephi/ui/tools/plugin/edit/Bundle_{lang}.properties"]
-sparse = ["modules/ToolsPlugin/src/main/resources/org/gephi/ui/tools/plugin/edit/Bundle.properties", "modules/ToolsPlugin/src/main/resources/org/gephi/ui/tools/plugin/edit/Bundle_*.properties"]
-format = "properties"
-template = "modules/ToolsPlugin/src/main/resources/org/gephi/ui/tools/plugin/edit/Bundle.properties"
-licence = "Apache-2.0"
-
-[[block]]
 name = "hosted-gephi-145"
 title = "Gephi"
 url = "https://github.com/gephi/gephi.git"
@@ -5744,17 +5634,6 @@ files = ["modules/VisualizationImpl/src/main/resources/org/gephi/visualization/c
 sparse = ["modules/VisualizationImpl/src/main/resources/org/gephi/visualization/contextmenu/items/Bundle.properties", "modules/VisualizationImpl/src/main/resources/org/gephi/visualization/contextmenu/items/Bundle_*.properties"]
 format = "properties"
 template = "modules/VisualizationImpl/src/main/resources/org/gephi/visualization/contextmenu/items/Bundle.properties"
-licence = "Apache-2.0"
-
-[[block]]
-name = "hosted-gephi-153"
-title = "Gephi"
-url = "https://github.com/gephi/gephi.git"
-ref = "master"
-files = ["modules/VisualizationImpl/src/main/resources/org/gephi/visualization/options/Bundle_{lang}.properties"]
-sparse = ["modules/VisualizationImpl/src/main/resources/org/gephi/visualization/options/Bundle.properties", "modules/VisualizationImpl/src/main/resources/org/gephi/visualization/options/Bundle_*.properties"]
-format = "properties"
-template = "modules/VisualizationImpl/src/main/resources/org/gephi/visualization/options/Bundle.properties"
 licence = "Apache-2.0"
 
 [[block]]
@@ -6152,127 +6031,6 @@ template = "app/src/main/res/values/strings.xml"
 licence = "CC-BY-SA-4.0"
 
 [[block]]
-name = "hosted-hammer"
-title = "Hammer"
-url = "https://github.com/Wavesonics/hammer-editor"
-ref = "develop"
-files = ["common/resources/MR/{lang}/strings_account_settings.xml"]
-sparse = ["common/resources/MR/*/strings_account_settings.xml", "common/resources/MR/base/strings_account_settings.xml"]
-format = "android"
-template = "common/resources/MR/base/strings_account_settings.xml"
-licence = "MIT"
-
-[[block]]
-name = "hosted-hammer-2"
-title = "Hammer"
-url = "https://github.com/Wavesonics/hammer-editor"
-ref = "develop"
-files = ["android/src/main/res/values-{lang}/strings.xml"]
-sparse = ["android/src/main/res/values-*/strings.xml", "android/src/main/res/values/strings.xml"]
-format = "android"
-template = "android/src/main/res/values/strings.xml"
-licence = "MIT"
-
-[[block]]
-name = "hosted-hammer-3"
-title = "Hammer"
-url = "https://github.com/Wavesonics/hammer-editor"
-ref = "develop"
-files = ["common/resources/MR/{lang}/strings.xml"]
-sparse = ["common/resources/MR/*/strings.xml", "common/resources/MR/base/strings.xml"]
-format = "android"
-template = "common/resources/MR/base/strings.xml"
-licence = "MIT"
-
-[[block]]
-name = "hosted-hammer-4"
-title = "Hammer"
-url = "https://github.com/Wavesonics/hammer-editor"
-ref = "develop"
-files = ["desktop/resources/MR/{lang}/strings.xml"]
-sparse = ["desktop/resources/MR/*/strings.xml", "desktop/resources/MR/base/strings.xml"]
-format = "android"
-template = "desktop/resources/MR/base/strings.xml"
-licence = "MIT"
-
-[[block]]
-name = "hosted-hammer-5"
-title = "Hammer"
-url = "https://github.com/Wavesonics/hammer-editor"
-ref = "develop"
-files = ["common/resources/MR/{lang}/strings_drafts.xml"]
-sparse = ["common/resources/MR/*/strings_drafts.xml", "common/resources/MR/base/strings_drafts.xml"]
-format = "android"
-template = "common/resources/MR/base/strings_drafts.xml"
-licence = "MIT"
-
-[[block]]
-name = "hosted-hammer-6"
-title = "Hammer"
-url = "https://github.com/Wavesonics/hammer-editor"
-ref = "develop"
-files = ["common/resources/MR/{lang}/strings_encyclopedia.xml"]
-sparse = ["common/resources/MR/*/strings_encyclopedia.xml", "common/resources/MR/base/strings_encyclopedia.xml"]
-format = "android"
-template = "common/resources/MR/base/strings_encyclopedia.xml"
-licence = "MIT"
-
-[[block]]
-name = "hosted-hammer-7"
-title = "Hammer"
-url = "https://github.com/Wavesonics/hammer-editor"
-ref = "develop"
-files = ["common/resources/MR/{lang}/strings_notes.xml"]
-sparse = ["common/resources/MR/*/strings_notes.xml", "common/resources/MR/base/strings_notes.xml"]
-format = "android"
-template = "common/resources/MR/base/strings_notes.xml"
-licence = "MIT"
-
-[[block]]
-name = "hosted-hammer-8"
-title = "Hammer"
-url = "https://github.com/Wavesonics/hammer-editor"
-ref = "develop"
-files = ["common/resources/MR/{lang}/strings_project_home.xml"]
-sparse = ["common/resources/MR/*/strings_project_home.xml", "common/resources/MR/base/strings_project_home.xml"]
-format = "android"
-template = "common/resources/MR/base/strings_project_home.xml"
-licence = "MIT"
-
-[[block]]
-name = "hosted-hammer-9"
-title = "Hammer"
-url = "https://github.com/Wavesonics/hammer-editor"
-ref = "develop"
-files = ["common/resources/MR/{lang}/strings_projects_list.xml"]
-sparse = ["common/resources/MR/*/strings_projects_list.xml", "common/resources/MR/base/strings_projects_list.xml"]
-format = "android"
-template = "common/resources/MR/base/strings_projects_list.xml"
-licence = "MIT"
-
-[[block]]
-name = "hosted-hammer-10"
-title = "Hammer"
-url = "https://github.com/Wavesonics/hammer-editor"
-ref = "develop"
-files = ["common/resources/MR/{lang}/strings_scene_editor.xml"]
-sparse = ["common/resources/MR/*/strings_scene_editor.xml", "common/resources/MR/base/strings_scene_editor.xml"]
-format = "android"
-template = "common/resources/MR/base/strings_scene_editor.xml"
-licence = "MIT"
-
-[[block]]
-name = "hosted-hammer-11"
-title = "Hammer"
-url = "https://github.com/Wavesonics/hammer-editor"
-ref = "develop"
-files = ["common/resources/MR/{lang}/strings_scene_list.xml"]
-sparse = ["common/resources/MR/*/strings_scene_list.xml", "common/resources/MR/base/strings_scene_list.xml"]
-format = "android"
-template = "common/resources/MR/base/strings_scene_list.xml"
-licence = "MIT"
-
-[[block]]
 name = "hosted-hammer-12"
 title = "Hammer"
 url = "https://github.com/Wavesonics/hammer-editor"
@@ -6397,7 +6155,7 @@ template = "app/src/main/res/values/strings.xml"
 licence = "GPL-3.0-or-later"
 
 [[block]]
-name = "hosted-homm3bg-fan-made-mission-book"
+name = "hosted-homm3bg-fan-made-mission-book-title-page-with-toc"
 title = "Homm3BG: Fan-Made Mission Book"
 url = "https://github.com/Heegu-sama/Homm3BG"
 ref = "main"
@@ -6419,12 +6177,12 @@ name = "hosted-homm3bg-fan-made-mission-book-3"
 title = "Homm3BG: Fan-Made Mission Book"
 url = "https://github.com/qwrtln/Homm3BG-mission-book"
 ref = "main"
-files = ["translations/arcane_artillery.tex/{lang}.po", "translations/astral_run.tex/{lang}.po", "translations/back_cover.tex/{lang}.po", "translations/castle_greek_gift.tex/{lang}.po", "translations/castle_sicilian_dragon.tex/{lang}.po", "translations/castle_two_knights_defense.tex/{lang}.po", "translations/chain_link.tex/{lang}.po", "translations/close_to_enemies.tex/{lang}.po", "translations/credits.tex/{lang}.po", "translations/dragoncurse_castle.tex/{lang}.po", "translations/emerald_island.tex/{lang}.po", "translations/feedback_page.tex/{lang}.po", "translations/force_of_will.tex/{lang}.po", "translations/inferno_deal_with_the_devil.tex/{lang}.po", "translations/inferno_devilish_plan.tex/{lang}.po", "translations/inferno_steadwicks_fall.tex/{lang}.po", "translations/intro_and_toc.tex/{lang}.po", "translations/language_metadata.tex/{lang}.po", "translations/notes.tex/{lang}.po", "translations/random_scenario.tex/{lang}.po", "translations/recommendations.tex/{lang}.po", "translations/sentinels.tex/{lang}.po", "translations/stand_united.tex/{lang}.po", "translations/the_ambushed_accord.tex/{lang}.po", "translations/the_fractured_kingdoms.tex/{lang}.po", "translations/the_hunt.tex/{lang}.po", "translations/titans_stronghold.tex/{lang}.po", "translations/title_page.tex/{lang}.po", "translations/trial_by_combat.tex/{lang}.po", "translations/wandering_dragons.tex/{lang}.po", "translations/what_to_play.tex/{lang}.po"]
-sparse = ["translations/arcane_artillery.tex/*.po", "translations/astral_run.tex/*.po", "translations/back_cover.tex/*.po", "translations/castle_greek_gift.tex/*.po", "translations/castle_sicilian_dragon.tex/*.po", "translations/castle_two_knights_defense.tex/*.po", "translations/chain_link.tex/*.po", "translations/close_to_enemies.tex/*.po", "translations/credits.tex/*.po", "translations/dragoncurse_castle.tex/*.po", "translations/emerald_island.tex/*.po", "translations/feedback_page.tex/*.po", "translations/force_of_will.tex/*.po", "translations/inferno_deal_with_the_devil.tex/*.po", "translations/inferno_devilish_plan.tex/*.po", "translations/inferno_steadwicks_fall.tex/*.po", "translations/intro_and_toc.tex/*.po", "translations/language_metadata.tex/*.po", "translations/notes.tex/*.po", "translations/random_scenario.tex/*.po", "translations/recommendations.tex/*.po", "translations/sentinels.tex/*.po", "translations/stand_united.tex/*.po", "translations/the_ambushed_accord.tex/*.po", "translations/the_fractured_kingdoms.tex/*.po", "translations/the_hunt.tex/*.po", "translations/titans_stronghold.tex/*.po", "translations/title_page.tex/*.po", "translations/trial_by_combat.tex/*.po", "translations/wandering_dragons.tex/*.po", "translations/what_to_play.tex/*.po"]
+files = ["translations/arcane_artillery.tex/{lang}.po", "translations/astral_run.tex/{lang}.po", "translations/back_cover.tex/{lang}.po", "translations/castle_greek_gift.tex/{lang}.po", "translations/castle_sicilian_dragon.tex/{lang}.po", "translations/castle_two_knights_defense.tex/{lang}.po", "translations/chain_link.tex/{lang}.po", "translations/close_to_enemies.tex/{lang}.po", "translations/credits.tex/{lang}.po", "translations/dragoncurse_castle.tex/{lang}.po", "translations/emerald_island.tex/{lang}.po", "translations/feedback_page.tex/{lang}.po", "translations/force_of_will.tex/{lang}.po", "translations/inferno_deal_with_the_devil.tex/{lang}.po", "translations/inferno_devilish_plan.tex/{lang}.po", "translations/inferno_steadwicks_fall.tex/{lang}.po", "translations/intro_and_toc.tex/{lang}.po", "translations/language_metadata.tex/{lang}.po", "translations/notes.tex/{lang}.po", "translations/random_scenario.tex/{lang}.po", "translations/sentinels.tex/{lang}.po", "translations/stand_united.tex/{lang}.po", "translations/the_ambushed_accord.tex/{lang}.po", "translations/the_fractured_kingdoms.tex/{lang}.po", "translations/the_hunt.tex/{lang}.po", "translations/titans_stronghold.tex/{lang}.po", "translations/title_page.tex/{lang}.po", "translations/trial_by_combat.tex/{lang}.po", "translations/wandering_dragons.tex/{lang}.po"]
+sparse = ["translations/arcane_artillery.tex/*.po", "translations/astral_run.tex/*.po", "translations/back_cover.tex/*.po", "translations/castle_greek_gift.tex/*.po", "translations/castle_sicilian_dragon.tex/*.po", "translations/castle_two_knights_defense.tex/*.po", "translations/chain_link.tex/*.po", "translations/close_to_enemies.tex/*.po", "translations/credits.tex/*.po", "translations/dragoncurse_castle.tex/*.po", "translations/emerald_island.tex/*.po", "translations/feedback_page.tex/*.po", "translations/force_of_will.tex/*.po", "translations/inferno_deal_with_the_devil.tex/*.po", "translations/inferno_devilish_plan.tex/*.po", "translations/inferno_steadwicks_fall.tex/*.po", "translations/intro_and_toc.tex/*.po", "translations/language_metadata.tex/*.po", "translations/notes.tex/*.po", "translations/random_scenario.tex/*.po", "translations/sentinels.tex/*.po", "translations/stand_united.tex/*.po", "translations/the_ambushed_accord.tex/*.po", "translations/the_fractured_kingdoms.tex/*.po", "translations/the_hunt.tex/*.po", "translations/titans_stronghold.tex/*.po", "translations/title_page.tex/*.po", "translations/trial_by_combat.tex/*.po", "translations/wandering_dragons.tex/*.po"]
 licence = "MIT"
 
 [[block]]
-name = "hosted-homm3bg-rules-rewrite"
+name = "hosted-homm3bg-rules-rewrite-2"
 title = "Homm3BG: Rules Rewrite"
 url = "https://github.com/Heegu-sama/Homm3BG"
 ref = "main"
@@ -6433,7 +6191,7 @@ sparse = ["translations/cover_page.tex/*.po", "translations/language_metadata.te
 licence = "MIT"
 
 [[block]]
-name = "hosted-homm3bg-rules-rewrite-2"
+name = "hosted-homm3bg-rules-rewrite-ai_rules_tex"
 title = "Homm3BG: Rules Rewrite"
 url = "https://github.com/Heegu-sama/Homm3BG.git"
 ref = "main"
@@ -6536,17 +6294,6 @@ sparse = ["library/provision/src/main/res/values-*/strings.xml", "library/provis
 format = "android"
 template = "library/provision/src/main/res/values/strings.xml"
 licence = "AGPL-3.0-or-later"
-
-[[block]]
-name = "hosted-hyperion"
-title = "Hyperion"
-url = "https://github.com/zt64/Hyperion.git"
-ref = "main"
-files = ["app/src/main/res/values-{lang}/strings.xml"]
-sparse = ["app/src/main/res/values-*/strings.xml", "app/src/main/res/values/strings.xml"]
-format = "android"
-template = "app/src/main/res/values/strings.xml"
-licence = "GPL-3.0-or-later"
 
 [[block]]
 name = "hosted-i-hate-money"
@@ -6673,21 +6420,9 @@ format = "json"
 template = "backend/src/mail/locales/en/mails.json"
 
 [[block]]
-name = "hosted-invokeai"
-title = "InvokeAI"
-url = "https://github.com/invoke-ai/InvokeAI"
-ref = "main"
-files = ["invokeai/frontend/web/public/locales/{lang}.json"]
-sparse = ["invokeai/frontend/web/public/locales/*.json", "invokeai/frontend/web/public/locales/en.json"]
-format = "json"
-template = "invokeai/frontend/web/public/locales/en.json"
-licence = "MIT"
-
-[[block]]
 name = "hosted-iptux"
 title = "iptux"
 url = "https://github.com/iptux-src/iptux.git"
-ref = "master"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "GPL-2.0-or-later"
@@ -6765,7 +6500,7 @@ url = "https://github.com/StellarSand/IYPS"
 ref = "main"
 files = ["app/src/main/res/raw/messages_{lang}.properties"]
 sparse = ["app/src/main/res/raw/messages.properties", "app/src/main/res/raw/messages_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "app/src/main/res/raw/messages.properties"
 licence = "GPL-3.0-only"
 
@@ -6817,18 +6552,9 @@ url = "https://github.com/intoolswetrust/jsignpdf/"
 ref = "master"
 files = ["engines/api/src/main/resources/net/sf/jsignpdf/translations/messages_{lang}.properties"]
 sparse = ["engines/api/src/main/resources/net/sf/jsignpdf/translations/messages.properties", "engines/api/src/main/resources/net/sf/jsignpdf/translations/messages_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "engines/api/src/main/resources/net/sf/jsignpdf/translations/messages.properties"
 licence = "MPL-2.0"
-
-[[block]]
-name = "hosted-junction"
-title = "Junction"
-url = "https://github.com/sonnyp/Junction"
-ref = "main"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
 
 [[block]]
 name = "hosted-june"
@@ -6938,16 +6664,6 @@ template = "app/src/main/res/values/strings.xml"
 licence = "GPL-3.0-or-later"
 
 [[block]]
-name = "hosted-kemai"
-title = "Kemai"
-url = "https://github.com/AlexandrePTJ/kemai.git"
-ref = "develop"
-files = ["src/resources/l10n/kemai_{lang}.ts"]
-sparse = ["src/resources/l10n/kemai_*.ts"]
-format = "ts"
-licence = "MIT"
-
-[[block]]
 name = "hosted-kernelsu"
 title = "KernelSU"
 url = "https://github.com/tiann/KernelSU.git"
@@ -6965,7 +6681,7 @@ url = "https://github.com/keycloak/keycloak"
 ref = "main"
 files = ["js/apps/account-ui/maven-resources-community/theme/keycloak.v3/account/messages/messages_{lang}.properties"]
 sparse = ["js/apps/account-ui/maven-resources-community/theme/keycloak.v3/account/messages/messages_*.properties", "js/apps/account-ui/maven-resources/theme/keycloak.v3/account/messages/messages_en.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "js/apps/account-ui/maven-resources/theme/keycloak.v3/account/messages/messages_en.properties"
 licence = "Apache-2.0"
 
@@ -6976,7 +6692,7 @@ url = "https://github.com/keycloak/keycloak"
 ref = "main"
 files = ["js/apps/admin-ui/maven-resources-community/theme/keycloak.v2/admin/messages/messages_{lang}.properties"]
 sparse = ["js/apps/admin-ui/maven-resources-community/theme/keycloak.v2/admin/messages/messages_*.properties", "js/apps/admin-ui/maven-resources/theme/keycloak.v2/admin/messages/messages_en.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "js/apps/admin-ui/maven-resources/theme/keycloak.v2/admin/messages/messages_en.properties"
 licence = "Apache-2.0"
 
@@ -6987,7 +6703,7 @@ url = "https://github.com/keycloak/keycloak"
 ref = "main"
 files = ["themes/src/main/resources-community/theme/keycloak/email/messages/messages_{lang}.properties"]
 sparse = ["themes/src/main/resources-community/theme/keycloak/email/messages/messages_*.properties", "themes/src/main/resources/theme/keycloak/email/messages/messages_en.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "themes/src/main/resources/theme/keycloak/email/messages/messages_en.properties"
 licence = "Apache-2.0"
 
@@ -6998,7 +6714,7 @@ url = "https://github.com/keycloak/keycloak"
 ref = "main"
 files = ["themes/src/main/resources-community/theme/keycloak/login/messages/messages_{lang}.properties"]
 sparse = ["themes/src/main/resources-community/theme/keycloak/login/messages/messages_*.properties", "themes/src/main/resources/theme/keycloak/login/messages/messages_en.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "themes/src/main/resources/theme/keycloak/login/messages/messages_en.properties"
 licence = "Apache-2.0"
 
@@ -7009,7 +6725,7 @@ url = "https://github.com/keycloak/keycloak"
 ref = "main"
 files = ["themes/src/main/resources-community/theme/keycloak.v2/login/messages/messages_{lang}.properties"]
 sparse = ["themes/src/main/resources-community/theme/keycloak.v2/login/messages/messages_*.properties", "themes/src/main/resources/theme/keycloak.v2/login/messages/messages_en.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "themes/src/main/resources/theme/keycloak.v2/login/messages/messages_en.properties"
 licence = "Apache-2.0"
 
@@ -7020,7 +6736,7 @@ url = "https://github.com/keycloak/keycloak"
 ref = "main"
 files = ["themes/src/main/resources-community/theme/keycloak/welcome/messages/messages_{lang}.properties"]
 sparse = ["themes/src/main/resources-community/theme/keycloak/welcome/messages/messages_*.properties", "themes/src/main/resources/theme/keycloak/welcome/messages/messages_en.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "themes/src/main/resources/theme/keycloak/welcome/messages/messages_en.properties"
 licence = "Apache-2.0"
 
@@ -7031,7 +6747,7 @@ url = "https://github.com/keycloak/keycloak"
 ref = "main"
 files = ["themes/src/main/resources-community/theme/base/account/messages/messages_{lang}.properties"]
 sparse = ["themes/src/main/resources-community/theme/base/account/messages/messages_*.properties", "themes/src/main/resources/theme/base/account/messages/messages_en.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "themes/src/main/resources/theme/base/account/messages/messages_en.properties"
 licence = "Apache-2.0"
 
@@ -7042,7 +6758,7 @@ url = "https://github.com/keycloak/keycloak"
 ref = "main"
 files = ["themes/src/main/resources-community/theme/base/admin/messages/messages_{lang}.properties"]
 sparse = ["themes/src/main/resources-community/theme/base/admin/messages/messages_*.properties", "themes/src/main/resources/theme/base/admin/messages/messages_en.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "themes/src/main/resources/theme/base/admin/messages/messages_en.properties"
 licence = "Apache-2.0"
 
@@ -7053,7 +6769,7 @@ url = "https://github.com/keycloak/keycloak"
 ref = "main"
 files = ["themes/src/main/resources-community/theme/base/email/messages/messages_{lang}.properties"]
 sparse = ["themes/src/main/resources-community/theme/base/email/messages/messages_*.properties", "themes/src/main/resources/theme/base/email/messages/messages_en.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "themes/src/main/resources/theme/base/email/messages/messages_en.properties"
 licence = "Apache-2.0"
 
@@ -7064,7 +6780,7 @@ url = "https://github.com/keycloak/keycloak"
 ref = "main"
 files = ["themes/src/main/resources-community/theme/base/login/messages/messages_{lang}.properties"]
 sparse = ["themes/src/main/resources-community/theme/base/login/messages/messages_*.properties", "themes/src/main/resources/theme/base/login/messages/messages_en.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "themes/src/main/resources/theme/base/login/messages/messages_en.properties"
 licence = "Apache-2.0"
 
@@ -7080,17 +6796,6 @@ template = "app/src/main/res/values/strings.xml"
 licence = "MIT"
 
 [[block]]
-name = "hosted-keystore-explorer"
-title = "KeyStore Explorer"
-url = "https://github.com/kaikramer/keystore-explorer.git"
-ref = "main"
-files = ["kse/src/main/resources/org/kse/crypto/resources_{lang}.properties"]
-sparse = ["kse/src/main/resources/org/kse/crypto/resources.properties", "kse/src/main/resources/org/kse/crypto/resources_*.properties"]
-format = "properties"
-template = "kse/src/main/resources/org/kse/crypto/resources.properties"
-licence = "GPL-3.0-or-later"
-
-[[block]]
 name = "hosted-keystore-explorer-2"
 title = "KeyStore Explorer"
 url = "https://github.com/kaikramer/keystore-explorer.git"
@@ -7102,13 +6807,24 @@ template = "kse/src/main/resources/org/kse/crypto/csr/pkcs10/resources.propertie
 licence = "LGPL-3.0-or-later"
 
 [[block]]
+name = "hosted-keystore-explorer"
+title = "KeyStore Explorer"
+url = "https://github.com/kaikramer/keystore-explorer.git"
+ref = "main"
+files = ["kse/src/main/resources/org/kse/crypto/resources_{lang}.properties"]
+sparse = ["kse/src/main/resources/org/kse/crypto/resources.properties", "kse/src/main/resources/org/kse/crypto/resources_*.properties"]
+format = "properties-utf8"
+template = "kse/src/main/resources/org/kse/crypto/resources.properties"
+licence = "GPL-3.0-or-later"
+
+[[block]]
 name = "hosted-keystore-explorer-3"
 title = "KeyStore Explorer"
 url = "https://github.com/kaikramer/keystore-explorer.git"
 ref = "main"
 files = ["kse/src/main/resources/org/kse/crypto/csr/spkac/resources_{lang}.properties"]
 sparse = ["kse/src/main/resources/org/kse/crypto/csr/spkac/resources.properties", "kse/src/main/resources/org/kse/crypto/csr/spkac/resources_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "kse/src/main/resources/org/kse/crypto/csr/spkac/resources.properties"
 licence = "GPL-3.0-or-later"
 
@@ -7119,7 +6835,7 @@ url = "https://github.com/kaikramer/keystore-explorer.git"
 ref = "main"
 files = ["kse/src/main/resources/org/kse/crypto/digest/resources_{lang}.properties"]
 sparse = ["kse/src/main/resources/org/kse/crypto/digest/resources.properties", "kse/src/main/resources/org/kse/crypto/digest/resources_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "kse/src/main/resources/org/kse/crypto/digest/resources.properties"
 licence = "GPL-3.0-or-later"
 
@@ -7130,7 +6846,7 @@ url = "https://github.com/kaikramer/keystore-explorer.git"
 ref = "main"
 files = ["kse/src/main/resources/org/kse/crypto/filetype/resources_{lang}.properties"]
 sparse = ["kse/src/main/resources/org/kse/crypto/filetype/resources.properties", "kse/src/main/resources/org/kse/crypto/filetype/resources_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "kse/src/main/resources/org/kse/crypto/filetype/resources.properties"
 licence = "GPL-3.0-or-later"
 
@@ -7141,7 +6857,7 @@ url = "https://github.com/kaikramer/keystore-explorer.git"
 ref = "main"
 files = ["kse/src/main/resources/org/kse/crypto/keypair/resources_{lang}.properties"]
 sparse = ["kse/src/main/resources/org/kse/crypto/keypair/resources.properties", "kse/src/main/resources/org/kse/crypto/keypair/resources_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "kse/src/main/resources/org/kse/crypto/keypair/resources.properties"
 licence = "GPL-3.0-or-later"
 
@@ -7152,7 +6868,7 @@ url = "https://github.com/kaikramer/keystore-explorer.git"
 ref = "main"
 files = ["kse/src/main/resources/org/kse/crypto/keystore/resources_{lang}.properties"]
 sparse = ["kse/src/main/resources/org/kse/crypto/keystore/resources.properties", "kse/src/main/resources/org/kse/crypto/keystore/resources_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "kse/src/main/resources/org/kse/crypto/keystore/resources.properties"
 licence = "GPL-3.0-or-later"
 
@@ -7163,7 +6879,7 @@ url = "https://github.com/kaikramer/keystore-explorer.git"
 ref = "main"
 files = ["kse/src/main/resources/org/kse/crypto/privatekey/resources_{lang}.properties"]
 sparse = ["kse/src/main/resources/org/kse/crypto/privatekey/resources.properties", "kse/src/main/resources/org/kse/crypto/privatekey/resources_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "kse/src/main/resources/org/kse/crypto/privatekey/resources.properties"
 licence = "GPL-3.0-or-later"
 
@@ -7174,7 +6890,7 @@ url = "https://github.com/kaikramer/keystore-explorer.git"
 ref = "main"
 files = ["kse/src/main/resources/org/kse/crypto/publickey/resources_{lang}.properties"]
 sparse = ["kse/src/main/resources/org/kse/crypto/publickey/resources.properties", "kse/src/main/resources/org/kse/crypto/publickey/resources_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "kse/src/main/resources/org/kse/crypto/publickey/resources.properties"
 licence = "GPL-3.0-or-later"
 
@@ -7185,7 +6901,7 @@ url = "https://github.com/kaikramer/keystore-explorer.git"
 ref = "main"
 files = ["kse/src/main/resources/org/kse/crypto/secretkey/resources_{lang}.properties"]
 sparse = ["kse/src/main/resources/org/kse/crypto/secretkey/resources.properties", "kse/src/main/resources/org/kse/crypto/secretkey/resources_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "kse/src/main/resources/org/kse/crypto/secretkey/resources.properties"
 licence = "GPL-3.0-or-later"
 
@@ -7196,7 +6912,7 @@ url = "https://github.com/kaikramer/keystore-explorer.git"
 ref = "main"
 files = ["kse/src/main/resources/org/kse/crypto/signing/resources_{lang}.properties"]
 sparse = ["kse/src/main/resources/org/kse/crypto/signing/resources.properties", "kse/src/main/resources/org/kse/crypto/signing/resources_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "kse/src/main/resources/org/kse/crypto/signing/resources.properties"
 licence = "GPL-3.0-or-later"
 
@@ -7207,7 +6923,7 @@ url = "https://github.com/kaikramer/keystore-explorer.git"
 ref = "main"
 files = ["kse/src/main/resources/org/kse/crypto/x509/resources_{lang}.properties"]
 sparse = ["kse/src/main/resources/org/kse/crypto/x509/resources.properties", "kse/src/main/resources/org/kse/crypto/x509/resources_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "kse/src/main/resources/org/kse/crypto/x509/resources.properties"
 licence = "GPL-3.0-or-later"
 
@@ -7218,7 +6934,7 @@ url = "https://github.com/kaikramer/keystore-explorer.git"
 ref = "main"
 files = ["kse/src/main/resources/org/kse/gui/resources_{lang}.properties"]
 sparse = ["kse/src/main/resources/org/kse/gui/resources.properties", "kse/src/main/resources/org/kse/gui/resources_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "kse/src/main/resources/org/kse/gui/resources.properties"
 licence = "GPL-3.0-or-later"
 
@@ -7229,7 +6945,7 @@ url = "https://github.com/kaikramer/keystore-explorer.git"
 ref = "main"
 files = ["kse/src/main/resources/org/kse/gui/about/resources_{lang}.properties"]
 sparse = ["kse/src/main/resources/org/kse/gui/about/resources.properties", "kse/src/main/resources/org/kse/gui/about/resources_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "kse/src/main/resources/org/kse/gui/about/resources.properties"
 licence = "GPL-3.0-or-later"
 
@@ -7240,7 +6956,7 @@ url = "https://github.com/kaikramer/keystore-explorer.git"
 ref = "main"
 files = ["kse/src/main/resources/org/kse/gui/actions/resources_{lang}.properties"]
 sparse = ["kse/src/main/resources/org/kse/gui/actions/resources.properties", "kse/src/main/resources/org/kse/gui/actions/resources_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "kse/src/main/resources/org/kse/gui/actions/resources.properties"
 licence = "GPL-3.0-or-later"
 
@@ -7251,7 +6967,7 @@ url = "https://github.com/kaikramer/keystore-explorer.git"
 ref = "main"
 files = ["kse/src/main/resources/org/kse/gui/crypto/resources_{lang}.properties"]
 sparse = ["kse/src/main/resources/org/kse/gui/crypto/resources.properties", "kse/src/main/resources/org/kse/gui/crypto/resources_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "kse/src/main/resources/org/kse/gui/crypto/resources.properties"
 licence = "GPL-3.0-or-later"
 
@@ -7262,7 +6978,7 @@ url = "https://github.com/kaikramer/keystore-explorer.git"
 ref = "main"
 files = ["kse/src/main/resources/org/kse/gui/crypto/accessdescription/resources_{lang}.properties"]
 sparse = ["kse/src/main/resources/org/kse/gui/crypto/accessdescription/resources.properties", "kse/src/main/resources/org/kse/gui/crypto/accessdescription/resources_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "kse/src/main/resources/org/kse/gui/crypto/accessdescription/resources.properties"
 licence = "GPL-3.0-or-later"
 
@@ -7273,7 +6989,7 @@ url = "https://github.com/kaikramer/keystore-explorer.git"
 ref = "main"
 files = ["kse/src/main/resources/org/kse/gui/crypto/customextkeyusage/resources_{lang}.properties"]
 sparse = ["kse/src/main/resources/org/kse/gui/crypto/customextkeyusage/resources.properties", "kse/src/main/resources/org/kse/gui/crypto/customextkeyusage/resources_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "kse/src/main/resources/org/kse/gui/crypto/customextkeyusage/resources.properties"
 licence = "GPL-3.0-or-later"
 
@@ -7284,7 +7000,7 @@ url = "https://github.com/kaikramer/keystore-explorer.git"
 ref = "main"
 files = ["kse/src/main/resources/org/kse/gui/crypto/distributionpoints/resources_{lang}.properties"]
 sparse = ["kse/src/main/resources/org/kse/gui/crypto/distributionpoints/resources.properties", "kse/src/main/resources/org/kse/gui/crypto/distributionpoints/resources_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "kse/src/main/resources/org/kse/gui/crypto/distributionpoints/resources.properties"
 licence = "GPL-3.0-or-later"
 
@@ -7295,7 +7011,7 @@ url = "https://github.com/kaikramer/keystore-explorer.git"
 ref = "main"
 files = ["kse/src/main/resources/org/kse/gui/crypto/generalname/resources_{lang}.properties"]
 sparse = ["kse/src/main/resources/org/kse/gui/crypto/generalname/resources.properties", "kse/src/main/resources/org/kse/gui/crypto/generalname/resources_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "kse/src/main/resources/org/kse/gui/crypto/generalname/resources.properties"
 licence = "GPL-3.0-or-later"
 
@@ -7306,7 +7022,7 @@ url = "https://github.com/kaikramer/keystore-explorer.git"
 ref = "main"
 files = ["kse/src/main/resources/org/kse/gui/crypto/generalsubtree/resources_{lang}.properties"]
 sparse = ["kse/src/main/resources/org/kse/gui/crypto/generalsubtree/resources.properties", "kse/src/main/resources/org/kse/gui/crypto/generalsubtree/resources_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "kse/src/main/resources/org/kse/gui/crypto/generalsubtree/resources.properties"
 licence = "GPL-3.0-or-later"
 
@@ -7317,7 +7033,7 @@ url = "https://github.com/kaikramer/keystore-explorer.git"
 ref = "main"
 files = ["kse/src/main/resources/org/kse/gui/crypto/policyinformation/resources_{lang}.properties"]
 sparse = ["kse/src/main/resources/org/kse/gui/crypto/policyinformation/resources.properties", "kse/src/main/resources/org/kse/gui/crypto/policyinformation/resources_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "kse/src/main/resources/org/kse/gui/crypto/policyinformation/resources.properties"
 licence = "GPL-3.0-or-later"
 
@@ -7328,7 +7044,7 @@ url = "https://github.com/kaikramer/keystore-explorer.git"
 ref = "main"
 files = ["kse/src/main/resources/org/kse/gui/crypto/policymapping/resources_{lang}.properties"]
 sparse = ["kse/src/main/resources/org/kse/gui/crypto/policymapping/resources.properties", "kse/src/main/resources/org/kse/gui/crypto/policymapping/resources_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "kse/src/main/resources/org/kse/gui/crypto/policymapping/resources.properties"
 licence = "GPL-3.0-or-later"
 
@@ -7339,7 +7055,7 @@ url = "https://github.com/kaikramer/keystore-explorer.git"
 ref = "main"
 files = ["kse/src/main/resources/org/kse/gui/datetime/resources_{lang}.properties"]
 sparse = ["kse/src/main/resources/org/kse/gui/datetime/resources.properties", "kse/src/main/resources/org/kse/gui/datetime/resources_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "kse/src/main/resources/org/kse/gui/datetime/resources.properties"
 licence = "GPL-3.0-or-later"
 
@@ -7350,7 +7066,7 @@ url = "https://github.com/kaikramer/keystore-explorer.git"
 ref = "main"
 files = ["kse/src/main/resources/org/kse/gui/dialogs/extensions/resources_{lang}.properties"]
 sparse = ["kse/src/main/resources/org/kse/gui/dialogs/extensions/resources.properties", "kse/src/main/resources/org/kse/gui/dialogs/extensions/resources_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "kse/src/main/resources/org/kse/gui/dialogs/extensions/resources.properties"
 licence = "GPL-3.0-or-later"
 
@@ -7361,7 +7077,7 @@ url = "https://github.com/kaikramer/keystore-explorer.git"
 ref = "main"
 files = ["kse/src/main/resources/org/kse/gui/dialogs/importexport/resources_{lang}.properties"]
 sparse = ["kse/src/main/resources/org/kse/gui/dialogs/importexport/resources.properties", "kse/src/main/resources/org/kse/gui/dialogs/importexport/resources_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "kse/src/main/resources/org/kse/gui/dialogs/importexport/resources.properties"
 licence = "GPL-3.0-or-later"
 
@@ -7372,7 +7088,7 @@ url = "https://github.com/kaikramer/keystore-explorer.git"
 ref = "main"
 files = ["kse/src/main/resources/org/kse/gui/dialogs/sign/resources_{lang}.properties"]
 sparse = ["kse/src/main/resources/org/kse/gui/dialogs/sign/resources.properties", "kse/src/main/resources/org/kse/gui/dialogs/sign/resources_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "kse/src/main/resources/org/kse/gui/dialogs/sign/resources.properties"
 licence = "GPL-3.0-or-later"
 
@@ -7383,7 +7099,7 @@ url = "https://github.com/kaikramer/keystore-explorer.git"
 ref = "main"
 files = ["kse/src/main/resources/org/kse/gui/dnchooser/resources_{lang}.properties"]
 sparse = ["kse/src/main/resources/org/kse/gui/dnchooser/resources.properties", "kse/src/main/resources/org/kse/gui/dnchooser/resources_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "kse/src/main/resources/org/kse/gui/dnchooser/resources.properties"
 licence = "GPL-3.0-or-later"
 
@@ -7394,7 +7110,7 @@ url = "https://github.com/kaikramer/keystore-explorer.git"
 ref = "main"
 files = ["kse/src/main/resources/org/kse/gui/dnd/resources_{lang}.properties"]
 sparse = ["kse/src/main/resources/org/kse/gui/dnd/resources.properties", "kse/src/main/resources/org/kse/gui/dnd/resources_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "kse/src/main/resources/org/kse/gui/dnd/resources.properties"
 licence = "GPL-3.0-or-later"
 
@@ -7405,7 +7121,7 @@ url = "https://github.com/kaikramer/keystore-explorer.git"
 ref = "main"
 files = ["kse/src/main/resources/org/kse/gui/error/resources_{lang}.properties"]
 sparse = ["kse/src/main/resources/org/kse/gui/error/resources.properties", "kse/src/main/resources/org/kse/gui/error/resources_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "kse/src/main/resources/org/kse/gui/error/resources.properties"
 licence = "GPL-3.0-or-later"
 
@@ -7416,7 +7132,7 @@ url = "https://github.com/kaikramer/keystore-explorer.git"
 ref = "main"
 files = ["kse/src/main/resources/org/kse/gui/jar/resources_{lang}.properties"]
 sparse = ["kse/src/main/resources/org/kse/gui/jar/resources.properties", "kse/src/main/resources/org/kse/gui/jar/resources_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "kse/src/main/resources/org/kse/gui/jar/resources.properties"
 licence = "GPL-3.0-or-later"
 
@@ -7427,7 +7143,7 @@ url = "https://github.com/kaikramer/keystore-explorer.git"
 ref = "main"
 files = ["kse/src/main/resources/org/kse/gui/oid/resources_{lang}.properties"]
 sparse = ["kse/src/main/resources/org/kse/gui/oid/resources.properties", "kse/src/main/resources/org/kse/gui/oid/resources_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "kse/src/main/resources/org/kse/gui/oid/resources.properties"
 licence = "GPL-3.0-or-later"
 
@@ -7438,7 +7154,7 @@ url = "https://github.com/kaikramer/keystore-explorer.git"
 ref = "main"
 files = ["kse/src/main/resources/org/kse/gui/password/resources_{lang}.properties"]
 sparse = ["kse/src/main/resources/org/kse/gui/password/resources.properties", "kse/src/main/resources/org/kse/gui/password/resources_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "kse/src/main/resources/org/kse/gui/password/resources.properties"
 licence = "GPL-3.0-or-later"
 
@@ -7449,7 +7165,7 @@ url = "https://github.com/kaikramer/keystore-explorer.git"
 ref = "main"
 files = ["kse/src/main/resources/org/kse/gui/passwordmanager/resources_{lang}.properties"]
 sparse = ["kse/src/main/resources/org/kse/gui/passwordmanager/resources.properties", "kse/src/main/resources/org/kse/gui/passwordmanager/resources_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "kse/src/main/resources/org/kse/gui/passwordmanager/resources.properties"
 licence = "GPL-3.0-or-later"
 
@@ -7460,7 +7176,7 @@ url = "https://github.com/kaikramer/keystore-explorer.git"
 ref = "main"
 files = ["kse/src/main/resources/org/kse/gui/preferences/resources_{lang}.properties"]
 sparse = ["kse/src/main/resources/org/kse/gui/preferences/resources.properties", "kse/src/main/resources/org/kse/gui/preferences/resources_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "kse/src/main/resources/org/kse/gui/preferences/resources.properties"
 licence = "GPL-3.0-or-later"
 
@@ -7471,7 +7187,7 @@ url = "https://github.com/kaikramer/keystore-explorer.git"
 ref = "main"
 files = ["kse/src/main/resources/org/kse/gui/quickstart/resources_{lang}.properties"]
 sparse = ["kse/src/main/resources/org/kse/gui/quickstart/resources.properties", "kse/src/main/resources/org/kse/gui/quickstart/resources_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "kse/src/main/resources/org/kse/gui/quickstart/resources.properties"
 licence = "GPL-3.0-or-later"
 
@@ -7482,7 +7198,7 @@ url = "https://github.com/kaikramer/keystore-explorer.git"
 ref = "main"
 files = ["kse/src/main/resources/org/kse/gui/tipoftheday/resources_{lang}.properties"]
 sparse = ["kse/src/main/resources/org/kse/gui/tipoftheday/resources.properties", "kse/src/main/resources/org/kse/gui/tipoftheday/resources_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "kse/src/main/resources/org/kse/gui/tipoftheday/resources.properties"
 licence = "GPL-3.0-or-later"
 
@@ -7493,7 +7209,7 @@ url = "https://github.com/kaikramer/keystore-explorer.git"
 ref = "main"
 files = ["kse/src/main/resources/org/kse/utilities/asn1/resources_{lang}.properties"]
 sparse = ["kse/src/main/resources/org/kse/utilities/asn1/resources.properties", "kse/src/main/resources/org/kse/utilities/asn1/resources_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "kse/src/main/resources/org/kse/utilities/asn1/resources.properties"
 licence = "GPL-3.0-or-later"
 
@@ -7504,7 +7220,7 @@ url = "https://github.com/kaikramer/keystore-explorer.git"
 ref = "main"
 files = ["kse/src/main/resources/org/kse/utilities/history/resources_{lang}.properties"]
 sparse = ["kse/src/main/resources/org/kse/utilities/history/resources.properties", "kse/src/main/resources/org/kse/utilities/history/resources_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "kse/src/main/resources/org/kse/utilities/history/resources.properties"
 licence = "GPL-3.0-or-later"
 
@@ -7515,7 +7231,7 @@ url = "https://github.com/kaikramer/keystore-explorer.git"
 ref = "main"
 files = ["kse/src/main/resources/org/kse/utilities/net/resources_{lang}.properties"]
 sparse = ["kse/src/main/resources/org/kse/utilities/net/resources.properties", "kse/src/main/resources/org/kse/utilities/net/resources_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "kse/src/main/resources/org/kse/utilities/net/resources.properties"
 licence = "GPL-3.0-or-later"
 
@@ -7526,7 +7242,7 @@ url = "https://github.com/kaikramer/keystore-explorer.git"
 ref = "main"
 files = ["kse/src/main/resources/org/kse/utilities/ssl/resources_{lang}.properties"]
 sparse = ["kse/src/main/resources/org/kse/utilities/ssl/resources.properties", "kse/src/main/resources/org/kse/utilities/ssl/resources_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "kse/src/main/resources/org/kse/utilities/ssl/resources.properties"
 licence = "GPL-3.0-or-later"
 
@@ -7537,7 +7253,7 @@ url = "https://github.com/kaikramer/keystore-explorer.git"
 ref = "main"
 files = ["kse/src/main/resources/org/kse/version/resources_{lang}.properties"]
 sparse = ["kse/src/main/resources/org/kse/version/resources.properties", "kse/src/main/resources/org/kse/version/resources_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "kse/src/main/resources/org/kse/version/resources.properties"
 licence = "GPL-3.0-or-later"
 
@@ -7548,7 +7264,7 @@ url = "https://github.com/kaikramer/keystore-explorer.git"
 ref = "main"
 files = ["kse/src/main/resources/org/kse/gui/dialogs/resources_{lang}.properties"]
 sparse = ["kse/src/main/resources/org/kse/gui/dialogs/resources.properties", "kse/src/main/resources/org/kse/gui/dialogs/resources_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "kse/src/main/resources/org/kse/gui/dialogs/resources.properties"
 licence = "GPL-3.0-or-later"
 
@@ -7664,17 +7380,6 @@ sparse = ["ks_includes/locales/*/LC_MESSAGES/KlipperScreen.po"]
 licence = "AGPL-3.0-only"
 
 [[block]]
-name = "hosted-klyx"
-title = "Klyx"
-url = "https://github.com/klyx-dev/klyx"
-ref = "main"
-files = ["i18n/strings/translations/{lang}.json"]
-sparse = ["i18n/strings/translations/*.json", "i18n/strings/translations/en.json"]
-format = "json"
-template = "i18n/strings/translations/en.json"
-licence = "GPL-3.0-only"
-
-[[block]]
 name = "hosted-knit"
 title = "Knit"
 url = "https://github.com/getknit/knit.git"
@@ -7734,7 +7439,7 @@ url = "https://github.com/gotson/komga.git"
 ref = "master"
 files = ["komga-tray/src/main/resources/org/gotson/komga/messages_{lang}.properties"]
 sparse = ["komga-tray/src/main/resources/org/gotson/komga/messages.properties", "komga-tray/src/main/resources/org/gotson/komga/messages_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "komga-tray/src/main/resources/org/gotson/komga/messages.properties"
 licence = "MIT"
 
@@ -7822,21 +7527,12 @@ sparse = ["lazylibrarian/locale/*/LC_MESSAGES/lazylibrarian.po"]
 licence = "GPL-3.0-only"
 
 [[block]]
-name = "hosted-learn-webgpu-native"
-title = "Learn WebGPU Native"
-url = "https://github.com/eliemichel/LearnWebGPU"
-ref = "main"
-files = ["locale/{lang}/LC_MESSAGES/guide.po"]
-sparse = ["locale/*/LC_MESSAGES/guide.po"]
-licence = "MIT"
-
-[[block]]
 name = "hosted-leechcraft"
 title = "LeechCraft"
 url = "https://github.com/0xd34df00d/leechcraft"
 ref = "master"
-files = ["src/core/leechcraft_{lang}.ts", "src/plugins/advancednotifications/leechcraft_advancednotifications_{lang}.ts", "src/plugins/aggregator/leechcraft_aggregator_{lang}.ts", "src/plugins/anhero/leechcraft_anhero_{lang}.ts", "src/plugins/auscrie/leechcraft_auscrie_{lang}.ts", "src/plugins/azoth/leechcraft_azoth_{lang}.ts", "src/plugins/bittorrent/leechcraft_bittorrent_{lang}.ts", "src/plugins/blasq/leechcraft_blasq_{lang}.ts", "src/plugins/blogique/leechcraft_blogique_{lang}.ts", "src/plugins/certmgr/leechcraft_certmgr_{lang}.ts", "src/plugins/cpuload/leechcraft_cpuload_{lang}.ts", "src/plugins/cstp/leechcraft_cstp_{lang}.ts", "src/plugins/dbusmanager/leechcraft_dbusmanager_{lang}.ts", "src/plugins/deadlyrics/leechcraft_deadlyrics_{lang}.ts", "src/plugins/devmon/leechcraft_devmon_{lang}.ts", "src/plugins/dolozhee/leechcraft_dolozhee_{lang}.ts", "src/plugins/eleeminator/leechcraft_eleeminator_{lang}.ts", "src/plugins/fenet/leechcraft_fenet_{lang}.ts", "src/plugins/fontiac/leechcraft_fontiac_{lang}.ts", "src/plugins/gacts/leechcraft_gacts_{lang}.ts", "src/plugins/glance/leechcraft_glance_{lang}.ts", "src/plugins/gmailnotifier/leechcraft_gmailnotifier_{lang}.ts", "src/plugins/historyholder/leechcraft_historyholder_{lang}.ts", "src/plugins/hotsensors/leechcraft_hotsensors_{lang}.ts", "src/plugins/hotstreams/leechcraft_hotstreams_{lang}.ts", "src/plugins/htthare/leechcraft_htthare_{lang}.ts", "src/plugins/imgaste/leechcraft_imgaste_{lang}.ts", "src/plugins/intermutko/leechcraft_intermutko_{lang}.ts", "src/plugins/kbswitch/leechcraft_kbswitch_{lang}.ts", "src/plugins/kinotify/leechcraft_kinotify_{lang}.ts", "src/plugins/kovrogruz/leechcraft_kovrogruz_{lang}.ts", "src/plugins/krigstask/leechcraft_krigstask_{lang}.ts", "src/plugins/lackman/leechcraft_lackman_{lang}.ts", "src/plugins/lastfmscrobble/leechcraft_lastfmscrobble_{lang}.ts", "src/plugins/laughty/leechcraft_laughty_{lang}.ts", "src/plugins/launchy/leechcraft_launchy_{lang}.ts", "src/plugins/lemon/leechcraft_lemon_{lang}.ts", "src/plugins/lhtr/leechcraft_lhtr_{lang}.ts", "src/plugins/liznoo/leechcraft_liznoo_{lang}.ts", "src/plugins/lmp/leechcraft_lmp_{lang}.ts", "src/plugins/mellonetray/leechcraft_mellonetray_{lang}.ts", "src/plugins/monocle/leechcraft_monocle_{lang}.ts", "src/plugins/musiczombie/leechcraft_musiczombie_{lang}.ts", "src/plugins/nacheku/leechcraft_nacheku_{lang}.ts", "src/plugins/namauth/leechcraft_namauth_{lang}.ts", "src/plugins/netstoremanager/leechcraft_netstoremanager_{lang}.ts", "src/plugins/networkmonitor/leechcraft_networkmonitor_{lang}.ts", "src/plugins/newlife/leechcraft_newlife_{lang}.ts", "src/plugins/ooronee/leechcraft_ooronee_{lang}.ts", "src/plugins/otlozhu/leechcraft_otlozhu_{lang}.ts", "src/plugins/pintab/leechcraft_pintab_{lang}.ts", "src/plugins/pogooglue/leechcraft_pogooglue_{lang}.ts", "src/plugins/poleemery/leechcraft_poleemery_{lang}.ts", "src/plugins/popishu/leechcraft_popishu_{lang}.ts", "src/plugins/poshuku/leechcraft_poshuku_{lang}.ts", "src/plugins/rosenthal/leechcraft_rosenthal_{lang}.ts", "src/plugins/sb2/leechcraft_sb2_{lang}.ts", "src/plugins/scroblibre/leechcraft_scroblibre_{lang}.ts", "src/plugins/secman/leechcraft_secman_{lang}.ts", "src/plugins/seekthru/leechcraft_seekthru_{lang}.ts", "src/plugins/snails/leechcraft_snails_{lang}.ts", "src/plugins/summary/leechcraft_summary_{lang}.ts", "src/plugins/syncer/leechcraft_syncer_{lang}.ts", "src/plugins/sysnotify/leechcraft_sysnotify_{lang}.ts", "src/plugins/tabsessmanager/leechcraft_tabsessmanager_{lang}.ts", "src/plugins/tabslist/leechcraft_tabslist_{lang}.ts", "src/plugins/touchstreams/leechcraft_touchstreams_{lang}.ts", "src/plugins/vrooby/leechcraft_vrooby_{lang}.ts", "src/plugins/xproxy/leechcraft_xproxy_{lang}.ts", "src/plugins/xtazy/leechcraft_xtazy_{lang}.ts", "src/plugins/zalil/leechcraft_zalil_{lang}.ts"]
-sparse = ["src/core/leechcraft_*.ts", "src/plugins/advancednotifications/leechcraft_advancednotifications_*.ts", "src/plugins/aggregator/leechcraft_aggregator_*.ts", "src/plugins/anhero/leechcraft_anhero_*.ts", "src/plugins/auscrie/leechcraft_auscrie_*.ts", "src/plugins/azoth/leechcraft_azoth_*.ts", "src/plugins/bittorrent/leechcraft_bittorrent_*.ts", "src/plugins/blasq/leechcraft_blasq_*.ts", "src/plugins/blogique/leechcraft_blogique_*.ts", "src/plugins/certmgr/leechcraft_certmgr_*.ts", "src/plugins/cpuload/leechcraft_cpuload_*.ts", "src/plugins/cstp/leechcraft_cstp_*.ts", "src/plugins/dbusmanager/leechcraft_dbusmanager_*.ts", "src/plugins/deadlyrics/leechcraft_deadlyrics_*.ts", "src/plugins/devmon/leechcraft_devmon_*.ts", "src/plugins/dolozhee/leechcraft_dolozhee_*.ts", "src/plugins/eleeminator/leechcraft_eleeminator_*.ts", "src/plugins/fenet/leechcraft_fenet_*.ts", "src/plugins/fontiac/leechcraft_fontiac_*.ts", "src/plugins/gacts/leechcraft_gacts_*.ts", "src/plugins/glance/leechcraft_glance_*.ts", "src/plugins/gmailnotifier/leechcraft_gmailnotifier_*.ts", "src/plugins/historyholder/leechcraft_historyholder_*.ts", "src/plugins/hotsensors/leechcraft_hotsensors_*.ts", "src/plugins/hotstreams/leechcraft_hotstreams_*.ts", "src/plugins/htthare/leechcraft_htthare_*.ts", "src/plugins/imgaste/leechcraft_imgaste_*.ts", "src/plugins/intermutko/leechcraft_intermutko_*.ts", "src/plugins/kbswitch/leechcraft_kbswitch_*.ts", "src/plugins/kinotify/leechcraft_kinotify_*.ts", "src/plugins/kovrogruz/leechcraft_kovrogruz_*.ts", "src/plugins/krigstask/leechcraft_krigstask_*.ts", "src/plugins/lackman/leechcraft_lackman_*.ts", "src/plugins/lastfmscrobble/leechcraft_lastfmscrobble_*.ts", "src/plugins/laughty/leechcraft_laughty_*.ts", "src/plugins/launchy/leechcraft_launchy_*.ts", "src/plugins/lemon/leechcraft_lemon_*.ts", "src/plugins/lhtr/leechcraft_lhtr_*.ts", "src/plugins/liznoo/leechcraft_liznoo_*.ts", "src/plugins/lmp/leechcraft_lmp_*.ts", "src/plugins/mellonetray/leechcraft_mellonetray_*.ts", "src/plugins/monocle/leechcraft_monocle_*.ts", "src/plugins/musiczombie/leechcraft_musiczombie_*.ts", "src/plugins/nacheku/leechcraft_nacheku_*.ts", "src/plugins/namauth/leechcraft_namauth_*.ts", "src/plugins/netstoremanager/leechcraft_netstoremanager_*.ts", "src/plugins/networkmonitor/leechcraft_networkmonitor_*.ts", "src/plugins/newlife/leechcraft_newlife_*.ts", "src/plugins/ooronee/leechcraft_ooronee_*.ts", "src/plugins/otlozhu/leechcraft_otlozhu_*.ts", "src/plugins/pintab/leechcraft_pintab_*.ts", "src/plugins/pogooglue/leechcraft_pogooglue_*.ts", "src/plugins/poleemery/leechcraft_poleemery_*.ts", "src/plugins/popishu/leechcraft_popishu_*.ts", "src/plugins/poshuku/leechcraft_poshuku_*.ts", "src/plugins/rosenthal/leechcraft_rosenthal_*.ts", "src/plugins/sb2/leechcraft_sb2_*.ts", "src/plugins/scroblibre/leechcraft_scroblibre_*.ts", "src/plugins/secman/leechcraft_secman_*.ts", "src/plugins/seekthru/leechcraft_seekthru_*.ts", "src/plugins/snails/leechcraft_snails_*.ts", "src/plugins/summary/leechcraft_summary_*.ts", "src/plugins/syncer/leechcraft_syncer_*.ts", "src/plugins/sysnotify/leechcraft_sysnotify_*.ts", "src/plugins/tabsessmanager/leechcraft_tabsessmanager_*.ts", "src/plugins/tabslist/leechcraft_tabslist_*.ts", "src/plugins/touchstreams/leechcraft_touchstreams_*.ts", "src/plugins/vrooby/leechcraft_vrooby_*.ts", "src/plugins/xproxy/leechcraft_xproxy_*.ts", "src/plugins/xtazy/leechcraft_xtazy_*.ts", "src/plugins/zalil/leechcraft_zalil_*.ts"]
+files = ["src/core/leechcraft_{lang}.ts", "src/plugins/advancednotifications/leechcraft_advancednotifications_{lang}.ts", "src/plugins/aggregator/leechcraft_aggregator_{lang}.ts", "src/plugins/anhero/leechcraft_anhero_{lang}.ts", "src/plugins/auscrie/leechcraft_auscrie_{lang}.ts", "src/plugins/azoth/leechcraft_azoth_{lang}.ts", "src/plugins/bittorrent/leechcraft_bittorrent_{lang}.ts", "src/plugins/blasq/leechcraft_blasq_{lang}.ts", "src/plugins/blogique/leechcraft_blogique_{lang}.ts", "src/plugins/certmgr/leechcraft_certmgr_{lang}.ts", "src/plugins/cpuload/leechcraft_cpuload_{lang}.ts", "src/plugins/cstp/leechcraft_cstp_{lang}.ts", "src/plugins/dbusmanager/leechcraft_dbusmanager_{lang}.ts", "src/plugins/deadlyrics/leechcraft_deadlyrics_{lang}.ts", "src/plugins/devmon/leechcraft_devmon_{lang}.ts", "src/plugins/dolozhee/leechcraft_dolozhee_{lang}.ts", "src/plugins/eleeminator/leechcraft_eleeminator_{lang}.ts", "src/plugins/fenet/leechcraft_fenet_{lang}.ts", "src/plugins/fontiac/leechcraft_fontiac_{lang}.ts", "src/plugins/gacts/leechcraft_gacts_{lang}.ts", "src/plugins/glance/leechcraft_glance_{lang}.ts", "src/plugins/historyholder/leechcraft_historyholder_{lang}.ts", "src/plugins/hotsensors/leechcraft_hotsensors_{lang}.ts", "src/plugins/hotstreams/leechcraft_hotstreams_{lang}.ts", "src/plugins/htthare/leechcraft_htthare_{lang}.ts", "src/plugins/imgaste/leechcraft_imgaste_{lang}.ts", "src/plugins/intermutko/leechcraft_intermutko_{lang}.ts", "src/plugins/kbswitch/leechcraft_kbswitch_{lang}.ts", "src/plugins/kinotify/leechcraft_kinotify_{lang}.ts", "src/plugins/kovrogruz/leechcraft_kovrogruz_{lang}.ts", "src/plugins/krigstask/leechcraft_krigstask_{lang}.ts", "src/plugins/lackman/leechcraft_lackman_{lang}.ts", "src/plugins/lastfmscrobble/leechcraft_lastfmscrobble_{lang}.ts", "src/plugins/laughty/leechcraft_laughty_{lang}.ts", "src/plugins/launchy/leechcraft_launchy_{lang}.ts", "src/plugins/lemon/leechcraft_lemon_{lang}.ts", "src/plugins/lhtr/leechcraft_lhtr_{lang}.ts", "src/plugins/liznoo/leechcraft_liznoo_{lang}.ts", "src/plugins/lmp/leechcraft_lmp_{lang}.ts", "src/plugins/mellonetray/leechcraft_mellonetray_{lang}.ts", "src/plugins/monocle/leechcraft_monocle_{lang}.ts", "src/plugins/musiczombie/leechcraft_musiczombie_{lang}.ts", "src/plugins/nacheku/leechcraft_nacheku_{lang}.ts", "src/plugins/namauth/leechcraft_namauth_{lang}.ts", "src/plugins/netstoremanager/leechcraft_netstoremanager_{lang}.ts", "src/plugins/networkmonitor/leechcraft_networkmonitor_{lang}.ts", "src/plugins/ooronee/leechcraft_ooronee_{lang}.ts", "src/plugins/otlozhu/leechcraft_otlozhu_{lang}.ts", "src/plugins/pintab/leechcraft_pintab_{lang}.ts", "src/plugins/pogooglue/leechcraft_pogooglue_{lang}.ts", "src/plugins/popishu/leechcraft_popishu_{lang}.ts", "src/plugins/poshuku/leechcraft_poshuku_{lang}.ts", "src/plugins/rosenthal/leechcraft_rosenthal_{lang}.ts", "src/plugins/sb2/leechcraft_sb2_{lang}.ts", "src/plugins/scroblibre/leechcraft_scroblibre_{lang}.ts", "src/plugins/secman/leechcraft_secman_{lang}.ts", "src/plugins/seekthru/leechcraft_seekthru_{lang}.ts", "src/plugins/snails/leechcraft_snails_{lang}.ts", "src/plugins/summary/leechcraft_summary_{lang}.ts", "src/plugins/syncer/leechcraft_syncer_{lang}.ts", "src/plugins/sysnotify/leechcraft_sysnotify_{lang}.ts", "src/plugins/tabsessmanager/leechcraft_tabsessmanager_{lang}.ts", "src/plugins/tabslist/leechcraft_tabslist_{lang}.ts", "src/plugins/vrooby/leechcraft_vrooby_{lang}.ts", "src/plugins/xproxy/leechcraft_xproxy_{lang}.ts", "src/plugins/xtazy/leechcraft_xtazy_{lang}.ts", "src/plugins/zalil/leechcraft_zalil_{lang}.ts"]
+sparse = ["src/core/leechcraft_*.ts", "src/plugins/advancednotifications/leechcraft_advancednotifications_*.ts", "src/plugins/aggregator/leechcraft_aggregator_*.ts", "src/plugins/anhero/leechcraft_anhero_*.ts", "src/plugins/auscrie/leechcraft_auscrie_*.ts", "src/plugins/azoth/leechcraft_azoth_*.ts", "src/plugins/bittorrent/leechcraft_bittorrent_*.ts", "src/plugins/blasq/leechcraft_blasq_*.ts", "src/plugins/blogique/leechcraft_blogique_*.ts", "src/plugins/certmgr/leechcraft_certmgr_*.ts", "src/plugins/cpuload/leechcraft_cpuload_*.ts", "src/plugins/cstp/leechcraft_cstp_*.ts", "src/plugins/dbusmanager/leechcraft_dbusmanager_*.ts", "src/plugins/deadlyrics/leechcraft_deadlyrics_*.ts", "src/plugins/devmon/leechcraft_devmon_*.ts", "src/plugins/dolozhee/leechcraft_dolozhee_*.ts", "src/plugins/eleeminator/leechcraft_eleeminator_*.ts", "src/plugins/fenet/leechcraft_fenet_*.ts", "src/plugins/fontiac/leechcraft_fontiac_*.ts", "src/plugins/gacts/leechcraft_gacts_*.ts", "src/plugins/glance/leechcraft_glance_*.ts", "src/plugins/historyholder/leechcraft_historyholder_*.ts", "src/plugins/hotsensors/leechcraft_hotsensors_*.ts", "src/plugins/hotstreams/leechcraft_hotstreams_*.ts", "src/plugins/htthare/leechcraft_htthare_*.ts", "src/plugins/imgaste/leechcraft_imgaste_*.ts", "src/plugins/intermutko/leechcraft_intermutko_*.ts", "src/plugins/kbswitch/leechcraft_kbswitch_*.ts", "src/plugins/kinotify/leechcraft_kinotify_*.ts", "src/plugins/kovrogruz/leechcraft_kovrogruz_*.ts", "src/plugins/krigstask/leechcraft_krigstask_*.ts", "src/plugins/lackman/leechcraft_lackman_*.ts", "src/plugins/lastfmscrobble/leechcraft_lastfmscrobble_*.ts", "src/plugins/laughty/leechcraft_laughty_*.ts", "src/plugins/launchy/leechcraft_launchy_*.ts", "src/plugins/lemon/leechcraft_lemon_*.ts", "src/plugins/lhtr/leechcraft_lhtr_*.ts", "src/plugins/liznoo/leechcraft_liznoo_*.ts", "src/plugins/lmp/leechcraft_lmp_*.ts", "src/plugins/mellonetray/leechcraft_mellonetray_*.ts", "src/plugins/monocle/leechcraft_monocle_*.ts", "src/plugins/musiczombie/leechcraft_musiczombie_*.ts", "src/plugins/nacheku/leechcraft_nacheku_*.ts", "src/plugins/namauth/leechcraft_namauth_*.ts", "src/plugins/netstoremanager/leechcraft_netstoremanager_*.ts", "src/plugins/networkmonitor/leechcraft_networkmonitor_*.ts", "src/plugins/ooronee/leechcraft_ooronee_*.ts", "src/plugins/otlozhu/leechcraft_otlozhu_*.ts", "src/plugins/pintab/leechcraft_pintab_*.ts", "src/plugins/pogooglue/leechcraft_pogooglue_*.ts", "src/plugins/popishu/leechcraft_popishu_*.ts", "src/plugins/poshuku/leechcraft_poshuku_*.ts", "src/plugins/rosenthal/leechcraft_rosenthal_*.ts", "src/plugins/sb2/leechcraft_sb2_*.ts", "src/plugins/scroblibre/leechcraft_scroblibre_*.ts", "src/plugins/secman/leechcraft_secman_*.ts", "src/plugins/seekthru/leechcraft_seekthru_*.ts", "src/plugins/snails/leechcraft_snails_*.ts", "src/plugins/summary/leechcraft_summary_*.ts", "src/plugins/syncer/leechcraft_syncer_*.ts", "src/plugins/sysnotify/leechcraft_sysnotify_*.ts", "src/plugins/tabsessmanager/leechcraft_tabsessmanager_*.ts", "src/plugins/tabslist/leechcraft_tabslist_*.ts", "src/plugins/vrooby/leechcraft_vrooby_*.ts", "src/plugins/xproxy/leechcraft_xproxy_*.ts", "src/plugins/xtazy/leechcraft_xtazy_*.ts", "src/plugins/zalil/leechcraft_zalil_*.ts"]
 format = "ts"
 licence = "BSL-1.0"
 
@@ -7901,15 +7597,6 @@ sparse = ["app/src/main/res/values-*/strings.xml", "app/src/main/res/values/stri
 format = "android"
 template = "app/src/main/res/values/strings.xml"
 licence = "GPL-3.0-only"
-
-[[block]]
-name = "hosted-libreplan"
-title = "LibrePlan"
-url = "https://github.com/LibrePlan/libreplan"
-ref = "main"
-files = ["ganttzk/src/main/resources/i18n/({lang}|*_*).po", "libreplan-webapp/src/main/resources/i18n/({lang}|*_*).po"]
-sparse = ["ganttzk/src/main/resources/i18n/(*|*_*).po", "libreplan-webapp/src/main/resources/i18n/(*|*_*).po"]
-licence = "AGPL-3.0-or-later"
 
 [[block]]
 name = "hosted-libresudoku"
@@ -7982,28 +7669,6 @@ sparse = ["ui/src/lib/locales/*.json", "ui/src/lib/locales/en.json"]
 format = "json"
 template = "ui/src/lib/locales/en.json"
 licence = "GPL-3.0-only"
-
-[[block]]
-name = "hosted-linagora-2"
-title = "Linagora"
-url = "https://github.com/linagora/twake-drive"
-ref = "main"
-files = ["tdrive/frontend/public/locales/{lang}.json"]
-sparse = ["tdrive/frontend/public/locales/*.json", "tdrive/frontend/public/locales/en.json"]
-format = "json"
-template = "tdrive/frontend/public/locales/en.json"
-licence = "AGPL-3.0-or-later"
-
-[[block]]
-name = "hosted-linagora-3"
-title = "Linagora"
-url = "https://github.com/linagora/twake-drive"
-ref = "main"
-files = ["tdrive/backend/node/locales/{lang}.json"]
-sparse = ["tdrive/backend/node/locales/*.json", "tdrive/backend/node/locales/en.json"]
-format = "json"
-template = "tdrive/backend/node/locales/en.json"
-licence = "AGPL-3.0-or-later"
 
 [[block]]
 name = "hosted-linksheet"
@@ -8195,15 +7860,6 @@ sparse = ["src/language/*.json", "src/language/en.json"]
 format = "json"
 template = "src/language/en.json"
 licence = "GPL-3.0-only"
-
-[[block]]
-name = "hosted-lxd"
-title = "LXD"
-url = "https://github.com/canonical/lxd.git"
-ref = "main"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "Apache-2.0"
 
 [[block]]
 name = "hosted-mainsail"
@@ -8993,7 +8649,7 @@ template = "front/translations/en.json"
 licence = "GPL-3.0-or-later"
 
 [[block]]
-name = "hosted-memos"
+name = "hosted-memos-i18n"
 title = "memos"
 url = "https://github.com/usememos/memos"
 ref = "main"
@@ -9004,7 +8660,7 @@ template = "web/src/locales/en.json"
 licence = "MIT"
 
 [[block]]
-name = "hosted-memos-i18n"
+name = "hosted-memos-i18n-english"
 title = "memos-i18n"
 url = "https://github.com/usememos/memos.git"
 ref = "main"
@@ -9046,28 +8702,6 @@ sparse = ["app/src/main/res/values-*/strings.xml", "app/src/main/res/values/stri
 format = "android"
 template = "app/src/main/res/values/strings.xml"
 licence = "Apache-2.0"
-
-[[block]]
-name = "hosted-metrodroid"
-title = "Metrodroid"
-url = "https://github.com/metrodroid/metrodroid.git"
-ref = "master"
-files = ["src/main/res/values-{lang}/market.xml"]
-sparse = ["src/main/res/values-*/market.xml", "src/main/res/values/market.xml"]
-format = "android"
-template = "src/main/res/values/market.xml"
-licence = "GPL-3.0-or-later"
-
-[[block]]
-name = "hosted-metrodroid-2"
-title = "Metrodroid"
-url = "https://github.com/metrodroid/metrodroid.git"
-ref = "master"
-files = ["src/main/res/values-{lang}/strings.xml"]
-sparse = ["src/main/res/values-*/strings.xml", "src/main/res/values/strings.xml"]
-format = "android"
-template = "src/main/res/values/strings.xml"
-licence = "GPL-3.0-or-later"
 
 [[block]]
 name = "hosted-metrolist"
@@ -9732,16 +9366,6 @@ template = "youpipe/src/main/res/values/strings.xml"
 licence = "GPL-3.0-only"
 
 [[block]]
-name = "hosted-module-federation-documentation-oss"
-title = "Module Federation Documentation"
-url = "https://github.com/module-federation/universe"
-ref = "main"
-files = ["apps/docs/src/l10n-weblate/ROOT/{lang}.po"]
-sparse = ["apps/docs/src/l10n-weblate/ROOT/*.po"]
-segment = true
-licence = "MIT"
-
-[[block]]
 name = "hosted-molly-instant-messenger"
 title = "Molly Instant Messenger"
 url = "https://github.com/mollyim/mollyim-android"
@@ -9885,17 +9509,6 @@ template = "kubejs/assets/kubejs/lang/en_us.json"
 licence = "LGPL-3.0-only"
 
 [[block]]
-name = "hosted-monifactory-8"
-title = "Monifactory"
-url = "https://github.com/ThePansmith/Monifactory/"
-ref = "main"
-files = ["kubejs/assets/laserio/lang/{lang}.json"]
-sparse = ["kubejs/assets/laserio/lang/*.json", "kubejs/assets/laserio/lang/en_us.json"]
-format = "json"
-template = "kubejs/assets/laserio/lang/en_us.json"
-licence = "LGPL-3.0-only"
-
-[[block]]
 name = "hosted-monifactory-9"
 title = "Monifactory"
 url = "https://github.com/ThePansmith/Monifactory/"
@@ -9904,17 +9517,6 @@ files = ["kubejs/assets/monilabs/lang/{lang}.json"]
 sparse = ["kubejs/assets/monilabs/lang/*.json", "kubejs/assets/monilabs/lang/en_us.json"]
 format = "json"
 template = "kubejs/assets/monilabs/lang/en_us.json"
-licence = "LGPL-3.0-only"
-
-[[block]]
-name = "hosted-monifactory-10"
-title = "Monifactory"
-url = "https://github.com/ThePansmith/Monifactory/"
-ref = "main"
-files = ["kubejs/assets/ftbquests/lang/{lang}.json"]
-sparse = ["kubejs/assets/ftbquests/lang/*.json", "kubejs/assets/ftbquests/lang/en_us.json"]
-format = "json"
-template = "kubejs/assets/ftbquests/lang/en_us.json"
 licence = "LGPL-3.0-only"
 
 [[block]]
@@ -10742,17 +10344,6 @@ sparse = ["normcap/resources/locales/*/LC_MESSAGES/messages.po"]
 licence = "GPL-3.0-or-later"
 
 [[block]]
-name = "hosted-notelyvoice"
-title = "NotelyVoice"
-url = "https://github.com/tosinonikute/NotelyVoice.git"
-ref = "main"
-files = ["shared/src/commonMain/composeResources/values-{lang}/strings.xml"]
-sparse = ["shared/src/commonMain/composeResources/values-*/strings.xml", "shared/src/commonMain/composeResources/values/strings.xml"]
-format = "android"
-template = "shared/src/commonMain/composeResources/values/strings.xml"
-licence = "GPL-3.0-or-later"
-
-[[block]]
 name = "hosted-noti-progress-bar"
 title = "Noti Progress Bar"
 url = "https://github.com/GustavoASantos/Noti"
@@ -10783,17 +10374,6 @@ files = ["app/src/main/res/values-{lang}/strings.xml"]
 sparse = ["app/src/main/res/values-*/strings.xml", "app/src/main/res/values/strings.xml"]
 format = "android"
 template = "app/src/main/res/values/strings.xml"
-
-[[block]]
-name = "hosted-noveldokusha"
-title = "NovelDokusha"
-url = "https://github.com/nanihadesuka/NovelDokusha"
-ref = "master"
-files = ["app/src/main/res/values-{lang}/strings.xml"]
-sparse = ["app/src/main/res/values-*/strings.xml", "app/src/main/res/values/strings.xml"]
-format = "android"
-template = "app/src/main/res/values/strings.xml"
-licence = "GPL-3.0-or-later"
 
 [[block]]
 name = "hosted-ntfy"
@@ -11051,39 +10631,6 @@ template = "extensions/wikibase/module/langs/translation-en.json"
 licence = "BSD-2-Clause"
 
 [[block]]
-name = "hosted-openrefine-6"
-title = "OpenRefine"
-url = "https://github.com/OpenRefine/OpenRefine.git"
-ref = "master"
-files = ["modules/grel/src/main/resources/com/google/refine/grel/ControlDescription_{lang}.properties"]
-sparse = ["modules/grel/src/main/resources/com/google/refine/grel/ControlDescription.properties", "modules/grel/src/main/resources/com/google/refine/grel/ControlDescription_*.properties"]
-format = "properties"
-template = "modules/grel/src/main/resources/com/google/refine/grel/ControlDescription.properties"
-licence = "BSD-3-Clause"
-
-[[block]]
-name = "hosted-openrefine-7"
-title = "OpenRefine"
-url = "https://github.com/OpenRefine/OpenRefine.git"
-ref = "master"
-files = ["modules/grel/src/main/resources/com/google/refine/grel/ControlEvalError_{lang}.properties"]
-sparse = ["modules/grel/src/main/resources/com/google/refine/grel/ControlEvalError.properties", "modules/grel/src/main/resources/com/google/refine/grel/ControlEvalError_*.properties"]
-format = "properties"
-template = "modules/grel/src/main/resources/com/google/refine/grel/ControlEvalError.properties"
-licence = "BSD-3-Clause"
-
-[[block]]
-name = "hosted-openrefine-8"
-title = "OpenRefine"
-url = "https://github.com/OpenRefine/OpenRefine.git"
-ref = "master"
-files = ["modules/grel/src/main/resources/com/google/refine/grel/EvalErrorMessage_{lang}.properties"]
-sparse = ["modules/grel/src/main/resources/com/google/refine/grel/EvalErrorMessage.properties", "modules/grel/src/main/resources/com/google/refine/grel/EvalErrorMessage_*.properties"]
-format = "properties"
-template = "modules/grel/src/main/resources/com/google/refine/grel/EvalErrorMessage.properties"
-licence = "BSD-3-Clause"
-
-[[block]]
 name = "hosted-openrefine-9"
 title = "OpenRefine"
 url = "https://github.com/OpenRefine/OpenRefine.git"
@@ -11095,13 +10642,46 @@ template = "modules/core/src/main/resources/com/google/refine/messages/OpenRefin
 licence = "BSD-3-Clause"
 
 [[block]]
+name = "hosted-openrefine-6"
+title = "OpenRefine"
+url = "https://github.com/OpenRefine/OpenRefine.git"
+ref = "master"
+files = ["modules/grel/src/main/resources/com/google/refine/grel/ControlDescription_{lang}.properties"]
+sparse = ["modules/grel/src/main/resources/com/google/refine/grel/ControlDescription.properties", "modules/grel/src/main/resources/com/google/refine/grel/ControlDescription_*.properties"]
+format = "properties-utf8"
+template = "modules/grel/src/main/resources/com/google/refine/grel/ControlDescription.properties"
+licence = "BSD-3-Clause"
+
+[[block]]
+name = "hosted-openrefine-7"
+title = "OpenRefine"
+url = "https://github.com/OpenRefine/OpenRefine.git"
+ref = "master"
+files = ["modules/grel/src/main/resources/com/google/refine/grel/ControlEvalError_{lang}.properties"]
+sparse = ["modules/grel/src/main/resources/com/google/refine/grel/ControlEvalError.properties", "modules/grel/src/main/resources/com/google/refine/grel/ControlEvalError_*.properties"]
+format = "properties-utf8"
+template = "modules/grel/src/main/resources/com/google/refine/grel/ControlEvalError.properties"
+licence = "BSD-3-Clause"
+
+[[block]]
+name = "hosted-openrefine-8"
+title = "OpenRefine"
+url = "https://github.com/OpenRefine/OpenRefine.git"
+ref = "master"
+files = ["modules/grel/src/main/resources/com/google/refine/grel/EvalErrorMessage_{lang}.properties"]
+sparse = ["modules/grel/src/main/resources/com/google/refine/grel/EvalErrorMessage.properties", "modules/grel/src/main/resources/com/google/refine/grel/EvalErrorMessage_*.properties"]
+format = "properties-utf8"
+template = "modules/grel/src/main/resources/com/google/refine/grel/EvalErrorMessage.properties"
+licence = "BSD-3-Clause"
+
+[[block]]
 name = "hosted-openrefine-10"
 title = "OpenRefine"
 url = "https://github.com/OpenRefine/OpenRefine.git"
 ref = "master"
 files = ["main/resources/com/google/refine/operations/OperationDescription_{lang}.properties"]
 sparse = ["main/resources/com/google/refine/operations/OperationDescription.properties", "main/resources/com/google/refine/operations/OperationDescription_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "main/resources/com/google/refine/operations/OperationDescription.properties"
 licence = "BSD-3-Clause"
 
@@ -11112,7 +10692,7 @@ url = "https://github.com/OpenRefine/OpenRefine.git"
 ref = "master"
 files = ["main/resources/com/google/refine/operations/OperationHistoryEntry_{lang}.properties"]
 sparse = ["main/resources/com/google/refine/operations/OperationHistoryEntry.properties", "main/resources/com/google/refine/operations/OperationHistoryEntry_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "main/resources/com/google/refine/operations/OperationHistoryEntry.properties"
 licence = "BSD-3-Clause"
 
@@ -11168,16 +10748,6 @@ sparse = ["lang/*.json", "lang/en.json"]
 format = "json"
 template = "lang/en.json"
 licence = "GPL-3.0-or-later"
-
-[[block]]
-name = "hosted-opentoonz"
-title = "OpenToonz"
-url = "https://github.com/opentoonz/opentoonz.git"
-ref = "master"
-files = ["toonz/sources/translations/{lang}/colorfx.ts", "toonz/sources/translations/{lang}/image.ts", "toonz/sources/translations/{lang}/tnzcore.ts", "toonz/sources/translations/{lang}/tnztools.ts", "toonz/sources/translations/{lang}/toonz.ts", "toonz/sources/translations/{lang}/toonzlib.ts", "toonz/sources/translations/{lang}/toonzqt.ts"]
-sparse = ["toonz/sources/translations/*/colorfx.ts", "toonz/sources/translations/*/image.ts", "toonz/sources/translations/*/tnzcore.ts", "toonz/sources/translations/*/tnztools.ts", "toonz/sources/translations/*/toonz.ts", "toonz/sources/translations/*/toonzlib.ts", "toonz/sources/translations/*/toonzqt.ts"]
-format = "ts"
-licence = "BSD-3-Clause"
 
 [[block]]
 name = "hosted-orion-viewer"
@@ -11706,17 +11276,6 @@ ref = "master"
 files = ["po/extra/{lang}.po", "po/{lang}.po"]
 sparse = ["po/*.po", "po/extra/*.po"]
 licence = "GPL-3.0-only"
-
-[[block]]
-name = "hosted-persian-calendar"
-title = "Persian Calendar"
-url = "https://github.com/persian-calendar/persian-calendar"
-ref = "main"
-files = ["PersianCalendar/src/main/res/values-{lang}/strings.xml"]
-sparse = ["PersianCalendar/src/main/res/values-*/strings.xml", "PersianCalendar/src/main/res/values/strings.xml"]
-format = "android"
-template = "PersianCalendar/src/main/res/values/strings.xml"
-licence = "GPL-3.0-or-later"
 
 [[block]]
 name = "hosted-petals-app"
@@ -12311,7 +11870,7 @@ url = "https://github.com/PretendoNetwork/Inkay.git"
 ref = "main"
 files = ["src/lang/{lang}.lang"]
 sparse = ["src/lang/*.lang", "src/lang/en_US.lang"]
-format = "properties"
+format = "properties-utf8"
 template = "src/lang/en_US.lang"
 licence = "GPL-3.0-only"
 
@@ -12465,15 +12024,6 @@ format = "ts"
 licence = "Apache-2.0"
 
 [[block]]
-name = "hosted-qooxdoo"
-title = "qooxdoo"
-url = "https://github.com/qooxdoo/qooxdoo.git"
-ref = "master"
-files = ["application/demobrowser/source/translation/{lang}.po", "application/feedreader/source/translation/{lang}.po", "application/mobileshowcase/source/translation/{lang}.po", "application/playground/source/translation/{lang}.po", "application/showcase/source/translation/{lang}.po", "application/tutorial/source/translation/{lang}.po", "application/widgetbrowser/source/translation/{lang}.po", "component/apiviewer/source/translation/{lang}.po", "component/library/logpane/source/translation/{lang}.po", "framework/source/translation/{lang}.po"]
-sparse = ["application/demobrowser/source/translation/*.po", "application/feedreader/source/translation/*.po", "application/mobileshowcase/source/translation/*.po", "application/playground/source/translation/*.po", "application/showcase/source/translation/*.po", "application/tutorial/source/translation/*.po", "application/widgetbrowser/source/translation/*.po", "component/apiviewer/source/translation/*.po", "component/library/logpane/source/translation/*.po", "framework/source/translation/*.po"]
-licence = "MIT"
-
-[[block]]
 name = "hosted-qrop"
 title = "Qrop"
 url = "https://framagit.org/ah/qrop.git"
@@ -12536,17 +12086,6 @@ sparse = ["po/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
-name = "hosted-quotes-status-creator-2"
-title = "Quotes Status Creator"
-url = "https://github.com/VishnuSanal/WhatsAppCleaner"
-ref = "main"
-files = ["app/src/main/res/values-{lang}/strings.xml"]
-sparse = ["app/src/main/res/values-*/strings.xml", "app/src/main/res/values/strings.xml"]
-format = "android"
-template = "app/src/main/res/values/strings.xml"
-licence = "GPL-3.0-or-later"
-
-[[block]]
 name = "hosted-qview"
 title = "qView"
 url = "https://github.com/jurplel/qView"
@@ -12557,7 +12096,7 @@ format = "ts"
 licence = "GPL-3.0-or-later"
 
 [[block]]
-name = "hosted-rabbitremotecontrol"
+name = "hosted-rabbitremotecontrol-freerdp"
 title = "RabbitRemoteControl"
 url = "https://github.com/KangLin/RabbitRemoteControl"
 ref = "master"
@@ -12724,7 +12263,7 @@ url = "https://github.com/dedicatedcode/reitti.git"
 ref = "main"
 files = ["src/main/resources/messages_{lang}.properties"]
 sparse = ["src/main/resources/messages.properties", "src/main/resources/messages_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "src/main/resources/messages.properties"
 licence = "MIT"
 
@@ -12803,7 +12342,7 @@ url = "https://github.com/retrowars/retrowars"
 ref = "master"
 files = ["android/assets/i18n/messages_{lang}.properties"]
 sparse = ["android/assets/i18n/messages.properties", "android/assets/i18n/messages_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "android/assets/i18n/messages.properties"
 licence = "GPL-3.0-or-later"
 
@@ -13072,17 +12611,6 @@ template = "app/src/main/res/values/strings.xml"
 licence = "AGPL-3.0-only"
 
 [[block]]
-name = "hosted-sharing-2"
-title = "Sharing"
-url = "https://github.com/Ammar64/Sharing.git"
-ref = "master"
-files = ["web/src/locales/{lang}/translations.json"]
-sparse = ["web/src/locales/*/translations.json", "web/src/locales/en/translations.json"]
-format = "json"
-template = "web/src/locales/en/translations.json"
-licence = "AGPL-3.0-only"
-
-[[block]]
 name = "hosted-shizucallrecorder"
 title = "ShizuCallRecorder"
 url = "https://github.com/kitsumed/ShizuCallRecorder.git"
@@ -13153,7 +12681,7 @@ url = "https://github.com/Skytils/SkytilsMod"
 ref = "dev"
 files = ["src/main/resources/assets/catlas/lang/{lang}.lang"]
 sparse = ["src/main/resources/assets/catlas/lang/*.lang", "src/main/resources/assets/catlas/lang/en_US.lang"]
-format = "properties"
+format = "properties-utf8"
 template = "src/main/resources/assets/catlas/lang/en_US.lang"
 licence = "AGPL-3.0-or-later"
 
@@ -13164,7 +12692,7 @@ url = "https://github.com/Skytils/SkytilsMod"
 ref = "dev"
 files = ["src/main/resources/assets/skytils/lang/{lang}.lang"]
 sparse = ["src/main/resources/assets/skytils/lang/*.lang", "src/main/resources/assets/skytils/lang/en_US.lang"]
-format = "properties"
+format = "properties-utf8"
 template = "src/main/resources/assets/skytils/lang/en_US.lang"
 licence = "AGPL-3.0-or-later"
 
@@ -13352,7 +12880,7 @@ template = "app/src/main/res/values/strings.xml"
 licence = "GPL-3.0-only"
 
 [[block]]
-name = "hosted-sonic-pi"
+name = "hosted-sonic-pi-tutorial"
 title = "Sonic Pi"
 url = "https://github.com/sonic-pi-net/sonic-pi.git"
 ref = "translations"
@@ -13835,16 +13363,6 @@ files = ["app/src/main/res/values-{lang}/strings_admin_policy_export.xml"]
 sparse = ["app/src/main/res/values-*/strings_admin_policy_export.xml", "app/src/main/res/values/strings_admin_policy_export.xml"]
 format = "android"
 template = "app/src/main/res/values/strings_admin_policy_export.xml"
-
-[[block]]
-name = "hosted-tailsocks-11"
-title = "TailSocks"
-url = "https://github.com/bropines/tailsocks.git"
-ref = "main"
-files = ["app/src/main/res/values-{lang}/strings_admin_policy_taildrive.xml"]
-sparse = ["app/src/main/res/values-*/strings_admin_policy_taildrive.xml", "app/src/main/res/values/strings_admin_policy_taildrive.xml"]
-format = "android"
-template = "app/src/main/res/values/strings_admin_policy_taildrive.xml"
 
 [[block]]
 name = "hosted-tailsocks-12"
@@ -14658,7 +14176,7 @@ template = "assets/translations/en.json"
 licence = "GPL-3.0-or-later"
 
 [[block]]
-name = "hosted-tb-android"
+name = "hosted-thunderbird-12"
 title = "Thunderbird for Android / K-9 Mail"
 url = "https://github.com/thunderbird/thunderbird-android"
 ref = "main"
@@ -14669,7 +14187,7 @@ template = "feature/account/setup/src/main/res/values/strings.xml"
 licence = "Apache-2.0"
 
 [[block]]
-name = "hosted-tb-android-2"
+name = "hosted-thunderbird-32"
 title = "Thunderbird for Android / K-9 Mail"
 url = "https://github.com/thunderbird/thunderbird-android"
 ref = "main"
@@ -14939,17 +14457,6 @@ template = "feature/account/settings/impl/src/main/res/values/strings.xml"
 licence = "Apache-2.0"
 
 [[block]]
-name = "hosted-thunderbird-12"
-title = "Thunderbird Mobile"
-url = "https://github.com/thunderbird/thunderbird-android"
-ref = "main"
-files = ["feature/account/setup/src/main/res/values-{lang}/strings.xml"]
-sparse = ["feature/account/setup/src/main/res/values-*/strings.xml", "feature/account/setup/src/main/res/values/strings.xml"]
-format = "android"
-template = "feature/account/setup/src/main/res/values/strings.xml"
-licence = "Apache-2.0"
-
-[[block]]
 name = "hosted-thunderbird-13"
 title = "Thunderbird Mobile"
 url = "https://github.com/thunderbird/thunderbird-android"
@@ -15159,17 +14666,6 @@ template = "legacy/ui/folder/src/main/res/values/strings.xml"
 licence = "Apache-2.0"
 
 [[block]]
-name = "hosted-thunderbird-32"
-title = "Thunderbird Mobile"
-url = "https://github.com/thunderbird/thunderbird-android"
-ref = "main"
-files = ["legacy/ui/legacy/src/main/res/values-{lang}/strings.xml"]
-sparse = ["legacy/ui/legacy/src/main/res/values-*/strings.xml", "legacy/ui/legacy/src/main/res/values/strings.xml"]
-format = "android"
-template = "legacy/ui/legacy/src/main/res/values/strings.xml"
-licence = "Apache-2.0"
-
-[[block]]
 name = "hosted-tilix"
 title = "Tilix"
 url = "https://github.com/gnunn1/tilix.git"
@@ -15207,7 +14703,7 @@ url = "https://gitlab.com/tinyMediaManager/tinyMediaManager.git"
 ref = "devel"
 files = ["src/main/resources/messages_{lang}.properties"]
 sparse = ["src/main/resources/messages.properties", "src/main/resources/messages_*.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "src/main/resources/messages.properties"
 licence = "Apache-2.0"
 
@@ -15374,7 +14870,7 @@ url = "https://gitlab.torproject.org/tpo/translation.git"
 ref = "tor-browser"
 files = ["{lang}/brand.properties"]
 sparse = ["*/brand.properties", "en-US/brand.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "en-US/brand.properties"
 licence = "MPL-2.0"
 
@@ -15385,7 +14881,7 @@ url = "https://gitlab.torproject.org/tpo/translation.git"
 ref = "tor-browser"
 files = ["{lang}/onionLocation.properties"]
 sparse = ["*/onionLocation.properties", "en-US/onionLocation.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "en-US/onionLocation.properties"
 licence = "MPL-2.0"
 
@@ -15396,7 +14892,7 @@ url = "https://gitlab.torproject.org/tpo/translation.git"
 ref = "tor-browser"
 files = ["{lang}/settings.properties"]
 sparse = ["*/settings.properties", "en-US/settings.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "en-US/settings.properties"
 licence = "MPL-2.0"
 
@@ -15407,7 +14903,7 @@ url = "https://gitlab.torproject.org/tpo/translation.git"
 ref = "tor-browser"
 files = ["{lang}/torConnect.properties"]
 sparse = ["*/torConnect.properties", "en-US/torConnect.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "en-US/torConnect.properties"
 licence = "MPL-2.0"
 
@@ -15418,7 +14914,7 @@ url = "https://gitlab.torproject.org/tpo/translation.git"
 ref = "tor-browser"
 files = ["{lang}/torlauncher.properties"]
 sparse = ["*/torlauncher.properties", "en-US/torlauncher.properties"]
-format = "properties"
+format = "properties-utf8"
 template = "en-US/torlauncher.properties"
 licence = "MPL-2.0"
 
@@ -15761,7 +15257,6 @@ licence = "AGPL-3.0-or-later"
 name = "hosted-trustroots"
 title = "Trustroots"
 url = "https://github.com/Trustroots/trustroots"
-ref = "master"
 files = ["public/locales/{lang}/circles.json"]
 sparse = ["public/locales/*/circles.json", "public/locales/en/circles.json"]
 format = "json"
@@ -15772,7 +15267,6 @@ licence = "MIT"
 name = "hosted-trustroots-2"
 title = "Trustroots"
 url = "https://github.com/Trustroots/trustroots"
-ref = "master"
 files = ["public/locales/{lang}/contacts.json"]
 sparse = ["public/locales/*/contacts.json", "public/locales/en/contacts.json"]
 format = "json"
@@ -15783,7 +15277,6 @@ licence = "MIT"
 name = "hosted-trustroots-3"
 title = "Trustroots"
 url = "https://github.com/Trustroots/trustroots"
-ref = "master"
 files = ["public/locales/{lang}/core.json"]
 sparse = ["public/locales/*/core.json", "public/locales/en/core.json"]
 format = "json"
@@ -15794,7 +15287,6 @@ licence = "MIT"
 name = "hosted-trustroots-4"
 title = "Trustroots"
 url = "https://github.com/Trustroots/trustroots"
-ref = "master"
 files = ["public/locales/{lang}/languages.json"]
 sparse = ["public/locales/*/languages.json", "public/locales/en/languages.json"]
 format = "json"
@@ -15805,7 +15297,6 @@ licence = "MIT"
 name = "hosted-trustroots-5"
 title = "Trustroots"
 url = "https://github.com/Trustroots/trustroots"
-ref = "master"
 files = ["public/locales/{lang}/messages.json"]
 sparse = ["public/locales/*/messages.json", "public/locales/en/messages.json"]
 format = "json"
@@ -15816,7 +15307,6 @@ licence = "MIT"
 name = "hosted-trustroots-6"
 title = "Trustroots"
 url = "https://github.com/Trustroots/trustroots"
-ref = "master"
 files = ["public/locales/{lang}/offers.json"]
 sparse = ["public/locales/*/offers.json", "public/locales/en/offers.json"]
 format = "json"
@@ -15827,7 +15317,6 @@ licence = "MIT"
 name = "hosted-trustroots-7"
 title = "Trustroots"
 url = "https://github.com/Trustroots/trustroots"
-ref = "master"
 files = ["public/locales/{lang}/pages.json"]
 sparse = ["public/locales/*/pages.json", "public/locales/en/pages.json"]
 format = "json"
@@ -15838,7 +15327,6 @@ licence = "MIT"
 name = "hosted-trustroots-8"
 title = "Trustroots"
 url = "https://github.com/Trustroots/trustroots"
-ref = "master"
 files = ["public/locales/{lang}/experiences.json"]
 sparse = ["public/locales/*/experiences.json", "public/locales/en/experiences.json"]
 format = "json"
@@ -15849,7 +15337,6 @@ licence = "MIT"
 name = "hosted-trustroots-9"
 title = "Trustroots"
 url = "https://github.com/Trustroots/trustroots"
-ref = "master"
 files = ["public/locales/{lang}/search.json"]
 sparse = ["public/locales/*/search.json", "public/locales/en/search.json"]
 format = "json"
@@ -15860,7 +15347,6 @@ licence = "MIT"
 name = "hosted-trustroots-10"
 title = "Trustroots"
 url = "https://github.com/Trustroots/trustroots"
-ref = "master"
 files = ["public/locales/{lang}/support.json"]
 sparse = ["public/locales/*/support.json", "public/locales/en/support.json"]
 format = "json"
@@ -15871,7 +15357,6 @@ licence = "MIT"
 name = "hosted-trustroots-11"
 title = "Trustroots"
 url = "https://github.com/Trustroots/trustroots"
-ref = "master"
 files = ["public/locales/{lang}/translation.json"]
 sparse = ["public/locales/*/translation.json", "public/locales/en/translation.json"]
 format = "json"
@@ -15882,7 +15367,6 @@ licence = "MIT"
 name = "hosted-trustroots-12"
 title = "Trustroots"
 url = "https://github.com/Trustroots/trustroots"
-ref = "master"
 files = ["public/locales/{lang}/users.json"]
 sparse = ["public/locales/*/users.json", "public/locales/en/users.json"]
 format = "json"
@@ -15956,7 +15440,6 @@ licence = "GPL-3.0-or-later"
 name = "hosted-turris-3"
 title = "Turris"
 url = "https://gitlab.nic.cz/turris/peacockr.git"
-ref = "meta/program-architecture"
 files = ["frontend/po/{lang}.po"]
 sparse = ["frontend/po/*.po"]
 licence = "GPL-3.0-only"
@@ -16390,33 +15873,12 @@ template = "android/vcmi-app/src/main/res/values/strings.xml"
 licence = "GPL-2.0-or-later"
 
 [[block]]
-name = "hosted-vcmi-2"
-title = "VCMI"
-url = "https://github.com/vcmi/vcmi.git"
-ref = "develop"
-files = ["Mods/vcmi/Content/config/translations/{lang}.json"]
-sparse = ["Mods/vcmi/Content/config/translations/*.json", "Mods/vcmi/Content/config/translations/english.json"]
-format = "json"
-template = "Mods/vcmi/Content/config/translations/english.json"
-licence = "GPL-2.0-or-later"
-
-[[block]]
-name = "hosted-vcmi-3"
+name = "hosted-vcmi-linux"
 title = "VCMI"
 url = "https://github.com/vcmi/vcmi.git"
 ref = "develop"
 files = ["launcher/po/{lang}.po"]
 sparse = ["launcher/po/*.po"]
-licence = "GPL-2.0-or-later"
-
-[[block]]
-name = "hosted-vcmi-4"
-title = "VCMI"
-url = "https://github.com/vcmi/vcmi.git"
-ref = "develop"
-files = ["launcher/translation/{lang}.ts", "mapeditor/translation/{lang}.ts"]
-sparse = ["launcher/translation/*.ts", "mapeditor/translation/*.ts"]
-format = "ts"
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -16753,7 +16215,6 @@ licence = "GPL-3.0-or-later"
 name = "hosted-wekit"
 title = "WeKit"
 url = "https://github.com/Ujhhgtg/WeKit.git"
-ref = "dev"
 files = ["app/src/main/res/values-{lang}/strings.xml"]
 sparse = ["app/src/main/res/values-*/strings.xml", "app/src/main/res/values/strings.xml"]
 format = "android"
@@ -16900,17 +16361,6 @@ sparse = ["src/wtforms/locale/*/LC_MESSAGES/wtforms.po"]
 licence = "BSD-3-Clause"
 
 [[block]]
-name = "hosted-xbackbone"
-title = "XBackBone"
-url = "https://github.com/SergiX44/XBackBone"
-ref = "master"
-files = ["resources/lang/{lang}.lang.php"]
-sparse = ["resources/lang/*.lang.php", "resources/lang/en.lang.php"]
-format = "php"
-template = "resources/lang/en.lang.php"
-licence = "AGPL-3.0-only"
-
-[[block]]
 name = "hosted-xcsoar"
 title = "XCSoar"
 url = "https://github.com/XCSoar/XCSoar.git"
@@ -16926,7 +16376,7 @@ url = "https://github.com/subhra74/xdm.git"
 ref = "master"
 files = ["xdm-app/src/main/resources/lang/{lang}.txt"]
 sparse = ["xdm-app/src/main/resources/lang/*.txt", "xdm-app/src/main/resources/lang/en.txt"]
-format = "properties"
+format = "properties-utf8"
 template = "xdm-app/src/main/resources/lang/en.txt"
 
 [[block]]
@@ -17271,7 +16721,6 @@ licence = "GPL-2.0-or-later"
 name = "hosted-zim-master"
 title = "zim"
 url = "https://github.com/zim-desktop-wiki/zim-desktop-wiki"
-ref = "master"
 files = ["translations/{lang}.po"]
 sparse = ["translations/*.po"]
 licence = "GPL-2.0-or-later"
