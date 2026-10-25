@@ -1,3 +1,4 @@
+import datetime
 import functools
 import http.server
 import io
@@ -515,6 +516,36 @@ class TestCheck(object):
         git("commit", "-q", "-am", "two")
         assert run(text, "--check").output == "x\n"
 
+    def test_min_days(self, run, git_repo, monkeypatch):
+        repo, git = git_repo
+        text = block("x", "git", url=repo.as_uri(), files=["po/{lang}.po"], min_days=10)
+        run(text)
+        (repo / "po/af.po").write_text("af, changed")
+        git("commit", "-q", "-am", "two")
+        state_path = run.cache / "x/fetched.json"
+        state = json.loads(state_path.read_text())
+
+        def age(days, fetches):
+            fetched = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=days)
+            state_path.write_text(json.dumps(dict(state, fetched=fetched.isoformat(),
+                                                  fetches=fetches)))
+        # Resting: not even checked.
+        age(0, 2)
+        with monkeypatch.context() as patch:
+            patch.setattr(Git, "fingerprint", lambda self: pytest.fail("checked"))
+            assert run(text, "--check").output == ""
+        age(10, 2)
+        assert run(text, "--check").output == "x\n"
+
+    def test_first_rest_staggered(self):
+        def rest(name, fetches):
+            b = load_sources_text(block(name, "translationproject", min_days=60))[0]
+            return b.rest({"fetches": fetches}).days
+        firsts = {rest("w%d" % i, 1) for i in range(20)}
+        # Spread over the period, the same each time for a block.
+        assert len(firsts) > 10 and max(firsts) < 60 and rest("w1", 1) == rest("w1", 1)
+        assert rest("w1", 2) == 60
+
     def test_no_fingerprint_always_changed(self):
         assert combine([("a", "etag"), ("b", None)]) is None
         assert combine([("a", "1"), ("b", "2")]) == combine([("b", "2"), ("a", "1")])
@@ -572,3 +603,12 @@ versions = ["26.2", { version = "26.8", ref = "libreoffice-26-8" }]
             self.load(tmp_path, '[[block]]\nname = "gnome-{version}"\ntitle = "GNOME"\n'
                                 'version = "50"\nsource = "damned-lies"\n'
                                 'release = "gnome-{version}"\nversions = ["51"]\n')
+
+
+def load_sources_text(text):
+    import tempfile
+    with tempfile.TemporaryDirectory() as tmp:
+        path = os.path.join(tmp, "sources.toml")
+        with open(path, "w") as f:
+            f.write(text)
+        return load_sources(path)
