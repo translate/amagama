@@ -6,6 +6,8 @@ from click.testing import CliRunner
 from amagama.application import amagama_server_factory
 from amagama.cli import manage
 from amagama.tests.test_updater import block
+# The app reads PO files with this loaded.
+import amagama.poparser_compat  # noqa: F401
 from amagama.updater import formats
 from amagama.updater.formats import check_format, open_po_pieces, open_store, po_pieces
 
@@ -243,3 +245,56 @@ def test_php_parser_built_once(tmp_path):
         path.write_text("<?php\n$string['k%d'] = 'v%d';\n" % (i, i))
         assert [u.target or u.source for u in open_store(str(path), "php").units] == ["v%d" % i]
     assert formats._php_parser.cache_info().misses == 1
+
+
+# A UTF-8 file with text merged in from Latin-1 files: a translator's name
+# in the header's comments and in an entry's, and one entry's translation.
+MIXED_PO = (b'# Jes\xfas, 2000.\nmsgid ""\nmsgstr ""\n'
+            b'"Content-Type: text/plain; charset=UTF-8\\n"\n\n'
+            b'msgid "Save file"\nmsgstr "Stoor l\xc3\xaaer"\n\n'
+            b'msgid "Open file"\nmsgstr "Maak l\xeaer oop"\n\n'
+            b'#. Thanks to Fran\xe7ois\nmsgid "Quit"\nmsgstr "Verlaat"\n')
+
+
+@pytest.mark.parametrize("size", [None, 40])
+def test_po_undecodable_entries_left_out(tmp_path, size):
+    path = tmp_path / "af.po"
+    path.write_bytes(MIXED_PO)
+    stores = list(open_po_pieces(str(path), size=size)) if size else [open_store(str(path))]
+    assert [(str(u.source), str(u.target)) for store in stores for u in store.units
+            if not u.isheader()] == [("Save file", "Stoor lêer"), ("Quit", "Verlaat")]
+    assert sum(store.undecodable for store in stores) == 1
+
+
+def test_po_latin1_declared_nothing_left_out(tmp_path):
+    path = tmp_path / "af.po"
+    path.write_bytes(MIXED_PO.replace(b"charset=UTF-8", b"charset=ISO-8859-1"))
+    # Every byte decodes in Latin-1.
+    assert open_store(str(path)).undecodable == 0
+
+
+@pytest.mark.parametrize("size", [None, 40])
+def test_update_undecodable_entries_skipped(amagama_config, tmp_path, monkeypatch, size):
+    if size:
+        monkeypatch.setattr(formats, "PO_PIECE_SIZE", size)
+    repo = tmp_path / "repo"
+    (repo / "po").mkdir(parents=True)
+    (repo / "po/af.po").write_bytes(MIXED_PO)
+    subprocess.run(["sh", "-c", "git init -q -b main && git add . && git -c user.name=t "
+                    "-c user.email=t@example.org commit -q -m l10n"], cwd=repo, check=True)
+    sources_toml = tmp_path / "sources.toml"
+    sources_toml.write_text(block("af", "git", url=repo.as_uri(), files=["po/{lang}.po"]))
+    amagama_config(UPDATER_SOURCES=str(sources_toml), UPDATER_CACHE_DIR=str(tmp_path / "cache"),
+                   UPDATER_WORKERS=1)
+    result = CliRunner().invoke(manage, ("update", "-s", "en"))
+    assert result.exit_code == 0, result.output
+    assert "Imported 1 files: 2 units (1 skipped)." in result.output
+
+
+def test_po_unknown_charset_read_as_utf8(tmp_path):
+    """gettext's placeholder CHARSET, left in files never filled in."""
+    path = tmp_path / "af.po"
+    path.write_bytes(MIXED_PO.replace(b"charset=UTF-8", b"charset=CHARSET"))
+    store = open_store(str(path))
+    assert [str(u.source) for u in store.units if not u.isheader()] == ["Save file", "Quit"]
+    assert store.undecodable == 1

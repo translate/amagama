@@ -60,7 +60,9 @@ def import_file(path, slang, tlang, block, licence, format=None, template=None, 
         return "%s: %s" % (type(e).__name__, e)
     units = skipped = 0
     for store in stores:
-        translatable = sum(1 for u in store.units if u.istranslatable())
+        # Entries left out for not decoding are skipped too.
+        translatable = sum(1 for u in store.units if u.istranslatable()) + getattr(
+            store, "undecodable", 0)
         if segment:
             whole = sum(1 for u in store.units if tmdb._usable_unit(u))
             store = segmented(store, slang, tlang, tmdb._usable_unit)
