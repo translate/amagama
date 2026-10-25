@@ -349,6 +349,22 @@ ORDER BY rank DESC;
         if commit:
             cursor.connection.commit()
 
+    def recorded_write(self, slang, tlang, name, total, add):
+        """Run add(iid) for a write-API request, recorded as an import of block api.
+
+        add returns how many of the total units it stored. A schema made
+        before target_imports existed records nothing.
+        """
+        slang = lang_to_table(slang)
+        iid = None
+        if slang in self.source_langs and self._has_relation(
+                self.get_cursor(self.schema(slang)), 'target_imports'):
+            iid = self.start_import(slang, tlang, name, block='api')
+        count = add(iid)
+        if iid is not None:
+            self.finish_import(slang, iid, count, total - count)
+        return count
+
     @staticmethod
     def _has_relation(cursor, name):
         cursor.execute("SELECT to_regclass(%s) IS NOT NULL", (name,))
