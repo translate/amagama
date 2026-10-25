@@ -408,8 +408,7 @@ languages.ro_wp = "ro"
 languages.sv_wp = "sv"
 languages.zh_cn_wp = "zh_CN"
 languages.zh_tw_wp = "zh_TW"
-# English packs are the source.
-languages.en_ca = ""
+# English is the source; en_us is the same, the rest are registers.
 languages.en_kids = ""
 languages.en_us = ""
 languages.en_us_k12 = ""
