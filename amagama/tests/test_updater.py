@@ -124,7 +124,7 @@ class TestSourcesFile(object):
 
     def test_shipped_sources(self):
         blocks = load_sources()
-        assert len(blocks) == 70
+        assert len(blocks) == 72
         assert (blocks[0].name, blocks[0].title, blocks[0].source) == \
             ("legacy-2019", "Legacy OSS", "snapshot")
         assert [block.name for block in blocks[1:9]] == ["gnome-%d" % n for n in range(44, 52)]
