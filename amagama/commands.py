@@ -451,8 +451,8 @@ def fetch_sources(block_names, check):
 @click.option('--prefix', required=True, help="Start of each block's name, such as fedora.")
 @click.option('--project', 'projects', multiple=True, default=["*"], show_default=True,
               help="Glob of the project slugs to include; repeatable.")
-@click.option('--docs', multiple=True, help="Glob of documentation projects, imported with "
-              "segmentation; repeatable.")
+@click.option('--docs', multiple=True, help="Glob of documentation, project or "
+              "project/component, imported with segmentation; repeatable.")
 @click.option('--output', type=click.Path(dir_okay=False), help="File to write; else standard output.")
 @click.option('--min-age-days', type=click.IntRange(min=0), default=60, show_default=True,
               help="Days after a fetch before each block is checked again.")

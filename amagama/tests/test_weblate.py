@@ -133,6 +133,15 @@ def test_docs():
         "segment": True, "licence": "CC-BY-SA-4.0"}}
 
 
+def test_docs_component():
+    found, skipped = generated([
+        component("app", "ui", "https://git.example/app", "po/*.po"),
+        component("app", "docs", "https://git.example/app-docs", "docs/po/*.po"),
+    ], docs=["*/docs"])
+    assert {name: b.get("segment", False) for name, b in found.items()} == {
+        "test-app": False, "test-app-2": True}
+
+
 def test_names_taken():
     found, skipped = generated([component("app", "ui", "https://git.example/app", "po/*.po")],
                                taken={"test-app"})
