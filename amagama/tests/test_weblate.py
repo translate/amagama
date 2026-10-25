@@ -209,6 +209,15 @@ def test_command(amagama_config, instance, tmp_path):
     assert [(b.name, b.min_age_days) for b in load_sources(str(output))] == [("test-app", 60)]
 
 
+def test_command_regenerates_own_blocks(amagama_config, instance, tmp_path):
+    sources = tmp_path / "sources.toml"
+    sources.write_text(block("test-app", "git", url="https://git.example/app", files=["po/{lang}.po"]))
+    amagama_config(UPDATER_SOURCES=str(sources))
+    result = CliRunner().invoke(manage, ("weblate_sources", instance, "--prefix", "test"))
+    assert result.exit_code == 0, result.output
+    assert 'name = "test-app"' in result.output
+
+
 def test_command_stdout(amagama_config, instance, tmp_path):
     # No sources file to check against; only projects matching --project.
     amagama_config(UPDATER_SOURCES=str(tmp_path / "missing.toml"))
