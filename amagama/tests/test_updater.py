@@ -321,12 +321,14 @@ class TestFetch(object):
 
     def test_tarballs_paced(self, run, site, pauses):
         root, url = site
-        run(block("tp", "translationproject", base_url=url + "/backups/last/", pause=2))
+        run(block("tp", "translationproject", base_url=url + "/backups/last/", pause=2,
+                  max_age_days=0))
         assert pauses == [2, 2]
 
     def test_translationproject(self, run, site):
         root, url = site
-        result = run(block("tp", "translationproject", base_url=url + "/backups/last/"))
+        result = run(block("tp", "translationproject", base_url=url + "/backups/last/",
+                           max_age_days=0))
         assert result.exit_code == 0, result.output
         assert fetched(run.cache, "tp") == [("af/bash-5.2.af.po", "af"), ("zu/bash-5.2.zu.po", "zu")]
 
@@ -353,7 +355,8 @@ class TestFetch(object):
     def test_unknown_language_codes(self, run, site):
         root, url = site
         write_tarball(str(root / "backups/last/x!.tgz"), {"x!/bash-5.2.x!.po": "x"})
-        result = run(block("tp", "translationproject", base_url=url + "/backups/last/"))
+        result = run(block("tp", "translationproject", base_url=url + "/backups/last/",
+                           max_age_days=0))
         assert result.exit_code == 0, result.output
         assert "tp: not language codes, skipped: x!" in result.output
         assert [lang for path, lang in fetched(run.cache, "tp")] == ["af", "zu"]
@@ -762,21 +765,28 @@ class TestRotation(object):
         state["fetched"] = back(state["fetched"])
         path.write_text(json.dumps(state))
 
+    def fill(self, run, text):
+        """The first fetch takes a day's share, then each day a language more."""
+        for n in range(len(self.LANGS)):
+            if n:
+                self.age(run.cache, 1)
+            assert run(text).exit_code == 0
+            state = json.loads((run.cache / "tp/fetched.json").read_text())
+            assert sorted(state["language_fetched"]) == list(self.LANGS[:n + 1])
+            assert state["language_count"] == len(self.LANGS)
+
     def test_rotation(self, run, site, tmp_path):
         root, url = site
         for lang in self.LANGS:
             self.write(root, lang, "one")
-        text = block("tp", "translationproject", base_url=url + "/backups/last/")
-        # The first fetch takes every language.
-        assert run(text).exit_code == 0
-        state = json.loads((run.cache / "tp/fetched.json").read_text())
-        assert sorted(state["language_fetched"]) == list(self.LANGS)
+        text = block("tp", "translationproject", base_url=url + "/backups/last/", max_age_days=4)
+        self.fill(run, text)
         # Not due again until max_age_days / 4 has passed.
         assert run(text, "--check").output == ""
         for lang in self.LANGS:
             self.write(root, lang, "two")
-        # 14 of 30 days: ceil(4 x 14 / 30) = 2 languages, those fetched longest ago.
-        self.age(run.cache, 14, stagger=True)
+        # 2 of 4 days: ceil(4 x 2 / 4) = 2 languages, those fetched longest ago.
+        self.age(run.cache, 2)
         assert run(text, "--check").output == "tp\n"
         result = run(text)
         assert result.exit_code == 0, result.output
@@ -785,7 +795,7 @@ class TestRotation(object):
         state = json.loads((run.cache / "tp/fetched.json").read_text())
         assert len(state["files"]) == 4 and sorted(state["by_language"]) == list(self.LANGS)
         # The other two next time round.
-        self.age(run.cache, 14)
+        self.age(run.cache, 2)
         run(text)
         assert [self.cached(run.cache, lang, tmp_path) for lang in self.LANGS] == ["two"] * 4
 
@@ -793,15 +803,16 @@ class TestRotation(object):
         root, url = site
         for lang in self.LANGS:
             self.write(root, lang, "one")
-        text = block("tp", "translationproject", base_url=url + "/backups/last/")
-        run(text)
-        # A new language is fetched at once; a withdrawn one is dropped.
+        text = block("tp", "translationproject", base_url=url + "/backups/last/", max_age_days=4)
+        self.fill(run, text)
+        # A new language goes ahead of the oldest; a withdrawn one is dropped.
         self.write(root, "nso", "one")
         (root / "backups/last/zu.tgz").unlink()
         self.age(run.cache, 1)
         assert run(text).exit_code == 0
         state = json.loads((run.cache / "tp/fetched.json").read_text())
         assert sorted(state["language_fetched"]) == ["af", "nso", "st", "xh"]
+        assert state["language_fetched"]["nso"] > state["language_fetched"]["st"]
         assert sorted(lang for path, lang in fetched(run.cache, "tp")) == ["af", "nso", "st", "xh"]
         assert not (run.cache / "tp/zu").exists()
 

@@ -96,7 +96,7 @@ def test_no_stable_release(drupal):
 
 def test_fetch(run, drupal, pauses):
     root, urls = drupal
-    result = run(block("drupal", "drupal", projects=["drupal", "token"], pause=2,
+    result = run(block("drupal", "drupal", projects=["drupal", "token"], pause=2, max_age_days=0,
                        languages={"en": ""}, **urls))
     assert result.exit_code == 0, result.output
     # token has no Zulu: skipped.
@@ -163,7 +163,7 @@ def test_invalid_core(tmp_path):
 
 def test_update(run, drupal):
     root, urls = drupal
-    result = run(block("drupal", "drupal", projects=["drupal", "token"], pause=0,
+    result = run(block("drupal", "drupal", projects=["drupal", "token"], pause=0, max_age_days=0,
                        languages={"en": ""}, **urls), "-s", "en", command="update")
     assert result.exit_code == 0, result.output
     assert "Imported 3 files: 3 units (0 skipped)." in result.output

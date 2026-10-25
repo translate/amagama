@@ -197,7 +197,7 @@ def test_invalid(tmp_path, release):
 
 def test_update(run, joomla):
     root, settings = joomla
-    result = run(joomla_block(settings), "-s", "en", command="update")
+    result = run(joomla_block(dict(settings, max_age_days=0)), "-s", "en", command="update")
     assert result.exit_code == 0, result.output
     assert "Imported 5 files: 5 units (0 skipped)." in result.output
     assert lookup("de", "Article") == ["Beitrag"]

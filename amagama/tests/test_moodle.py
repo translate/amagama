@@ -78,7 +78,7 @@ def moodle_block(url, **extra):
 
 def test_fetch(run, moodle, pauses):
     root, url = moodle
-    result = run(moodle_block(url).replace("pause = 0", "pause = 2"))
+    result = run(moodle_block(url, max_age_days=0).replace("pause = 0", "pause = 2"))
     assert result.exit_code == 0, result.output
     # The English pack is the template; langconfig isn't a translation.
     assert fetched(run.cache, "moodle") == [
@@ -121,7 +121,7 @@ def test_invalid(tmp_path, release):
 
 def test_update(run, moodle):
     root, url = moodle
-    result = run(moodle_block(url), "-s", "en", command="update")
+    result = run(moodle_block(url, max_age_days=0), "-s", "en", command="update")
     assert result.exit_code == 0, result.output
     assert "Imported 2 files: 3 units (0 skipped)." in result.output
     assert lookup("af", "Save changes") == ["Stoor veranderinge"]
