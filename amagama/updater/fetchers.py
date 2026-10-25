@@ -7,6 +7,7 @@ target languages, and computes a fingerprint cheaply enough to check weekly.
 import fnmatch
 import hashlib
 import json
+import logging
 import os
 import posixpath
 import re
@@ -103,6 +104,9 @@ class Fetcher(object):
     optional = ()
     # Whether fetch() knows each file's language without a {lang} filemask.
     gives_language = True
+    # Whether fetch() also downloads the block's English, the files its
+    # template matches; the block then calls use_template().
+    needs_template = False
 
     def __init__(self, settings):
         missing = [key for key in self.required if key not in settings]
@@ -692,6 +696,119 @@ class Moodle(Fetcher):
         return files
 
 
+class Joomla(Fetcher):
+    """Joomla's accredited language packs for a major release, with the
+    English they translate from joomla-cms.
+
+    The packs are listed in translationlist_<release>.xml, and each pack's
+    details give its zip and SHA-256; a pack that doesn't match is skipped.
+    The English is the files of joomla-cms at ref that the block's template
+    matches. The fingerprint is the packs' versions and ref's commit.
+    Downloads are pause seconds apart.
+    """
+
+    required = ("release", "ref")
+    optional = ("base_url", "repository", "pause")
+    needs_template = True
+    # Where Joomla installs each client's files.
+    clients = {"site": "language", "administrator": "administrator/language",
+               "api": "api/language"}
+
+    def __init__(self, settings):
+        super(Joomla, self).__init__(settings)
+        if not isinstance(settings["release"], str) or not settings["release"].isdigit():
+            raise ValueError("release must be a Joomla major version, such as \"5\"")
+
+    def use_template(self, template):
+        if not template:
+            raise ValueError("joomla needs a template: the English files of joomla-cms")
+        self.git = Git({"url": self.settings.get("repository", "https://github.com/joomla/joomla-cms"),
+                        "ref": self.settings["ref"], "sparse": [template]})
+
+    @property
+    def base_url(self):
+        return self.settings.get("base_url", "https://update.joomla.org/language").rstrip("/")
+
+    def packs(self):
+        """[(language, version, details URL)]"""
+        if not hasattr(self, "_packs"):
+            url = "%s/translationlist_%s.xml" % (self.base_url, self.settings["release"])
+            try:
+                listing = ET.fromstring(http_text(url))
+            except ET.ParseError as e:
+                raise FetchError("%s: %s" % (url, e))
+            self._packs = [(pack.get("element", "").removeprefix("pkg_"), pack.get("version"),
+                            pack.get("detailsurl")) for pack in listing.iter("extension")]
+            if not self._packs or not all(all(pack) for pack in self._packs):
+                raise FetchError("%s: not a list of language packs" % url)
+        return self._packs
+
+    def fingerprint(self):
+        return combine([(lang, version) for lang, version, details in self.packs()]
+                       + [("en-GB", self.git.fingerprint())])
+
+    def _download(self, details, version):
+        """The URL and SHA-256 of a pack's version."""
+        try:
+            updates = ET.fromstring(http_text(details)).iter("update")
+            update = next(update for update in updates if update.findtext("version") == version)
+            return update.findtext("downloads/downloadurl").strip(), update.findtext("sha256").strip()
+        except (ET.ParseError, StopIteration, AttributeError) as e:
+            raise FetchError("%s: no download for %s (%s)" % (details, version, e))
+
+    def _unpack_clients(self, pack, lang):
+        """Unpack the zip per client that a package manifest names, as Joomla does."""
+        for manifest in sorted(os.listdir(pack)):
+            if not manifest.endswith(".xml"):
+                continue
+            try:
+                files = ET.parse(os.path.join(pack, manifest)).getroot().iter("file")
+            except ET.ParseError:
+                continue
+            for element in files:
+                inner = os.path.join(pack, os.path.basename((element.text or "").strip()))
+                client = self.clients.get(element.get("client"))
+                if element.get("type") == "language" and client and zipfile.is_zipfile(inner):
+                    extract_zip(inner, os.path.join(pack, *client.split("/"), lang))
+
+    def fetch(self, dest):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.git.fetch(os.path.join(tmp, "english"))
+            shutil.copytree(os.path.join(tmp, "english"), dest, dirs_exist_ok=True)
+            found = {path: "en-GB" for path in files_under(os.path.join(tmp, "english"))}
+            for lang, version, details in self.packs():
+                url, sha256 = self._download(details, version)
+                path = os.path.join(tmp, "pack.zip")
+                download(url, path)
+                with open(path, "rb") as f:
+                    if hashlib.sha256(f.read()).hexdigest() != sha256:
+                        # Teams publish the hashes by hand: one bad one
+                        # mustn't stop the other languages.
+                        logging.warning("%s: SHA-256 doesn't match %s, skipped", url, details)
+                        continue
+                pack = os.path.join(tmp, lang)
+                extract_zip(path, pack)
+                self._unpack_clients(pack, lang)
+                # Only its language's files, from where Joomla installs them:
+                # some packs add a folder around them, the installer scripts
+                # have the same name in every pack, and some zips carry
+                # macOS's __MACOSX copies.
+                own = re.compile(r"(?:^|/)((?:administrator/|api/)?language/%s/[^/]+)$"
+                                 % re.escape(lang))
+                for name in files_under(pack):
+                    match = own.search(name.replace("\\", "/"))
+                    if not match or "__MACOSX/" in name or match.group(1).rsplit("/", 1)[1].startswith("._"):
+                        continue
+                    if match.group(1) in found:
+                        continue  # the same tree twice in one pack
+                    target = os.path.join(dest, *match.group(1).split("/"))
+                    os.makedirs(os.path.dirname(target), exist_ok=True)
+                    shutil.copyfile(os.path.join(pack, name), target)
+                    found[match.group(1)] = lang
+                time.sleep(self.settings.get("pause", 1))
+        return sorted(found.items())
+
+
 class Snapshot(Fetcher):
     """Data kept in the database by snapshot_db; nothing to download."""
 
@@ -710,6 +827,7 @@ FETCHERS = {
     "translationproject": TranslationProject,
     "git": Git,
     "http": HttpPerLanguage,
+    "joomla": Joomla,
     "moodle": Moodle,
     "pontoon": Pontoon,
     "wordpress": WordPress,
