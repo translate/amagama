@@ -1,0 +1,25 @@
+# Read the Docs configuration file
+# See https://docs.readthedocs.com/platform/stable/config-file/v2.html for details
+
+version: 2
+
+sphinx:
+  configuration: docs/conf.py
+
+formats: []
+
+# The theme is the docs/_themes submodule.
+submodules:
+  include: all
+
+build:
+  os: ubuntu-24.04
+  tools:
+    python: '3.14'
+  # The same build as CI's docs job.
+  commands:
+    - pip install --upgrade pip
+    - pip install Sphinx
+    - make docs
+    - mkdir -p $READTHEDOCS_OUTPUT/html
+    - cp -rp docs/_build/html/* $READTHEDOCS_OUTPUT/html
