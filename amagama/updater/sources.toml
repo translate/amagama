@@ -2,6 +2,9 @@
 # A block's name identifies its imports: never rename or reuse one. Titles
 # will be translated; keep release numbers in version.
 
+# Blocks generated from Weblate instances by weblate_sources.
+include = ["weblate-fedora.toml"]
+
 [[block]]
 name = "legacy-2019"
 title = "Legacy OSS"
