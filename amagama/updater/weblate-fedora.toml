@@ -11,6 +11,7 @@ title = "ABRT"
 url = "https://github.com/abrt/l10n.git"
 ref = "abrt"
 files = ["{lang}.po"]
+sparse = ["*.po"]
 licence = "CC-BY-SA-3.0"
 
 [[block]]
@@ -19,6 +20,7 @@ title = "ABRT"
 url = "https://github.com/abrt/l10n.git"
 ref = "gnome-abrt"
 files = ["{lang}.po"]
+sparse = ["*.po"]
 licence = "CC-BY-SA-3.0"
 
 [[block]]
@@ -27,6 +29,7 @@ title = "ABRT"
 url = "https://github.com/abrt/l10n.git"
 ref = "libreport"
 files = ["{lang}.po"]
+sparse = ["*.po"]
 licence = "CC-BY-SA-3.0"
 
 [[block]]
@@ -35,6 +38,7 @@ title = "ABRT"
 url = "https://github.com/abrt/l10n.git"
 ref = "retrace-server"
 files = ["{lang}.po"]
+sparse = ["*.po"]
 licence = "CC-BY-SA-3.0"
 
 [[block]]
@@ -43,6 +47,7 @@ title = "anaconda"
 url = "https://github.com/rhinstaller/anaconda-l10n.git"
 ref = "main"
 files = ["f32/{lang}.po", "f33/{lang}.po", "f34/{lang}.po", "f35/{lang}.po", "f36/{lang}.po", "f37/{lang}.po", "f38/{lang}.po", "f39/{lang}.po", "f40/{lang}.po", "f41/{lang}.po", "f42/{lang}.po", "f45/{lang}.po", "main/{lang}.po", "rhel-10/{lang}.po", "rhel-7/{lang}.po", "rhel-8.6/{lang}.po", "rhel-8/{lang}.po", "rhel-9.0/{lang}.po", "rhel-9/{lang}.po"]
+sparse = ["f32/*.po", "f33/*.po", "f34/*.po", "f35/*.po", "f36/*.po", "f37/*.po", "f38/*.po", "f39/*.po", "f40/*.po", "f41/*.po", "f42/*.po", "f45/*.po", "main/*.po", "rhel-10/*.po", "rhel-7/*.po", "rhel-8.6/*.po", "rhel-8/*.po", "rhel-9.0/*.po", "rhel-9/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -51,6 +56,7 @@ title = "anaconda-webui"
 url = "https://github.com/rhinstaller/anaconda-webui-l10n.git"
 ref = "main"
 files = ["{lang}.po"]
+sparse = ["*.po"]
 licence = "GPL-2.0-only"
 
 [[block]]
@@ -60,6 +66,7 @@ url = "https://github.com/authselect/authselect"
 version = "1.2.x"
 ref = "1.2.x"
 files = ["po/{lang}.po", "src/man/po/authselect-migration.7.adoc.{lang}.po", "src/man/po/authselect-profiles.5.adoc.{lang}.po", "src/man/po/authselect.8.adoc.{lang}.po"]
+sparse = ["po/*.po", "src/man/po/authselect-migration.7.adoc.*.po", "src/man/po/authselect-profiles.5.adoc.*.po", "src/man/po/authselect.8.adoc.*.po"]
 licence = "GPL-3.0-or-later"
 
 [[block]]
@@ -69,6 +76,7 @@ url = "https://github.com/authselect/authselect"
 version = "1.5.x"
 ref = "1.5.x"
 files = ["po/{lang}.po", "src/man/po/authselect-migration.7.adoc.{lang}.po", "src/man/po/authselect-profiles.5.adoc.{lang}.po", "src/man/po/authselect.8.adoc.{lang}.po"]
+sparse = ["po/*.po", "src/man/po/authselect-migration.7.adoc.*.po", "src/man/po/authselect-profiles.5.adoc.*.po", "src/man/po/authselect.8.adoc.*.po"]
 licence = "GPL-3.0-or-later"
 
 [[block]]
@@ -77,6 +85,7 @@ title = "authselect"
 url = "https://github.com/authselect/authselect"
 ref = "master"
 files = ["po/{lang}.po", "src/man/po/authselect-migration.7.adoc.{lang}.po", "src/man/po/authselect-profiles.5.adoc.{lang}.po", "src/man/po/authselect.8.adoc.{lang}.po"]
+sparse = ["po/*.po", "src/man/po/authselect-migration.7.adoc.*.po", "src/man/po/authselect-profiles.5.adoc.*.po", "src/man/po/authselect.8.adoc.*.po"]
 licence = "GPL-3.0-or-later"
 
 [[block]]
@@ -85,6 +94,7 @@ title = "avahi"
 url = "https://github.com/avahi/avahi.git"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "LGPL-2.1-or-later"
 
 [[block]]
@@ -93,6 +103,7 @@ title = "balistica"
 url = "https://github.com/fusilero/balistica"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-3.0-or-later"
 
 [[block]]
@@ -101,6 +112,7 @@ title = "blivet"
 url = "https://github.com/storaged-project/blivet-gui/"
 ref = "main"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -109,6 +121,7 @@ title = "blivet"
 url = "https://github.com/storaged-project/blivet-weblate.git"
 ref = "master"
 files = ["{lang}.po"]
+sparse = ["*.po"]
 licence = "LGPL-2.1-or-later"
 
 [[block]]
@@ -118,6 +131,7 @@ url = "https://github.com/storaged-project/blivet-weblate.git"
 version = "rhel8-branch"
 ref = "rhel8-branch"
 files = ["{lang}.po"]
+sparse = ["*.po"]
 licence = "LGPL-2.1-or-later"
 
 [[block]]
@@ -127,6 +141,7 @@ url = "https://github.com/storaged-project/blivet-weblate.git"
 version = "rhel9-branch"
 ref = "rhel9-branch"
 files = ["{lang}.po"]
+sparse = ["*.po"]
 licence = "LGPL-2.1-or-later"
 
 [[block]]
@@ -135,6 +150,7 @@ title = "blivet"
 url = "https://github.com/storaged-project/libbytesize"
 ref = "main"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "LGPL-2.1-or-later"
 
 [[block]]
@@ -143,6 +159,7 @@ title = "camorama"
 url = "https://github.com/alessio/camorama"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -152,6 +169,7 @@ url = "https://github.com/candlepin/candlepin"
 version = "candlepin-4.4-HOTFIX"
 ref = "candlepin-4.4-HOTFIX"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -161,6 +179,7 @@ url = "https://github.com/candlepin/candlepin"
 version = "candlepin-4.6-HOTFIX"
 ref = "candlepin-4.6-HOTFIX"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -170,6 +189,7 @@ url = "https://github.com/candlepin/candlepin"
 version = "candlepin-4.7-HOTFIX"
 ref = "candlepin-4.7-HOTFIX"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -179,6 +199,7 @@ url = "https://github.com/candlepin/candlepin"
 version = "candlepin-4.8-HOTFIX"
 ref = "candlepin-4.8-HOTFIX"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-only"
 
 [[block]]
@@ -187,6 +208,7 @@ title = "candlepin"
 url = "https://github.com/candlepin/candlepin"
 ref = "main"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -195,6 +217,7 @@ title = "certmonger"
 url = "https://codeberg.org/freeipa/certmonger.git"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-3.0-or-later"
 
 [[block]]
@@ -203,6 +226,7 @@ title = "classified-ads"
 url = "https://github.com/operatornormal/classified-ads"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "LGPL-2.1-or-later"
 
 [[block]]
@@ -211,6 +235,7 @@ title = "cockpit"
 url = "https://github.com/cockpit-project/cockpit-files-weblate.git"
 ref = "main"
 files = ["{lang}.po"]
+sparse = ["*.po"]
 licence = "LGPL-2.1-or-later"
 
 [[block]]
@@ -219,6 +244,7 @@ title = "cockpit"
 url = "https://github.com/cockpit-project/cockpit-machines-weblate.git"
 ref = "main"
 files = ["{lang}.po"]
+sparse = ["*.po"]
 licence = "LGPL-2.1-or-later"
 
 [[block]]
@@ -227,6 +253,7 @@ title = "cockpit"
 url = "https://github.com/cockpit-project/cockpit-ostree-weblate.git"
 ref = "main"
 files = ["{lang}.po"]
+sparse = ["*.po"]
 licence = "LGPL-2.1-or-later"
 
 [[block]]
@@ -235,6 +262,7 @@ title = "cockpit"
 url = "https://github.com/cockpit-project/cockpit-podman-weblate.git"
 ref = "main"
 files = ["{lang}.po"]
+sparse = ["*.po"]
 licence = "LGPL-2.1-or-later"
 
 [[block]]
@@ -243,6 +271,7 @@ title = "cockpit"
 url = "https://github.com/cockpit-project/cockpit-weblate.git"
 ref = "main"
 files = ["{lang}.po"]
+sparse = ["*.po"]
 licence = "LGPL-2.1-or-later"
 
 [[block]]
@@ -251,6 +280,7 @@ title = "cockpit"
 url = "https://github.com/cockpit-project/subscription-manager-cockpit-weblate.git"
 ref = "main"
 files = ["{lang}.po"]
+sparse = ["*.po"]
 licence = "LGPL-2.1-or-later"
 
 [[block]]
@@ -259,6 +289,7 @@ title = "cracklib"
 url = "https://github.com/cracklib/cracklib"
 ref = "main"
 files = ["src/po/{lang}.po"]
+sparse = ["src/po/*.po"]
 licence = "LGPL-2.1-or-later"
 
 [[block]]
@@ -267,6 +298,7 @@ title = "debbuild"
 url = "https://github.com/debbuild/debbuild"
 ref = "main"
 files = ["po/{lang}/debbuild.po"]
+sparse = ["po/*/debbuild.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -275,6 +307,7 @@ title = "dnf"
 url = "https://github.com/rpm-software-management/dnf-l10n.git"
 ref = "master"
 files = ["master/{lang}.po", "rhel-8/{lang}.po", "rhel-9/{lang}.po"]
+sparse = ["master/*.po", "rhel-8/*.po", "rhel-9/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -283,6 +316,7 @@ title = "dnf"
 url = "https://github.com/rpm-software-management/dnf-plugins-core-l10n.git"
 ref = "master"
 files = ["master/{lang}.po", "rhel-8/{lang}.po", "rhel-9/{lang}.po"]
+sparse = ["master/*.po", "rhel-8/*.po", "rhel-9/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -291,6 +325,7 @@ title = "dnf"
 url = "https://github.com/rpm-software-management/dnf-plugins-extras-l10n.git"
 ref = "master"
 files = ["master/{lang}.po"]
+sparse = ["master/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -299,6 +334,7 @@ title = "dnf"
 url = "https://github.com/rpm-software-management/libdnf-l10n.git"
 ref = "master"
 files = ["dnf-4-master/{lang}.po", "master/{lang}.po", "rhel-8/{lang}.po", "rhel-9/{lang}.po"]
+sparse = ["dnf-4-master/*.po", "master/*.po", "rhel-8/*.po", "rhel-9/*.po"]
 licence = "LGPL-2.1-or-later"
 
 [[block]]
@@ -307,6 +343,7 @@ title = "dnf5"
 url = "https://github.com/rpm-software-management/dnf5-l10n"
 ref = "main"
 files = ["libdnf5-plugin-rhsm-container/{lang}.po"]
+sparse = ["libdnf5-plugin-rhsm-container/*.po"]
 licence = "LGPL-2.1-only"
 
 [[block]]
@@ -315,6 +352,7 @@ title = "dnf5"
 url = "https://github.com/rpm-software-management/dnf5-l10n"
 ref = "main"
 files = ["dnf5-plugin-builddep/{lang}.po", "dnf5-plugin-changelog/{lang}.po", "dnf5-plugin-config-manager/{lang}.po", "dnf5-plugin-copr/{lang}.po", "dnf5-plugin-needs-restarting/{lang}.po", "dnf5-plugin-repoclosure/{lang}.po", "dnf5/{lang}.po", "dnf5daemon-client/{lang}.po", "dnf5daemon-server/{lang}.po", "libdnf5-cli/{lang}.po", "libdnf5-plugin-actions/{lang}.po", "libdnf5-plugin-rhsm/{lang}.po", "libdnf5/{lang}.po"]
+sparse = ["dnf5-plugin-builddep/*.po", "dnf5-plugin-changelog/*.po", "dnf5-plugin-config-manager/*.po", "dnf5-plugin-copr/*.po", "dnf5-plugin-needs-restarting/*.po", "dnf5-plugin-repoclosure/*.po", "dnf5/*.po", "dnf5daemon-client/*.po", "dnf5daemon-server/*.po", "libdnf5-cli/*.po", "libdnf5-plugin-actions/*.po", "libdnf5-plugin-rhsm/*.po", "libdnf5/*.po"]
 licence = "LGPL-2.1-or-later"
 
 [[block]]
@@ -323,6 +361,7 @@ title = "entangle"
 url = "https://gitlab.com/entangle/entangle.git"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-3.0-or-later"
 
 [[block]]
@@ -331,6 +370,7 @@ title = "fedora-cheat-cubes"
 url = "https://forge.fedoraproject.org/marketing/cheat-cubes.git"
 ref = "master"
 files = ["po/{lang}/Fedora_Cheat_Cube_Users.po"]
+sparse = ["po/*/Fedora_Cheat_Cube_Users.po"]
 licence = "CC-BY-SA-3.0"
 
 [[block]]
@@ -339,6 +379,7 @@ title = "fedora-docs-l10n/a11y"
 url = "https://forge.fedoraproject.org/localization-docs/a11y.git"
 ref = "main"
 files = ["po/{lang}/main/antora.yml.po", "po/{lang}/main/nav.po", "po/{lang}/main/pages/index.po", "po/{lang}/main/partials/attributes.po"]
+sparse = ["po/*/main/antora.yml.po", "po/*/main/nav.po", "po/*/main/pages/index.po", "po/*/main/partials/attributes.po"]
 segment = true
 licence = "CC-BY-4.0"
 
@@ -348,6 +389,7 @@ title = "fedora-docs-l10n/ai"
 url = "https://forge.fedoraproject.org/localization-docs/ai.git"
 ref = "main"
 files = ["po/{lang}/main/antora.yml.po", "po/{lang}/main/nav.po", "po/{lang}/main/pages/get-involved.po", "po/{lang}/main/pages/index.po", "po/{lang}/main/partials/attributes.po"]
+sparse = ["po/*/main/antora.yml.po", "po/*/main/nav.po", "po/*/main/pages/get-involved.po", "po/*/main/pages/index.po", "po/*/main/partials/attributes.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -357,6 +399,7 @@ title = "fedora-docs-l10n/arm-sbc"
 url = "https://forge.fedoraproject.org/localization-docs/arm-sbc.git"
 ref = "main"
 files = ["po/{lang}/main/antora.yml.po", "po/{lang}/main/pages/index.po"]
+sparse = ["po/*/main/antora.yml.po", "po/*/main/pages/index.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -366,6 +409,7 @@ title = "fedora-docs-l10n/atomic-desktops"
 url = "https://forge.fedoraproject.org/localization-docs/atomic-desktops.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -375,6 +419,7 @@ title = "fedora-docs-l10n/badges"
 url = "https://forge.fedoraproject.org/localization-docs/badges.git"
 ref = "main"
 files = ["po/{lang}/master/antora.yml.po", "po/{lang}/master/nav.po", "po/{lang}/master/pages/_partials/attributes.po", "po/{lang}/master/pages/design-badges.po", "po/{lang}/master/pages/index.po", "po/{lang}/master/pages/join.po", "po/{lang}/master/pages/push-badges.po"]
+sparse = ["po/*/master/antora.yml.po", "po/*/master/nav.po", "po/*/master/pages/_partials/attributes.po", "po/*/master/pages/design-badges.po", "po/*/master/pages/index.po", "po/*/master/pages/join.po", "po/*/master/pages/push-badges.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -384,6 +429,7 @@ title = "fedora-docs-l10n/beginners-guide"
 url = "https://forge.fedoraproject.org/localization-docs/beginners-guide.git"
 ref = "main"
 files = ["po/{lang}/main/antora.yml.po", "po/{lang}/main/nav.po", "po/{lang}/main/pages/advanced_kde.po", "po/{lang}/main/pages/cli.po", "po/{lang}/main/pages/daily_driver.po", "po/{lang}/main/pages/index.po", "po/{lang}/main/pages/install_fedora.po", "po/{lang}/main/pages/try_fedora.po", "po/{lang}/main/partials/attributes.po"]
+sparse = ["po/*/main/antora.yml.po", "po/*/main/nav.po", "po/*/main/pages/advanced_kde.po", "po/*/main/pages/cli.po", "po/*/main/pages/daily_driver.po", "po/*/main/pages/index.po", "po/*/main/pages/install_fedora.po", "po/*/main/pages/try_fedora.po", "po/*/main/partials/attributes.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -393,6 +439,7 @@ title = "fedora-docs-l10n/bootc"
 url = "https://forge.fedoraproject.org/localization-docs/bootc.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-3.0"
 
@@ -402,6 +449,7 @@ title = "fedora-docs-l10n/ci"
 url = "https://forge.fedoraproject.org/localization-docs/ci.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-3.0"
 
@@ -411,6 +459,7 @@ title = "fedora-docs-l10n/cloud"
 url = "https://forge.fedoraproject.org/localization-docs/cloud.git"
 ref = "main"
 files = ["po/{lang}/main/antora.yml.po", "po/{lang}/main/nav.po", "po/{lang}/main/pages/aws.po", "po/{lang}/main/pages/azure.po", "po/{lang}/main/pages/faq.po", "po/{lang}/main/pages/index.po", "po/{lang}/main/pages/wsl.po"]
+sparse = ["po/*/main/antora.yml.po", "po/*/main/nav.po", "po/*/main/pages/aws.po", "po/*/main/pages/azure.po", "po/*/main/pages/faq.po", "po/*/main/pages/index.po", "po/*/main/pages/wsl.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -420,6 +469,7 @@ title = "fedora-docs-l10n/commops"
 url = "https://forge.fedoraproject.org/localization-docs/commops.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-3.0"
 
@@ -429,6 +479,7 @@ title = "fedora-docs-l10n/commops-analytics"
 url = "https://forge.fedoraproject.org/localization-docs/commops-analytics.git"
 ref = "main"
 files = ["po/{lang}/main/nav.po", "po/{lang}/main/pages/dictionary.po"]
+sparse = ["po/*/main/nav.po", "po/*/main/pages/dictionary.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -438,6 +489,7 @@ title = "fedora-docs-l10n/commops-design-assets"
 url = "https://forge.fedoraproject.org/localization-docs/commops-design-assets.git"
 ref = "main"
 files = ["po/{lang}/main/nav.po", "po/{lang}/main/pages/cheat-cubes.po", "po/{lang}/main/pages/joining-printouts.po", "po/{lang}/main/pages/joining-slide-deck.po", "po/{lang}/main/pages/mindshare-infographics.po", "po/{lang}/main/pages/org-charts.po", "po/{lang}/main/pages/team-logos.po"]
+sparse = ["po/*/main/nav.po", "po/*/main/pages/cheat-cubes.po", "po/*/main/pages/joining-printouts.po", "po/*/main/pages/joining-slide-deck.po", "po/*/main/pages/mindshare-infographics.po", "po/*/main/pages/org-charts.po", "po/*/main/pages/team-logos.po"]
 segment = true
 licence = "CC-BY-SA-3.0"
 
@@ -447,6 +499,7 @@ title = "fedora-docs-l10n/commops-events"
 url = "https://forge.fedoraproject.org/localization-docs/commops-events.git"
 ref = "main"
 files = ["po/{lang}/main/nav.po", "po/{lang}/main/pages/2024-events.po", "po/{lang}/main/pages/fedocal.po", "po/{lang}/main/pages/sop-ambassadors.po"]
+sparse = ["po/*/main/nav.po", "po/*/main/pages/2024-events.po", "po/*/main/pages/fedocal.po", "po/*/main/pages/sop-ambassadors.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -456,6 +509,7 @@ title = "fedora-docs-l10n/commops-flock"
 url = "https://forge.fedoraproject.org/localization-docs/commops-flock.git"
 ref = "main"
 files = ["po/{lang}/main/nav.po", "po/{lang}/main/pages/2025/volunteering.po", "po/{lang}/main/pages/cfp-pretalx-reviewer-guidelines.po", "po/{lang}/main/pages/cfp-pretalx-setup.po", "po/{lang}/main/pages/index.po", "po/{lang}/main/pages/website.po"]
+sparse = ["po/*/main/nav.po", "po/*/main/pages/2025/volunteering.po", "po/*/main/pages/cfp-pretalx-reviewer-guidelines.po", "po/*/main/pages/cfp-pretalx-setup.po", "po/*/main/pages/index.po", "po/*/main/pages/website.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -465,6 +519,7 @@ title = "fedora-docs-l10n/commops-matrix"
 url = "https://forge.fedoraproject.org/localization-docs/commops-matrix.git"
 ref = "main"
 files = ["po/{lang}/main/nav.po", "po/{lang}/main/pages/index.po"]
+sparse = ["po/*/main/nav.po", "po/*/main/pages/index.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -474,6 +529,7 @@ title = "fedora-docs-l10n/commops-outreach-badges"
 url = "https://forge.fedoraproject.org/localization-docs/commops-outreach-badges.git"
 ref = "main"
 files = ["po/{lang}/main/nav.po", "po/{lang}/main/pages/events.po", "po/{lang}/main/pages/repos.po", "po/{lang}/main/pages/team-members.po"]
+sparse = ["po/*/main/nav.po", "po/*/main/pages/events.po", "po/*/main/pages/repos.po", "po/*/main/pages/team-members.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -483,6 +539,7 @@ title = "fedora-docs-l10n/commops-teams"
 url = "https://forge.fedoraproject.org/localization-docs/commops-teams.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -492,6 +549,7 @@ title = "fedora-docs-l10n/community"
 url = "https://forge.fedoraproject.org/localization-docs/community.git"
 ref = "main"
 files = ["po/{lang}/main/antora.yml.po", "po/{lang}/main/nav.po", "po/{lang}/main/pages/appendix.po", "po/{lang}/main/pages/index.po", "po/{lang}/main/pages/sourcegraph.po", "po/{lang}/main/partials/attributes.po"]
+sparse = ["po/*/main/antora.yml.po", "po/*/main/nav.po", "po/*/main/pages/appendix.po", "po/*/main/pages/index.po", "po/*/main/pages/sourcegraph.po", "po/*/main/partials/attributes.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -501,6 +559,7 @@ title = "fedora-docs-l10n/community-participate"
 url = "https://forge.fedoraproject.org/localization-docs/community-participate.git"
 ref = "main"
 files = ["po/{lang}/main/nav.po", "po/{lang}/main/pages/index.po", "po/{lang}/main/pages/phase0-bootstrap.po"]
+sparse = ["po/*/main/nav.po", "po/*/main/pages/index.po", "po/*/main/pages/phase0-bootstrap.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -510,6 +569,7 @@ title = "fedora-docs-l10n/containers"
 url = "https://forge.fedoraproject.org/localization-docs/containers.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -519,6 +579,7 @@ title = "fedora-docs-l10n/council"
 url = "https://forge.fedoraproject.org/localization-docs/council.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -528,6 +589,7 @@ title = "fedora-docs-l10n/cle"
 url = "https://forge.fedoraproject.org/localization-docs/cle.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-3.0"
 
@@ -537,6 +599,7 @@ title = "fedora-docs-l10n/defensive-coding"
 url = "https://forge.fedoraproject.org/localization-docs/defensive-coding.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-3.0"
 
@@ -546,6 +609,7 @@ title = "fedora-docs-l10n/dei-archive"
 url = "https://forge.fedoraproject.org/localization-docs/dei-archive.git"
 ref = "main"
 files = ["po/{lang}/master/nav.po", "po/{lang}/master/pages/demographic-survey/index.po", "po/{lang}/master/pages/demographic-survey/questions.po", "po/{lang}/master/pages/demographic-survey/resources.po", "po/{lang}/master/pages/index.po"]
+sparse = ["po/*/master/nav.po", "po/*/master/pages/demographic-survey/index.po", "po/*/master/pages/demographic-survey/questions.po", "po/*/master/pages/demographic-survey/resources.po", "po/*/master/pages/index.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -555,6 +619,7 @@ title = "fedora-docs-l10n/dei-event-checklist"
 url = "https://forge.fedoraproject.org/localization-docs/dei-event-checklist.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -564,6 +629,7 @@ title = "fedora-docs-l10n/dei-events"
 url = "https://forge.fedoraproject.org/localization-docs/dei-events.git"
 ref = "main"
 files = ["po/{lang}/master/nav.po", "po/{lang}/master/pages/fedora-week-of-diversity.po", "po/{lang}/master/pages/fwd-resource-pack.po", "po/{lang}/master/pages/index.po", "po/{lang}/master/pages/past-events.po", "po/{lang}/master/pages/social-events.po"]
+sparse = ["po/*/master/nav.po", "po/*/master/pages/fedora-week-of-diversity.po", "po/*/master/pages/fwd-resource-pack.po", "po/*/master/pages/index.po", "po/*/master/pages/past-events.po", "po/*/master/pages/social-events.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -573,6 +639,7 @@ title = "fedora-docs-l10n/dei-outreachy"
 url = "https://forge.fedoraproject.org/localization-docs/dei-outreachy.git"
 ref = "main"
 files = ["po/{lang}/master/nav.po", "po/{lang}/master/pages/about.po"]
+sparse = ["po/*/master/nav.po", "po/*/master/pages/about.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -582,6 +649,7 @@ title = "fedora-docs-l10n/dei-resources"
 url = "https://forge.fedoraproject.org/localization-docs/dei-resources.git"
 ref = "main"
 files = ["po/{lang}/master/nav.po", "po/{lang}/master/pages/resources.po"]
+sparse = ["po/*/master/nav.po", "po/*/master/pages/resources.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -591,6 +659,7 @@ title = "fedora-docs-l10n/dei-roles"
 url = "https://forge.fedoraproject.org/localization-docs/dei-roles.git"
 ref = "main"
 files = ["po/{lang}/master/nav.po", "po/{lang}/master/pages/council-advisor.po"]
+sparse = ["po/*/master/nav.po", "po/*/master/pages/council-advisor.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -600,6 +669,7 @@ title = "fedora-docs-l10n/design"
 url = "https://forge.fedoraproject.org/localization-docs/design.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -609,6 +679,7 @@ title = "fedora-docs-l10n/discussion-forum-guidelines-and-rules"
 url = "https://forge.fedoraproject.org/localization-docs/discussion-forum-guidelines-and-rules.git"
 ref = "main"
 files = ["po/{lang}/main/antora.yml.po", "po/{lang}/main/examples/exampe-example.po", "po/{lang}/main/nav.po", "po/{lang}/main/pages/index.po", "po/{lang}/main/partials/attributes.po", "po/{lang}/main/partials/partial-example.po"]
+sparse = ["po/*/main/antora.yml.po", "po/*/main/examples/exampe-example.po", "po/*/main/nav.po", "po/*/main/pages/index.po", "po/*/main/partials/attributes.po", "po/*/main/partials/partial-example.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -618,6 +689,7 @@ title = "fedora-docs-l10n/dei"
 url = "https://forge.fedoraproject.org/localization-docs/dei.git"
 ref = "main"
 files = ["po/{lang}/master/antora.yml.po", "po/{lang}/master/nav.po", "po/{lang}/master/pages/events.po", "po/{lang}/master/pages/get-involved.po", "po/{lang}/master/pages/index.po", "po/{lang}/master/pages/meetings.po", "po/{lang}/master/pages/policy/decision-process.po", "po/{lang}/master/partials/attributes.po"]
+sparse = ["po/*/master/antora.yml.po", "po/*/master/nav.po", "po/*/master/pages/events.po", "po/*/master/pages/get-involved.po", "po/*/master/pages/index.po", "po/*/master/pages/meetings.po", "po/*/master/pages/policy/decision-process.po", "po/*/master/partials/attributes.po"]
 segment = true
 licence = "CC-BY-SA-3.0"
 
@@ -627,6 +699,7 @@ title = "fedora-docs-l10n/docs"
 url = "https://forge.fedoraproject.org/localization-docs/docs.git"
 ref = "main"
 files = ["po/{lang}/main/antora.yml.po", "po/{lang}/main/pages/index.po"]
+sparse = ["po/*/main/antora.yml.po", "po/*/main/pages/index.po"]
 segment = true
 licence = "CC-BY-SA-3.0"
 
@@ -636,6 +709,7 @@ title = "fedora-docs-l10n/eln"
 url = "https://forge.fedoraproject.org/localization-docs/eln.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -645,6 +719,7 @@ title = "fedora-docs-l10n/engineering"
 url = "https://forge.fedoraproject.org/localization-docs/engineering.git"
 ref = "main"
 files = ["po/{lang}/main/antora.yml.po", "po/{lang}/main/pages/index.po"]
+sparse = ["po/*/main/antora.yml.po", "po/*/main/pages/index.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -654,6 +729,7 @@ title = "fedora-docs-l10n/epel"
 url = "https://forge.fedoraproject.org/localization-docs/epel.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -663,6 +739,7 @@ title = "fedora-docs-l10n/fedora"
 url = "https://forge.fedoraproject.org/localization-docs/fedora.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-3.0"
 
@@ -672,6 +749,7 @@ title = "fedora-docs-l10n/fedora-accounts"
 url = "https://forge.fedoraproject.org/localization-docs/fedora-accounts.git"
 ref = "main"
 files = ["po/{lang}/master/antora.yml.po", "po/{lang}/master/nav.po", "po/{lang}/master/pages/history.po", "po/{lang}/master/pages/index.po", "po/{lang}/master/pages/user.po"]
+sparse = ["po/*/master/antora.yml.po", "po/*/master/nav.po", "po/*/master/pages/history.po", "po/*/master/pages/index.po", "po/*/master/pages/user.po"]
 segment = true
 licence = "CC-BY-SA-3.0"
 
@@ -681,6 +759,7 @@ title = "fedora-docs-l10n/fedora-coreos"
 url = "https://forge.fedoraproject.org/localization-docs/fedora-coreos.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-3.0"
 
@@ -690,6 +769,7 @@ title = "fedora-docs-l10n/fedora-docs"
 url = "https://forge.fedoraproject.org/localization-docs/fedora-docs.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -699,6 +779,7 @@ title = "fedora-docs-l10n/fedora-join"
 url = "https://forge.fedoraproject.org/localization-docs/fedora-join.git"
 ref = "main"
 files = ["po/{lang}/main/antora.yml.po", "po/{lang}/main/nav.po", "po/{lang}/main/pages/_partials/attributes.po", "po/{lang}/main/pages/classroom/classroom.po", "po/{lang}/main/pages/classroom/help-wanted.po", "po/{lang}/main/pages/contribute/successful-contributor.po", "po/{lang}/main/pages/index.po", "po/{lang}/main/pages/policy/inactive.po", "po/{lang}/main/pages/welcome/badges.po", "po/{lang}/main/pages/welcome/welcome.po"]
+sparse = ["po/*/main/antora.yml.po", "po/*/main/nav.po", "po/*/main/pages/_partials/attributes.po", "po/*/main/pages/classroom/classroom.po", "po/*/main/pages/classroom/help-wanted.po", "po/*/main/pages/contribute/successful-contributor.po", "po/*/main/pages/index.po", "po/*/main/pages/policy/inactive.po", "po/*/main/pages/welcome/badges.po", "po/*/main/pages/welcome/welcome.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -708,6 +789,7 @@ title = "fedora-docs-l10n/fedora-magazine"
 url = "https://forge.fedoraproject.org/localization-docs/fedora-magazine.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-3.0"
 
@@ -717,6 +799,7 @@ title = "fedora-docs-l10n/fedora-release-notes"
 url = "https://forge.fedoraproject.org/localization-docs/fedora-release-notes"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-3.0"
 
@@ -726,6 +809,7 @@ title = "fedora-docs-l10n/fedora-server"
 url = "https://forge.fedoraproject.org/localization-docs/fedora-server.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-3.0"
 
@@ -735,6 +819,7 @@ title = "fedora-docs-l10n/fesco"
 url = "https://forge.fedoraproject.org/localization-docs/fesco.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-3.0"
 
@@ -744,6 +829,7 @@ title = "fedora-docs-l10n/flatpak"
 url = "https://forge.fedoraproject.org/localization-docs/flatpak.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-3.0"
 
@@ -753,6 +839,7 @@ title = "fedora-docs-l10n/forge-documentation"
 url = "https://forge.fedoraproject.org/localization-docs/forge-documentation.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -762,6 +849,7 @@ title = "fedora-docs-l10n/gaming"
 url = "https://forge.fedoraproject.org/localization-docs/gaming.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-3.0"
 
@@ -771,6 +859,7 @@ title = "fedora-docs-l10n/i3"
 url = "https://forge.fedoraproject.org/localization-docs/i3.git"
 ref = "main"
 files = ["po/{lang}/master/antora.yml.po", "po/{lang}/master/nav.po", "po/{lang}/master/pages/bugs.po", "po/{lang}/master/pages/design-goals.po", "po/{lang}/master/pages/faq.po", "po/{lang}/master/pages/index.po", "po/{lang}/master/pages/kickstart.po", "po/{lang}/master/pages/meetings.po", "po/{lang}/master/pages/package-groups.po", "po/{lang}/master/partials/attributes.po"]
+sparse = ["po/*/master/antora.yml.po", "po/*/master/nav.po", "po/*/master/pages/bugs.po", "po/*/master/pages/design-goals.po", "po/*/master/pages/faq.po", "po/*/master/pages/index.po", "po/*/master/pages/kickstart.po", "po/*/master/pages/meetings.po", "po/*/master/pages/package-groups.po", "po/*/master/partials/attributes.po"]
 segment = true
 licence = "CC-BY-SA-3.0"
 
@@ -780,6 +869,7 @@ title = "fedora-docs-l10n/infra"
 url = "https://forge.fedoraproject.org/localization-docs/infra.git"
 ref = "main"
 files = ["po/{lang}/main/antora.yml.po", "po/{lang}/main/nav.po", "po/{lang}/main/pages/communishift.po", "po/{lang}/main/pages/day_to_day_fedora.po", "po/{lang}/main/pages/index.po", "po/{lang}/main/pages/infra-overview.po", "po/{lang}/main/pages/map_critical_services.po", "po/{lang}/main/pages/services.po", "po/{lang}/main/pages/sle.po", "po/{lang}/main/pages/sle_services.po"]
+sparse = ["po/*/main/antora.yml.po", "po/*/main/nav.po", "po/*/main/pages/communishift.po", "po/*/main/pages/day_to_day_fedora.po", "po/*/main/pages/index.po", "po/*/main/pages/infra-overview.po", "po/*/main/pages/map_critical_services.po", "po/*/main/pages/services.po", "po/*/main/pages/sle.po", "po/*/main/pages/sle_services.po"]
 segment = true
 licence = "CC-BY-SA-3.0"
 
@@ -789,6 +879,7 @@ title = "fedora-docs-l10n/infra-developer_guide"
 url = "https://forge.fedoraproject.org/localization-docs/infra-developer_guide.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-3.0"
 
@@ -798,6 +889,7 @@ title = "fedora-docs-l10n/infra-howtos"
 url = "https://forge.fedoraproject.org/localization-docs/infra-howtos.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -807,6 +899,7 @@ title = "fedora-docs-l10n/infra-join_guide"
 url = "https://forge.fedoraproject.org/localization-docs/infra-join_guide.git"
 ref = "main"
 files = ["po/{lang}/main/pages/apprentice.po", "po/{lang}/main/pages/index.po"]
+sparse = ["po/*/main/pages/apprentice.po", "po/*/main/pages/index.po"]
 segment = true
 licence = "CC-BY-SA-3.0"
 
@@ -816,6 +909,7 @@ title = "fedora-docs-l10n/infra-release_guide"
 url = "https://forge.fedoraproject.org/localization-docs/infra-release_guide.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-3.0"
 
@@ -825,6 +919,7 @@ title = "fedora-docs-l10n/infra-releng_misc_guide"
 url = "https://forge.fedoraproject.org/localization-docs/infra-releng_misc_guide.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-3.0"
 
@@ -834,6 +929,7 @@ title = "fedora-docs-l10n/infra-sysadmin_guide"
 url = "https://forge.fedoraproject.org/localization-docs/infra-sysadmin_guide.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-3.0"
 
@@ -843,6 +939,7 @@ title = "fedora-docs-l10n/infra-sysadmin_sops"
 url = "https://forge.fedoraproject.org/localization-docs/infra-sysadmin_sops.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -852,6 +949,7 @@ title = "fedora-docs-l10n/iot"
 url = "https://forge.fedoraproject.org/localization-docs/iot.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-3.0"
 
@@ -861,6 +959,7 @@ title = "fedora-docs-l10n/iot-wg"
 url = "https://forge.fedoraproject.org/localization-docs/iot-wg.git"
 ref = "main"
 files = ["po/{lang}/master/antora.yml.po", "po/{lang}/master/nav.po", "po/{lang}/master/pages/edition-promotion.po", "po/{lang}/master/pages/index.po"]
+sparse = ["po/*/master/antora.yml.po", "po/*/master/nav.po", "po/*/master/pages/edition-promotion.po", "po/*/master/pages/index.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -870,6 +969,7 @@ title = "fedora-docs-l10n/java-packaging-howto"
 url = "https://forge.fedoraproject.org/localization-docs/java-packaging-howto.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-3.0"
 
@@ -879,6 +979,7 @@ title = "fedora-docs-l10n/kde"
 url = "https://forge.fedoraproject.org/localization-docs/kde.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -888,6 +989,7 @@ title = "fedora-docs-l10n/legal"
 url = "https://forge.fedoraproject.org/localization-docs/legal.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -897,6 +999,7 @@ title = "fedora-docs-l10n/marketing"
 url = "https://forge.fedoraproject.org/localization-docs/marketing.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -906,6 +1009,7 @@ title = "fedora-docs-l10n/mentored-projects"
 url = "https://forge.fedoraproject.org/localization-docs/mentored-projects.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-3.0"
 
@@ -915,6 +1019,7 @@ title = "fedora-docs-l10n/mentored-projects-handbooks"
 url = "https://forge.fedoraproject.org/localization-docs/mentored-projects-handbooks.git"
 ref = "main"
 files = ["po/{lang}/main/nav.po", "po/{lang}/main/pages/accepted-interns.po", "po/{lang}/main/pages/coordinators.po", "po/{lang}/main/pages/mentors.po", "po/{lang}/main/pages/tools.po"]
+sparse = ["po/*/main/nav.po", "po/*/main/pages/accepted-interns.po", "po/*/main/pages/coordinators.po", "po/*/main/pages/mentors.po", "po/*/main/pages/tools.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -924,6 +1029,7 @@ title = "fedora-docs-l10n/mindshare"
 url = "https://forge.fedoraproject.org/localization-docs/mindshare.git"
 ref = "main"
 files = ["po/{lang}/main/antora.yml.po", "po/{lang}/main/pages/index.po"]
+sparse = ["po/*/main/antora.yml.po", "po/*/main/pages/index.po"]
 segment = true
 licence = "CC-BY-SA-3.0"
 
@@ -933,6 +1039,7 @@ title = "fedora-docs-l10n/mindshare-committee"
 url = "https://forge.fedoraproject.org/localization-docs/mindshare-committee.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-3.0"
 
@@ -942,6 +1049,7 @@ title = "fedora-docs-l10n/mindshare-committee-events"
 url = "https://forge.fedoraproject.org/localization-docs/mindshare-committee-events.git"
 ref = "main"
 files = ["po/{lang}/main/nav.po", "po/{lang}/main/pages/boxes/europe.po", "po/{lang}/main/pages/boxes/index.po", "po/{lang}/main/pages/boxes/united-states.po", "po/{lang}/main/pages/covid19.po", "po/{lang}/main/pages/release-parties.po", "po/{lang}/main/pages/requests/large.po", "po/{lang}/main/pages/requests/medium.po", "po/{lang}/main/pages/requests/small.po", "po/{lang}/main/pages/requests/swag-only.po"]
+sparse = ["po/*/main/nav.po", "po/*/main/pages/boxes/europe.po", "po/*/main/pages/boxes/index.po", "po/*/main/pages/boxes/united-states.po", "po/*/main/pages/covid19.po", "po/*/main/pages/release-parties.po", "po/*/main/pages/requests/large.po", "po/*/main/pages/requests/medium.po", "po/*/main/pages/requests/small.po", "po/*/main/pages/requests/swag-only.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -951,6 +1059,7 @@ title = "fedora-docs-l10n/mindshare-committee-policy"
 url = "https://forge.fedoraproject.org/localization-docs/mindshare-committee-policy.git"
 ref = "main"
 files = ["po/{lang}/main/nav.po", "po/{lang}/main/pages/events/reports.po", "po/{lang}/main/pages/reimbursements.po"]
+sparse = ["po/*/main/nav.po", "po/*/main/pages/events/reports.po", "po/*/main/pages/reimbursements.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -960,6 +1069,7 @@ title = "fedora-docs-l10n/minimal"
 url = "https://forge.fedoraproject.org/localization-docs/minimal.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -969,6 +1079,7 @@ title = "fedora-docs-l10n/minimization"
 url = "https://forge.fedoraproject.org/localization-docs/minimization.git"
 ref = "main"
 files = ["po/{lang}/master/antora.yml.po", "po/{lang}/master/nav.po", "po/{lang}/master/pages/action-plan.po", "po/{lang}/master/pages/communication.po", "po/{lang}/master/pages/discoveries.po", "po/{lang}/master/pages/index.po", "po/{lang}/master/pages/status.po", "po/{lang}/master/pages/team.po", "po/{lang}/master/pages/tools.po"]
+sparse = ["po/*/master/antora.yml.po", "po/*/master/nav.po", "po/*/master/pages/action-plan.po", "po/*/master/pages/communication.po", "po/*/master/pages/discoveries.po", "po/*/master/pages/index.po", "po/*/master/pages/status.po", "po/*/master/pages/team.po", "po/*/master/pages/tools.po"]
 segment = true
 licence = "CC-BY-SA-3.0"
 
@@ -978,6 +1089,7 @@ title = "fedora-docs-l10n/modularity"
 url = "https://forge.fedoraproject.org/localization-docs/modularity.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-3.0"
 
@@ -987,6 +1099,7 @@ title = "fedora-docs-l10n/neurofedora"
 url = "https://forge.fedoraproject.org/localization-docs/neurofedora.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -996,6 +1109,7 @@ title = "fedora-docs-l10n/operations"
 url = "https://forge.fedoraproject.org/localization-docs/operations.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -1005,6 +1119,7 @@ title = "fedora-docs-l10n/package-maintainers"
 url = "https://forge.fedoraproject.org/localization-docs/package-maintainers.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-3.0"
 
@@ -1014,6 +1129,7 @@ title = "fedora-docs-l10n/packaging-guidelines"
 url = "https://forge.fedoraproject.org/localization-docs/packaging-guidelines.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-3.0"
 
@@ -1023,6 +1139,7 @@ title = "fedora-docs-l10n/program_management"
 url = "https://forge.fedoraproject.org/localization-docs/program_management.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-3.0"
 
@@ -1032,6 +1149,7 @@ title = "fedora-docs-l10n/project"
 url = "https://forge.fedoraproject.org/localization-docs/project.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-3.0"
 
@@ -1041,6 +1159,7 @@ title = "fedora-docs-l10n/project-code-of-conduct"
 url = "https://forge.fedoraproject.org/localization-docs/project-code-of-conduct.git"
 ref = "main"
 files = ["po/{lang}/main/nav.po", "po/{lang}/main/pages/clarifying-statements.po", "po/{lang}/main/pages/committee.po", "po/{lang}/main/pages/index.po"]
+sparse = ["po/*/main/nav.po", "po/*/main/pages/clarifying-statements.po", "po/*/main/pages/committee.po", "po/*/main/pages/index.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -1050,6 +1169,7 @@ title = "fedora-docs-l10n/qa-docs"
 url = "https://forge.fedoraproject.org/localization-docs/qa-docs.git"
 ref = "main"
 files = ["po/{lang}/main/antora.yml.po", "po/{lang}/main/nav.po", "po/{lang}/main/pages/guides.po", "po/{lang}/main/pages/guides/coredumpctl.po", "po/{lang}/main/pages/index.po"]
+sparse = ["po/*/main/antora.yml.po", "po/*/main/nav.po", "po/*/main/pages/guides.po", "po/*/main/pages/guides/coredumpctl.po", "po/*/main/pages/index.po"]
 segment = true
 licence = "CC-BY-SA-3.0"
 
@@ -1059,6 +1179,7 @@ title = "fedora-docs-l10n/quick-docs"
 url = "https://forge.fedoraproject.org/localization-docs/quick-docs.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-3.0"
 
@@ -1068,6 +1189,7 @@ title = "fedora-docs-l10n/rawhide-gating"
 url = "https://forge.fedoraproject.org/localization-docs/rawhide-gating.git"
 ref = "main"
 files = ["po/{lang}/master/antora.yml.po", "po/{lang}/master/nav.po", "po/{lang}/master/pages/faq.po", "po/{lang}/master/pages/index.po", "po/{lang}/master/pages/multi-builds.po", "po/{lang}/master/pages/optin.po", "po/{lang}/master/pages/single-builds.po", "po/{lang}/master/pages/workflows.po"]
+sparse = ["po/*/master/antora.yml.po", "po/*/master/nav.po", "po/*/master/pages/faq.po", "po/*/master/pages/index.po", "po/*/master/pages/multi-builds.po", "po/*/master/pages/optin.po", "po/*/master/pages/single-builds.po", "po/*/master/pages/workflows.po"]
 segment = true
 licence = "CC-BY-SA-3.0"
 
@@ -1077,6 +1199,7 @@ title = "fedora-docs-l10n/releases"
 url = "https://forge.fedoraproject.org/localization-docs/releases.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -1086,6 +1209,7 @@ title = "fedora-docs-l10n/remix-building"
 url = "https://forge.fedoraproject.org/localization-docs/remix-building.git"
 ref = "main"
 files = ["po/{lang}/master/antora.yml.po", "po/{lang}/master/nav.po", "po/{lang}/master/pages/remix-ci.po"]
+sparse = ["po/*/master/antora.yml.po", "po/*/master/nav.po", "po/*/master/pages/remix-ci.po"]
 segment = true
 licence = "CC-BY-SA-3.0"
 
@@ -1095,6 +1219,7 @@ title = "fedora-docs-l10n/reproducible-builds"
 url = "https://forge.fedoraproject.org/localization-docs/reproducible-builds.git"
 ref = "main"
 files = ["po/{lang}/main/antora.yml.po", "po/{lang}/main/nav.po", "po/{lang}/main/pages/common_problems.po", "po/{lang}/main/pages/index.po", "po/{lang}/main/pages/talks.po"]
+sparse = ["po/*/main/antora.yml.po", "po/*/main/nav.po", "po/*/main/pages/common_problems.po", "po/*/main/pages/index.po", "po/*/main/pages/talks.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -1104,6 +1229,7 @@ title = "fedora-docs-l10n/robotics-sig"
 url = "https://forge.fedoraproject.org/localization-docs/robotics-sig.git"
 ref = "main"
 files = ["po/{lang}/main/antora.yml.po", "po/{lang}/main/examples/exampe-example.po", "po/{lang}/main/nav.po", "po/{lang}/main/pages/contributing.po", "po/{lang}/main/pages/developer-tools.po", "po/{lang}/main/pages/index.po", "po/{lang}/main/pages/o3de.po", "po/{lang}/main/pages/ros2.po", "po/{lang}/main/partials/attributes.po", "po/{lang}/main/partials/partial-example.po"]
+sparse = ["po/*/main/antora.yml.po", "po/*/main/examples/exampe-example.po", "po/*/main/nav.po", "po/*/main/pages/contributing.po", "po/*/main/pages/developer-tools.po", "po/*/main/pages/index.po", "po/*/main/pages/o3de.po", "po/*/main/pages/ros2.po", "po/*/main/partials/attributes.po", "po/*/main/partials/partial-example.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -1113,6 +1239,7 @@ title = "fedora-docs-l10n/security"
 url = "https://forge.fedoraproject.org/localization-docs/security.git"
 ref = "main"
 files = ["po/{lang}/main/antora.yml.po", "po/{lang}/main/nav.po", "po/{lang}/main/pages/cryptography/index.po", "po/{lang}/main/pages/cryptography/policies.po", "po/{lang}/main/pages/cryptography/signatures.po", "po/{lang}/main/pages/index.po"]
+sparse = ["po/*/main/antora.yml.po", "po/*/main/nav.po", "po/*/main/pages/cryptography/index.po", "po/*/main/pages/cryptography/policies.po", "po/*/main/pages/cryptography/signatures.po", "po/*/main/pages/index.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -1122,6 +1249,7 @@ title = "fedora-docs-l10n/server-working-group"
 url = "https://forge.fedoraproject.org/localization-docs/server-working-group.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-3.0"
 
@@ -1131,6 +1259,7 @@ title = "fedora-docs-l10n/spins-labs"
 url = "https://forge.fedoraproject.org/localization-docs/spins-labs.git"
 ref = "main"
 files = ["po/{lang}/main/antora.yml.po", "po/{lang}/main/pages/index.po"]
+sparse = ["po/*/main/antora.yml.po", "po/*/main/pages/index.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -1140,6 +1269,7 @@ title = "fedora-docs-l10n/websites"
 url = "https://forge.fedoraproject.org/localization-docs/websites.git"
 ref = "main"
 files = ["po/{lang}/main/antora.yml.po", "po/{lang}/main/nav.po", "po/{lang}/main/pages/contact.po", "po/{lang}/main/pages/index.po", "po/{lang}/main/pages/objective.po", "po/{lang}/main/pages/representatives.po", "po/{lang}/main/pages/resources.po", "po/{lang}/main/pages/tasks.po", "po/{lang}/main/partials/attributes.po"]
+sparse = ["po/*/main/antora.yml.po", "po/*/main/nav.po", "po/*/main/pages/contact.po", "po/*/main/pages/index.po", "po/*/main/pages/objective.po", "po/*/main/pages/representatives.po", "po/*/main/pages/resources.po", "po/*/main/pages/tasks.po", "po/*/main/partials/attributes.po"]
 segment = true
 licence = "CC-BY-SA-3.0"
 
@@ -1149,6 +1279,7 @@ title = "fedora-docs-l10n/websites-engg"
 url = "https://forge.fedoraproject.org/localization-docs/websites-engg.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -1158,6 +1289,7 @@ title = "fedora-docs-l10n/websites-rvmp"
 url = "https://forge.fedoraproject.org/localization-docs/websites-rvmp.git"
 ref = "main"
 files = ["po/{lang}/main/nav.po", "po/{lang}/main/pages/contact.po", "po/{lang}/main/pages/index.po", "po/{lang}/main/pages/meetings.po", "po/{lang}/main/partials/attributes.po"]
+sparse = ["po/*/main/nav.po", "po/*/main/pages/contact.po", "po/*/main/pages/index.po", "po/*/main/pages/meetings.po", "po/*/main/partials/attributes.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
@@ -1167,6 +1299,7 @@ title = "fedora-docs-l10n/workstation-docs"
 url = "https://forge.fedoraproject.org/localization-docs/workstation-docs.git"
 ref = "main"
 files = ["po/{lang}/master/antora.yml.po", "po/{lang}/master/examples/exampe-example.po", "po/{lang}/master/nav.po", "po/{lang}/master/pages/disk-config.po", "po/{lang}/master/pages/index.po", "po/{lang}/master/pages/problems.po", "po/{lang}/master/pages/software-repos.po", "po/{lang}/master/partials/attributes.po", "po/{lang}/master/partials/partial-example.po"]
+sparse = ["po/*/master/antora.yml.po", "po/*/master/examples/exampe-example.po", "po/*/master/nav.po", "po/*/master/pages/disk-config.po", "po/*/master/pages/index.po", "po/*/master/pages/problems.po", "po/*/master/pages/software-repos.po", "po/*/master/partials/attributes.po", "po/*/master/partials/partial-example.po"]
 segment = true
 licence = "CC-BY-SA-3.0"
 
@@ -1176,6 +1309,7 @@ title = "fedora-docs-l10n/workstation-working-group"
 url = "https://forge.fedoraproject.org/localization-docs/workstation-working-group.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-3.0"
 
@@ -1185,6 +1319,7 @@ title = "fedora-infra"
 url = "https://github.com/fedora-infra/asknot-ng"
 ref = "develop"
 files = ["l10n/fedora/locale/{lang}.po"]
+sparse = ["l10n/fedora/locale/*.po"]
 licence = "GPL-3.0-or-later"
 
 [[block]]
@@ -1193,6 +1328,7 @@ title = "fedora-infra"
 url = "https://github.com/fedora-infra/noggin"
 ref = "develop"
 files = ["noggin/translations/{lang}/LC_MESSAGES/messages.po"]
+sparse = ["noggin/translations/*/LC_MESSAGES/messages.po"]
 licence = "MIT"
 
 [[block]]
@@ -1201,6 +1337,7 @@ title = "fedora-kde"
 url = "https://forge.fedoraproject.org/kde/plasma-welcome-fedora.git"
 ref = "main"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -1209,6 +1346,7 @@ title = "fedora-media-writer"
 url = "https://github.com/FedoraQt/MediaWriter"
 ref = "main"
 files = ["po/mediawriter_{lang}.po"]
+sparse = ["po/mediawriter_*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -1217,6 +1355,7 @@ title = "fedora-sysv"
 url = "https://github.com/fedora-sysv/chkconfig"
 ref = "main"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -1225,6 +1364,7 @@ title = "fedora-sysv"
 url = "https://github.com/fedora-sysv/initscripts"
 ref = "main"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -1233,6 +1373,7 @@ title = "fedora-websites"
 url = "ssh://pagure.io/fedora-web/translations.git"
 ref = "master"
 files = ["alt.fedoraproject.org/{lang}.po", "arm.fedoraproject.org/{lang}.po", "boot.fedoraproject.org/{lang}.po", "budget.fedoraproject.org/{lang}.po", "fedoracommunity.org/{lang}.po", "getfedora.org-redesign/{lang}/LC_MESSAGES/messages.po", "labs.fedoraproject.org/{lang}.po", "spins.fedoraproject.org/{lang}.po", "start.fedoraproject.org/{lang}.po"]
+sparse = ["alt.fedoraproject.org/*.po", "arm.fedoraproject.org/*.po", "boot.fedoraproject.org/*.po", "budget.fedoraproject.org/*.po", "fedoracommunity.org/*.po", "getfedora.org-redesign/*/LC_MESSAGES/messages.po", "labs.fedoraproject.org/*.po", "spins.fedoraproject.org/*.po", "start.fedoraproject.org/*.po"]
 licence = "CC-BY-3.0"
 
 [[block]]
@@ -1241,6 +1382,7 @@ title = "fedora-websites-3.0"
 url = "https://gitlab.com/fedora/websites-apps/fedora-websites/fedora-websites-3.0.git"
 ref = "develop"
 files = ["locales/{lang}.json"]
+sparse = ["locales/*.json", "locales/en.json"]
 format = "json"
 template = "locales/en.json"
 licence = "CC-BY-SA-3.0"
@@ -1251,6 +1393,7 @@ title = "fedoraloveskde.org"
 url = "https://forge.fedoraproject.org/kde/fedoraloveskde.org.git"
 ref = "main"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "CC-BY-SA-4.0"
 
 [[block]]
@@ -1259,6 +1402,7 @@ title = "firewalld"
 url = "https://github.com/firewalld/firewalld"
 ref = "main"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -1267,6 +1411,7 @@ title = "fprintd"
 url = "https://gitlab.freedesktop.org/libfprint/fprintd.git"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -1276,6 +1421,7 @@ url = "https://github.com/freeipa/freeipa.git"
 version = "ipa-4-13"
 ref = "ipa-4-13"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -1284,6 +1430,7 @@ title = "freeipa"
 url = "https://github.com/freeipa/freeipa.git"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-3.0-or-later"
 
 [[block]]
@@ -1292,6 +1439,7 @@ title = "glabels-qt"
 url = "https://github.com/j-evins/glabels-qt"
 ref = "master"
 files = ["translations/glabels_{lang}.ts", "translations/templates_{lang}.ts"]
+sparse = ["translations/glabels_*.ts", "translations/templates_*.ts"]
 format = "ts"
 licence = "GPL-3.0-or-later"
 
@@ -1301,6 +1449,7 @@ title = "gss-ntlmssp"
 url = "https://github.com/gssapi/gss-ntlmssp"
 ref = "main"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "ISC"
 
 [[block]]
@@ -1309,6 +1458,7 @@ title = "hivex"
 url = "https://github.com/libguestfs/hivex"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "LGPL-2.1-or-later"
 
 [[block]]
@@ -1317,6 +1467,7 @@ title = "ibus"
 url = "https://github.com/ibus/ibus-anthy.git"
 ref = "main"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -1325,6 +1476,7 @@ title = "ibus"
 url = "https://github.com/ibus/ibus.git"
 ref = "main"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "LGPL-2.1-or-later"
 
 [[block]]
@@ -1333,6 +1485,7 @@ title = "ibus-chewing"
 url = "https://codeberg.org/chewing/ibus-chewing"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -1341,6 +1494,7 @@ title = "ibus-input-pad"
 url = "https://github.com/fujiwarat/ibus-input-pad.git"
 ref = "main"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -1349,6 +1503,7 @@ title = "ibus-libpinyin"
 url = "https://github.com/libpinyin/ibus-libpinyin"
 ref = "main"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-3.0-or-later"
 
 [[block]]
@@ -1357,6 +1512,7 @@ title = "ibus-libzhuyin"
 url = "https://github.com/libzhuyin/ibus-libzhuyin"
 ref = "main"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-3.0-or-later"
 
 [[block]]
@@ -1365,6 +1521,7 @@ title = "ibus-m17n"
 url = "https://github.com/ibus/ibus-m17n"
 ref = "main"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -1373,6 +1530,7 @@ title = "IBus Speech To Text Input Method"
 url = "https://github.com/Manish7093/IBus-Speech-To-Text.git"
 ref = "main"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -1381,6 +1539,7 @@ title = "ibus-table"
 url = "https://github.com/mike-fabian/ibus-table"
 ref = "main"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "LGPL-2.1-or-later"
 
 [[block]]
@@ -1389,6 +1548,7 @@ title = "ibus-typing-booster"
 url = "https://github.com/mike-fabian/ibus-typing-booster.git"
 ref = "main"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-3.0-or-later"
 
 [[block]]
@@ -1397,6 +1557,7 @@ title = "im-chooser"
 url = "https://gitlab.com/tagoh/im-chooser.git"
 ref = "main"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -1405,6 +1566,7 @@ title = "imsettings"
 url = "https://gitlab.com/tagoh/imsettings.git"
 ref = "main"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "LGPL-2.1-or-later"
 
 [[block]]
@@ -1413,6 +1575,7 @@ title = "initial-setup"
 url = "https://github.com/rhinstaller/initial-setup-l10n.git"
 ref = "master"
 files = ["master/{lang}.po", "rhel-8/{lang}.po", "rhel-9/{lang}.po"]
+sparse = ["master/*.po", "rhel-8/*.po", "rhel-9/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -1421,6 +1584,7 @@ title = "input-pad"
 url = "https://github.com/fujiwarat/input-pad.git"
 ref = "main"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "LGPL-2.1-or-later"
 
 [[block]]
@@ -1429,6 +1593,7 @@ title = "iputils"
 url = "https://github.com/iputils/iputils"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "BSD-3-Clause OR GPL-2.0-or-later"
 
 [[block]]
@@ -1437,6 +1602,7 @@ title = "LACT"
 url = "https://github.com/ilya-zlobintsev/LACT"
 ref = "master"
 files = ["lact-schema/i18n/{lang}/lact_schema.ftl"]
+sparse = ["lact-schema/i18n/*/lact_schema.ftl", "lact-schema/i18n/en/lact_schema.ftl"]
 format = "fluent"
 template = "lact-schema/i18n/en/lact_schema.ftl"
 licence = "MIT"
@@ -1447,6 +1613,7 @@ title = "LACT"
 url = "https://github.com/ilya-zlobintsev/lact"
 ref = "master"
 files = ["lact-gui/i18n/{lang}/lact_gui.ftl"]
+sparse = ["lact-gui/i18n/*/lact_gui.ftl", "lact-gui/i18n/en/lact_gui.ftl"]
 format = "fluent"
 template = "lact-gui/i18n/en/lact_gui.ftl"
 licence = "MIT"
@@ -1457,6 +1624,7 @@ title = "libguestfs"
 url = "https://github.com/libguestfs/guestfs-tools"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -1465,6 +1633,7 @@ title = "libguestfs"
 url = "https://github.com/libguestfs/guestfs-tools"
 ref = "master"
 files = ["po-docs/{lang}.po"]
+sparse = ["po-docs/*.po"]
 licence = "LGPL-2.1-only"
 
 [[block]]
@@ -1473,6 +1642,7 @@ title = "libguestfs"
 url = "https://github.com/libguestfs/libguestfs"
 ref = "master"
 files = ["po-docs/{lang}.po", "po/{lang}.po"]
+sparse = ["po-docs/*.po", "po/*.po"]
 licence = "LGPL-2.1-or-later"
 
 [[block]]
@@ -1481,6 +1651,7 @@ title = "libguestfs"
 url = "https://github.com/libguestfs/virt-v2v"
 ref = "master"
 files = ["po-docs/{lang}.po", "po/{lang}.po"]
+sparse = ["po-docs/*.po", "po/*.po"]
 licence = "LGPL-2.1-or-later"
 
 [[block]]
@@ -1489,6 +1660,7 @@ title = "libosinfo"
 url = "https://gitlab.com/libosinfo/libosinfo.git"
 ref = "main"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -1497,6 +1669,7 @@ title = "libosinfo"
 url = "https://gitlab.com/libosinfo/osinfo-db-tools.git"
 ref = "main"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -1505,6 +1678,7 @@ title = "libosinfo"
 url = "https://gitlab.com/libosinfo/osinfo-db.git"
 ref = "main"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -1513,6 +1687,7 @@ title = "libpwquality"
 url = "https://github.com/libpwquality/libpwquality"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "BSD-3-Clause"
 
 [[block]]
@@ -1521,6 +1696,7 @@ title = "libuser"
 url = "https://pagure.io/libuser/"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "LGPL-2.0-or-later"
 
 [[block]]
@@ -1529,6 +1705,7 @@ title = "libvirt"
 url = "https://gitlab.com/libvirt/libvirt-glib.git"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "LGPL-2.1-or-later"
 
 [[block]]
@@ -1537,6 +1714,7 @@ title = "libvirt"
 url = "https://gitlab.com/libvirt/libvirt.git"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "LGPL-2.1-or-later"
 
 [[block]]
@@ -1545,6 +1723,7 @@ title = "linux-pam"
 url = "https://github.com/linux-pam/linux-pam"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "BSD-3-Clause OR GPL-2.0-or-later"
 
 [[block]]
@@ -1553,6 +1732,7 @@ title = "mate-desktop"
 url = "https://github.com/mate-desktop/atril/"
 ref = "master"
 files = ["help/{lang}/*.po", "po/{lang}.po"]
+sparse = ["help/*/*.po", "po/*.po"]
 licence = "GPL-2.0-only"
 
 [[block]]
@@ -1561,6 +1741,7 @@ title = "mate-desktop"
 url = "https://github.com/mate-desktop/caja"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "LGPL-2.0-only"
 
 [[block]]
@@ -1569,6 +1750,7 @@ title = "mate-desktop"
 url = "https://github.com/mate-desktop/caja-actions"
 ref = "master"
 files = ["docs/help/{lang}/*.po", "po/{lang}.po"]
+sparse = ["docs/help/*/*.po", "po/*.po"]
 licence = "GFDL-1.3-invariants-only"
 
 [[block]]
@@ -1577,6 +1759,7 @@ title = "mate-desktop"
 url = "https://github.com/mate-desktop/caja-dropbox"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -1585,6 +1768,7 @@ title = "mate-desktop"
 url = "https://github.com/mate-desktop/caja-extensions"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-only"
 
 [[block]]
@@ -1593,6 +1777,7 @@ title = "mate-desktop"
 url = "https://github.com/mate-desktop/engrampa"
 ref = "master"
 files = ["help/{lang}/*.po", "po/{lang}.po"]
+sparse = ["help/*/*.po", "po/*.po"]
 licence = "GPL-2.0-only"
 
 [[block]]
@@ -1601,6 +1786,7 @@ title = "mate-desktop"
 url = "https://github.com/mate-desktop/eom"
 ref = "master"
 files = ["help/{lang}/*.po", "po/{lang}.po"]
+sparse = ["help/*/*.po", "po/*.po"]
 licence = "GPL-2.0-only"
 
 [[block]]
@@ -1609,6 +1795,7 @@ title = "mate-desktop"
 url = "https://github.com/mate-desktop/libmatekbd"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "LGPL-2.1-only"
 
 [[block]]
@@ -1617,6 +1804,7 @@ title = "mate-desktop"
 url = "https://github.com/mate-desktop/libmatemixer"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "LGPL-2.1-only"
 
 [[block]]
@@ -1625,6 +1813,7 @@ title = "mate-desktop"
 url = "https://github.com/mate-desktop/libmateweather"
 ref = "master"
 files = ["po-locations/{lang}.po", "po/{lang}.po"]
+sparse = ["po-locations/*.po", "po/*.po"]
 licence = "GPL-2.0-only"
 
 [[block]]
@@ -1633,6 +1822,7 @@ title = "mate-desktop"
 url = "https://github.com/mate-desktop/marco"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-only"
 
 [[block]]
@@ -1641,6 +1831,7 @@ title = "mate-desktop"
 url = "https://github.com/mate-desktop/mate-applets"
 ref = "master"
 files = ["trashapplet/docs/{lang}/*.po"]
+sparse = ["trashapplet/docs/*/*.po"]
 licence = "GPL-2.0-only"
 
 [[block]]
@@ -1649,6 +1840,7 @@ title = "mate-desktop"
 url = "https://github.com/mate-desktop/mate-applets"
 ref = "master"
 files = ["accessx-status/docs/{lang}/*.po", "battstat/docs/{lang}/*.po", "charpick/help/{lang}/*.po", "cpufreq/help/{lang}/*.po", "drivemount/help/{lang}/*.po", "geyes/docs/{lang}/*.po", "mateweather/docs/{lang}/*.po", "multiload/docs/{lang}/*.po", "netspeed/help/{lang}/*.po", "po/{lang}.po", "stickynotes/docs/{lang}/*.po"]
+sparse = ["accessx-status/docs/*/*.po", "battstat/docs/*/*.po", "charpick/help/*/*.po", "cpufreq/help/*/*.po", "drivemount/help/*/*.po", "geyes/docs/*/*.po", "mateweather/docs/*/*.po", "multiload/docs/*/*.po", "netspeed/help/*/*.po", "po/*.po", "stickynotes/docs/*/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -1657,6 +1849,7 @@ title = "mate-desktop"
 url = "https://github.com/mate-desktop/mate-backgrounds"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -1665,6 +1858,7 @@ title = "mate-desktop"
 url = "https://github.com/mate-desktop/mate-calc"
 ref = "master"
 files = ["help/{lang}/*.po"]
+sparse = ["help/*/*.po"]
 licence = "GPL-2.0-only"
 
 [[block]]
@@ -1673,6 +1867,7 @@ title = "mate-desktop"
 url = "https://github.com/mate-desktop/mate-calc"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -1681,6 +1876,7 @@ title = "mate-desktop"
 url = "https://github.com/mate-desktop/mate-control-center"
 ref = "master"
 files = ["help/{lang}/*.po", "po/{lang}.po"]
+sparse = ["help/*/*.po", "po/*.po"]
 licence = "GPL-2.0-only"
 
 [[block]]
@@ -1689,6 +1885,7 @@ title = "mate-desktop"
 url = "https://github.com/mate-desktop/mate-desktop"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "LGPL-2.0-only"
 
 [[block]]
@@ -1697,6 +1894,7 @@ title = "mate-desktop"
 url = "https://github.com/mate-desktop/mate-icon-theme"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "LGPL-3.0-or-later"
 
 [[block]]
@@ -1705,6 +1903,7 @@ title = "mate-desktop"
 url = "https://github.com/mate-desktop/mate-indicator-applet"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "LGPL-2.1-only"
 
 [[block]]
@@ -1713,6 +1912,7 @@ title = "mate-desktop"
 url = "https://github.com/mate-desktop/mate-media"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-only"
 
 [[block]]
@@ -1721,6 +1921,7 @@ title = "mate-desktop"
 url = "https://github.com/mate-desktop/mate-menus"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "LGPL-2.0-only"
 
 [[block]]
@@ -1729,6 +1930,7 @@ title = "mate-desktop"
 url = "https://github.com/mate-desktop/mate-netbook"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -1737,6 +1939,7 @@ title = "mate-desktop"
 url = "https://github.com/mate-desktop/mate-notification-daemon"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-only"
 
 [[block]]
@@ -1745,6 +1948,7 @@ title = "mate-desktop"
 url = "https://github.com/mate-desktop/mate-panel"
 ref = "master"
 files = ["help/mate-clock/{lang}/*.po", "help/mate-fish/{lang}/*.po", "po/{lang}.po"]
+sparse = ["help/mate-clock/*/*.po", "help/mate-fish/*/*.po", "po/*.po"]
 licence = "LGPL-2.0-only"
 
 [[block]]
@@ -1753,6 +1957,7 @@ title = "mate-desktop"
 url = "https://github.com/mate-desktop/mate-polkit"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "LGPL-2.0-only"
 
 [[block]]
@@ -1761,6 +1966,7 @@ title = "mate-desktop"
 url = "https://github.com/mate-desktop/mate-power-manager"
 ref = "master"
 files = ["help/mate-clock/{lang}/*.po", "po/{lang}.po"]
+sparse = ["help/mate-clock/*/*.po", "po/*.po"]
 licence = "GPL-2.0-only"
 
 [[block]]
@@ -1769,6 +1975,7 @@ title = "mate-desktop"
 url = "https://github.com/mate-desktop/mate-screensaver"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "LGPL-2.0-only"
 
 [[block]]
@@ -1777,6 +1984,7 @@ title = "mate-desktop"
 url = "https://github.com/mate-desktop/mate-sensors-applet"
 ref = "master"
 files = ["help/{lang}/*.po", "po/{lang}.po"]
+sparse = ["help/*/*.po", "po/*.po"]
 licence = "GPL-2.0-only"
 
 [[block]]
@@ -1785,6 +1993,7 @@ title = "mate-desktop"
 url = "https://github.com/mate-desktop/mate-session-manager"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-only"
 
 [[block]]
@@ -1793,6 +2002,7 @@ title = "mate-desktop"
 url = "https://github.com/mate-desktop/mate-settings-daemon"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-only"
 
 [[block]]
@@ -1801,6 +2011,7 @@ title = "mate-desktop"
 url = "https://github.com/mate-desktop/mate-system-monitor"
 ref = "master"
 files = ["help/{lang}/*.po", "po/{lang}.po"]
+sparse = ["help/*/*.po", "po/*.po"]
 licence = "GPL-2.0-only"
 
 [[block]]
@@ -1809,6 +2020,7 @@ title = "mate-desktop"
 url = "https://github.com/mate-desktop/mate-terminal"
 ref = "master"
 files = ["help/{lang}/*.po"]
+sparse = ["help/*/*.po"]
 licence = "GPL-2.0-only"
 
 [[block]]
@@ -1817,6 +2029,7 @@ title = "mate-desktop"
 url = "https://github.com/mate-desktop/mate-terminal"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -1825,6 +2038,7 @@ title = "mate-desktop"
 url = "https://github.com/mate-desktop/mate-themes"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "LGPL-2.1-only"
 
 [[block]]
@@ -1833,6 +2047,7 @@ title = "mate-desktop"
 url = "https://github.com/mate-desktop/mate-user-guide"
 ref = "master"
 files = ["mate-user-guide/{lang}/*.po", "po/{lang}.po"]
+sparse = ["mate-user-guide/*/*.po", "po/*.po"]
 licence = "GFDL-1.1-invariants-only"
 
 [[block]]
@@ -1841,6 +2056,7 @@ title = "mate-desktop"
 url = "https://github.com/mate-desktop/mate-user-share"
 ref = "master"
 files = ["help/{lang}/*.po", "po/{lang}.po"]
+sparse = ["help/*/*.po", "po/*.po"]
 licence = "GPL-2.0-only"
 
 [[block]]
@@ -1849,6 +2065,7 @@ title = "mate-desktop"
 url = "https://github.com/mate-desktop/mate-utils"
 ref = "master"
 files = ["logview/help/{lang}/*.po", "mate-dictionary/help/{lang}/*.po"]
+sparse = ["logview/help/*/*.po", "mate-dictionary/help/*/*.po"]
 licence = "GPL-2.0-only"
 
 [[block]]
@@ -1857,6 +2074,7 @@ title = "mate-desktop"
 url = "https://github.com/mate-desktop/mate-utils"
 ref = "master"
 files = ["baobab/help/{lang}/*.po", "gsearchtool/help/{lang}/*.po", "po/{lang}.po"]
+sparse = ["baobab/help/*/*.po", "gsearchtool/help/*/*.po", "po/*.po"]
 licence = "LGPL-2.1-only"
 
 [[block]]
@@ -1865,6 +2083,7 @@ title = "mate-desktop"
 url = "https://github.com/mate-desktop/mate-wayland-session"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-only"
 
 [[block]]
@@ -1873,6 +2092,7 @@ title = "mate-desktop"
 url = "https://github.com/mate-desktop/mozo"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "LGPL-2.1-only"
 
 [[block]]
@@ -1881,6 +2101,7 @@ title = "mate-desktop"
 url = "https://github.com/mate-desktop/pluma"
 ref = "master"
 files = ["help/{lang}/*.po", "po/{lang}.po"]
+sparse = ["help/*/*.po", "po/*.po"]
 licence = "GPL-2.0-only"
 
 [[block]]
@@ -1889,6 +2110,7 @@ title = "mate-desktop"
 url = "https://github.com/mate-desktop/pluma-plugins"
 ref = "master"
 files = ["help/{lang}/*.po", "po/{lang}.po"]
+sparse = ["help/*/*.po", "po/*.po"]
 licence = "GPL-2.0-only"
 
 [[block]]
@@ -1897,6 +2119,7 @@ title = "mate-desktop"
 url = "https://github.com/mate-desktop/python-caja"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-only"
 
 [[block]]
@@ -1905,6 +2128,7 @@ title = "mate-desktop"
 url = "https://github.com/zhuyaliang/user-admin"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -1913,6 +2137,7 @@ title = "nani"
 url = "https://framagit.org/nani-project/nani-app.git"
 ref = "master"
 files = ["app/src/main/res/values-{lang}/strings.xml"]
+sparse = ["app/src/main/res/values-*/strings.xml", "app/src/main/res/values/strings.xml"]
 format = "android"
 template = "app/src/main/res/values/strings.xml"
 licence = "GPL-3.0-or-later"
@@ -1923,6 +2148,7 @@ title = "nani"
 url = "https://framagit.org/nani-project/nani-website.git"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "AGPL-3.0-or-later"
 
 [[block]]
@@ -1931,6 +2157,7 @@ title = "oscap-anaconda-addon"
 url = "https://github.com/OpenSCAP/oscap-anaconda-addon-l10n"
 ref = "master"
 files = ["master/{lang}.po", "rhel7-branch/{lang}.po", "rhel8-branch/{lang}.po", "rhel9-branch/{lang}.po"]
+sparse = ["master/*.po", "rhel7-branch/*.po", "rhel8-branch/*.po", "rhel9-branch/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -1939,6 +2166,7 @@ title = "passwd"
 url = "https://pagure.io/passwd"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-only"
 
 [[block]]
@@ -1947,6 +2175,7 @@ title = "plymouth"
 url = "https://gitlab.freedesktop.org/plymouth/plymouth.git"
 ref = "main"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -1955,6 +2184,7 @@ title = "popt"
 url = "https://github.com/rpm-software-management/popt-l10n"
 ref = "master"
 files = ["{lang}.po"]
+sparse = ["*.po"]
 licence = "MIT"
 
 [[block]]
@@ -1963,6 +2193,7 @@ title = "pulseaudio"
 url = "https://gitlab.freedesktop.org/pulseaudio/paprefs.git"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -1971,6 +2202,7 @@ title = "pulseaudio"
 url = "https://gitlab.freedesktop.org/pulseaudio/pavucontrol.git"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -1979,6 +2211,7 @@ title = "pulseaudio"
 url = "https://gitlab.freedesktop.org/pulseaudio/pulseaudio.git"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "LGPL-2.1-or-later"
 
 [[block]]
@@ -1987,6 +2220,7 @@ title = "pykickstart"
 url = "https://github.com/pykickstart/weblate"
 ref = "master"
 files = ["{lang}.po"]
+sparse = ["*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -1996,6 +2230,7 @@ url = "https://github.com/pykickstart/weblate"
 version = "rhel10-branch"
 ref = "rhel10-branch"
 files = ["{lang}.po"]
+sparse = ["*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -2005,6 +2240,7 @@ url = "https://github.com/pykickstart/weblate"
 version = "rhel7-branch"
 ref = "rhel7-branch"
 files = ["{lang}.po"]
+sparse = ["*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -2014,6 +2250,7 @@ url = "https://github.com/pykickstart/weblate"
 version = "rhel8-branch"
 ref = "rhel8-branch"
 files = ["{lang}.po"]
+sparse = ["*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -2023,6 +2260,7 @@ url = "https://github.com/pykickstart/weblate"
 version = "rhel9-branch"
 ref = "rhel9-branch"
 files = ["{lang}.po"]
+sparse = ["*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -2031,6 +2269,7 @@ title = "python-meh"
 url = "https://github.com/rhinstaller/python-meh-l10n.git"
 ref = "master"
 files = ["master/{lang}.po", "rhel-7/{lang}.po", "rhel-8/{lang}.po", "rhel-9/{lang}.po"]
+sparse = ["master/*.po", "rhel-7/*.po", "rhel-8/*.po", "rhel-9/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -2039,6 +2278,7 @@ title = "python-simpleline"
 url = "https://github.com/rhinstaller/python-simpleline-l10n.git"
 ref = "master"
 files = ["master/{lang}.po", "rhel-8/{lang}.po", "rhel-9/{lang}.po"]
+sparse = ["master/*.po", "rhel-8/*.po", "rhel-9/*.po"]
 licence = "LGPL-3.0-or-later"
 
 [[block]]
@@ -2047,6 +2287,7 @@ title = "rhc"
 url = "https://github.com/RedHatInsights/rhc"
 ref = "main"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -2055,6 +2296,7 @@ title = "rpm"
 url = "https://github.com/rpm-software-management/rpm-l10n/"
 ref = "master"
 files = ["{lang}.po"]
+sparse = ["*.po"]
 licence = "LGPL-2.0-or-later"
 
 [[block]]
@@ -2063,6 +2305,7 @@ title = "rpminspect"
 url = "https://github.com/rpminspect/rpminspect-l10n.git"
 ref = "main"
 files = ["{lang}.po"]
+sparse = ["*.po"]
 licence = "GPL-3.0-or-later"
 
 [[block]]
@@ -2070,6 +2313,7 @@ name = "fedora-selinux"
 title = "selinux"
 url = "https://translate.fedoraproject.org/git/selinux/gui/"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-only"
 
 [[block]]
@@ -2077,6 +2321,7 @@ name = "fedora-selinux-2"
 title = "selinux"
 url = "https://translate.fedoraproject.org/git/selinux/policycoreutils/"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-only"
 
 [[block]]
@@ -2084,6 +2329,7 @@ name = "fedora-selinux-3"
 title = "selinux"
 url = "https://translate.fedoraproject.org/git/selinux/python/"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-only"
 
 [[block]]
@@ -2091,6 +2337,7 @@ name = "fedora-selinux-4"
 title = "selinux"
 url = "https://translate.fedoraproject.org/git/selinux/sandbox/"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-only"
 
 [[block]]
@@ -2098,6 +2345,7 @@ name = "fedora-setroubleshoot"
 title = "setroubleshoot"
 url = "https://translate.fedoraproject.org/git/setroubleshoot/plugins/"
 files = ["plugins/po/{lang}.po"]
+sparse = ["plugins/po/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -2105,6 +2353,7 @@ name = "fedora-setroubleshoot-2"
 title = "setroubleshoot"
 url = "https://translate.fedoraproject.org/git/setroubleshoot/setroubleshoot/"
 files = ["framework/po/{lang}.po"]
+sparse = ["framework/po/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -2113,6 +2362,7 @@ title = "SSSD"
 url = "https://github.com/SSSD/sssd"
 ref = "master"
 files = ["po/{lang}.po", "src/man/po/{lang}.po"]
+sparse = ["po/*.po", "src/man/po/*.po"]
 licence = "GPL-3.0-or-later"
 
 [[block]]
@@ -2121,6 +2371,7 @@ title = "subscription-manager"
 url = "https://github.com/candlepin/subscription-manager"
 ref = "main"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -2130,6 +2381,7 @@ url = "https://github.com/candlepin/subscription-manager"
 version = "subscription-manager-1.28"
 ref = "subscription-manager-1.28"
 files = ["po/{lang}.po", "syspurpose/po/{lang}.po"]
+sparse = ["po/*.po", "syspurpose/po/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -2139,6 +2391,7 @@ url = "https://github.com/candlepin/subscription-manager"
 version = "subscription-manager-1.29"
 ref = "subscription-manager-1.29"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -2147,6 +2400,7 @@ title = "system-config-printer"
 url = "https://github.com/OpenPrinting/system-config-printer"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -2155,6 +2409,7 @@ title = "systemd"
 url = "https://github.com/systemd/systemd"
 ref = "main"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -2163,6 +2418,7 @@ title = "virt-manager"
 url = "https://github.com/virt-manager/virt-manager/"
 ref = "main"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -2171,6 +2427,7 @@ title = "virt-top"
 url = "https://github.com/rwmjones/virt-top.git"
 ref = "main"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -2179,6 +2436,7 @@ title = "virt-viewer"
 url = "https://gitlab.com/virt-viewer/virt-viewer.git"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
@@ -2187,4 +2445,5 @@ title = "volume_key"
 url = "https://pagure.io/volume_key.git"
 ref = "master"
 files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
 licence = "GPL-2.0-only"
