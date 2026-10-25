@@ -15,6 +15,7 @@ import math
 import os
 import shutil
 import tomllib
+import urllib.parse
 
 from amagama.licences import normalise_licence
 from amagama.updater import chromium, compressed
@@ -473,23 +474,38 @@ def load_sources(path=None):
     return blocks
 
 
+def host(block):
+    """The upstream a block is fetched from: its URL's host, else its source."""
+    for key in ("url", "base_url", "repository"):
+        value = block.fetcher.settings.get(key)
+        if value:
+            return urllib.parse.urlsplit(value).hostname or value
+    return block.source
+
+
 def limit_first_fetches(blocks, cache_dir, limit):
     """The blocks to run, with at most limit of them fetched for the first time.
 
-    A new cache fills over several runs, in file order, rather than in one
-    burst on every source. A block whose first fetch failed is retried without
-    counting. Returns (blocks, number left for later runs); None is no limit.
+    A new cache fills over several runs rather than in one burst. Each run
+    takes the same fraction of every host's unfetched blocks, interleaved, so
+    no upstream gets its whole share at once. A block whose first fetch
+    failed is retried without counting. Returns (blocks, number left for
+    later runs); None is no limit.
     """
-    if limit is None:
-        return list(blocks), 0
-    chosen = []
-    later = 0
-    for block in blocks:
-        if (block.source != "snapshot" and block.state(cache_dir) is None
-                and block.failures(cache_dir) is None):
-            if limit <= 0:
-                later += 1
-                continue
-            limit -= 1
-        chosen.append(block)
-    return chosen, later
+    blocks = list(blocks)
+    new = [block for block in blocks
+           if block.source != "snapshot" and block.state(cache_dir) is None
+           and block.failures(cache_dir) is None]
+    if limit is None or len(new) <= limit:
+        return blocks, 0
+    by_host = {}
+    for block in new:
+        by_host.setdefault(host(block), []).append(block)
+    # A block's place in its host's queue, as a fraction: taking the lowest
+    # fractions takes each host's blocks at the same rate.
+    place = {}
+    for group in by_host.values():
+        for i, block in enumerate(group):
+            place[block.name] = (i + 0.5) / len(group)
+    chosen = sorted(new, key=lambda block: place[block.name])[:limit]
+    return [block for block in blocks if block not in new] + chosen, len(new) - limit
