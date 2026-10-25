@@ -108,14 +108,31 @@ def _collapsed(masks):
     return ["%s{lang}/**/*%s" % (prefix, extension)]
 
 
-def blocks(components, prefix, projects=("*",), docs=(), covered=(), taken=()):
+def identity(url, ref, template, segment, licence):
+    """What a block reads, for keeping its name when it's regenerated: not
+    its format, so a corrected reader keeps the name."""
+    try:
+        licence = normalise_licence(licence) if licence else None
+    except ValueError:
+        pass
+    return (_normal(url), ref or None, template or None, bool(segment), licence)
+
+def previous_names(blocks):
+    """{identity(): name} of loaded sources-file blocks, for blocks()."""
+    return {identity(block.fetcher.settings.get("url", ""), block.fetcher.settings.get("ref"),
+                     block.template, block.segment, block.licence): block.name
+            for block in blocks if block.source == "git"}
+
+def blocks(components, prefix, projects=("*",), docs=(), covered=(), taken=(), previous=None):
     """(blocks, skipped) for the components of projects matching the globs.
 
     Blocks are dicts of sources-file settings; skipped counts components
     left out, by reason. docs are globs of documentation, imported with
     segmentation, matched to a project's slug or project/component;
     covered are repositories other blocks already import, and taken their
-    names. Each block is checked as the sources file would check it.
+    names; previous maps the identity() of blocks generated before to their
+    names, which are kept. Each block is checked as the sources file would
+    check it.
     """
     by_url = {component.get("url"): component for component in components}
     covered = {_normal(repo) for repo in covered}
@@ -159,27 +176,50 @@ def blocks(components, prefix, projects=("*",), docs=(), covered=(), taken=()):
                 key = (project["slug"], repo, branch, weblate_format,
                        component["slug"] if template else "", licence, segment)
                 group = groups.setdefault(key, {"project": project, "masks": set(),
-                                                "template": template})
+                                                "template": template, "components": set()})
                 group["masks"].add(_mask(component["filemask"]))
+                group["components"].add(component["slug"])
 
     found = []
     names = set(taken)
     branches = {}
     for slug, repo, branch, *_ in groups:
         branches.setdefault((slug, repo), set()).add(branch)
+    def base(slug, repo, branch):
+        name = slug if slug.startswith(prefix + "-") else "%s-%s" % (prefix, slug)
+        # A project on several branches: named by branch.
+        if len(branches[slug, repo]) > 1 and branch:
+            name += "-" + re.sub(r"[^\w.-]+", "-", branch)
+        return name
+    bases = {}
+    for slug, repo, branch, *_ in groups:
+        bases[base(slug, repo, branch)] = bases.get(base(slug, repo, branch), 0) + 1
+    # Names identify imports: one generated before is kept, and a new one
+    # doesn't depend on what else the project has, as a project's blocks are
+    # told apart by a component.
+    chosen = {}
+    for key, group in groups.items():
+        slug, repo, branch, weblate_format, _, licence, segment = key
+        kept = previous and previous.get(identity(repo, branch, group["template"], segment, licence))
+        if kept and kept not in names and kept not in chosen.values():
+            chosen[key] = kept
+    names |= set(chosen.values())
+    for key, group in sorted(groups.items()):
+        if key in chosen:
+            continue
+        name = base(*key[:3])
+        if bases[name] > 1 or name in names:
+            name += "-" + re.sub(r"[^\w.-]+", "-", min(group["components"]))
+        unique, number = name, 2
+        while unique in names:
+            unique, number = "%s-%d" % (name, number), number + 1
+        chosen[key] = unique
+        names.add(unique)
     for (slug, repo, branch, weblate_format, _, licence, segment), group in sorted(
             groups.items()):
-        base = slug if slug.startswith(prefix + "-") else "%s-%s" % (prefix, slug)
-        # A project on several branches: named by branch, and a branch
-        # that looks like a release (1.2.x) is its version.
-        several = len(branches[slug, repo]) > 1 and branch
-        if several:
-            base += "-" + re.sub(r"[^\w.-]+", "-", branch)
-        versioned = several and re.search(r"\d", branch)
-        name, number = base, 2
-        while name in names:
-            name, number = "%s-%d" % (base, number), number + 1
-        names.add(name)
+        name = chosen[slug, repo, branch, weblate_format, _, licence, segment]
+        # A branch that looks like a release (1.2.x) is a version.
+        versioned = len(branches[slug, repo]) > 1 and branch and re.search(r"\d", branch)
         block = {"name": name, "title": group["project"]["name"], "source": "git", "url": repo}
         if versioned:
             block["version"] = branch
