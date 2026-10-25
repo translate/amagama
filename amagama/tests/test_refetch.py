@@ -113,9 +113,9 @@ def test_first_fetches_wait_for_later_updates(amagama_config, tmp_path, site):
     result = CliRunner().invoke(manage, ("update", "-s", "en"))
     assert result.exit_code == 0, result.output
     assert "Blocks not fetched yet, left for later updates: 1." in result.output
-    assert "Fetched a:" in result.output
+    assert result.output.count("Fetched ") == 1
     assert "never been fetched" not in result.output
     assert "Imported 1 files" in result.output
     result = CliRunner().invoke(manage, ("update", "-s", "en"))
-    assert "Fetched b:" in result.output
+    assert "left for later" not in result.output
     assert "Imported 2 files" in result.output

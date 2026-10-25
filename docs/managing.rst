@@ -110,10 +110,9 @@ place. With ``--check`` it downloads nothing and lists
 the blocks that changed since they were last fetched.
 
 An empty cache fills over several runs: each run fetches at most
-:setting:`UPDATER_FIRST_FETCHES` blocks for the first time. It takes the same
-fraction of each host's blocks, so every upstream sees a small part of its
-share each run rather than all of it at once. ``--block`` fetches the named
-blocks whatever the limit.
+:setting:`UPDATER_FIRST_FETCHES` blocks for the first time, picked at random,
+so each upstream sees a little of its share each run rather than all of it at
+once. ``--block`` fetches the named blocks whatever the limit.
 
 
 .. _managing#initdb:
