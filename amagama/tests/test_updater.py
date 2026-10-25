@@ -816,6 +816,21 @@ class TestRotation(object):
         assert sorted(lang for path, lang in fetched(run.cache, "tp")) == ["af", "nso", "st", "xh"]
         assert not (run.cache / "tp/zu").exists()
 
+    def test_rotating_after_whole_fetches(self, run, site, tmp_path):
+        root, url = site
+        for lang in self.LANGS:
+            self.write(root, lang, "one")
+        run(block("tp", "translationproject", base_url=url + "/backups/last/", max_age_days=0))
+        # Without dates to rotate by, the first rotating fetch takes every language.
+        path = run.cache / "tp/fetched.json"
+        state = json.loads(path.read_text())
+        state["fetched"] = (datetime.datetime.fromisoformat(state["fetched"])
+                            - datetime.timedelta(days=1)).isoformat()
+        path.write_text(json.dumps(state))
+        run(block("tp", "translationproject", base_url=url + "/backups/last/", max_age_days=4))
+        state = json.loads(path.read_text())
+        assert sorted(state["language_fetched"]) == list(self.LANGS)
+
     def test_max_age_zero_fetches_whole(self, run, site, tmp_path):
         root, url = site
         for lang in self.LANGS:
