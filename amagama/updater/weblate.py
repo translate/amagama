@@ -8,12 +8,15 @@ so the instance isn't asked for files.
 
 import fnmatch
 import json
+import os
 import re
+import tempfile
 import time
 import urllib.parse
 
 from amagama.licences import normalise_licence
-from amagama.updater.fetchers import FetchError, http_text
+from amagama.updater.fetchers import FetchError, http_text, run_tool
+from amagama.updater.filemask import compile_mask
 from amagama.updater.sources import Block
 
 # Weblate file formats amaGama reads, and the format setting each needs.
@@ -76,6 +79,7 @@ def _with_encoding(component):
             return "properties-utf16"
     return weblate_format
 
+
 def _repository(component, by_url):
     """(repo, branch) of a component, or (None, None).
 
@@ -117,11 +121,13 @@ def identity(url, ref, template, segment, licence):
         pass
     return (_normal(url), ref or None, template or None, bool(segment), licence)
 
+
 def previous_names(blocks):
     """{identity(): name} of loaded sources-file blocks, for blocks()."""
     return {identity(block.fetcher.settings.get("url", ""), block.fetcher.settings.get("ref"),
                      block.template, block.segment, block.licence): block.name
             for block in blocks if block.source == "git"}
+
 
 def blocks(components, prefix, projects=("*",), docs=(), covered=(), taken=(), previous=None):
     """(blocks, skipped) for the components of projects matching the globs.
@@ -279,3 +285,65 @@ def toml(blocks, header, defaults=None):
         lines += settings({key: value for key, value in block.items()
                            if key not in defaults or defaults[key] != value})
     return "\n".join(lines) + "\n"
+
+
+def _tree(url, ref):
+    """The file paths of url at ref (None: its default branch), or None if
+    the repository or ref isn't there. Only the trees are downloaded."""
+    with tempfile.TemporaryDirectory() as tmp:
+        clone = os.path.join(tmp, "repo")
+        args = ["clone", "--quiet", "--depth", "1", "--filter=blob:none", "--no-checkout"]
+        if ref:
+            args += ["--branch", ref]
+        try:
+            run_tool("git", *(args + [url, clone]))
+            return run_tool("git", "-C", clone, "ls-tree", "-r", "--name-only", "HEAD",
+                            trusted=clone).splitlines()
+        except FetchError:
+            return None
+
+
+def verify(blocks, pause=1, tree=_tree):
+    """(blocks, problems): blocks as their repositories have them now.
+
+    Weblate's data can be out of date. A missing branch falls back to the
+    default branch; masks matching nothing are dropped; a block left with
+    none, or whose template is missing, is left out. problems counts by reason.
+    """
+    trees, kept, seen, problems = {}, [], set(), {}
+
+    def paths(url, ref):
+        if (url, ref) not in trees:
+            trees[url, ref] = tree(url, ref)
+            time.sleep(pause)
+        return trees[url, ref]
+
+    for block in blocks:
+        ref = block.get("ref")
+        found = paths(block["url"], ref)
+        if found is None and ref:
+            ref, found = None, paths(block["url"], None)
+        if found is None:
+            problems["repository or branch not found"] = problems.get("repository or branch not found", 0) + 1
+            continue
+        masks = [mask for mask in block["files"]
+                 if any(compile_mask(mask).match(path) for path in found)]
+        template = block.get("template")
+        if template and not any(compile_mask(template, allow_lang=False).match(path) for path in found):
+            masks = []
+        key = (block["url"], ref, tuple(masks), template)
+        if not masks or key in seen:
+            reason = "duplicate after branch fallback" if masks else "filemask matches nothing"
+            problems[reason] = problems.get(reason, 0) + 1
+            continue
+        seen.add(key)
+        block = dict(block, files=masks)
+        block["sparse"] = sorted({mask.replace("{lang}", "*") for mask in masks}
+                                 | ({template} if template else set()))
+        if ref != block.get("ref"):
+            problems["branch gone, default branch used"] = problems.get(
+                "branch gone, default branch used", 0) + 1
+            block.pop("ref", None)
+            block.pop("version", None)
+        kept.append(block)
+    return kept, problems
