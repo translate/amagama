@@ -566,11 +566,19 @@ class TestFirstFetches(object):
         root, url = site
         amagama_config(UPDATER_FIRST_FETCHES=1)
         text = block("x", "git", url=(tmp_path / "missing").as_uri(),
-                     files=["{lang}.po"]) + self.sources(url, "a", "b")
+                     files=["{lang}.po"]) + self.sources(url, "a")
         assert run(text).exit_code == 1
         assert os.listdir(run.cache) == ["x.failed"]
         assert run(text).exit_code == 1
         assert sorted(os.listdir(run.cache)) == ["a", "x.failed"]
+
+    def test_spread_across_hosts(self, run, site, amagama_config):
+        root, url = site
+        amagama_config(UPDATER_FIRST_FETCHES=3)
+        other = url.replace("127.0.0.1", "localhost")
+        text = self.sources(url, "a1", "a2", "a3", "a4") + self.sources(other, "b1", "b2")
+        assert run(text).exit_code == 0
+        assert sorted(os.listdir(run.cache)) == ["a1", "a2", "b1"]
 
     def test_named_blocks_ignore_limit(self, run, site, amagama_config):
         root, url = site
