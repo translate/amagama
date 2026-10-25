@@ -6,6 +6,7 @@ A monolingual file (Android, PHP, plain JSON) holds no English, and is
 paired with its template first.
 """
 
+import codecs
 import csv
 import functools
 import importlib
@@ -117,10 +118,72 @@ def check_csv_options(format, columns, header_row):
 _PO_DOMAIN = re.compile(rb'^domain[ \t]+"[^"\n]*"[ \t]*\r?\n', re.MULTILINE)
 
 
+_PO_CHARSET = re.compile(rb"charset=([A-Za-z0-9._:-]+)")
+
+
+def _po_entries(lines):
+    """The entries of a PO file's lines, split at the blank lines between them."""
+    entry = []
+    for line in lines:
+        if line.strip():
+            entry.append(line)
+        elif entry:
+            yield entry
+            entry = []
+    if entry:
+        yield entry
+
+
+def _decodes(line, charset):
+    try:
+        line.decode(charset)
+    except UnicodeDecodeError:
+        return False
+    return True
+
+
+def _decodable(data):
+    """data without what its header's charset can't decode, and the number of
+    entries left out.
+
+    msgcat merges files without converting them, so a file can hold text in
+    another charset, often translators' names in comments. Comment lines
+    that don't decode are dropped, as comments aren't imported; an entry
+    whose text doesn't decode is left out. Nothing is decoded by guess.
+    """
+    entries = list(_po_entries(data.splitlines(keepends=True)))
+    header = entries[0] if entries and _is_header(entries[0]) else []
+    match = _PO_CHARSET.search(b"".join(header))
+    try:
+        charset = codecs.lookup(match.group(1).decode("ascii")).name if match else "utf-8"
+    except LookupError:
+        charset = "utf-8"
+    kept, dropped = [], 0
+    for entry in entries:
+        lines = [line for line in entry
+                 if not line.startswith(b"#") or _decodes(line, charset)]
+        if entry is header or all(_decodes(line, charset) for line in lines):
+            kept.append(b"".join(lines))
+        else:
+            dropped += 1
+    return b"\n".join(kept), dropped
+
+
 def _read_po(path, data):
+    """The PO file's store; undecodable counts the entries left out."""
+    data = _PO_DOMAIN.sub(b"", data)
     store = po.pofile()
     store.filename = path
-    store.parse(_PO_DOMAIN.sub(b"", data))
+    store.undecodable = 0
+    try:
+        store.parse(data)
+    except UnicodeDecodeError:
+        data, store.undecodable = _decodable(data)
+        undecodable = store.undecodable
+        store = po.pofile()
+        store.filename = path
+        store.undecodable = undecodable
+        store.parse(data)
     return store
 
 
@@ -189,25 +252,17 @@ def po_pieces(path, size=None):
     Entries are split at the blank lines between them.
     """
     size = size or PO_PIECE_SIZE
-    header, piece, entry, length = b"", [], [], 0
+    header, piece, length = b"", [], 0
     with open(path, "rb") as f:
-        for line in f:
-            if line.strip():
-                entry.append(line)
-                continue
-            if not entry:
-                continue
+        for entry in _po_entries(f):
             if not header and not piece and _is_header(entry):
                 header = b"".join(entry) + b"\n"
-            else:
-                piece.append(b"".join(entry) + b"\n")
-                length += len(piece[-1])
-            entry = []
+                continue
+            piece.append(b"".join(entry) + b"\n")
+            length += len(piece[-1])
             if length >= size:
                 yield header + b"".join(piece)
                 piece, length = [], 0
-    if entry:
-        piece.append(b"".join(entry) + b"\n")
     if piece:
         yield header + b"".join(piece)
 
