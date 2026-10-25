@@ -33,6 +33,12 @@ FAILED_SUFFIX = ".failed"
 FAILURES_TO_REPORT = 4
 
 
+def sparse_patterns(files, template=None, keep=None):
+    """Git sparse-checkout patterns for a block's files: {lang} as *."""
+    return sorted({mask.replace("{lang}", "*") for mask in files}
+                  | ({template} if template else set()) | set(keep or []))
+
+
 class Block(object):
 
     def __init__(self, name, title, source, version=None, licence=None, files=None,
@@ -76,6 +82,11 @@ class Block(object):
                 raise ValueError("template must have the same wildcards as each of files")
         if self.fetcher.needs_template:
             self.fetcher.use_template(template)
+        if source == "git" and "sparse" not in settings:
+            # Clone only the files the block reads.
+            # Without a template, the .grd files give each .xtb's language.
+            self.fetcher.settings["sparse"] = sparse_patterns(
+                files, template, (keep or []) + (["**/*.grd"] if self.grd_listed else []))
         if exclude_ids is not None and (not isinstance(exclude_ids, list) or not all(
                 isinstance(pattern, str) for pattern in exclude_ids)):
             raise ValueError("exclude_ids must be a list of patterns")
