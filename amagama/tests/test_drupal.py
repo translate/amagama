@@ -100,7 +100,7 @@ def test_fetch(run, drupal, pauses):
 
 def test_release_changes_fingerprint(run, drupal):
     root, urls = drupal
-    text = block("drupal", "drupal", projects=["token"], pause=0, **urls)
+    text = block("drupal", "drupal", projects=["token"], pause=0, max_age_days=0, **urls)
     run(text)
     assert run(text, "--check").output == ""
     (root / "release-history/token/current").write_text(history("8.x-1.18", "8.x-1.17"))
@@ -161,3 +161,11 @@ def test_update(run, drupal):
     assert "Imported 3 files: 3 units (0 skipped)." in result.output
     assert lookup("af", "Token") == ["Teken"]
     assert lookup("zu", "Save") == ["Londoloza"]
+
+
+def test_fetch_some_languages(drupal, tmp_path):
+    root, urls = drupal
+    fetcher = Drupal(dict(urls, projects=["drupal", "token"], pause=0))
+    lang = fetcher.languages()[0]
+    files = fetcher.fetch(str(tmp_path / "out"), [lang])
+    assert files and {code for path, code in files} == {lang}

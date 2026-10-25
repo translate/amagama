@@ -214,9 +214,18 @@ files it includes); a block's own settings take precedence. ``name`` and
   refetch comes after a fraction of ``min_age_days`` taken from a hash of its
   name. 0 checks the block on every run.
 
-  ``max_age_days`` (default 30): for a source whose server gives no
-  fingerprint, a copy this old is fetched again, though nothing says it
-  changed. 0 fetches it on every run.
+  ``max_age_days`` (default 30): a copy this old is fetched again, though
+  nothing says it changed. For a source with one download per language
+  (``damned-lies``, ``translationproject``, ``http``, ``pontoon``,
+  ``wordpress``, ``drupal``, ``moodle``, ``joomla``) it applies to each
+  language, and the downloads are spread out: after the first full fetch, a
+  run takes the languages fetched longest ago, its share of them for the
+  days since the last fetch (rounded up), plus any language new to the
+  source. With 57 languages a daily run fetches 2, and the block isn't due
+  again until ``max_age_days`` / 57 days later. Such a source is refreshed by
+  age, not by its fingerprint, so its server never gets every language at
+  once. 0 turns that off: the whole block is fetched whenever its
+  fingerprint changes, or on every run without one.
 
   Within ``min_age_days`` a block isn't touched, even past ``max_age_days``.
 
@@ -376,7 +385,9 @@ JSON on ``googlesource.com``, where ``ls-remote`` is too costly).
 blocks whose fingerprint changed.
 
 A server that sends neither header gives no fingerprint: such a block counts
-as changed once its last fetch is ``max_age_days`` old. A block younger than
+as changed once its last fetch is ``max_age_days`` old. A block with one
+download per language refreshes its languages in turn instead, and
+``fetch_sources --check`` lists it when some are due. A block younger than
 ``min_age_days`` isn't checked at all. Every fetch also records a hash of the files it kept, and when
 all the blocks :ref:`update <managing#update>` fetched are the same as last
 time, it doesn't rebuild.

@@ -123,8 +123,15 @@ class Fetcher(object):
     def fingerprint(self):
         raise NotImplementedError
 
-    def fetch(self, dest):
-        """Download into dest; return [(path relative to dest, language)]."""
+    # Whether languages() lists the languages fetch() can take one at a time,
+    # so a block can refresh a share of them per run.
+    rotates = False
+
+    def fetch(self, dest, languages=None):
+        """Download into dest; return [(path relative to dest, language)].
+
+        With languages (when rotates), only those languages.
+        """
         raise NotImplementedError
 
 
@@ -136,6 +143,7 @@ class TarballPerLanguage(Fetcher):
 
     # Whether each tarball already has its files under <lang>/.
     has_lang_dir = False
+    rotates = True
 
     def languages(self):
         raise NotImplementedError
@@ -147,10 +155,12 @@ class TarballPerLanguage(Fetcher):
         return combine([(url, http_fingerprint(url))
                         for lang in self.languages() for url in self.urls(lang)])
 
-    def fetch(self, dest):
+    def fetch(self, dest, languages=None):
         files = []
         with tempfile.TemporaryDirectory() as tmp:
             for lang in self.languages():
+                if languages is not None and lang not in languages:
+                    continue
                 lang_dir = os.path.join(dest, lang)
                 for url in self.urls(lang):
                     path = os.path.join(tmp, "download")
@@ -255,6 +265,7 @@ class HttpPerLanguage(Fetcher):
 
     required = ("base_url", "path")
     optional = ("fallback", "pause")
+    rotates = True
 
     def __init__(self, settings):
         super(HttpPerLanguage, self).__init__(settings)
@@ -306,9 +317,12 @@ class HttpPerLanguage(Fetcher):
         return combine([(lang, self._get(lang, http_fingerprint) or "missing")
                         for lang in self.languages()])
 
-    def fetch(self, dest):
+    def fetch(self, dest, languages=None):
         files = []
         for lang in self.languages():
+            if languages is not None and lang not in languages:
+                continue
+
             def save(url):
                 path = posixpath.join(lang, posixpath.basename(urllib.parse.unquote(url)))
                 os.makedirs(os.path.join(dest, lang), exist_ok=True)
@@ -336,6 +350,7 @@ class Pontoon(Fetcher):
     """
 
     optional = ("base_url", "min_approved", "pause")
+    rotates = True
 
     @property
     def base_url(self):
@@ -359,9 +374,11 @@ class Pontoon(Fetcher):
     def fingerprint(self):
         return None
 
-    def fetch(self, dest):
+    def fetch(self, dest, languages=None):
         files = []
         for lang in self.languages():
+            if languages is not None and lang not in languages:
+                continue
             path = posixpath.join(lang, "%s.all-projects.tmx" % lang)
             os.makedirs(os.path.join(dest, lang))
             download("%s/translation-memory/%s.all-projects.tmx"
@@ -488,6 +505,7 @@ class WordPress(Fetcher):
     required = ("kind",)
     optional = ("slugs", "release", "base_url", "pause")
     kinds = ("core", "plugins", "themes")
+    rotates = True
 
     # Register and spelling variants, kept with their language.
     locales = {
@@ -536,10 +554,16 @@ class WordPress(Fetcher):
         return combine([("%s %s" % (slug, lang), "%s %s" % (version, updated))
                         for slug, lang, version, updated, url in self.packs()])
 
-    def fetch(self, dest):
+    def languages(self):
+        """The languages files are given, with their register variants."""
+        return sorted({self.locales.get(lang, lang) for slug, lang, *rest in self.packs()})
+
+    def fetch(self, dest, languages=None):
         files = []
         with tempfile.TemporaryDirectory() as tmp:
             for slug, lang, version, updated, url in self.packs():
+                if languages is not None and self.locales.get(lang, lang) not in languages:
+                    continue
                 path = os.path.join(tmp, "pack.zip")
                 download(url, path)
                 directory = os.path.join(dest, slug, lang)
@@ -563,6 +587,7 @@ class Drupal(Fetcher):
 
     required = ("projects",)
     optional = ("core", "base_url", "releases_url", "pause")
+    rotates = True
 
     def __init__(self, settings):
         super(Drupal, self).__init__(settings)
@@ -633,11 +658,13 @@ class Drupal(Fetcher):
     def fingerprint(self):
         return combine(self.releases())
 
-    def fetch(self, dest):
+    def fetch(self, dest, languages=None):
         files = []
         for project, version in self.releases():
             os.makedirs(os.path.join(dest, project))
             for lang in self.languages():
+                if languages is not None and lang not in languages:
+                    continue
                 name = "%s-%s.%s.po" % (project, version, lang)
                 try:
                     download("%s/all/%s/%s" % (self.base_url, project, urllib.parse.quote(name)),
@@ -660,6 +687,7 @@ class Moodle(Fetcher):
 
     required = ("release",)
     optional = ("base_url", "pause")
+    rotates = True
 
     def __init__(self, settings):
         super(Moodle, self).__init__(settings)
@@ -688,10 +716,15 @@ class Moodle(Fetcher):
     def fingerprint(self):
         return combine(self.index())
 
-    def fetch(self, dest):
+    def languages(self):
+        return [lang for lang, md5 in self.index()]
+
+    def fetch(self, dest, languages=None):
         files = []
         with tempfile.TemporaryDirectory() as tmp:
             for lang, md5 in self.index():
+                if languages is not None and lang not in languages:
+                    continue
                 path = os.path.join(tmp, "pack.zip")
                 url = "%s%s.zip" % (self.url, lang)
                 download(url, path)
@@ -719,6 +752,7 @@ class Joomla(Fetcher):
 
     required = ("release", "ref")
     optional = ("base_url", "repository", "pause")
+    rotates = True
     needs_template = True
     # Where Joomla installs each client's files.
     clients = {"site": "language", "administrator": "administrator/language",
@@ -781,12 +815,17 @@ class Joomla(Fetcher):
                 if element.get("type") == "language" and client and zipfile.is_zipfile(inner):
                     extract_zip(inner, os.path.join(pack, *client.split("/"), lang))
 
-    def fetch(self, dest):
+    def languages(self):
+        return [lang for lang, version, details in self.packs()]
+
+    def fetch(self, dest, languages=None):
         with tempfile.TemporaryDirectory() as tmp:
             self.git.fetch(os.path.join(tmp, "english"))
             shutil.copytree(os.path.join(tmp, "english"), dest, dirs_exist_ok=True)
             found = {path: "en-GB" for path in files_under(os.path.join(tmp, "english"))}
             for lang, version, details in self.packs():
+                if languages is not None and lang not in languages:
+                    continue
                 url, sha256 = self._download(details, version)
                 path = os.path.join(tmp, "pack.zip")
                 download(url, path)

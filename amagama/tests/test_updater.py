@@ -118,6 +118,8 @@ name = "gnome-51"
 source = "damned-lies"
 release = "gnome-51"
 base_url = "%s"
+# Fetched whenever the release's statistics change, not in rotation.
+max_age_days = 0
 '''
 
 
@@ -285,7 +287,7 @@ class TestFetch(object):
             path.write_text("msgid \"\"\nmsgstr \"\"\n")
         # Listed, but with neither.
         (root / "compendia/xh").mkdir()
-        return block("debian", "http", base_url=self.url + "/compendia/",
+        return block("debian", "http", base_url=self.url + "/compendia/", max_age_days=0,
                      path="{lang}/compendium-{lang}-LATEST.po",
                      fallback="{lang}/pre-compendium-{lang}-stamp*.po", pause=0)
 
@@ -552,7 +554,7 @@ class TestCheck(object):
 
     def test_tarball_change(self, run, site):
         root, url = site
-        text = block("tp", "translationproject", base_url=url + "/backups/last/")
+        text = block("tp", "translationproject", base_url=url + "/backups/last/", max_age_days=0)
         run(text)
         assert run(text, "--check").output == ""
         tarball = root / "backups/last/af.tgz"
@@ -678,3 +680,101 @@ def test_git_trusts_its_clone(tmp_path):
         return [line.split()[1] for line in scopes.splitlines() if line.startswith("command")]
     clone = tmp_path / "block.new"
     assert trusted(trusted=str(clone)) == [os.path.realpath(clone)]
+
+
+class TestRotation(object):
+    """A per-language source refreshes its languages over max_age_days."""
+
+    LANGS = ("af", "st", "xh", "zu")
+
+    def write(self, root, lang, text):
+        write_tarball(str(root / "backups/last" / ("%s.tgz" % lang)),
+                      {"%s/bash.%s.po" % (lang, lang): 'msgid "Save"\nmsgstr "%s"\n' % text})
+
+    def cached(self, cache, lang, tmp_path):
+        plain = tmp_path / ("%s.po" % lang)
+        compressed.decompress(str(cache / "tp" / lang / ("bash.%s.po.zst" % lang)), str(plain))
+        return plain.read_text().split('msgstr "')[1].rstrip('"\n')
+
+    def age(self, cache, days, stagger=False):
+        """Move the fetch dates back days; with stagger, af oldest and zu newest."""
+        path = cache / "tp" / "fetched.json"
+        state = json.loads(path.read_text())
+
+        def back(date, extra=0):
+            return (datetime.datetime.fromisoformat(date)
+                    - datetime.timedelta(days=days + extra)).isoformat()
+        dates = state["language_fetched"]
+        state["language_fetched"] = {lang: back(dates[lang], 3 - n if stagger else 0)
+                                     for n, lang in enumerate(sorted(dates))}
+        state["fetched"] = back(state["fetched"])
+        path.write_text(json.dumps(state))
+
+    def test_rotation(self, run, site, tmp_path):
+        root, url = site
+        for lang in self.LANGS:
+            self.write(root, lang, "one")
+        text = block("tp", "translationproject", base_url=url + "/backups/last/")
+        # The first fetch takes every language.
+        assert run(text).exit_code == 0
+        state = json.loads((run.cache / "tp/fetched.json").read_text())
+        assert sorted(state["language_fetched"]) == list(self.LANGS)
+        # Not due again until max_age_days / 4 has passed.
+        assert run(text, "--check").output == ""
+        for lang in self.LANGS:
+            self.write(root, lang, "two")
+        # 14 of 30 days: ceil(4 x 14 / 30) = 2 languages, those fetched longest ago.
+        self.age(run.cache, 14, stagger=True)
+        assert run(text, "--check").output == "tp\n"
+        result = run(text)
+        assert result.exit_code == 0, result.output
+        assert [self.cached(run.cache, lang, tmp_path) for lang in self.LANGS] == [
+            "two", "two", "one", "one"]
+        state = json.loads((run.cache / "tp/fetched.json").read_text())
+        assert len(state["files"]) == 4 and sorted(state["by_language"]) == list(self.LANGS)
+        # The other two next time round.
+        self.age(run.cache, 14)
+        run(text)
+        assert [self.cached(run.cache, lang, tmp_path) for lang in self.LANGS] == ["two"] * 4
+
+    def test_languages_come_and_go(self, run, site, tmp_path):
+        root, url = site
+        for lang in self.LANGS:
+            self.write(root, lang, "one")
+        text = block("tp", "translationproject", base_url=url + "/backups/last/")
+        run(text)
+        # A new language is fetched at once; a withdrawn one is dropped.
+        self.write(root, "nso", "one")
+        (root / "backups/last/zu.tgz").unlink()
+        self.age(run.cache, 1)
+        assert run(text).exit_code == 0
+        state = json.loads((run.cache / "tp/fetched.json").read_text())
+        assert sorted(state["language_fetched"]) == ["af", "nso", "st", "xh"]
+        assert sorted(lang for path, lang in fetched(run.cache, "tp")) == ["af", "nso", "st", "xh"]
+        assert not (run.cache / "tp/zu").exists()
+
+    def test_max_age_zero_fetches_whole(self, run, site, tmp_path):
+        root, url = site
+        for lang in self.LANGS:
+            self.write(root, lang, "one")
+        text = block("tp", "translationproject", base_url=url + "/backups/last/", max_age_days=0)
+        run(text)
+        state = json.loads((run.cache / "tp/fetched.json").read_text())
+        assert "language_fetched" not in state
+
+    def test_carry_copies_without_links(self, tmp_path, monkeypatch):
+        """A carried file comes with its template, copied where links fail."""
+        from amagama.updater import sources
+        final, new = tmp_path / "x", tmp_path / "x.new"
+        (final / "af").mkdir(parents=True)
+        (final / "af/strings.xml.zst").write_text("af")
+        (final / "en.xml").write_text("en")
+        (new).mkdir()
+        (new / "en.xml").write_text("fetched again")
+
+        def no_links(source, target):
+            raise OSError("links not supported")
+        monkeypatch.setattr(os, "link", no_links)
+        sources._carry(str(final), str(new), ["af/strings.xml", "af", "en.xml"], {})
+        assert (new / "af/strings.xml.zst").read_text() == "af"
+        assert (new / "en.xml").read_text() == "fetched again"

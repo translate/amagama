@@ -196,3 +196,12 @@ def test_update(run, joomla):
     assert lookup("af", "Save") == ["Stoor"]
     assert lookup("af", "Article") == ["Artikel"]
     assert lookup("sr@latin", "Save") == ["Sačuvaj"]
+
+
+def test_fetch_some_languages(joomla, tmp_path):
+    root, settings = joomla
+    joomla_fetcher = fetcher(settings)
+    lang = joomla_fetcher.languages()[0]
+    files = joomla_fetcher.fetch(str(tmp_path / "out"), [lang])
+    # The English template comes every time.
+    assert {code for path, code in files} == {lang, "en-GB"}
