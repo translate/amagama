@@ -106,6 +106,9 @@ class TestUpdate(object):
         assert query(pg_connection, """SELECT block, licence, COUNT(*) FROM en.imports
             GROUP BY block, licence ORDER BY block""") == [
             ("gnome-51", "GPL-2.0-or-later", 2), ("tp", None, 1)]
+        assert query(pg_connection, "SELECT name, title, version FROM en.blocks ORDER BY 1") == [
+            ("gnome-51", "gnome-51", None), ("legacy-2019", "legacy-2019", None),
+            ("tp", "tp", None)]
         assert schemas(pg_connection) == {"en"}
 
     def test_nothing_changed(self, run, pg_connection):
