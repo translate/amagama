@@ -260,16 +260,23 @@ def _expand(entry, where):
 
 
 def _entries(path, seen):
-    """(file, entry) for path's blocks, then those of the files it includes."""
+    """(file, entry) for path's blocks, then those of the files it includes.
+
+    A file's defaults apply to its own blocks, under each block's settings.
+    """
     with open(path, "rb") as f:
         try:
             data = tomllib.load(f)
         except tomllib.TOMLDecodeError as e:
             raise ValueError("%s: %s" % (path, e))
+    defaults = data.get("defaults", {})
+    if not isinstance(defaults, dict) or "name" in defaults or "versions" in defaults:
+        raise ValueError("%s: defaults must be a table of block settings, without name or versions"
+                         % path)
     entries = []
     for i, entry in enumerate(data.get("block", []), 1):
-        entries += [(path, expanded) for expanded in
-                    _expand(dict(entry), "%s: block %s" % (path, entry.get("name") or i))]
+        entries += [(path, expanded) for expanded in _expand(
+            dict(defaults, **entry), "%s: block %s" % (path, entry.get("name") or i))]
     include = data.get("include", [])
     if not isinstance(include, list) or not all(isinstance(name, str) for name in include):
         raise ValueError("%s: include must be a list of files" % path)

@@ -196,6 +196,25 @@ class TestSourcesFile(object):
         with pytest.raises(ValueError, match=error):
             load_sources(str(path))
 
+    def test_defaults(self, tmp_path):
+        (tmp_path / "sources.toml").write_text(
+            'include = ["w.toml"]\n[defaults]\nsource = "translationproject"\nmin_days = 60\n'
+            '[[block]]\nname = "a"\ntitle = "A"\n'
+            '[[block]]\nname = "b"\ntitle = "B"\nmin_days = 7\n')
+        (tmp_path / "w.toml").write_text(block("c", "translationproject"))
+        blocks = {b.name: b for b in load_sources(str(tmp_path / "sources.toml"))}
+        assert {name: (b.source, b.min_days) for name, b in blocks.items()} == {
+            "a": ("translationproject", 60), "b": ("translationproject", 7),
+            # An included file's blocks don't take the including file's defaults.
+            "c": ("translationproject", 0)}
+
+    @pytest.mark.parametrize("text", ['defaults = 1\n', '[defaults]\nname = "x"\n',
+                                      '[defaults]\nversions = ["1"]\n'])
+    def test_defaults_invalid(self, tmp_path, text):
+        (tmp_path / "sources.toml").write_text(text)
+        with pytest.raises(ValueError, match="defaults must be a table of block settings"):
+            load_sources(str(tmp_path / "sources.toml"))
+
     def test_include(self, tmp_path):
         (tmp_path / "more").mkdir()
         (tmp_path / "sources.toml").write_text(
