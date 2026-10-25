@@ -37,6 +37,9 @@ FORMATS = {
 MONOLINGUAL = {"aresource", "json", "json-nested", "fluent", "properties", "properties-utf8",
                "properties-utf16", "joomla", "php", "i18next", "i18nextv4"}
 
+# Hosts that no longer serve their repositories, though Weblate still lists them.
+DEAD_HOSTS = {"pagure.io": "archived"}
+
 # A repository with more single-file components than this is read whole,
 # from the directory before the language.
 COLLAPSE = 10
@@ -128,6 +131,9 @@ def blocks(components, prefix, projects=("*",), docs=(), covered=(), taken=()):
                 skip("no repository")
             elif _normal(repo) in covered:
                 skip("repository imported by another block")
+            elif urllib.parse.urlsplit(repo).hostname in DEAD_HOSTS:
+                host = urllib.parse.urlsplit(repo).hostname
+                skip("host %s %s" % (host, DEAD_HOSTS[host]))
             else:
                 # A bilingual file's template is only its source file.
                 template = (component.get("template") or None) if weblate_format in MONOLINGUAL \

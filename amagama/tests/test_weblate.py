@@ -250,3 +250,9 @@ def test_formats_are_readers():
     """Every format the generator writes is one amaGama reads."""
     for format in filter(None, weblate.FORMATS.values()):
         check_format(format)
+
+
+def test_dead_host():
+    found, skipped = generated([component("libuser", "ui", "https://pagure.io/libuser/", "po/*.po")])
+    assert found == {}
+    assert skipped == {"host pagure.io archived": 1}

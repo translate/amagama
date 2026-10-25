@@ -325,6 +325,6 @@ that looks like a release as its version. ``--project`` limits it to project
 slugs matching a glob, and ``--docs`` marks documentation for ``segment``:
 globs of a project's slug or of ``project/component``. Left out, and counted: glossaries, components whose source isn't
 English, formats amaGama doesn't read, no-derivatives licences, repositories
-another block already imports, and blocks that wouldn't load. The file's
+another block already imports, repositories on archived hosts (pagure.io), and blocks that wouldn't load. The file's
 ``[defaults]`` give every block ``source = "git"`` and ``min_age_days`` from
 ``--min-age-days`` (default 60).
