@@ -18,4 +18,6 @@ ExecStart=/usr/bin/flock --nonblock --conflict-exit-code 75 \
 SuccessExitStatus=75
 Nice=10
 IOSchedulingClass=idle
+# Reclaim its own page cache, then slow down, before squeezing the web app.
+MemoryHigh=512M
 TimeoutStartSec=24h
