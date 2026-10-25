@@ -191,11 +191,20 @@ def _normal(repo):
     return (parts.hostname or "") + re.sub(r"(\.git)?/*$", "", parts.path)
 
 
-def toml(blocks, header):
-    """blocks as sources-file text, after header's comment lines."""
+def toml(blocks, header, defaults=None):
+    """blocks as sources-file text, after header's comment lines.
+
+    defaults become the file's defaults table, left out of each block.
+    """
+    def settings(table):
+        return ["%s = %s" % (key, json.dumps(value, ensure_ascii=False))
+                for key, value in table.items()]
     lines = ["# " + line if line else "#" for line in header.splitlines()]
+    defaults = defaults or {}
+    if defaults:
+        lines += ["", "[defaults]"] + settings(defaults)
     for block in blocks:
         lines += ["", "[[block]]"]
-        lines += ["%s = %s" % (key, json.dumps(value, ensure_ascii=False))
-                  for key, value in block.items()]
+        lines += settings({key: value for key, value in block.items()
+                           if key not in defaults or defaults[key] != value})
     return "\n".join(lines) + "\n"
