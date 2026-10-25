@@ -430,3 +430,23 @@ languages.ug_ug = "ug"
 languages.en_ar = ""
 licence = "GPL-3.0-or-later"
 versions = ["4.5", "5.3"]
+
+[[block]]
+name = "joomla-{version}"
+title = "Joomla!"
+source = "joomla"
+release = "{version}"
+files = ["**/language/{lang}/*.ini"]
+format = "joomla-ini"
+template = "**/language/en-GB/*.ini"
+# Joomla's codes for Arabic Unitag and Serbian in Latin.
+languages.ar-AA = "ar"
+languages.sr-YU = "sr@latin"
+# en-GB is the source, the template; en-US would be stored as it.
+languages.en-GB = ""
+languages.en-US = ""
+licence = "GPL-2.0-or-later"
+versions = [
+  { version = "5", ref = "5.4-dev" },
+  { version = "6", ref = "6.2-dev" },
+]
