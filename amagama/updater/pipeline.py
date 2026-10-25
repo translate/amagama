@@ -1,6 +1,7 @@
 """Rebuild a source language from the sources file and swap it in."""
 
 import concurrent.futures
+import functools
 import multiprocessing
 import os
 
@@ -12,6 +13,18 @@ from amagama.updater.formats import CHROMIUM, open_po_pieces, open_store
 from amagama.updater.pairing import paired_store, without_ids
 from amagama.updater.segment import segmented
 from amagama.updater.sources import load_sources
+
+
+@functools.lru_cache(maxsize=16)
+def _template(path, format, stamp):
+    return open_store(path, format)
+
+
+def template_store(path, format):
+    """The English template, read once while the files pairing with it follow
+    each other (update orders them so)."""
+    stat = os.stat(path)
+    return _template(path, format, (stat.st_mtime_ns, stat.st_size))
 
 
 def import_file(path, slang, tlang, block, licence, format=None, template=None, exclude_ids=(),
@@ -39,7 +52,7 @@ def import_file(path, slang, tlang, block, licence, format=None, template=None, 
             if stores is None:
                 store = open_store(path, format, **(reader_options or {}))
                 if template is not None:
-                    store = paired_store(store, open_store(template, format), exclude_ids)
+                    store = paired_store(store, template_store(template, format), exclude_ids)
                 stores = [store]
             if template is None and exclude_ids:
                 stores = (without_ids(store, exclude_ids) for store in stores)
@@ -178,10 +191,12 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
         if block.source == "snapshot":
             continue
         directory = block.directory(cache_dir)
-        for path, lang, *template in block.state(cache_dir)["files"]:
-            tasks.append((os.path.join(directory, path), slang, lang, block.name, block.licence,
-                          block.format, os.path.join(directory, *template) if template else None,
-                          block.exclude_ids, block.reader_options, block.segment))
+        block_tasks = [(os.path.join(directory, path), slang, lang, block.name, block.licence,
+                        block.format, os.path.join(directory, *template) if template else None,
+                        block.exclude_ids, block.reader_options, block.segment)
+                       for path, lang, *template in block.state(cache_dir)["files"]]
+        # Files sharing an English template in a row, so each worker reads it once.
+        tasks += sorted(block_tasks, key=lambda task: (task[6] or "", task[0]))
     results = import_files(tasks, workers)
     counts = [result for result in results if isinstance(result, tuple)]
     out("Imported %d files: %d units (%d skipped)." % (
