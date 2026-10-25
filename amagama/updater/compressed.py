@@ -35,9 +35,8 @@ except ImportError:  # Python < 3.14
         return zstandard.ZstdCompressor(level=level).compress(data)
 
 SUFFIX = ".zst"
-# Slow to compress (about 5 MB/s), but that's paid once per fetched file;
-# PO shrinks 5.5x and TMX 10x, against 4.6x and 6.8x at level 3.
-LEVEL = 19
+# About 100 MB/s; PO shrinks 4.6x, against 4.8x at level 19 (5 MB/s).
+LEVEL = 9
 _CHUNK = 1024 * 1024
 
 
