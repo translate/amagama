@@ -14,7 +14,8 @@ import io
 import os
 import re
 
-from translate.storage import factory, po, xliff
+from lxml import etree
+from translate.storage import factory, po, tmx, xliff
 from translate.storage.base import TranslationStore, TranslationUnit
 
 FORMATS = {
@@ -45,7 +46,9 @@ CHROMIUM = "xtb"
 
 # A PO file bigger than this is read in pieces of about this size, since a
 # reader holds the whole file (a 161 MB compendium takes 2.8 GB).
-PO_PIECE_SIZE = 8 * 1024 * 1024
+PIECE_SIZE = 8 * 1024 * 1024
+# TMX takes far more memory per byte (8 MB of it takes 0.5 GB).
+TMX_PIECE_SIZE = 1024 * 1024
 
 
 def check_format(name):
@@ -251,7 +254,7 @@ def po_pieces(path, size=None):
 
     Entries are split at the blank lines between them.
     """
-    size = size or PO_PIECE_SIZE
+    size = size or PIECE_SIZE
     header, piece, length = b"", [], 0
     with open(path, "rb") as f:
         for entry in _po_entries(f):
@@ -267,20 +270,65 @@ def po_pieces(path, size=None):
         yield header + b"".join(piece)
 
 
-def open_po_pieces(path, format=None, columns=None, header_row=False, xliff_states=None,
-                   size=None):
+def _read_tmx(path, data):
+    store = tmx.tmxfile()
+    store.filename = path
+    store.parse(data)
+    return store
+
+
+def tmx_pieces(path, size=None):
+    """path in TMX files of about size bytes, each with path's <header>.
+
+    The <tu> elements are streamed, so the whole file is never held.
+    """
+    size = size or TMX_PIECE_SIZE
+    header, piece, length = b"", [], 0
+
+    def wrap():
+        return (b'<?xml version="1.0" encoding="UTF-8"?>\n<tmx version="1.4">' + header
+                + b"<body>" + b"".join(piece) + b"</body></tmx>")
+    for _, elem in etree.iterparse(path, tag=("{*}header", "{*}tu"), huge_tree=True):
+        if etree.QName(elem).localname == "header":
+            header = etree.tostring(elem, with_tail=False)
+        else:
+            piece.append(etree.tostring(elem, with_tail=False))
+            length += len(piece[-1])
+        elem.clear(keep_tail=False)
+        while elem.getprevious() is not None:
+            del elem.getparent()[0]
+        if length >= size:
+            yield wrap()
+            piece, length = [], 0
+    if piece:
+        yield wrap()
+
+
+# Readers for files too large to hold whole, by extension: (format, piece
+# size setting, pieces, read one piece).
+_PIECES = {
+    ".po": ("po", "PIECE_SIZE", po_pieces, _read_po),
+    ".tmx": ("tmx", "TMX_PIECE_SIZE", tmx_pieces, _read_tmx),
+}
+
+
+def open_pieces(path, format=None, columns=None, header_row=False, xliff_states=None,
+                size=None):
     """open_store() for path in pieces, or None if path is read whole.
 
     Every piece is parsed once first, so a file that can't be read is
     reported before any of it is imported.
     """
-    size = size or PO_PIECE_SIZE
-    if format not in (None, "po") or not path.endswith(".po") or os.path.getsize(path) <= size:
+    reader = _PIECES.get(os.path.splitext(path)[1])
+    if reader is None or format not in (None, reader[0]):
         return None
-
-    for piece in po_pieces(path, size):
-        _read_po(path, piece)
-    return (_read_po(path, piece) for piece in po_pieces(path, size))
+    _, setting, pieces, read = reader
+    size = size or globals()[setting]
+    if os.path.getsize(path) <= size:
+        return None
+    for piece in pieces(path, size):
+        read(path, piece)
+    return (read(path, piece) for piece in pieces(path, size))
 
 
 _NEXTCLOUD_PLURAL = re.compile(r"_(.*)_::_.*_", re.DOTALL)
