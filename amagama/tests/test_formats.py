@@ -6,7 +6,8 @@ from click.testing import CliRunner
 from amagama.application import amagama_server_factory
 from amagama.cli import manage
 from amagama.tests.test_updater import block
-from amagama.updater.formats import check_format, open_store
+from amagama.updater import formats
+from amagama.updater.formats import check_format, open_po_pieces, open_store, po_pieces
 
 SAMPLES = {
     "po": 'msgid ""\nmsgstr "Content-Type: text/plain; charset=UTF-8\\n"\n\n'
@@ -159,3 +160,67 @@ def test_nextcloud_plurals(tmp_path):
     store = open_store(str(path), "nextcloud-json")
     assert [(u.source, u.target) for u in store.units] == [
         ("Save file", "Datei speichern"), ("%n file", "%n Datei")]
+
+
+PO_HEADER = b'msgid ""\nmsgstr ""\n"Content-Type: text/plain; charset=ISO-8859-1\\n"\n\n'
+PO_ENTRIES = (
+    b'msgid "Save file"\nmsgstr "Stoor l\xeaer"\n\n'
+    # Starts like a header, but isn't one.
+    b'msgid ""\n"Open file"\nmsgstr "Maak l\xeaer oop"\n\n'
+    b'#, fuzzy\nmsgid "Close file"\nmsgstr "Sluit"\n\n'
+    b'msgid "Quit"\nmsgstr "Verlaat"\n'
+)
+
+
+def sources(stores):
+    return [str(u.source) for store in stores for u in store.units if not u.isheader()]
+
+
+def test_po_pieces(tmp_path):
+    path = tmp_path / "af.po"
+    path.write_bytes(PO_HEADER + PO_ENTRIES)
+    pieces = list(po_pieces(str(path), size=40))
+    assert len(pieces) > 1
+    assert all(piece.startswith(PO_HEADER) for piece in pieces)
+    stores = list(open_po_pieces(str(path), size=40))
+    assert sources(stores) == sources([open_store(str(path))])
+    assert [str(u.target) for u in stores[0].units if not u.isheader()] == ["Stoor lêer", "Maak lêer oop"]
+
+
+def test_small_po_read_whole(tmp_path):
+    path = tmp_path / "af.po"
+    path.write_bytes(PO_HEADER + PO_ENTRIES)
+    assert open_po_pieces(str(path)) is None
+    assert open_po_pieces(str(path), format="xliff", size=40) is None
+
+
+def test_po_piece_unreadable(tmp_path):
+    path = tmp_path / "af.po"
+    path.write_bytes(PO_HEADER + PO_ENTRIES + b'\nmsgid "Broken\n')
+    with pytest.raises(Exception):
+        open_po_pieces(str(path), size=40)
+
+
+def test_update_po_in_pieces(amagama_config, tmp_path, monkeypatch):
+    monkeypatch.setattr(formats, "PO_PIECE_SIZE", 40)
+    repo = tmp_path / "repo"
+    (repo / "po").mkdir(parents=True)
+    (repo / "po/af.po").write_bytes(PO_HEADER + PO_ENTRIES)
+
+    def git(*args):
+        subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@example.org",
+                        "-C", str(repo)] + list(args), check=True, capture_output=True)
+    git("init", "-q", "-b", "main")
+    git("add", ".")
+    git("commit", "-q", "-m", "l10n")
+    sources_toml = tmp_path / "sources.toml"
+    sources_toml.write_text(block("af", "git", url=repo.as_uri(), files=["po/{lang}.po"]))
+    amagama_config(UPDATER_SOURCES=str(sources_toml), UPDATER_CACHE_DIR=str(tmp_path / "cache"),
+                   UPDATER_WORKERS=1)
+    result = CliRunner().invoke(manage, ("update", "-s", "en"))
+    assert result.exit_code == 0, result.output
+    assert "Imported 1 files: 3 units (1 skipped)." in result.output
+    app = amagama_server_factory()
+    with app.test_client() as client:
+        response = client.get("/api/v1/en/af/unit/Open file")
+    assert [c["target"] for c in response.get_json()] == ["Maak lêer oop"]
