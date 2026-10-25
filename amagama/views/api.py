@@ -14,6 +14,7 @@ from flask import Blueprint, abort, current_app, request
 from werkzeug.datastructures import Headers
 
 from amagama import titles
+from amagama.source_options import SourceOptions
 from amagama.tmdb import lang_to_table
 
 
@@ -70,10 +71,14 @@ def translate_unit(slang, tlang, uid):
     min_similarity = get_int_arg(request, 'min_similarity')
     max_candidates = get_int_arg(request, 'max_candidates')
     project_style = request.args.get('style', None)
+    try:
+        source_options = SourceOptions.from_args(request.args)
+    except ValueError:
+        abort(400)
 
     candidates = current_app.tmdb.translate_unit(uid, slang, tlang,
                                                  project_style, min_similarity,
-                                                 max_candidates)
+                                                 max_candidates, source_options)
     response = jsonwrapper(candidates)
     return current_app.response_class(response, mimetype='application/json',
                                       headers=cache_headers)
