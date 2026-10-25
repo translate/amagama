@@ -18,6 +18,16 @@ such as one GNOME release:
     release = "gnome-51"
     licence = "GPL-2.0-or-later"
 
+A sources file can include others, named relative to it, whose blocks follow
+its own; block names must be unique across them all:
+
+.. code-block:: toml
+
+    include = ["weblate-fedora.toml"]
+
+The included Weblate files are written by :ref:`weblate_sources
+<managing#weblate-sources>`.
+
 ``name``
   The block's fixed reference: it names the block's directory in the cache
   and its :ref:`imports <importing#record>`, so never rename or reuse one.
