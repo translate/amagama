@@ -7,7 +7,7 @@ from flask import current_app
 from amagama.commands import file_checksum
 from amagama.tmdb import BUILD_PREFIX, OLD_PREFIX, lang_to_table
 from amagama.updater import chromium
-from amagama.updater.formats import CHROMIUM, open_store
+from amagama.updater.formats import CHROMIUM, open_po_pieces, open_store
 from amagama.updater.pairing import paired_store, without_ids
 from amagama.updater.segment import segmented
 from amagama.updater.sources import load_sources
@@ -27,22 +27,31 @@ def import_file(path, slang, tlang, block, licence, format=None, template=None, 
         if template is not None and not os.path.exists(template):
             return "no English template %s" % os.path.basename(template)
         if format == CHROMIUM:
-            store = chromium.paired_store(path, template)
+            stores = [chromium.paired_store(path, template)]
         else:
-            store = open_store(path, format, **(reader_options or {}))
-            if template is not None:
-                store = paired_store(store, open_store(template, format), exclude_ids)
-            elif exclude_ids:
-                store = without_ids(store, exclude_ids)
+            stores = None if template is not None else \
+                open_po_pieces(path, format, **(reader_options or {}))
+            if stores is None:
+                store = open_store(path, format, **(reader_options or {}))
+                if template is not None:
+                    store = paired_store(store, open_store(template, format), exclude_ids)
+                stores = [store]
+            if template is None and exclude_ids:
+                stores = (without_ids(store, exclude_ids) for store in stores)
     except Exception as e:
         return "%s: %s" % (type(e).__name__, e)
-    translatable = sum(1 for u in store.units if u.istranslatable())
-    if segment:
-        whole = sum(1 for u in store.units if tmdb._usable_unit(u))
-        store = segmented(store, slang, tlang, tmdb._usable_unit)
-    units = tmdb.add_store(store, slang, tlang, commit=False)
-    # Sentence pairs add units; skipped counts the file's own.
-    skipped = translatable - (whole if segment else units)
+    units = skipped = 0
+    for store in stores:
+        translatable = sum(1 for u in store.units if u.istranslatable())
+        if segment:
+            whole = sum(1 for u in store.units if tmdb._usable_unit(u))
+            store = segmented(store, slang, tlang, tmdb._usable_unit)
+        added = tmdb.add_store(store, slang, tlang, commit=False)
+        units += added
+        # Sentence pairs add units; skipped counts the file's own.
+        skipped += translatable - (whole if segment else added)
+        # Let this piece go before the next is read.
+        del store
     tmdb.record_import(slang, tlang, path, file_checksum(path), units, skipped, block, licence)
     return units, skipped
 

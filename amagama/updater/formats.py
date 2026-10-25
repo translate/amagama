@@ -9,9 +9,10 @@ paired with its template first.
 import csv
 import importlib
 import io
+import os
 import re
 
-from translate.storage import factory, xliff
+from translate.storage import factory, po, xliff
 from translate.storage.base import TranslationStore, TranslationUnit
 
 FORMATS = {
@@ -39,6 +40,10 @@ MONOLINGUAL = {
 
 # Chromium's .xtb translations, joined with their .grd English by grit id.
 CHROMIUM = "xtb"
+
+# A PO file bigger than this is read in pieces of about this size, since a
+# reader holds the whole file (a 161 MB compendium takes 2.8 GB).
+PO_PIECE_SIZE = 8 * 1024 * 1024
 
 
 def check_format(name):
@@ -128,6 +133,61 @@ def open_store(path, format=None, columns=None, header_row=False, xliff_states=N
     if format == "nextcloud-json":
         return _nextcloud_singulars(store)
     return store
+
+
+def _is_header(entry):
+    lines = [line.strip() for line in entry if not line.startswith(b"#")]
+    return lines[:1] == [b'msgid ""'] and lines[1:2] != [] and lines[1].startswith(b"msgstr")
+
+
+def po_pieces(path, size=None):
+    """path in PO files of about size bytes, each starting with path's header.
+
+    Entries are split at the blank lines between them.
+    """
+    size = size or PO_PIECE_SIZE
+    header, piece, entry, length = b"", [], [], 0
+    with open(path, "rb") as f:
+        for line in f:
+            if line.strip():
+                entry.append(line)
+                continue
+            if not entry:
+                continue
+            if not header and not piece and _is_header(entry):
+                header = b"".join(entry) + b"\n"
+            else:
+                piece.append(b"".join(entry) + b"\n")
+                length += len(piece[-1])
+            entry = []
+            if length >= size:
+                yield header + b"".join(piece)
+                piece, length = [], 0
+    if entry:
+        piece.append(b"".join(entry) + b"\n")
+    if piece:
+        yield header + b"".join(piece)
+
+
+def open_po_pieces(path, format=None, columns=None, header_row=False, xliff_states=None,
+                   size=None):
+    """open_store() for path in pieces, or None if path is read whole.
+
+    Every piece is parsed once first, so a file that can't be read is
+    reported before any of it is imported.
+    """
+    size = size or PO_PIECE_SIZE
+    if format not in (None, "po") or not path.endswith(".po") or os.path.getsize(path) <= size:
+        return None
+
+    def read(piece):
+        store = po.pofile()
+        store.filename = path
+        store.parse(piece)
+        return store
+    for piece in po_pieces(path, size):
+        read(piece)
+    return (read(piece) for piece in po_pieces(path, size))
 
 
 _NEXTCLOUD_PLURAL = re.compile(r"_(.*)_::_.*_", re.DOTALL)
