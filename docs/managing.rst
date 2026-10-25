@@ -288,8 +288,10 @@ The build starts empty: snapshot blocks are loaded first, then every file of
 every other block, :setting:`UPDATER_WORKERS` at a time, each with its known
 target language, block name and licence. Files that can't be read are listed
 and left out. A database error stops it before the swap, leaving the live data
-as it was. The previous copy is kept as ``_old_<lang>`` until the next update
-(``swap_db --rollback`` restores it).
+as it was. So does an import worker dying (killed for lack of memory, say):
+the error names the files being imported, and if the whole update is killed,
+the next one names them. The previous copy is kept as ``_old_<lang>`` until
+the next update (``swap_db --rollback`` restores it).
 
 Like ``fetch_sources``, an update fetches at most
 :setting:`UPDATER_FIRST_FETCHES` blocks for the first time; the others are left

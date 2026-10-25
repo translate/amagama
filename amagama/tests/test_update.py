@@ -146,11 +146,11 @@ class TestUpdate(object):
         write_stats(root, af=2, zu=1)
         import_files, calls = pipeline.import_files, []
 
-        def killed_once(tasks, workers):
+        def killed_once(tasks, *args):
             calls.append(1)
             if len(calls) == 1:
                 raise MemoryError
-            return import_files(tasks, workers)
+            return import_files(tasks, *args)
         monkeypatch.setattr(pipeline, "import_files", killed_once)
         assert run("update", "-s", "en").exit_code == 1
         assert lookup("af", "Open file") == ["Maak lêer oop"]
@@ -159,6 +159,38 @@ class TestUpdate(object):
         assert "Imported 3 files" in result.output
         assert lookup("af", "Open file") == ["Open lêer"]
         assert run("update", "-s", "en").output == "Nothing changed.\n"
+
+    def test_dead_worker_names_its_file(self, run, tmp_path, monkeypatch):
+        def worker_killed(tasks, workers, progress):
+            os.makedirs(progress)
+            with open(os.path.join(progress, "123"), "w") as f:
+                f.write(tasks[0][0])
+            raise RuntimeError("An import worker died, perhaps for lack of memory")
+        monkeypatch.setattr(pipeline, "import_files", worker_killed)
+        result = run("update", "-s", "en")
+        assert result.exit_code == 1
+        assert str(result.exception) == ("An import worker died, perhaps for lack of memory, "
+                                         "while importing gnome-51/af/glib.glib-2-90.af.po")
+        # Named once: the next update doesn't report it again.
+        monkeypatch.undo()
+        assert "stopped while importing" not in run("update", "-s", "en").output
+
+    def test_other_runtime_error_unchanged(self, run, monkeypatch):
+        def failed(*args):
+            raise RuntimeError("something else")
+        monkeypatch.setattr(pipeline, "import_files", failed)
+        result = run("update", "-s", "en")
+        assert result.exit_code == 1
+        assert str(result.exception) == "something else"
+
+    def test_killed_update_reported_next_time(self, run, tmp_path):
+        progress = tmp_path / "cache" / ".importing-en"
+        progress.mkdir(parents=True)
+        (progress / "123").write_text(str(tmp_path / "cache" / "tp" / "af.po"))
+        result = run("update", "-s", "en")
+        assert result.exit_code == 0, result.output
+        assert "The last update stopped while importing tp/af.po." in result.output
+        assert list(progress.iterdir()) == []
 
     def test_force(self, run, pg_connection):
         run("update", "-s", "en")

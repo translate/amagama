@@ -6,6 +6,7 @@
 # the AUTHORS.md file for copyright and authorship information.
 
 
+import functools
 import os
 import random
 import signal
@@ -15,7 +16,7 @@ from click.testing import CliRunner
 
 from amagama.cli import manage
 from amagama.tmdb import BUILD_PREFIX
-from amagama.updater.pipeline import import_files, in_workers
+from amagama.updater.pipeline import _marked, import_files, in_progress, in_workers
 
 LANGS = ["af", "zu", "xh", "st", "tn", "nso", "ts", "ve", "nr", "ss", "de", "fr", "nl", "es", "it", "pt"]
 POOL = ["String %d" % n for n in range(3000)]
@@ -59,6 +60,12 @@ def _killed_on_two(n):
     return n
 
 
+def _killed_on_b(path):
+    if path == "b":
+        os.kill(os.getpid(), signal.SIGKILL)
+    return path
+
+
 def test_in_workers_keeps_order():
     assert in_workers(abs, [-1, -2, 3, -4], 2) == [1, 2, 3, 4]
 
@@ -66,3 +73,17 @@ def test_in_workers_keeps_order():
 def test_dead_worker_raises():
     with pytest.raises(RuntimeError, match="worker died"):
         in_workers(_killed_on_two, [1, 2, 3], 2)
+
+
+
+def test_dead_worker_leaves_its_file_marked(tmp_path):
+    with pytest.raises(RuntimeError, match="worker died"):
+        in_workers(functools.partial(_marked, str(tmp_path), _killed_on_b),
+                   [("a",), ("b",), ("c",)], 2)
+    assert "b" in in_progress(str(tmp_path))
+    assert in_progress(str(tmp_path)) == []
+
+
+def test_finished_file_unmarked(tmp_path):
+    assert _marked(str(tmp_path), len, ("abc",)) == 3
+    assert list(tmp_path.iterdir()) == []

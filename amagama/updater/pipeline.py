@@ -151,11 +151,44 @@ def in_workers(func, tasks, workers, initializer=None):
         raise RuntimeError("An import worker died, perhaps for lack of memory") from e
 
 
-def import_files(tasks, workers):
-    """Import import_file() argument tuples; stop on the first error."""
+def _marked(progress, func, task):
+    """func(*task), with the file task[0] marked in progress while it runs."""
+    mark = os.path.join(progress, str(os.getpid()))
+    with open(mark, "w", encoding="utf-8") as f:
+        f.write(task[0])
+    try:
+        return func(*task)
+    finally:
+        os.remove(mark)
+
+
+def in_progress(progress):
+    """The files left marked by a process killed while importing them, cleared."""
+    if not os.path.isdir(progress):
+        return []
+    paths = []
+    for name in sorted(os.listdir(progress)):
+        mark = os.path.join(progress, name)
+        with open(mark, encoding="utf-8") as f:
+            paths.append(f.read())
+        os.remove(mark)
+    return paths
+
+
+def import_files(tasks, workers, progress=None):
+    """Import import_file() argument tuples; stop on the first error.
+
+    With progress, a directory, each file is marked there while it is
+    imported, so in_progress() names those a killed process left unfinished.
+    """
+    if progress is None:
+        func = _import_task
+    else:
+        os.makedirs(progress, exist_ok=True)
+        func = functools.partial(_marked, progress, import_file)
     if workers <= 1:
-        return [import_file(*task) for task in tasks]
-    return in_workers(_import_task, tasks, workers, _start_worker)
+        return [func(task) for task in tasks]
+    return in_workers(func, tasks, workers, _start_worker)
 
 
 def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=print,
@@ -262,7 +295,20 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
                        for path, lang, *template in state["files"]]
         # Files sharing an English template in a row, so each worker reads it once.
         tasks += sorted(block_tasks, key=lambda task: (task[6] or "", task[0]))
-    results = import_files(tasks, workers)
+    progress = os.path.join(cache_dir, ".importing-%s" % slang)
+
+    def names(paths):
+        return ", ".join(os.path.relpath(path, cache_dir) for path in paths)
+    stopped = in_progress(progress)
+    if stopped:
+        out("The last update stopped while importing %s." % names(stopped))
+    try:
+        results = import_files(tasks, workers, progress)
+    except RuntimeError as e:
+        stopped = in_progress(progress)
+        if not stopped:
+            raise
+        raise RuntimeError("%s, while importing %s" % (e, names(stopped))) from e
     counts = [result for result in results if isinstance(result, tuple)]
     out("Imported %d files: %d units (%d skipped)." % (
         len(counts), sum(units for units, _ in counts), sum(skipped for _, skipped in counts)))
