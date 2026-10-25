@@ -10,6 +10,7 @@ from click.testing import CliRunner
 from amagama.cli import manage
 from amagama.tests.test_updater import QuietHandler, block
 from amagama.updater import weblate
+from amagama.updater.formats import check_format
 from amagama.updater.fetchers import FetchError
 from amagama.updater.sources import load_sources
 
@@ -243,3 +244,9 @@ def test_components_not_json(instance, tmp_path):
     (page / "index.html").write_text("<html>Not Weblate</html>")
     with pytest.raises(FetchError, match="api/components"):
         weblate.components(instance + "/html")
+
+
+def test_formats_are_readers():
+    """Every format the generator writes is one amaGama reads."""
+    for format in filter(None, weblate.FORMATS.values()):
+        check_format(format)

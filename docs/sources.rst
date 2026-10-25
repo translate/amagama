@@ -123,8 +123,10 @@ files it includes); a block's own settings take precedence. ``name`` and
   text). Without it the extension picks the reader.
 
   Monolingual formats hold one language per file, keyed by an id, and need a
-  ``template``: ``android`` (:file:`strings.xml`), ``php``, ``properties``,
-  ``joomla-ini``, ``json`` (key to message), ``fluent`` and ``dtd``.
+  ``template``: ``android`` (:file:`strings.xml`), ``php``, ``properties``
+  (Java's ISO-8859-1; ``properties-utf8`` and ``properties-utf16`` for files in
+  those encodings), ``joomla-ini``, ``json`` (key to message), ``fluent`` and
+  ``dtd``.
 
   For ``android``, ``{lang}`` must be a locale qualifier alone (``af``,
   ``pt-rBR``, ``b+sr+Latn``): directories that add another qualifier, such

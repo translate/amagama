@@ -330,3 +330,11 @@ def test_tmx_piece_unreadable(tmp_path):
     path.write_bytes(TMX % (tmx_unit("a", "Save", "Speichern") * 10 + b"<tu><tuv>"))
     with pytest.raises(Exception):
         open_pieces(str(path), size=200)
+
+
+@pytest.mark.parametrize("format, encoding", [("properties-utf8", "utf-8"),
+                                              ("properties-utf16", "utf-16")])
+def test_properties_encodings(tmp_path, format, encoding):
+    path = tmp_path / "Bundle_ar.properties"
+    path.write_bytes("open=فتح الملف\n".encode(encoding))
+    assert [str(u.target or u.source) for u in open_store(str(path), format).units] == ["فتح الملف"]
