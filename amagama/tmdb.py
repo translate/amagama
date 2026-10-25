@@ -1069,8 +1069,7 @@ ORDER BY rank DESC;
 
         tlang = lang_to_table(target_lang)
         if slang == tlang:
-            # We really don't want to serve en->en requests.
-            abort(404)
+            abort(400)
 
         if isinstance(unit_source, bytes):
             unit_source = str(unit_source, "utf-8")
