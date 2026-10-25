@@ -25,7 +25,7 @@ import urllib.parse
 from amagama.licences import normalise_licence
 from amagama.updater.fetchers import FetchError, http_text, run_tool
 from amagama.updater.filemask import compile_mask
-from amagama.updater.sources import Block
+from amagama.updater.sources import Block, sparse_patterns
 
 # Weblate file formats amaGama reads, and the format setting each needs.
 FORMATS = {
@@ -241,8 +241,7 @@ def blocks(components, prefix, projects=("*",), docs=(), covered=(), taken=(), p
             block["ref"] = branch
         block["files"] = _collapsed(group["masks"]) if not group["template"] else sorted(group["masks"])
         # Clone only the files the block reads.
-        block["sparse"] = sorted({mask.replace("{lang}", "*") for mask in block["files"]}
-                                 | ({group["template"]} if group["template"] else set()))
+        block["sparse"] = sparse_patterns(block["files"], group["template"])
         if FORMATS[weblate_format]:
             block["format"] = FORMATS[weblate_format]
         if group["template"]:
@@ -346,8 +345,7 @@ def verify(blocks, pause=1, tree=_tree):
             continue
         seen.add(key)
         block = dict(block, files=masks)
-        block["sparse"] = sorted({mask.replace("{lang}", "*") for mask in masks}
-                                 | ({template} if template else set()))
+        block["sparse"] = sparse_patterns(masks, template)
         if ref != block.get("ref"):
             problems["branch gone, default branch used"] = problems.get(
                 "branch gone, default branch used", 0) + 1

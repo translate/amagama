@@ -22,7 +22,7 @@ from click.testing import CliRunner
 from amagama.cli import manage
 from amagama.updater import compressed, fetchers
 from amagama.updater.fetchers import DamnedLies, FetchError, Git, combine
-from amagama.updater.sources import load_sources
+from amagama.updater.sources import load_sources, sparse_patterns
 
 
 def write_tarball(path, members):
@@ -403,7 +403,8 @@ class TestFetch(object):
         os.symlink("../../secret", repo / "po/st.po")
         git("add", ".")
         git("commit", "-q", "-m", "links")
-        result = run(block("x", "git", url=repo.as_uri(), files=["po/{lang}.po"]))
+        # The whole tree, so the link targets are there.
+        result = run(block("x", "git", url=repo.as_uri(), files=["po/{lang}.po"], sparse=["**"]))
         assert result.exit_code == 0, result.output
         assert [path for path, lang in fetched(run.cache, "x")] == [
             "po/ab.po", "po/af.po", "po/af_ZA.po", "po/zu.po"]
@@ -435,6 +436,22 @@ class TestFetch(object):
         git("commit", "-q", "-m", "res")
         fetcher = Git({"url": repo.as_uri(), "sparse": ["res/values*/strings.xml"]})
         assert fetcher.fetch(str(tmp_path / "x")) == [("res/values-af/strings.xml", None)]
+
+    def test_git_sparse_from_files(self, git_repo, tmp_path):
+        repo, git = git_repo
+        (repo / "README").write_text("not a translation")
+        git("add", ".")
+        git("commit", "-q", "-m", "readme")
+        sources = tmp_path / "sources.toml"
+        sources.write_text(block("x", "git", url=repo.as_uri(), files=["po/{lang}.po"]))
+        fetcher = load_sources(str(sources))[0].fetcher
+        assert fetcher.settings["sparse"] == ["po/*.po"]
+        assert fetcher.fetch(str(tmp_path / "x")) == [("po/af.po", None), ("po/zu.po", None)]
+
+    def test_sparse_patterns(self):
+        assert sparse_patterns(["a/{lang}.json", "b/**/{lang}.json"], "a/en.json",
+                               ["b/**/*.grdp"]) == ["a/*.json", "a/en.json", "b/**/*.grdp",
+                                                    "b/**/*.json"]
 
     def test_gitiles_fingerprint(self, monkeypatch):
         urls = []
