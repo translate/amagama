@@ -449,3 +449,11 @@ versions = [
   { version = "5", ref = "5.4-dev" },
   { version = "6", ref = "6.2-dev" },
 ]
+
+[[block]]
+name = "vscode"
+title = "Visual Studio Code"
+source = "vscode"
+# A pseudo-locale for testing, not a translation.
+languages.qps-ploc = ""
+licence = "MIT"
