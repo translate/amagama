@@ -11,8 +11,6 @@ Group=www-data
 Restart=on-failure
 KillSignal=SIGQUIT
 Type=notify
-#Requires a newer systemd:
-#StandardError=append:/var/www/sites/amagama_fw/logs/uwsgi.log
 NotifyAccess=all
 
 [Install]
