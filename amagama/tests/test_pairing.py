@@ -1,3 +1,4 @@
+import os
 import subprocess
 
 import pytest
@@ -173,3 +174,14 @@ def test_bilingual_exclude_ids():
                  '<tu tuid="site:blog"><tuv xml:lang="en"><seg>Read the blog</seg></tuv>'
                  '<tuv xml:lang="af"><seg>Lees die blog</seg></tuv></tu></body></tmx>')
     assert pairs(without_ids(store, ["site:*"])) == [("Save file", "Stoor lêer")]
+
+
+def test_template_reread_when_changed(tmp_path):
+    from amagama.updater.pipeline import template_store
+    path = tmp_path / "en.json"
+    path.write_text('{"save": "Save"}')
+    assert [u.target or u.source for u in template_store(str(path), "json").units] == ["Save"]
+    path.write_text('{"save": "Save file", "open": "Open"}')
+    os.utime(path, ns=(path.stat().st_atime_ns, path.stat().st_mtime_ns + 10**9))
+    assert [u.target or u.source for u in template_store(str(path), "json").units] == [
+        "Save file", "Open"]
