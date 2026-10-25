@@ -60,6 +60,8 @@ CHROMIUM = "xtb"
 PIECE_SIZE = 8 * 1024 * 1024
 # TMX takes far more memory per byte (8 MB of it takes 0.5 GB).
 TMX_PIECE_SIZE = 1024 * 1024
+# XLIFF takes about as much as TMX.
+XLIFF_PIECE_SIZE = 1024 * 1024
 
 
 def check_format(name):
@@ -315,11 +317,64 @@ def tmx_pieces(path, size=None):
         yield wrap()
 
 
+def _read_xliff(path, data, xliff_states=None):
+    store = xliff.xlifffile()
+    store.filename = path
+    store.parse(data)
+    return _accepted_xliff(store, xliff_states) if xliff_states else store
+
+
+def xliff_pieces(path, size=None):
+    """path in XLIFF files of about size bytes, each with one <file>'s attributes.
+
+    The <trans-unit> elements are streamed, so the whole file is never held.
+    """
+    size = size or XLIFF_PIECE_SIZE
+    skeleton, piece, length = None, [], 0
+
+    def wrap():
+        before, after = skeleton
+        return before + b"".join(piece) + after
+    for event, elem in etree.iterparse(path, events=("start", "end"),
+                                       tag=("{*}xliff", "{*}file", "{*}trans-unit"),
+                                       huge_tree=True):
+        name = etree.QName(elem).localname
+        if event == "start":
+            if name == "xliff":
+                root = elem
+            elif name == "file":
+                # A piece holds the units of one <file>, under its attributes.
+                if piece:
+                    yield wrap()
+                    piece, length = [], 0
+                out = etree.Element(root.tag, root.attrib, nsmap=root.nsmap)
+                body = etree.SubElement(etree.SubElement(out, elem.tag, elem.attrib),
+                                        etree.QName(etree.QName(elem).namespace, "body"))
+                body.append(etree.Comment("units"))
+                skeleton = etree.tostring(out, xml_declaration=True,
+                                          encoding="UTF-8").split(b"<!--units-->")
+            continue
+        if name != "trans-unit":
+            continue
+        piece.append(etree.tostring(elem, with_tail=False))
+        length += len(piece[-1])
+        elem.clear(keep_tail=False)
+        while elem.getprevious() is not None:
+            del elem.getparent()[0]
+        if length >= size:
+            yield wrap()
+            piece, length = [], 0
+    if piece:
+        yield wrap()
+
+
 # Readers for files too large to hold whole, by extension: (format, piece
 # size setting, pieces, read one piece).
 _PIECES = {
     ".po": ("po", "PIECE_SIZE", po_pieces, _read_po),
     ".tmx": ("tmx", "TMX_PIECE_SIZE", tmx_pieces, _read_tmx),
+    ".xlf": ("xliff", "XLIFF_PIECE_SIZE", xliff_pieces, _read_xliff),
+    ".xliff": ("xliff", "XLIFF_PIECE_SIZE", xliff_pieces, _read_xliff),
 }
 
 
@@ -333,7 +388,9 @@ def open_pieces(path, format=None, columns=None, header_row=False, xliff_states=
     reader = _PIECES.get(os.path.splitext(path)[1])
     if reader is None or format not in (None, reader[0]):
         return None
-    _, setting, pieces, read = reader
+    format, setting, pieces, read = reader
+    if format == "xliff":
+        read = functools.partial(read, xliff_states=xliff_states)
     size = size or globals()[setting]
     if os.path.getsize(path) <= size:
         return None

@@ -17,7 +17,8 @@ from amagama.tests.test_updater import block
 # The app reads PO files with this loaded.
 import amagama.poparser_compat  # noqa: F401
 from amagama.updater import formats
-from amagama.updater.formats import check_format, open_pieces, open_store, po_pieces, tmx_pieces
+from amagama.updater.formats import (check_format, open_pieces, open_store, po_pieces, tmx_pieces,
+                                     xliff_pieces)
 
 SAMPLES = {
     "po": 'msgid ""\nmsgstr "Content-Type: text/plain; charset=UTF-8\\n"\n\n'
@@ -346,3 +347,71 @@ def test_properties_encodings(tmp_path, format, encoding):
     path = tmp_path / "Bundle_ar.properties"
     path.write_bytes("open=فتح الملف\n".encode(encoding))
     assert [str(u.target or u.source) for u in open_store(str(path), format).units] == ["فتح الملف"]
+
+
+XLIFF_DOC = (b'<?xml version="1.0" encoding="UTF-8"?>\n'
+         b'<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">\n%s</xliff>\n')
+XLIFF_FILE = (b'<file original="%s" source-language="en" target-language="%s" datatype="plaintext">'
+              b'<header><note>Tool data</note></header><body>\n%s</body></file>\n')
+
+
+def xliff_unit(uid, source, target, state="translated"):
+    return ('<trans-unit id="%s"><source>%s</source><target state="%s">%s</target>'
+            '</trans-unit>\n' % (uid, source, state, target)).encode()
+
+
+def xliff_units(stores):
+    return [(u.getid(), str(u.source), str(u.target), u.get_state_n())
+            for store in stores for u in store.units]
+
+
+def test_xliff_pieces(tmp_path):
+    path = tmp_path / "de.xlf"
+    path.write_bytes(XLIFF_DOC % (
+        XLIFF_FILE % (b"a.txt", b"de", xliff_unit("1", "Save file", "Datei speichern")
+                      + b"<group>" + xliff_unit("2", "Open file", "Datei öffnen")
+                      + xliff_unit("3", "Close", "Schließen", "needs-review-translation")
+                      + b"</group>" + xliff_unit("4", "Quit", "Beenden"))
+        + XLIFF_FILE % (b"b.txt", b"de-CH", xliff_unit("1", "Help", "Hilfe"))))
+    pieces = list(xliff_pieces(str(path), size=200))
+    assert len(pieces) > 2
+    stores = list(open_pieces(str(path), size=200))
+    assert xliff_units(stores) == xliff_units([open_store(str(path))])
+    # A piece holds one <file>'s units, under its attributes.
+    assert [(s.units[0].getid().split("\x04")[0], s.gettargetlanguage()) for s in stores][-1] \
+        == ("b.txt", "de-CH")
+    assert {s.gettargetlanguage() for s in stores[:-1]} == {"de"}
+    assert [s.gettargetlanguage() for s in map(formats._read_xliff, [path] * 2,
+                                               xliff_pieces(str(path), size=10000))] == ["de", "de-CH"]
+    assert open_pieces(str(path)) is None
+
+
+def test_xliff_pieces_without_namespace(tmp_path):
+    path = tmp_path / "de.xliff"
+    path.write_bytes(XLIFF_DOC.replace(b' xmlns="urn:oasis:names:tc:xliff:document:1.2"', b"")
+                     .replace(b'version="1.2"', b'version="1.1"')
+                     % (XLIFF_FILE % (b"a.txt", b"de", xliff_unit("1", "Save", "Speichern") * 5)))
+    stores = list(open_pieces(str(path), size=100))
+    assert len(stores) > 1
+    assert xliff_units(stores) == xliff_units([open_store(str(path))])
+
+
+def test_xliff_pieces_states(tmp_path):
+    path = tmp_path / "de.xlf"
+    path.write_bytes(XLIFF_DOC % (XLIFF_FILE % (b"a.txt", b"de", b"".join(
+        xliff_unit(str(i), "Save %d" % i, "Speichern %d" % i, state)
+        for i, state in enumerate(["translated", "needs-review-translation", "new"] * 3)))))
+    states = ["needs-review-translation"]
+    stores = list(open_pieces(str(path), xliff_states=states, size=200))
+    assert len(stores) > 1
+    assert [str(u.source) for s in stores for u in s.units] \
+        == [str(u.source) for u in open_store(str(path), xliff_states=states).units] \
+        == ["Save 1", "Save 4", "Save 7"]
+
+
+def test_xliff_piece_unreadable(tmp_path):
+    path = tmp_path / "de.xlf"
+    path.write_bytes(XLIFF_DOC % (XLIFF_FILE % (b"a.txt", b"de", xliff_unit("1", "Save", "Speichern")
+                                            * 10 + b"<trans-unit><source>")))
+    with pytest.raises(Exception):
+        open_pieces(str(path), size=200)
