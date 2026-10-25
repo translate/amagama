@@ -153,6 +153,23 @@ def split_cache_key(key):
 
 
 
+def _encodable(text):
+    """text as UTF-8 can hold it, or None.
+
+    Readers can leave a character outside the BMP as two surrogates (the
+    Translate Toolkit's Android reader does, for "\\uD83D\\uDC8E"); they are
+    joined. An unpaired surrogate can't be stored.
+    """
+    try:
+        text.encode("utf-8")
+        return text
+    except UnicodeEncodeError:
+        try:
+            return text.encode("utf-16", "surrogatepass").decode("utf-16")
+        except UnicodeDecodeError:
+            return None
+
+
 def _long(text):
     return len(text.encode("utf-8")) > SAFE_INDEX_BYTES
 
@@ -815,11 +832,18 @@ ORDER BY rank DESC;
 
     def add_store(self, store, source_lang, target_lang, project_style=None,
                   commit=True):
-        """Insert all units in store in database."""
-        units = [{
-            'source': str(u.source),
-            'target': str(u.target),
-        } for u in store.units if self._usable_unit(u)]
+        """Insert all units in store in database.
+
+        A unit whose text can't be stored even with its surrogate pairs
+        joined is left out.
+        """
+        units = []
+        for u in store.units:
+            if not self._usable_unit(u):
+                continue
+            source, target = _encodable(str(u.source)), _encodable(str(u.target))
+            if source is not None and target is not None:
+                units.append({'source': source, 'target': target})
 
         if not units:
             return 0

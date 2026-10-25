@@ -65,6 +65,23 @@ class TestTMDB(object):
             targets = amagama.tmdb.available_languages['targetLanguages']
             assert targets == []
 
+    def test_surrogate_pairs_joined(self, amagama):
+        """Android's reader leaves "\\uD83D\\uDC8E" as two surrogates."""
+        from translate.storage.aresource import AndroidResourceFile
+        from amagama.updater.pairing import paired_store
+
+        def android(strings):
+            store = AndroidResourceFile()
+            store.parse(('<resources>%s</resources>' % "".join(
+                '<string name="%s">%s</string>' % item for item in strings.items())).encode())
+            return store
+        english = android({"gem": "Claim \\uD83D\\uDC8E", "half": "Half \\uD83D"})
+        spanish = android({"gem": "Reclama \\uD83D\\uDC8E", "half": "Medio \\uD83D"})
+        with amagama.app_context():
+            assert amagama.tmdb.add_store(paired_store(spanish, english), 'en', 'es') == 1
+            assert [r['target'] for r in amagama.tmdb.translate_unit('Claim 💎', 'en', 'es')] \
+                == ['Reclama 💎']
+
     def test_add_empty_store(self, amagama):
         from translate.storage.po import pofile
         with amagama.app_context():
