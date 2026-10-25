@@ -11,7 +11,7 @@ import pytest
 from click.testing import CliRunner
 
 from amagama.cli import manage
-from amagama.updater.fetchers import DamnedLies, combine
+from amagama.updater.fetchers import DamnedLies, Git, combine
 from amagama.updater.sources import load_sources
 
 
@@ -175,6 +175,8 @@ class TestSourcesFile(object):
         (block("a", "translationproject", refetch_days=-1), "refetch_days must be a whole number"),
         (block("a", "translationproject", refetch_days=1.5), "refetch_days must be a whole number"),
         (block("a", "translationproject", segment="yes"), "segment must be true or false"),
+        (block("a", "git", url="x", files=["{lang}.po"], sparse="*.po"),
+         "sparse must be a list of patterns"),
         (block("a", "http", base_url="x", path="all.po"), "path must contain {lang}"),
         (block("a", "http", base_url="x", path="{lang}.po", fallback="*.po"),
          "fallback must contain {lang}"),
@@ -340,6 +342,16 @@ class TestFetch(object):
         assert result.exit_code == 0, result.output
         assert fetched(run.cache, "x") == [("af/app.po", "af")]
         assert not (run.cache / "x/README").exists()
+
+    def test_git_sparse(self, git_repo, tmp_path):
+        repo, git = git_repo
+        (repo / "res/values-af").mkdir(parents=True)
+        (repo / "res/values-af/strings.xml").write_text("af")
+        (repo / "res/values-af/icon.png").write_text("not text")
+        git("add", ".")
+        git("commit", "-q", "-m", "res")
+        fetcher = Git({"url": repo.as_uri(), "sparse": ["res/values*/strings.xml"]})
+        assert fetcher.fetch(str(tmp_path / "x")) == [("res/values-af/strings.xml", None)]
 
     def test_git_ref(self, run, git_repo):
         repo, git = git_repo

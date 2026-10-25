@@ -208,7 +208,13 @@ Source types
 ``git``
   A shallow clone of ``url`` at ``ref`` (default: the default branch). A
   repository doesn't say which files are translations, so ``files`` is
-  required and every mask must contain ``{lang}``.
+  required and every mask must contain ``{lang}``. ``sparse``, a list of
+  gitignore-style patterns, downloads and checks out only the matching
+  files, for a large repository:
+
+  .. code-block:: toml
+
+      sparse = ["**/res/values*/strings.xml"]
 
 ``http``
   One file per language under a directory listing, such as Debian's

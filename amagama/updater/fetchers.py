@@ -347,11 +347,22 @@ class Pontoon(Fetcher):
 
 
 class Git(Fetcher):
-    """A shallow clone of one branch or tag; files gives each file's language."""
+    """A shallow clone of one branch or tag; files gives each file's language.
+
+    With sparse, a list of gitignore-style patterns, only matching files
+    are downloaded and checked out.
+    """
 
     required = ("url",)
-    optional = ("ref",)
+    optional = ("ref", "sparse")
     gives_language = False
+
+    def __init__(self, settings):
+        super(Git, self).__init__(settings)
+        sparse = settings.get("sparse")
+        if sparse is not None and (not isinstance(sparse, list) or not sparse or not all(
+                isinstance(pattern, str) for pattern in sparse)):
+            raise ValueError("sparse must be a list of patterns")
 
     def _git(self, *args):
         return run_tool("git", *args)
@@ -367,7 +378,13 @@ class Git(Fetcher):
         args = ["clone", "--quiet", "--depth", "1"]
         if "ref" in self.settings:
             args += ["--branch", self.settings["ref"]]
+        sparse = self.settings.get("sparse")
+        if sparse:
+            args += ["--filter=blob:none", "--sparse", "--no-checkout"]
         self._git(*(args + [self.settings["url"], dest]))
+        if sparse:
+            self._git("-C", dest, "sparse-checkout", "set", "--no-cone", *sparse)
+            self._git("-C", dest, "checkout", "--quiet")
         shutil.rmtree(os.path.join(dest, ".git"))
         return [(path, None) for path in files_under(dest)]
 
