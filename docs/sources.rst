@@ -28,6 +28,16 @@ its own; block names must be unique across them all:
 The included Weblate files are written by :ref:`weblate_sources
 <managing#weblate-sources>`.
 
+A ``[defaults]`` table gives settings for every block in its file (not in the
+files it includes); a block's own settings take precedence. ``name`` and
+``versions`` can't be defaults:
+
+.. code-block:: toml
+
+    [defaults]
+    source = "git"
+    min_days = 60
+
 ``name``
   The block's fixed reference: it names the block's directory in the cache
   and its :ref:`imports <importing#record>`, so never rename or reuse one.
