@@ -132,15 +132,19 @@ class TestLoadSnapshot(object):
             cursor.execute("""INSERT INTO en.targets (sid, text, lang)
                 SELECT sid, %s, 'zu' FROM en.sources WHERE text = 'Open file'""",
                            (random_text(9000),))
+            # Long but compressible: kept.
+            cursor.execute("""INSERT INTO en.targets (sid, text, lang)
+                SELECT sid, %s, 'xh' FROM en.sources WHERE text = 'Open file'""",
+                           ('Vula ' * 300,))
         pg_connection.commit()
         run('snapshot_db', '-s', 'en', '--name', 'legacy')
         run('initdb', '-s', 'en', '--build')
         result = run('load_snapshot', '-s', 'en', '--name', 'legacy')
         assert result.exit_code == 0, result.output
         assert ("Loaded _legacy_en into _build_en: 2 sources (1 skipped), "
-                "3 targets (2 skipped).") in result.output
+                "4 targets (2 skipped).") in result.output
         assert query(pg_connection, """SELECT lang, units, skipped FROM _build_en.imports
-            ORDER BY lang""") == [('af', 2, 1), ('zu', 1, 1)]
+            ORDER BY lang""") == [('af', 2, 1), ('xh', 1, 0), ('zu', 1, 1)]
 
     def test_needs_snapshot(self, run, live):
         run('initdb', '-s', 'en', '--build')

@@ -35,7 +35,7 @@ import logging
 import math
 
 from flask import abort, current_app
-from psycopg2 import sql
+from psycopg2 import errors, sql
 from translate.lang import data
 from translate.search.lshtein import LevenshteinComparer
 from translate.storage import xliff
@@ -44,6 +44,10 @@ from amagama import postgres
 from amagama.mojibake import CANDIDATE_REGEX, unmangle
 from amagama.normalise import indexing_version
 from amagama.updater.languages import normalise_language
+
+# Shorter strings always fit a btree index row (2704 bytes, with the row's
+# other columns); a longer one may not, however it compresses.
+SAFE_INDEX_BYTES = 2600
 
 _table_name_cache = {}
 
@@ -136,6 +140,28 @@ def split_cache_key(key):
     """Give the source string inside the given composite cache key."""
     return key.split('\n', 1)[1]
 
+
+
+def _long(text):
+    return len(text.encode("utf-8")) > SAFE_INDEX_BYTES
+
+
+def _insert_indexable(cursor, query, params, text):
+    """Run an INSERT of text; False if text is too long for the index.
+
+    Only a long text risks the limit, and only it pays for a savepoint.
+    """
+    if not _long(text):
+        cursor.execute(query, params)
+        return True
+    cursor.execute("SAVEPOINT long_text")
+    try:
+        cursor.execute(query, params)
+    except errors.ProgramLimitExceeded:
+        cursor.execute("ROLLBACK TO SAVEPOINT long_text")
+        return False
+    cursor.execute("RELEASE SAVEPOINT long_text")
+    return True
 
 class TMDB(postgres.PostGres):
 
@@ -346,11 +372,11 @@ ORDER BY rank DESC;
             cursor.execute(sql.SQL("""SELECT sid, text, vector, length FROM {}
                 WHERE length <= %s AND length(text) >= 1000""").format(snap_sources),
                 (self.max_import_len,))
-            long_sources = [row for row in cursor.fetchall()
-                            if self._indexable_string(row['text'])]
-            cursor.executemany("""INSERT INTO sources (sid, text, vector, length)
-                VALUES (%s, %s, %s, %s) ON CONFLICT DO NOTHING""",
-                [tuple(row) for row in long_sources])
+            for row in cursor.fetchall():
+                if self._indexable_string(row['text']):
+                    _insert_indexable(cursor, """INSERT INTO sources (sid, text, vector, length)
+                        VALUES (%s, %s, %s, %s) ON CONFLICT DO NOTHING""",
+                        tuple(row), row['text'])
             cursor.execute("""SELECT setval(pg_get_serial_sequence('sources', 'sid'),
                 COALESCE(MAX(sid), 0) + 1, false) FROM sources""")
 
@@ -361,10 +387,10 @@ ORDER BY rank DESC;
             cursor.execute(sql.SQL("""SELECT t.sid, t.text, t.lang FROM {} t
                 JOIN sources s ON s.sid = t.sid
                 WHERE length(t.text) >= 1000""").format(snap_targets))
-            long_targets = [tuple(row) for row in cursor.fetchall()
-                            if self._indexable_string(row['text'])]
-            cursor.executemany("""INSERT INTO targets (sid, text, lang)
-                VALUES (%s, %s, %s) ON CONFLICT DO NOTHING""", long_targets)
+            for row in cursor.fetchall():
+                if self._indexable_string(row['text']):
+                    _insert_indexable(cursor, """INSERT INTO targets (sid, text, lang)
+                        VALUES (%s, %s, %s) ON CONFLICT DO NOTHING""", tuple(row), row['text'])
 
             cursor.execute(sql.SQL("""SELECT
                 (SELECT COUNT(*) FROM sources), (SELECT COUNT(*) FROM {})""").format(
@@ -680,14 +706,17 @@ ORDER BY rank DESC;
         unit['sid'] = self.get_sid(unit, cursor)
         # ON CONFLICT covers a parallel import adding the same target; NOT
         # EXISTS a deployed schema, which has no unique index.
-        cursor.execute("""INSERT INTO targets (sid, text, lang)
+        return _insert_indexable(cursor, """INSERT INTO targets (sid, text, lang)
             SELECT %(sid)s, %(target)s, %(target_lang)s
             WHERE NOT EXISTS (SELECT 1 FROM targets
                 WHERE sid = %(sid)s AND lang = %(target_lang)s AND text = %(target)s)
-            ON CONFLICT DO NOTHING""", unit)
+            ON CONFLICT DO NOTHING""", unit, unit['target'])
 
     def get_all_sids(self, units, source_lang, project_style):
-        """Ensure that all source strings are in the database+cache."""
+        """Ensure that all source strings are in the database+cache.
+
+        Returns the sources too long for the index, which aren't stored.
+        """
         all_sources = set(u['source'] for u in units)
         schema = self.schema(lang_to_table(source_lang))
 
@@ -703,7 +732,7 @@ ORDER BY rank DESC;
         uncached = tuple(all_sources - already_cached)
         if not uncached:
             # Everything is already cached.
-            return
+            return set()
 
         checker = project_checker(project_style, source_lang)
 
@@ -724,16 +753,22 @@ ORDER BY rank DESC;
                 } for s in sorted(to_store)  # sorted to avoid deadlocks
             ]
             # A parallel import may add the same source first.
-            cursor.executemany("""INSERT INTO sources (text, vector, length)
+            insert = """INSERT INTO sources (text, vector, length)
                 VALUES (%(source)s, TO_TSVECTOR(%(lang_config)s, %(indexed_source)s), %(length)s)
-                ON CONFLICT DO NOTHING""", params)
+                ON CONFLICT DO NOTHING"""
+            cursor.executemany(insert, [p for p in params if not _long(p["source"])])
+            rejected = {p["source"] for p in params if _long(p["source"])
+                        and not _insert_indexable(cursor, insert, p, p["source"])}
             cursor.execute(select_query, {"list": tuple(to_store)})
             already_stored.update(cursor.fetchall())
+        else:
+            rejected = set()
 
         current_app.cache.set_many({
                 build_cache_key(k, schema): v
                 for (k, v) in already_stored.items()
         })
+        return rejected
 
     @staticmethod
     def _indexable_string(s):
@@ -795,7 +830,7 @@ ORDER BY rank DESC;
             # store them.
             return 0
 
-        self.get_all_sids(units, source_lang, project_style)
+        too_long = self.get_all_sids(units, source_lang, project_style)
 
         cursor = self.get_cursor(self.schema(slang))
         try:
@@ -808,8 +843,8 @@ ORDER BY rank DESC;
                     'target_lang': tlang,
                     'lang_config': lang_config,
                 })
-                self.add_dict(unit, cursor=cursor)
-                count += 1
+                if unit['source'] not in too_long and self.add_dict(unit, cursor=cursor):
+                    count += 1
             if commit:
                 cursor.connection.commit()
         except Exception:
