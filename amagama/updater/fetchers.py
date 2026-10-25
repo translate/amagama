@@ -245,15 +245,18 @@ def run_tool(tool, *args, trusted=None):
     """A version-control command's output, run outside any repository.
 
     The caller's GIT_DIR and friends are left out. trusted is a git
-    repository of the updater's own (a clone in the cache), which git
-    otherwise refuses as "dubious ownership" when another user owns the
-    cache (a mounted volume); it is set in the environment so the git
-    processes git starts get it too.
+    repository of the updater's own (a clone in the cache), or a list of
+    them, which git otherwise refuses as "dubious ownership" when another
+    user owns the cache (a mounted volume); it is set in the environment so
+    the git processes git starts get it too.
     """
     env = {key: value for key, value in os.environ.items() if not key.startswith("GIT_")}
     if trusted is not None:
-        env.update(GIT_CONFIG_COUNT="1", GIT_CONFIG_KEY_0="safe.directory",
-                   GIT_CONFIG_VALUE_0=os.path.realpath(trusted))
+        paths = [trusted] if isinstance(trusted, str) else list(trusted)
+        env["GIT_CONFIG_COUNT"] = str(len(paths))
+        for n, path in enumerate(paths):
+            env["GIT_CONFIG_KEY_%d" % n] = "safe.directory"
+            env["GIT_CONFIG_VALUE_%d" % n] = os.path.realpath(path)
     try:
         return subprocess.run((tool,) + args, check=True, capture_output=True, text=True,
                               timeout=3600, cwd=tempfile.gettempdir(), env=env).stdout
@@ -405,8 +408,13 @@ class Git(Fetcher):
     """A shallow clone of one branch or tag; files gives each file's language.
 
     With sparse, a list of gitignore-style patterns, only matching files
-    are downloaded and checked out.
+    are downloaded and checked out. With store set (by the block), the clone
+    is one partial repository per URL kept there and shared by the blocks
+    that fetch from it: a refetch downloads only what changed since.
     """
+
+    # Where the shared repositories are kept; None makes a throwaway clone.
+    store = None
 
     required = ("url",)
     optional = ("ref", "sparse")
@@ -440,7 +448,53 @@ class Git(Fetcher):
         except (IndexError, ValueError, KeyError, TypeError) as e:
             raise FetchError("%s: %s" % (url, e))
 
+    def repository(self):
+        """The shared repository for the URL: store/host/path.git."""
+        parts = urllib.parse.urlsplit(self.settings["url"])
+        names = [parts.hostname or "local"] + [name for name in parts.path.split("/") if name]
+        names = [re.sub(r"[^A-Za-z0-9._-]", "_", name).lstrip(".") or "_" for name in names]
+        path = os.path.join(self.store, *names)
+        return path if path.endswith(".git") else path + ".git"
+
     def fetch(self, dest):
+        if self.store is None:
+            return self._clone(dest)
+        repo = self.repository()
+        url = self.settings["url"]
+        ref = self.settings.get("ref", "HEAD")
+        trusted = (repo, dest)
+        if not os.path.isfile(os.path.join(repo, "HEAD")):
+            shutil.rmtree(repo, ignore_errors=True)
+            os.makedirs(repo)
+            self._git("init", "--quiet", "--bare", repo, clone=trusted)
+            self._git("-C", repo, "remote", "add", "origin", url, clone=trusted)
+            # Blobs come when a checkout needs them, from origin.
+            self._git("-C", repo, "config", "remote.origin.promisor", "true", clone=trusted)
+            self._git("-C", repo, "config", "remote.origin.partialclonefilter", "blob:none",
+                      clone=trusted)
+        self._git("-C", repo, "remote", "set-url", "origin", url, clone=trusted)
+        self._git("-C", repo, "worktree", "prune", clone=trusted)
+        # Kept as a local ref, so the next fetch sends only what's new.
+        local = "refs/fetched/" + ref
+        self._git("-C", repo, "fetch", "--quiet", "--depth", "1", "--filter=blob:none",
+                  "origin", "+%s:%s" % (ref, local), clone=trusted)
+        self._git("-C", repo, "worktree", "add", "--quiet", "--no-checkout", "--detach",
+                  dest, local, clone=trusted)
+        try:
+            sparse = self.settings.get("sparse")
+            if sparse:
+                self._git("-C", dest, "sparse-checkout", "set", "--no-cone", *sparse,
+                          clone=trusted)
+            self._git("-C", dest, "checkout", "--quiet", clone=trusted)
+        finally:
+            # A plain directory again; the repository forgets the worktree.
+            if os.path.exists(os.path.join(dest, ".git")):
+                os.remove(os.path.join(dest, ".git"))
+            self._git("-C", repo, "worktree", "prune", clone=trusted)
+        self._git("-C", repo, "gc", "--auto", "--quiet", clone=trusted)
+        return [(path, None) for path in files_under(dest)]
+
+    def _clone(self, dest):
         args = ["clone", "--quiet", "--depth", "1"]
         if "ref" in self.settings:
             args += ["--branch", self.settings["ref"]]

@@ -452,6 +452,35 @@ class TestFetch(object):
         fetcher = Git({"url": repo.as_uri(), "sparse": ["res/values*/strings.xml"]})
         assert fetcher.fetch(str(tmp_path / "x")) == [("res/values-af/strings.xml", None)]
 
+    def test_git_shared_repository(self, run, git_repo):
+        repo, git = git_repo
+        (repo / "help").mkdir()
+        (repo / "help/af.po").write_text("af help")
+        (repo / "big.bin").write_bytes(os.urandom(100000))
+        git("add", ".")
+        git("commit", "-q", "-m", "help")
+        git("config", "uploadpack.allowfilter", "true")
+        text = (block("ui", "git", url=repo.as_uri(), files=["po/{lang}.po"])
+                + block("help", "git", url=repo.as_uri(), files=["help/{lang}.po"]))
+        assert run(text).exit_code == 0
+        assert fetched(run.cache, "ui") == [("po/af.po", "af"), ("po/zu.po", "zu")]
+        assert fetched(run.cache, "help") == [("help/af.po", "af")]
+        # One repository for both, without the files neither reads.
+        shared = run.cache / ".repos/local"
+        assert [path.name for path in shared.rglob("*.git")] == ["repo.git"]
+        clone = next(shared.rglob("*.git"))
+        missing = fetchers.run_tool("git", "-C", str(clone), "rev-list", "--objects",
+                                    "--missing=print", "refs/fetched/HEAD", trusted=str(clone))
+        assert len([line for line in missing.splitlines() if line.startswith("?")]) == 1
+        assert not fetchers.run_tool("git", "-C", str(clone), "worktree", "list", "--porcelain",
+                                     trusted=str(clone)).count("worktree") > 1
+        # A refetch brings the change.
+        (repo / "po/af.po").write_text("af changed")
+        git("commit", "-q", "-am", "af")
+        assert run(text, "--block", "ui").exit_code == 0
+        compressed.decompress(str(run.cache / "ui/po/af.po.zst"), str(run.cache / "af"))
+        assert (run.cache / "af").read_text() == "af changed"
+
     def test_git_sparse_from_files(self, git_repo, tmp_path):
         repo, git = git_repo
         (repo / "README").write_text("not a translation")
@@ -777,6 +806,9 @@ def test_git_trusts_its_clone(tmp_path):
         return [line.split()[1] for line in scopes.splitlines() if line.startswith("command")]
     clone = tmp_path / "block.new"
     assert trusted(trusted=str(clone)) == [os.path.realpath(clone)]
+    repo = tmp_path / "repo.git"
+    assert trusted(trusted=(str(repo), str(clone))) == [os.path.realpath(repo),
+                                                        os.path.realpath(clone)]
 
 
 class TestRotation(object):
