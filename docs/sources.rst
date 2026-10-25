@@ -215,6 +215,17 @@ Source types
   release name such as ``gnome-51``; ``tarballs`` (default ``["ui"]``) can add
   ``"doc"``, or split the UI into ``"ui-libs"`` and ``"ui-apps"``.
 
+``drupal``
+  `localize.drupal.org <https://localize.drupal.org>`_: a :file:`.po` per
+  language of the latest stable release of each of ``projects`` (required),
+  such as ``["drupal", "token"]``. With ``core``, a Drupal major version
+  such as ``"11"``, each release is the newest for that core: core's own
+  in that series, and a module's whose core compatibility includes it.
+  The languages are the translation
+  server's; a language with no file for a project is skipped. ``base_url``
+  and ``releases_url`` can name mirrors of the files and the release
+  history; ``pause`` (default 1) is the seconds between downloads.
+
 ``translationproject``
   The `Translation Project <https://translationproject.org>`_'s monthly backup
   of every package, one tarball per language.
@@ -280,7 +291,8 @@ Change detection
 Each fetch records a fingerprint of the block: for ``damned-lies`` the
 release's translation statistics (one request; a reworded translation alone
 doesn't change them), for ``wordpress`` every pack's version and update
-time, for ``pontoon`` none (its files are generated on
+time, for ``drupal`` the projects' releases (the files are rebuilt daily), for
+``pontoon`` none (its files are generated on
 request), for ``translationproject`` the ETag or Last-Modified
 header of every tarball, for ``git`` the commit of the ref (from Gitiles'
 JSON on ``googlesource.com``, where ``ls-remote`` is too costly). ``fetch_sources

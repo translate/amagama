@@ -18,6 +18,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+import xml.etree.ElementTree as ET
 import zipfile
 
 from amagama import __version__
@@ -538,6 +539,106 @@ class WordPress(Fetcher):
         return files
 
 
+class Drupal(Fetcher):
+    """localize.drupal.org: a .po per language of each project's latest
+    stable release.
+
+    The languages come from the translation server's l10n_server.xml, and
+    each release from the project's release history. With core, a Drupal
+    major version, each release is the newest for that core. The files are
+    rebuilt daily, so the fingerprint is the releases. A language with no
+    file for a project is skipped. Downloads are pause seconds apart.
+    """
+
+    required = ("projects",)
+    optional = ("core", "base_url", "releases_url", "pause")
+
+    def __init__(self, settings):
+        super(Drupal, self).__init__(settings)
+        projects = settings["projects"]
+        if not isinstance(projects, list) or not projects or not all(
+                isinstance(project, str) and re.fullmatch(r"[a-z0-9_]+", project)
+                for project in projects):
+            raise ValueError("projects must list Drupal project names")
+        if "core" in settings and not (isinstance(settings["core"], str)
+                                       and settings["core"].isdigit()):
+            raise ValueError("core must be a Drupal major version, such as \"11\"")
+
+    @property
+    def base_url(self):
+        return self.settings.get("base_url", "https://ftp.drupal.org/files/translations").rstrip("/")
+
+    @staticmethod
+    def _xml(url):
+        try:
+            return ET.fromstring(http_text(url))
+        except ET.ParseError as e:
+            raise FetchError("%s: %s" % (url, e))
+
+    def languages(self):
+        if not hasattr(self, "_languages"):
+            server = self._xml(self.base_url + "/l10n_server.xml")
+            self._languages = sorted(code.text for code in server.iter("code"))
+        return self._languages
+
+    @staticmethod
+    def core_majors(compatibility):
+        """The Drupal majors a core_compatibility such as "^10.3 || ^11" allows."""
+        majors = set()
+        for alternative in (compatibility or "").split("||"):
+            lowest = re.search(r"(?:^|[\s^~=])(\d+)(?:\.|\s|$)", alternative.replace(">=", "="))
+            below = re.search(r"<\s*(\d+)", alternative)
+            if lowest and below:
+                majors.update(range(int(lowest.group(1)), int(below.group(1))))
+            elif lowest:
+                majors.add(int(lowest.group(1)))
+        return majors
+
+    def release(self, project):
+        """The newest published version that isn't a pre-release (for core)."""
+        url = "%s/%s/current" % (self.settings.get(
+            "releases_url", "https://updates.drupal.org/release-history").rstrip("/"), project)
+        core = self.settings.get("core")
+        for release in self._xml(url).iter("release"):
+            version = release.findtext("version") or ""
+            if release.findtext("status") != "published" or re.search(
+                    r"(alpha|beta|rc|dev)\d*$", version):
+                continue
+            if core is None:
+                return version
+            if project == "drupal":
+                if version.split(".")[0] == core:
+                    return version
+            elif int(core) in self.core_majors(release.findtext("core_compatibility")):
+                return version
+        raise FetchError("%s: no stable release%s" % (url, " for core %s" % core if core else ""))
+
+    def releases(self):
+        if not hasattr(self, "_releases"):
+            self._releases = [(project, self.release(project))
+                              for project in self.settings["projects"]]
+        return self._releases
+
+    def fingerprint(self):
+        return combine(self.releases())
+
+    def fetch(self, dest):
+        files = []
+        for project, version in self.releases():
+            os.makedirs(os.path.join(dest, project))
+            for lang in self.languages():
+                name = "%s-%s.%s.po" % (project, version, lang)
+                try:
+                    download("%s/all/%s/%s" % (self.base_url, project, urllib.parse.quote(name)),
+                             os.path.join(dest, project, name))
+                    files.append((os.path.join(project, name), lang))
+                except FetchError as e:
+                    if e.status != 404:
+                        raise
+                time.sleep(self.settings.get("pause", 1))
+        return files
+
+
 class Snapshot(Fetcher):
     """Data kept in the database by snapshot_db; nothing to download."""
 
@@ -552,6 +653,7 @@ class Snapshot(Fetcher):
 
 FETCHERS = {
     "damned-lies": DamnedLies,
+    "drupal": Drupal,
     "translationproject": TranslationProject,
     "git": Git,
     "http": HttpPerLanguage,
