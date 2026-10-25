@@ -2,12 +2,12 @@ import subprocess
 
 import pytest
 from click.testing import CliRunner
-from translate.storage import aresource, jsonl10n, php, properties
+from translate.storage import aresource, jsonl10n, php, properties, tmx
 
 from amagama.application import amagama_server_factory
 from amagama.cli import manage
 from amagama.tests.test_updater import block
-from amagama.updater.pairing import paired_store
+from amagama.updater.pairing import paired_store, without_ids
 
 
 def read(store_class, text, **kwargs):
@@ -160,3 +160,13 @@ def test_update_missing_template(update, tmp_path):
     assert "Couldn't read 1 files:" in result.output
     assert "moodle/af/extra.php: no English template extra.php" in result.output
     assert lookup("af", "Save file") == ["Stoor lêer"]
+
+
+def test_bilingual_exclude_ids():
+    store = read(tmx.tmxfile,
+                 '<tmx version="1.4"><header srclang="en"/><body>'
+                 '<tu tuid="app:save"><tuv xml:lang="en"><seg>Save file</seg></tuv>'
+                 '<tuv xml:lang="af"><seg>Stoor lêer</seg></tuv></tu>'
+                 '<tu tuid="site:blog"><tuv xml:lang="en"><seg>Read the blog</seg></tuv>'
+                 '<tuv xml:lang="af"><seg>Lees die blog</seg></tuv></tu></body></tmx>')
+    assert pairs(without_ids(store, ["site:*"])) == [("Save file", "Stoor lêer")]
