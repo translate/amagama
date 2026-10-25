@@ -247,6 +247,19 @@ def test_command(amagama_config, instance, tmp_path):
     assert [(b.name, b.min_age_days) for b in load_sources(str(output))] == [("test-app", 60)]
 
 
+def test_command_weight(amagama_config, instance, tmp_path):
+    amagama_config(UPDATER_SOURCES=str(tmp_path / "missing.toml"))
+    output = tmp_path / "weblate-test.toml"
+    result = CliRunner().invoke(manage, ("weblate_sources", instance, "--prefix", "test",
+                                         "--output", str(output), "--no-verify",
+                                         "--weight", "0.8"))
+    assert result.exit_code == 0, result.output
+    text = output.read_text()
+    assert "--min-age-days 60 --weight 0.8\n" in text
+    assert "[defaults]\nsource = \"git\"\nmin_age_days = 60\nweight = 0.8\n" in text
+    assert {b.weight for b in load_sources(str(output))} == {0.8}
+
+
 def test_command_regenerates_own_blocks(amagama_config, instance, tmp_path):
     sources = tmp_path / "sources.toml"
     sources.write_text(block("test-app", "git", url="https://git.example/app", files=["po/{lang}.po"]))
