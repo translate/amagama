@@ -9,7 +9,7 @@ from flask import current_app
 from amagama.commands import file_checksum
 from amagama.tmdb import BUILD_PREFIX, OLD_PREFIX, lang_to_table
 from amagama.updater import chromium
-from amagama.updater.formats import CHROMIUM, open_po_pieces, open_store
+from amagama.updater.formats import CHROMIUM, open_pieces, open_store
 from amagama.updater.pairing import paired_store, without_ids
 from amagama.updater.segment import segmented
 from amagama.updater.sources import load_sources
@@ -45,7 +45,7 @@ def import_file(path, slang, tlang, block, licence, format=None, template=None, 
             stores = [chromium.paired_store(path, template)]
         else:
             stores = None if template is not None else \
-                open_po_pieces(path, format, **(reader_options or {}))
+                open_pieces(path, format, **(reader_options or {}))
             # Every piece has been read already: commit each, so its locks
             # don't hold up other workers until the file is done.
             in_pieces = stores is not None

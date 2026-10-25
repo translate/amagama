@@ -9,7 +9,7 @@ from amagama.tests.test_updater import block
 # The app reads PO files with this loaded.
 import amagama.poparser_compat  # noqa: F401
 from amagama.updater import formats
-from amagama.updater.formats import check_format, open_po_pieces, open_store, po_pieces
+from amagama.updater.formats import check_format, open_pieces, open_store, po_pieces, tmx_pieces
 
 SAMPLES = {
     "po": 'msgid ""\nmsgstr "Content-Type: text/plain; charset=UTF-8\\n"\n\n'
@@ -184,7 +184,7 @@ def test_po_pieces(tmp_path):
     pieces = list(po_pieces(str(path), size=40))
     assert len(pieces) > 1
     assert all(piece.startswith(PO_HEADER) for piece in pieces)
-    stores = list(open_po_pieces(str(path), size=40))
+    stores = list(open_pieces(str(path), size=40))
     assert sources(stores) == sources([open_store(str(path))])
     assert [str(u.target) for u in stores[0].units if not u.isheader()] == ["Stoor lêer", "Maak lêer oop"]
 
@@ -192,19 +192,19 @@ def test_po_pieces(tmp_path):
 def test_small_po_read_whole(tmp_path):
     path = tmp_path / "af.po"
     path.write_bytes(PO_HEADER + PO_ENTRIES)
-    assert open_po_pieces(str(path)) is None
-    assert open_po_pieces(str(path), format="xliff", size=40) is None
+    assert open_pieces(str(path)) is None
+    assert open_pieces(str(path), format="xliff", size=40) is None
 
 
 def test_po_piece_unreadable(tmp_path):
     path = tmp_path / "af.po"
     path.write_bytes(PO_HEADER + PO_ENTRIES + b'\nmsgid "Broken\n')
     with pytest.raises(Exception):
-        open_po_pieces(str(path), size=40)
+        open_pieces(str(path), size=40)
 
 
 def test_update_po_in_pieces(amagama_config, tmp_path, monkeypatch):
-    monkeypatch.setattr(formats, "PO_PIECE_SIZE", 40)
+    monkeypatch.setattr(formats, "PIECE_SIZE", 40)
     repo = tmp_path / "repo"
     (repo / "po").mkdir(parents=True)
     (repo / "po/af.po").write_bytes(PO_HEADER + PO_ENTRIES)
@@ -233,7 +233,7 @@ def test_po_domain_lines_ignored(tmp_path, size):
     """msgcat keeps gettext's domain lines; the parser doesn't accept them."""
     path = tmp_path / "af.po"
     path.write_bytes(PO_HEADER + b'domain "gmtp"\n\n' + PO_ENTRIES)
-    stores = open_po_pieces(str(path), size=size) if size else [open_store(str(path))]
+    stores = open_pieces(str(path), size=size) if size else [open_store(str(path))]
     assert sources(stores) == ["Save file", "Open file", "Close file", "Quit"]
 
 
@@ -260,7 +260,7 @@ MIXED_PO = (b'# Jes\xfas, 2000.\nmsgid ""\nmsgstr ""\n'
 def test_po_undecodable_entries_left_out(tmp_path, size):
     path = tmp_path / "af.po"
     path.write_bytes(MIXED_PO)
-    stores = list(open_po_pieces(str(path), size=size)) if size else [open_store(str(path))]
+    stores = list(open_pieces(str(path), size=size)) if size else [open_store(str(path))]
     assert [(str(u.source), str(u.target)) for store in stores for u in store.units
             if not u.isheader()] == [("Save file", "Stoor lêer"), ("Quit", "Verlaat")]
     assert sum(store.undecodable for store in stores) == 1
@@ -276,7 +276,7 @@ def test_po_latin1_declared_nothing_left_out(tmp_path):
 @pytest.mark.parametrize("size", [None, 40])
 def test_update_undecodable_entries_skipped(amagama_config, tmp_path, monkeypatch, size):
     if size:
-        monkeypatch.setattr(formats, "PO_PIECE_SIZE", size)
+        monkeypatch.setattr(formats, "PIECE_SIZE", size)
     repo = tmp_path / "repo"
     (repo / "po").mkdir(parents=True)
     (repo / "po/af.po").write_bytes(MIXED_PO)
@@ -298,3 +298,35 @@ def test_po_unknown_charset_read_as_utf8(tmp_path):
     store = open_store(str(path))
     assert [str(u.source) for u in store.units if not u.isheader()] == ["Save file", "Quit"]
     assert store.undecodable == 1
+
+
+TMX = (b'<?xml version="1.0" encoding="UTF-8"?>\n<tmx version="1.4">\n'
+       b'<header srclang="en-US" datatype="plaintext" segtype="sentence" o-tmf="x" '
+       b'adminlang="en" creationtool="t" creationtoolversion="1"></header>\n<body>\n%s</body>\n</tmx>\n')
+
+
+def tmx_unit(tuid, source, target):
+    return ('<tu tuid="%s" srclang="en-US"><tuv xml:lang="en-US"><seg>%s</seg></tuv>'
+            '<tuv xml:lang="de"><seg>%s</seg></tuv></tu>\n' % (tuid, source, target)).encode()
+
+
+def test_tmx_pieces(tmp_path):
+    path = tmp_path / "de.tmx"
+    units = [("a", "Save file", "Datei speichern"), ("b", "Open file", "Datei öffnen"),
+             ("c", "Close", "Schließen"), ("d", "Quit", "Beenden"),
+             # Left over for a last, smaller piece.
+             ("e", "Help", "Hilfe")]
+    path.write_bytes(TMX % b"".join(tmx_unit(*u) for u in units))
+    assert len(list(tmx_pieces(str(path), size=200))) > 1
+    stores = list(open_pieces(str(path), size=200))
+    whole = open_store(str(path))
+    assert [(u.getid(), str(u.source), str(u.target)) for s in stores for u in s.units] \
+        == [(u.getid(), str(u.source), str(u.target)) for u in whole.units]
+    assert open_pieces(str(path)) is None
+
+
+def test_tmx_piece_unreadable(tmp_path):
+    path = tmp_path / "de.tmx"
+    path.write_bytes(TMX % (tmx_unit("a", "Save", "Speichern") * 10 + b"<tu><tuv>"))
+    with pytest.raises(Exception):
+        open_pieces(str(path), size=200)
