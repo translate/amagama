@@ -172,9 +172,10 @@ such as one GNOME release:
   it counts as changed again (default 30).
 
 ``exclude_ids``
-  Optional patterns of message ids to leave out when pairing, such as
-  ``["@metadata*"]`` (MediaWiki) or ``["*.description"]`` (Signal). JSON ids
-  are matched without their leading ``.``.
+  Optional patterns of message ids to leave out, such as ``["@metadata*"]``
+  (MediaWiki), ``["*.description"]`` (Signal) or a TMX ``tuid`` prefix
+  (``["foundation-website-content:*"]``). JSON ids are matched without their
+  leading ``.``.
 
 Templates (:file:`.pot`) are never imported.
 

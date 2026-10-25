@@ -8,7 +8,7 @@ from amagama.commands import file_checksum
 from amagama.tmdb import BUILD_PREFIX, OLD_PREFIX, lang_to_table
 from amagama.updater import chromium
 from amagama.updater.formats import CHROMIUM, open_store
-from amagama.updater.pairing import paired_store
+from amagama.updater.pairing import paired_store, without_ids
 from amagama.updater.segment import segmented
 from amagama.updater.sources import load_sources
 
@@ -32,6 +32,8 @@ def import_file(path, slang, tlang, block, licence, format=None, template=None, 
             store = open_store(path, format, **(reader_options or {}))
             if template is not None:
                 store = paired_store(store, open_store(template, format), exclude_ids)
+            elif exclude_ids:
+                store = without_ids(store, exclude_ids)
     except Exception as e:
         return "%s: %s" % (type(e).__name__, e)
     translatable = sum(1 for u in store.units if u.istranslatable())
