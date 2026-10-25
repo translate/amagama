@@ -28,6 +28,14 @@ def _two_letter_codes():
     return codes
 
 
+@functools.cache
+def _special_codes():
+    """ISO 639's codes for no particular language: uncoded, multiple,
+    undetermined, no linguistic content."""
+    return {language.alpha_3 for language in pycountry.languages
+            if getattr(language, "type", None) == "S"}
+
+
 def _short(lang):
     """lang's current code, two letters where ISO 639-1 has one."""
     lang = RENAMED.get(lang, lang)
@@ -61,6 +69,8 @@ def normalise_language(code):
     match = _POSIX.match(code)
     if match:
         lang = _short(match["lang"].lower())
+        if lang in _special_codes():
+            return None
         region = "_" + match["region"].upper() if match["region"] else ""
         modifier = match["modifier"].lower() if match["modifier"] else ""
         # GNOME writes sr@Latn.
@@ -73,6 +83,8 @@ def normalise_language(code):
     if not re.fullmatch(r"[a-z]{2,3}", lang):
         return None
     lang = _short(lang)
+    if lang in _special_codes():
+        return None
     script = region = modifier = ""
     for part in parts:
         if re.fullmatch(r"[A-Za-z]{4}", part) and not script and not region:
