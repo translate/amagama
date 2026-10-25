@@ -172,6 +172,17 @@ Settings for fetching translations to import, see :ref:`sources`.
   and decompressed only while it is imported; templates are kept as they are.
 
 
+.. setting:: UPDATER_FIRST_FETCHES
+
+``UPDATER_FIRST_FETCHES``
+  Default: ``100``
+
+  How many blocks one run of :ref:`fetch_sources <managing#fetch-sources>` or
+  :ref:`update <managing#update>` fetches for the first time, so an empty cache
+  fills over several days instead of in one burst on every source. A block
+  whose first fetch failed is retried without counting. ``None`` is no limit.
+
+
 .. setting:: UPDATER_SOURCES
 
 ``UPDATER_SOURCES``

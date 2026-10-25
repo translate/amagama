@@ -47,6 +47,8 @@ UPDATER_SOURCES = None
 UPDATER_CACHE_DIR = "~/.cache/amagama-updater"
 # Parallel import processes.
 UPDATER_WORKERS = 4
+# Blocks fetched for the first time in one run (None: no limit).
+UPDATER_FIRST_FETCHES = 100
 
 
 # Levenshtein config

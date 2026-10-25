@@ -544,6 +544,48 @@ class TestFetch(object):
         assert "source must be one of" in result.output
 
 
+class TestFirstFetches(object):
+
+    def sources(self, url, *names):
+        return "".join(block(name, "translationproject", base_url=url + "/backups/last/")
+                       for name in names)
+
+    def test_empty_cache_fills_over_runs(self, run, site, amagama_config):
+        root, url = site
+        amagama_config(UPDATER_FIRST_FETCHES=2)
+        text = self.sources(url, "a", "b", "c")
+        result = run(text)
+        assert result.exit_code == 0, result.output
+        assert "Blocks not fetched yet, left for later runs: 1." in result.output
+        assert sorted(os.listdir(run.cache)) == ["a", "b"]
+        result = run(text)
+        assert "left for later" not in result.output
+        assert sorted(os.listdir(run.cache)) == ["a", "b", "c"]
+
+    def test_failed_first_fetch_does_not_count(self, run, site, amagama_config, tmp_path):
+        root, url = site
+        amagama_config(UPDATER_FIRST_FETCHES=1)
+        text = block("x", "git", url=(tmp_path / "missing").as_uri(),
+                     files=["{lang}.po"]) + self.sources(url, "a", "b")
+        assert run(text).exit_code == 1
+        assert os.listdir(run.cache) == ["x.failed"]
+        assert run(text).exit_code == 1
+        assert sorted(os.listdir(run.cache)) == ["a", "x.failed"]
+
+    def test_named_blocks_ignore_limit(self, run, site, amagama_config):
+        root, url = site
+        amagama_config(UPDATER_FIRST_FETCHES=1)
+        result = run(self.sources(url, "a", "b"), "--block", "a", "--block", "b")
+        assert result.exit_code == 0, result.output
+        assert sorted(os.listdir(run.cache)) == ["a", "b"]
+
+    def test_no_limit(self, run, site, amagama_config):
+        root, url = site
+        amagama_config(UPDATER_FIRST_FETCHES=None)
+        assert run(self.sources(url, "a", "b")).exit_code == 0
+        assert sorted(os.listdir(run.cache)) == ["a", "b"]
+
+
 class TestCheck(object):
 
     def test_unfetched_block_changed(self, run, site):

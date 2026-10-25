@@ -109,6 +109,11 @@ runs in a row it has failed, from 4) and leaves the previous download in
 place. With ``--check`` it downloads nothing and lists
 the blocks that changed since they were last fetched.
 
+An empty cache fills over several runs: each run fetches at most
+:setting:`UPDATER_FIRST_FETCHES` blocks for the first time, in the order of the
+sources file, so a new server doesn't fetch every source at once. ``--block``
+fetches the named blocks whatever the limit.
+
 
 .. _managing#initdb:
 
@@ -283,6 +288,10 @@ target language, block name and licence. Files that can't be read are listed
 and left out. A database error stops it before the swap, leaving the live data
 as it was. The previous copy is kept as ``_old_<lang>`` until the next update
 (``swap_db --rollback`` restores it).
+
+Like ``fetch_sources``, an update fetches at most
+:setting:`UPDATER_FIRST_FETCHES` blocks for the first time; the others are left
+out until a later update has fetched them.
 
 A block that fails to fetch (its server down, its repository moved) doesn't
 stop the update: it is rebuilt from its last fetch, or left out if it has

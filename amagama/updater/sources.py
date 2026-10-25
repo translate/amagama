@@ -471,3 +471,25 @@ def load_sources(path=None):
         except ValueError as e:
             raise ValueError("%s: %s" % (where, e))
     return blocks
+
+
+def limit_first_fetches(blocks, cache_dir, limit):
+    """The blocks to run, with at most limit of them fetched for the first time.
+
+    A new cache fills over several runs, in file order, rather than in one
+    burst on every source. A block whose first fetch failed is retried without
+    counting. Returns (blocks, number left for later runs); None is no limit.
+    """
+    if limit is None:
+        return list(blocks), 0
+    chosen = []
+    later = 0
+    for block in blocks:
+        if (block.source != "snapshot" and block.state(cache_dir) is None
+                and block.failures(cache_dir) is None):
+            if limit <= 0:
+                later += 1
+                continue
+            limit -= 1
+        chosen.append(block)
+    return chosen, later
