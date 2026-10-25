@@ -165,6 +165,9 @@ def blocks(components, prefix, projects=("*",), docs=(), covered=(), taken=()):
         if branch:
             block["ref"] = branch
         block["files"] = _collapsed(group["masks"]) if not group["template"] else sorted(group["masks"])
+        # Clone only the files the block reads.
+        block["sparse"] = sorted({mask.replace("{lang}", "*") for mask in block["files"]}
+                                 | ({group["template"]} if group["template"] else set()))
         if FORMATS[weblate_format]:
             block["format"] = FORMATS[weblate_format]
         if group["template"]:

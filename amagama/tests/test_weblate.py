@@ -38,7 +38,7 @@ def test_components_grouped_by_repository():
     assert found == {"test-app": {
         "name": "test-app", "title": "App", "source": "git", "url": "https://git.example/app.git",
         "ref": "main", "files": ["man/po/{lang}.po", "po/{lang}.po"],
-        "licence": "GPL-2.0-or-later"}}
+        "sparse": ["man/po/*.po", "po/*.po"], "licence": "GPL-2.0-or-later"}}
     assert skipped == {"glossary (terminology)": 1}
 
 
@@ -52,6 +52,8 @@ def test_monolingual_block_per_component():
     ])
     assert sorted(found) == ["test-app", "test-app-2"]
     assert found["test-app"]["format"] == "android"
+    assert found["test-app"]["sparse"] == sorted(
+        [found["test-app"]["files"][0].replace("{lang}", "*"), found["test-app"]["template"]])
     assert found["test-app"]["template"] in ("res/values/strings.xml", "res/values/other.xml")
     assert skipped == {"monolingual without a template": 1}
 
@@ -130,7 +132,7 @@ def test_docs():
     assert found == {"test-docs-notes": {
         "name": "test-docs-notes", "title": "Test-Docs-Notes", "source": "git",
         "url": "https://git.example/notes", "ref": "main", "files": ["po/{lang}/**/*.po"],
-        "segment": True, "licence": "CC-BY-SA-4.0"}}
+        "sparse": ["po/*/**/*.po"], "segment": True, "licence": "CC-BY-SA-4.0"}}
 
 
 def test_docs_component():
