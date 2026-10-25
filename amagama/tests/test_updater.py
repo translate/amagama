@@ -369,6 +369,16 @@ class TestFetch(object):
         with pytest.raises(FetchError, match="format=JSON"):
             Git({"url": "https://chromium.googlesource.com/chromium/src"}).fingerprint()
 
+    def test_template(self, run, git_repo):
+        repo, git = git_repo
+        (repo / "en.json").write_text('{"save": "Save"}')
+        git("add", ".")
+        git("commit", "-q", "-m", "en")
+        result = run(block("x", "git", url=repo.as_uri(), files=["po/{lang}.po"],
+                           format="json", template="en.json"))
+        assert result.exit_code == 0, result.output
+        assert result.output == "x: 2 files, 2 languages.\n"
+
     def test_git_ref(self, run, git_repo):
         repo, git = git_repo
         git("checkout", "-q", "-b", "stable")
