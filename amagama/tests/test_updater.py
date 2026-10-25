@@ -635,3 +635,15 @@ def load_sources_text(text):
         with open(path, "w") as f:
             f.write(text)
         return load_sources(path)
+
+
+def test_git_trusts_its_clone(tmp_path):
+    """git may run on a clone in a cache another user owns (a mounted volume)."""
+    def trusted(**kwargs):
+        # The machine's own config may trust directories too (CI runners do);
+        # the updater's setting is the one git reports as from the command.
+        scopes = fetchers.run_tool("git", "config", "--show-scope", "--get-all", "safe.directory",
+                                   **kwargs)
+        return [line.split()[1] for line in scopes.splitlines() if line.startswith("command")]
+    clone = tmp_path / "block.new"
+    assert trusted(trusted=str(clone)) == [os.path.realpath(clone)]
