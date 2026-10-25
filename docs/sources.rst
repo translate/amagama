@@ -195,6 +195,13 @@ The included Weblate files are written by :ref:`weblate_sources
   For a source whose server gives no fingerprint: how many days after a fetch
   it counts as changed again (default 30).
 
+``min_days``
+  Days after a fetch before the block is checked again at all (default 0):
+  for many small sources, so each is fetched at most that often. Blocks
+  first fetched together would all come due on one day, so a block's first
+  refetch comes after a part of ``min_days`` fixed by its name, which keeps
+  them spread out.
+
 ``exclude_ids``
   Optional patterns of message ids to leave out, such as ``["@metadata*"]``
   (MediaWiki), ``["*.description"]`` (Signal) or a TMX ``tuid`` prefix
