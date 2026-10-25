@@ -298,6 +298,14 @@ Source types
   strings. ``base_url`` can name another Pontoon; ``pause`` (default 1) is
   the seconds between downloads.
 
+``vscode``
+  `VS Code <https://code.visualstudio.com>`_'s language packs from
+  `vscode-loc <https://github.com/microsoft/vscode-loc>`_ (``repository``,
+  ``ref`` default ``main``), paired with the English of the VS Code release
+  the packs target, from Microsoft's CDN (``update_url``, ``cdn_url``), as
+  PO files. Strings whose English the web build doesn't have (node-only
+  modules) are left out.
+
 ``wordpress``
   `WordPress.org <https://translate.wordpress.org>`_'s language packs: one
   zip per language, each holding :file:`.po` files (select them with
@@ -327,10 +335,10 @@ for ``moodle`` the pack index with its MD5s, for ``joomla`` the packs'
 versions and the English ref's commit, for ``drupal`` the projects' releases
 (the files are rebuilt daily), for ``pontoon`` none (its files are generated
 on request), for ``translationproject`` the ETag or Last-Modified header of
-every tarball, for ``git`` the commit of the ref (from Gitiles' JSON on
-``googlesource.com``, where ``ls-remote`` is too costly). ``fetch_sources
---check`` recomputes it without downloading and lists the blocks whose
-fingerprint changed.
+every tarball, for ``git`` and ``vscode`` the commit of the ref (from Gitiles'
+JSON on ``googlesource.com``, where ``ls-remote`` is too costly).
+``fetch_sources --check`` recomputes it without downloading and lists the
+blocks whose fingerprint changed.
 
 A server that sends neither header gives no fingerprint: such a block counts
 as changed once its last fetch is ``refetch_days`` old (default 30; 0 for
