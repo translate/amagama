@@ -5,6 +5,7 @@ target languages, and computes a fingerprint cheaply enough to check weekly.
 """
 
 import fnmatch
+import gzip
 import hashlib
 import json
 import logging
@@ -21,6 +22,8 @@ import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
 import zipfile
+
+from translate.storage import po
 
 from amagama import __version__
 
@@ -809,6 +812,109 @@ class Joomla(Fetcher):
         return sorted(found.items())
 
 
+class VSCode(Fetcher):
+    """VS Code's language packs from vscode-loc, paired with the English of the
+    VS Code release they target, as a PO file per language and part.
+
+    Core strings are keyed by module and message id, so their English comes
+    from that release's build on Microsoft's CDN, as does each extension's
+    package strings; bundle strings are keyed by their English. Strings
+    with no English there (node-only modules) are left out. The fingerprint
+    is vscode-loc's commit.
+    """
+
+    optional = ("repository", "ref", "update_url", "cdn_url")
+
+    def __init__(self, settings):
+        super(VSCode, self).__init__(settings)
+        self.git = Git({"url": settings.get("repository", "https://github.com/microsoft/vscode-loc"),
+                        "ref": settings.get("ref", "main"),
+                        "sparse": ["/i18n/vscode-language-pack-*/package.json",
+                                   "/i18n/vscode-language-pack-*/translations/"]})
+
+    def fingerprint(self):
+        return self.git.fingerprint()
+
+    @staticmethod
+    def _json(url, missing_ok=False):
+        """url's JSON, unzipped if the CDN sent it gzipped; None if missing_ok and 404."""
+        try:
+            with _request(url) as response:
+                data = response.read()
+        except FetchError as e:
+            if missing_ok and e.status == 404:
+                return None
+            raise
+        if data[:2] == b"\x1f\x8b":
+            data = gzip.decompress(data)
+        try:
+            return json.loads(data.decode("utf-8-sig"))
+        except ValueError as e:
+            raise FetchError("%s: %s" % (url, e))
+
+    def english(self, packs):
+        """(core English by (module, id), CDN base) for the release packs target."""
+        with open(os.path.join(packs[0], "package.json"), encoding="utf-8-sig") as f:
+            version = json.load(f)["engines"]["vscode"].lstrip("^~>=")
+        url = "%s/api/versions/%s/linux-x64/stable" % (
+            self.settings.get("update_url", "https://update.code.visualstudio.com").rstrip("/"),
+            version)
+        commit = self._json(url).get("version")
+        if not commit:
+            raise FetchError("%s: no commit" % url)
+        base = "%s/%s" % (self.settings.get("cdn_url", "https://main.vscode-cdn.net/stable")
+                          .rstrip("/"), commit)
+        keys = self._json(base + "/out/nls.keys.json")
+        messages = iter(self._json(base + "/out/nls.messages.json"))
+        return {(module, key): next(messages) for module, ids in keys for key in ids}, base
+
+    def fetch(self, dest):
+        files = []
+        with tempfile.TemporaryDirectory() as tmp:
+            loc = os.path.join(tmp, "loc")
+            self.git.fetch(loc)
+            root = os.path.join(loc, "i18n")
+            packs = sorted(os.path.join(root, name) for name in os.listdir(root)
+                           if name.startswith("vscode-language-pack-"))
+            if not packs:
+                raise FetchError("%s: no language packs" % self.git.settings["url"])
+            core, base = self.english(packs)
+            extensions = {}
+            for pack in packs:
+                lang = os.path.basename(pack).removeprefix("vscode-language-pack-")
+                translations = os.path.join(pack, "translations")
+                for name in files_under(translations):
+                    with open(os.path.join(translations, name), encoding="utf-8-sig") as f:
+                        contents = json.load(f).get("contents", {})
+                    extension = os.path.basename(name).removesuffix(".i18n.json")
+                    store = po.pofile()
+                    for section, strings in sorted(contents.items()):
+                        if section == "bundle":
+                            english = {text: text for text in strings}
+                        elif section == "package":
+                            if extension not in extensions:
+                                # Built-in extensions are named without "vscode."
+                                extensions[extension] = self._json("%s/extensions/%s/package.nls.json" % (
+                                    base, extension.removeprefix("vscode.")), missing_ok=True) or {}
+                            english = extensions[extension]
+                        else:
+                            english = {key: core.get((section, key)) for key in strings}
+                        for key, target in sorted(strings.items()):
+                            source = english.get(key)
+                            if isinstance(source, dict):  # {"message": ..., "comment": ...}
+                                source = source.get("message")
+                            if isinstance(source, str) and source and isinstance(target, str):
+                                unit = store.addsourceunit(source)
+                                unit.target = target
+                                unit.setcontext("%s:%s" % (section, key))
+                    if store.units:
+                        path = os.path.join(lang, os.path.splitext(name)[0] + ".po")
+                        os.makedirs(os.path.dirname(os.path.join(dest, path)), exist_ok=True)
+                        store.savefile(os.path.join(dest, path))
+                        files.append((path, lang))
+        return files
+
+
 class Snapshot(Fetcher):
     """Data kept in the database by snapshot_db; nothing to download."""
 
@@ -825,6 +931,7 @@ FETCHERS = {
     "damned-lies": DamnedLies,
     "drupal": Drupal,
     "translationproject": TranslationProject,
+    "vscode": VSCode,
     "git": Git,
     "http": HttpPerLanguage,
     "joomla": Joomla,
