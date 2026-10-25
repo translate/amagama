@@ -78,16 +78,39 @@ following fields.
 |                   | libreoffice, minimal, mozilla, openoffice,|
 |                   | reduced, standard, terminology, wx.       |
 +-------------------+-------------------------------------------+
+| exclude           | Comma-separated globs of :ref:`block names|
+|                   | <api#sources>` to leave out, such as      |
+|                   | ``hosted-*``. A suggestion stays while    |
+|                   | any of its sources is left.               |
++-------------------+-------------------------------------------+
+| only              | Comma-separated globs of the block names  |
+|                   | to keep, such as ``gnome-*,kde``.         |
+|                   | Suggestions with no recorded source are   |
+|                   | left out.                                 |
++-------------------+-------------------------------------------+
+| weight            | Comma-separated ``glob:weight`` pairs,    |
+|                   | weights from 0 to 10, such as             |
+|                   | ``gnome-*:1.5,hosted-*:0.5``. Suggestions |
+|                   | are ordered by quality times the best     |
+|                   | weight of their sources: each source's    |
+|                   | first matching glob, else 1. ``quality``  |
+|                   | itself isn't changed.                     |
++-------------------+-------------------------------------------+
 | jsoncallback      | Wrap the reply in a call to this          |
 |                   | JavaScript function (JSONP).              |
 +-------------------+-------------------------------------------+
 
+The source options are applied before ``max_candidates``, and a suggestion's
+``sources`` lists only the sources it keeps.
+
 For example::
 
     https://amagama-live.translatehouse.org/api/v1/en/af/unit/File?style=gnome&max_candidates=10
+    https://amagama-live.translatehouse.org/api/v1/en/af/unit/File?exclude=hosted-*&weight=gnome-*:1.5
 
 A request returns 404 if the source language isn't in the database, if the
-source and target languages are the same, or if no string is given. Replies
+source and target languages are the same, or if no string is given, and 400
+if a weight isn't ``glob:weight``. Replies
 may be cached for an hour (``Cache-Control: max-age=3600, public``).
 
 

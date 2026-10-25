@@ -1061,8 +1061,8 @@ ORDER BY rank DESC;
 
     def translate_unit(self, unit_source, source_lang, target_lang,
                        project_style=None, min_similarity=None,
-                       max_candidates=None):
-        """Return TM suggestions for unit_source."""
+                       max_candidates=None, source_options=None):
+        """Return TM suggestions for unit_source, chosen by source_options."""
         slang = lang_to_table(source_lang)
         if slang not in self.source_langs:
             abort(404)
@@ -1109,9 +1109,13 @@ ORDER BY rank DESC;
                 result['quality'] = quality
                 results.append(result)
         results.sort(key=lambda match: match['quality'], reverse=True)
-        results = results[:max_candidates]
+        if not source_options:
+            results = results[:max_candidates]
+            self._add_sources(cursor, tlang, results)
+            return results
+        # Choosing by source needs the sources of every match, not just the best.
         self._add_sources(cursor, tlang, results)
-        return results
+        return source_options.choose(results, max_candidates)
 
     def _add_sources(self, cursor, tlang, results):
         """Give each result the names of the blocks it was imported from."""
