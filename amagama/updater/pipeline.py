@@ -187,6 +187,9 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
         if state["unknown_languages"]:
             out("Not language codes in %s, skipped: %s" % (
                 block.name, ", ".join(state["unknown_languages"])))
+        if state.get("outside_links"):
+            out("Symlinks leading outside %s, skipped: %s" % (
+                block.name, ", ".join(state["outside_links"])))
     if same and all(same) and not force and not was_pending:
         os.remove(pending)
         out("Nothing changed.")

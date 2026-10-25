@@ -439,6 +439,9 @@ def fetch_sources(block_names, check):
                 if state['unknown_languages']:
                     print("%s: not language codes, skipped: %s" % (
                         block.name, ", ".join(state['unknown_languages'])))
+                if state.get('outside_links'):
+                    print("%s: symlinks leading outside the block, skipped: %s" % (
+                        block.name, ", ".join(state['outside_links'])))
         except FetchError as e:
             print("%s: failed: %s" % (block.name, e))
             failed = True
