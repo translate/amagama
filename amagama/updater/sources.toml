@@ -288,3 +288,38 @@ languages.ar-XB = ""
 languages.iw = "he"
 languages.no = "nb"
 licence = "BSD-3-Clause"
+
+[[block]]
+name = "wordpress-{version}"
+title = "WordPress"
+source = "wordpress"
+kind = "core"
+release = "{version}"
+files = ["**/*.po"]
+licence = "GPL-2.0-or-later"
+versions = ["6.8", "6.9", "7.0", "7.1"]
+
+[[block]]
+name = "wordpress-themes"
+title = "WordPress themes"
+source = "wordpress"
+kind = "themes"
+# The default themes.
+slugs = ["twentytwentyfive", "twentytwentyfour", "twentytwentythree"]
+files = ["**/*.po"]
+licence = "GPL-2.0-or-later"
+
+[[block]]
+name = "wordpress-plugins"
+title = "WordPress plugins"
+source = "wordpress"
+kind = "plugins"
+# Plugins with 3 million or more installs (October 2026).
+slugs = [
+  "elementor", "wordpress-seo", "contact-form-7", "classic-editor", "litespeed-cache",
+  "woocommerce", "google-site-kit", "akismet", "wpforms-lite", "all-in-one-wp-migration",
+  "wordfence", "wp-mail-smtp", "seo-by-rank-math", "updraftplus", "duplicate-post",
+  "duplicate-page", "really-simple-ssl", "jetpack", "insert-headers-and-footers",
+]
+files = ["**/*.po"]
+licence = "GPL-2.0-or-later"
