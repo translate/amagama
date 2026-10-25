@@ -7,6 +7,7 @@
 
 
 import hashlib
+import itertools
 import logging
 import os
 import re
@@ -24,6 +25,7 @@ from translate.storage import factory
 from amagama.licences import normalise_licence
 from amagama.updater import weblate
 from amagama.updater.fetchers import FetchError
+from amagama.updater.formats import open_pieces
 from amagama.updater.sources import FAILURES_TO_REPORT, limit_first_fetches, load_sources
 from amagama.tmdb import BUILD_PREFIX, OLD_PREFIX
 
@@ -224,7 +226,11 @@ class BuildTMDB(object):
             print("Importing %s" % filename)
 
         try:
-            store = factory.getobject(filename)
+            stores = open_pieces(filename)
+            in_pieces = stores is not None
+            stores = iter(stores) if in_pieces else iter([factory.getobject(filename)])
+            # The languages and style come from the first piece.
+            store = next(stores, None) or factory.getobject(filename)
             source_lang = self.source_lang or store.getsourcelanguage()
             target_lang = self.target_lang or store.gettargetlanguage()
             project_style = self.project_style or store.getprojectstyle()
@@ -262,9 +268,12 @@ class BuildTMDB(object):
             logging.info("Importing strings from: %s", filename)
             iid = current_app.tmdb.start_import(source_lang, target_lang, filename,
                                                 self.block, self.licence)
-            units = current_app.tmdb.add_store(store, source_lang, target_lang,
-                                               project_style, commit=False, iid=iid)
-            skipped = sum(1 for u in store.units if u.istranslatable()) - units
+            units = skipped = 0
+            for store in itertools.chain([store], stores):
+                added = current_app.tmdb.add_store(store, source_lang, target_lang,
+                                                   project_style, commit=in_pieces, iid=iid)
+                units += added
+                skipped += sum(1 for u in store.units if u.istranslatable()) - added
             current_app.tmdb.finish_import(source_lang, iid, units, skipped,
                                            file_checksum(filename))
         except Exception:

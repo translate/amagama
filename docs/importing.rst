@@ -29,6 +29,8 @@ All bilingual formats supported by the Translate Toolkit are supported,
 including **PO**, **TMX** and **XLIFF**. An XLIFF unit counts as translated
 when it is ``approved="yes"`` or its target's state is ``translated``,
 ``final`` or ``signed-off``.
+A large PO, TMX or XLIFF file is read and committed in pieces, so memory
+doesn't limit its size.
 
 If a directory is passed to the :option:`-i` option, then its content will be
 read recursively:
