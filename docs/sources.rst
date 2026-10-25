@@ -253,6 +253,19 @@ Source types
   strings. ``base_url`` can name another Pontoon; ``pause`` (default 1) is
   the seconds between downloads.
 
+``wordpress``
+  `WordPress.org <https://translate.wordpress.org>`_'s language packs: one
+  zip per language, each holding :file:`.po` files (select them with
+  ``files = ["**/*.po"]``). ``kind`` (required) is ``core``, ``plugins`` or
+  ``themes``; ``slugs`` lists the plugins or themes. For ``core``,
+  ``release`` (such as ``"7.1"``) takes the pack each language has for that
+  release, which may be an older one; without it, each language's newest
+  pack. WordPress's
+  three-letter codes with a two-letter one (``arg``, ``bel``, ...) are
+  shortened, and its formal, informal and ``ao90`` variants are kept with
+  their language. ``base_url`` can name a mirror of the API; ``pause``
+  (default 1) is the seconds between downloads.
+
 ``snapshot``
   Data kept in the database by :ref:`snapshot_db <managing#snapshot-db>`,
   named by ``snapshot``; nothing is downloaded and it never changes.
@@ -266,7 +279,8 @@ Change detection
 
 Each fetch records a fingerprint of the block: for ``damned-lies`` the
 release's translation statistics (one request; a reworded translation alone
-doesn't change them), for ``pontoon`` none (its files are generated on
+doesn't change them), for ``wordpress`` every pack's version and update
+time, for ``pontoon`` none (its files are generated on
 request), for ``translationproject`` the ETag or Last-Modified
 header of every tarball, for ``git`` the commit of the ref (from Gitiles'
 JSON on ``googlesource.com``, where ``ls-remote`` is too costly). ``fetch_sources

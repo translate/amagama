@@ -18,6 +18,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+import zipfile
 
 from amagama import __version__
 
@@ -65,6 +66,15 @@ def extract_tarball(path, dest):
         with tarfile.open(path) as tar:
             tar.extractall(dest, filter="data")
     except (tarfile.TarError, OSError) as e:
+        raise FetchError("%s: %s" % (path, e))
+
+
+def extract_zip(path, dest):
+    """zipfile leaves out absolute paths and .. parts."""
+    try:
+        with zipfile.ZipFile(path) as archive:
+            archive.extractall(dest)
+    except (zipfile.BadZipFile, OSError) as e:
         raise FetchError("%s: %s" % (path, e))
 
 
@@ -449,6 +459,85 @@ class Svn(Fetcher):
         return files
 
 
+class WordPress(Fetcher):
+    """WordPress.org's language packs: a zip per language of core, or of each
+    plugin or theme in slugs.
+
+    For core, release names a WordPress release: each language's pack is the
+    one that release installs, which may be an older one.
+
+    The fingerprint is every pack's version and update time, one request per
+    slug. Downloads are pause seconds apart.
+    """
+
+    required = ("kind",)
+    optional = ("slugs", "release", "base_url", "pause")
+    kinds = ("core", "plugins", "themes")
+
+    # WordPress locales with a shorter code elsewhere, and register and
+    # spelling variants kept with their language.
+    locales = {
+        "arg": "an", "bel": "be", "dzo": "dz", "kir": "ky", "oci": "oc", "snd": "sd",
+        "tah": "ty", "yor": "yo",
+        "de_CH_informal": "de_CH", "de_DE_formal": "de_DE", "nl_NL_formal": "nl_NL",
+        "pt_PT_ao90": "pt_PT",
+    }
+
+    def __init__(self, settings):
+        super(WordPress, self).__init__(settings)
+        if settings["kind"] not in self.kinds:
+            raise ValueError("kind must be one of %s" % ", ".join(self.kinds))
+        slugs = settings.get("slugs")
+        if (settings["kind"] == "core") != (slugs is None) or slugs is not None and (
+                not isinstance(slugs, list) or not slugs
+                or not all(isinstance(slug, str) and re.fullmatch(r"[a-z0-9-]+", slug)
+                           for slug in slugs)):
+            raise ValueError("slugs must list the plugins or themes, and only for them")
+        if "release" in settings and (settings["kind"] != "core" or not isinstance(
+                settings["release"], str) or not re.fullmatch(r"\d+(\.\d+)+", settings["release"])):
+            raise ValueError("release must be a WordPress release such as 7.1, for core only")
+
+    @property
+    def base_url(self):
+        return self.settings.get("base_url", "https://api.wordpress.org/translations").rstrip("/")
+
+    def packs(self):
+        """[(slug, WordPress locale, version, updated, zip URL)]"""
+        if not hasattr(self, "_packs"):
+            kind = self.settings["kind"]
+            self._packs = []
+            for slug in self.settings.get("slugs", ["core"]):
+                url = "%s/%s/1.0/" % (self.base_url, kind)
+                if kind != "core":
+                    url += "?slug=" + urllib.parse.quote(slug)
+                elif "release" in self.settings:
+                    url += "?version=" + self.settings["release"]
+                try:
+                    self._packs += [(slug, pack["language"], pack["version"], pack["updated"],
+                                     pack["package"])
+                                    for pack in json.loads(http_text(url))["translations"]]
+                except (ValueError, KeyError, TypeError) as e:
+                    raise FetchError("%s: %s" % (url, e))
+        return self._packs
+
+    def fingerprint(self):
+        return combine([("%s %s" % (slug, lang), "%s %s" % (version, updated))
+                        for slug, lang, version, updated, url in self.packs()])
+
+    def fetch(self, dest):
+        files = []
+        with tempfile.TemporaryDirectory() as tmp:
+            for slug, lang, version, updated, url in self.packs():
+                path = os.path.join(tmp, "pack.zip")
+                download(url, path)
+                directory = os.path.join(dest, slug, lang)
+                extract_zip(path, directory)
+                files.extend((os.path.join(slug, lang, f), self.locales.get(lang, lang))
+                             for f in files_under(directory))
+                time.sleep(self.settings.get("pause", 1))
+        return files
+
+
 class Snapshot(Fetcher):
     """Data kept in the database by snapshot_db; nothing to download."""
 
@@ -467,6 +556,7 @@ FETCHERS = {
     "git": Git,
     "http": HttpPerLanguage,
     "pontoon": Pontoon,
+    "wordpress": WordPress,
     "svn": Svn,
     "snapshot": Snapshot,
 }
