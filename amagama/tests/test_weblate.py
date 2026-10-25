@@ -124,6 +124,16 @@ def test_names_taken():
     assert list(found) == ["test-app-2"]
 
 
+def test_toml_defaults(tmp_path):
+    found, skipped = generated([component("app", "ui", "https://git.example/app", "po/*.po")])
+    text = weblate.toml(list(found.values()), "Generated", {"source": "git", "min_days": 60})
+    assert "[defaults]\nsource = \"git\"\nmin_days = 60\n" in text
+    assert text.count('source = "git"') == 1
+    path = tmp_path / "w.toml"
+    path.write_text(text)
+    assert [(b.source, b.min_days) for b in load_sources(str(path))] == [("git", 60)]
+
+
 def test_toml_round_trip(tmp_path):
     found, skipped = generated([component("app", "ui", "https://git.example/äpp", "po/*.po")])
     path = tmp_path / "w.toml"
@@ -170,7 +180,7 @@ def test_command(amagama_config, instance, tmp_path):
     assert result.exit_code == 0, result.output
     assert "1 blocks." in result.output
     assert "Skipped 1 components: repository imported by another block." in result.output
-    assert [b.name for b in load_sources(str(output))] == ["test-app"]
+    assert [(b.name, b.min_days) for b in load_sources(str(output))] == [("test-app", 60)]
 
 
 def test_command_stdout(amagama_config, instance, tmp_path):
