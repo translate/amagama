@@ -112,9 +112,18 @@ such as one GNOME release:
   pseudo-locales ``en-rXA``, ``ar-rXB`` and ``en-rXC`` are left out.
 
   ``xtb`` is Chromium's: each :file:`.xtb` translation is keyed by a
-  fingerprint of the English message, which is in the :file:`.grd` named by
-  ``template`` (and the :file:`.grdp` parts it includes, which ``keep`` must
-  keep):
+  fingerprint of the English message, which is in a :file:`.grd` (and the
+  :file:`.grdp` parts it includes, which ``keep`` must keep). Each
+  :file:`.grd` lists its :file:`.xtb` files and their languages, so without
+  a ``template`` that list pairs them:
+
+  .. code-block:: toml
+
+      format = "xtb"
+      files = ["**/*.xtb"]
+      keep = ["**/*.grdp"]
+
+  A ``template`` pairs by path instead, with ``files`` giving the language:
 
   .. code-block:: toml
 

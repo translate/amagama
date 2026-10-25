@@ -8,10 +8,11 @@ import shutil
 import tomllib
 
 from amagama.licences import normalise_licence
+from amagama.updater import chromium
 from amagama.updater.fetchers import FETCHERS, FetchError
 from amagama.updater.filemask import Selection, compile_mask, fill, wildcards
-from amagama.updater.formats import (check_csv_options, check_format, check_xliff_states,
-                                     is_monolingual)
+from amagama.updater.formats import (CHROMIUM, check_csv_options, check_format,
+                                     check_xliff_states, is_monolingual)
 from amagama.updater.languages import is_android_locale, map_language
 
 DEFAULT_SOURCES = os.path.join(os.path.dirname(__file__), "sources.toml")
@@ -37,7 +38,9 @@ class Block(object):
         self.selection = Selection(files, exclude)
         # Files the import needs beside the translations (.grd parts), not imported.
         self.keep = [compile_mask(mask, allow_lang=False) for mask in keep or []]
-        if not self.fetcher.gives_language and not self.selection.gives_language:
+        # Without a template, each .xtb's .grd gives its English and language.
+        self.grd_listed = format == CHROMIUM and template is None
+        if not (self.fetcher.gives_language or self.selection.gives_language or self.grd_listed):
             raise ValueError("files must give each file's language with {lang}")
         if languages is not None and (not isinstance(languages, dict) or not all(
                 isinstance(value, str) for value in languages.values())):
@@ -47,7 +50,7 @@ class Block(object):
             check_format(format)
         self.format = format
         self.template = template
-        if format and is_monolingual(format) and not template:
+        if format and is_monolingual(format) and format != CHROMIUM and not template:
             raise ValueError("format %s needs a template: the English file" % format)
         if template is not None:
             if not format or not is_monolingual(format):
@@ -129,11 +132,21 @@ class Block(object):
             unknown = set()
             codes = {}
             fetched = self.fetcher.fetch(new)
-            templates = {self.template_for(path) for path, lang in fetched} - {None}
+            listed = None
+            if self.grd_listed:
+                listed = chromium.listed_translations(new, [
+                    path.replace("\\", "/") for path, lang in fetched if path.endswith(".grd")])
+                templates = {grd for grd, lang in listed.values()}
+            else:
+                templates = {self.template_for(path) for path, lang in fetched} - {None}
             # Templates (.pot) are never imported; GNOME repeats them for
             # every language. An English template is kept but not imported.
             for path, lang in fetched:
-                lang = self.selection.select(path, lang)
+                if listed is not None:
+                    lang = listed.get(path.replace("\\", "/"), (None, None))[1]
+                    lang = lang and self.selection.select(path, lang)
+                else:
+                    lang = self.selection.select(path, lang)
                 if self.format == "android" and lang and not is_android_locale(lang):
                     lang = None
                 code = lang and map_language(lang, self.languages)
@@ -146,7 +159,9 @@ class Block(object):
                     os.remove(os.path.join(new, path))
                 else:
                     codes.setdefault(code, set()).add(lang)
-                    if self.template:
+                    if listed is not None:
+                        files.append((path, code, listed[path.replace("\\", "/")][0]))
+                    elif self.template:
                         files.append((path, code, self.template_for(path)))
                     else:
                         files.append((path, code))
