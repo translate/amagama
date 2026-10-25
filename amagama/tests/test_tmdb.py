@@ -21,6 +21,8 @@ from amagama import tmdb
     ("ca-ES-valencia", "ca_valencia"),
     ("ca-valencia", "ca_valencia"),
     ("tr@crh", "tr_crh"),
+    ("arg", "an"),
+    ("deu", "de"),
     ("x!", None),
     ("", None),
 ])

@@ -57,6 +57,15 @@ from amagama.updater.languages import is_android_locale, map_language, normalise
     ("pt-!!", None),
     ("", None),
     ("po", "po"),
+    # ISO 639's two-letter code where there is one.
+    ("arg", "an"),
+    ("bel", "be"),
+    ("deu", "de"),
+    ("ger", "de"),
+    ("afr_ZA", "af_ZA"),
+    ("srp-Latn", "sr@latin"),
+    ("sah", "sah"),
+    ("fil", "fil"),
 ])
 def test_normalise(code, expected):
     assert normalise_language(code) == expected

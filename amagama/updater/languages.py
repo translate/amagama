@@ -4,13 +4,34 @@ Sources write the same language many ways: BCP 47 (pt-BR, sr-Latn,
 zh-Hans), Android resource qualifiers (pt-rBR, b+sr+Latn), POSIX (pt_BR,
 sr@latin), with a region the source always adds (af-ZA). This gives one
 form - language, optional _REGION, optional @variant - as GNOME, KDE and the
-Translation Project use.
+Translation Project use, with ISO 639's shortest code for the language.
 """
 
+import functools
 import re
+
+import pycountry
 
 # Codes ISO 639 replaced.
 RENAMED = {"iw": "he", "in": "id", "ji": "yi", "jw": "jv", "mo": "ro"}
+
+
+@functools.cache
+def _two_letter_codes():
+    """ISO 639-2/3 codes (and 639-2's bibliographic ones) to their 639-1 code."""
+    codes = {}
+    for language in pycountry.languages:
+        if hasattr(language, "alpha_2"):
+            codes[language.alpha_3] = language.alpha_2
+            if hasattr(language, "bibliographic"):
+                codes[language.bibliographic] = language.alpha_2
+    return codes
+
+
+def _short(lang):
+    """lang's current code, two letters where ISO 639-1 has one."""
+    lang = RENAMED.get(lang, lang)
+    return _two_letter_codes().get(lang, lang)
 
 # A language's usual script (CLDR's likely script) is left out: sr-Cyrl is
 # sr. Any other script becomes a POSIX @modifier, so text in two scripts of
@@ -39,7 +60,7 @@ def normalise_language(code):
     code = code.strip()
     match = _POSIX.match(code)
     if match:
-        lang = RENAMED.get(match["lang"].lower(), match["lang"].lower())
+        lang = _short(match["lang"].lower())
         region = "_" + match["region"].upper() if match["region"] else ""
         modifier = match["modifier"].lower() if match["modifier"] else ""
         # GNOME writes sr@Latn.
@@ -51,7 +72,7 @@ def normalise_language(code):
     lang = parts.pop(0).lower()
     if not re.fullmatch(r"[a-z]{2,3}", lang):
         return None
-    lang = RENAMED.get(lang, lang)
+    lang = _short(lang)
     script = region = modifier = ""
     for part in parts:
         if re.fullmatch(r"[A-Za-z]{4}", part) and not script and not region:
