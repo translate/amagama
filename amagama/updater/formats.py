@@ -33,7 +33,10 @@ FORMATS = {
 MONOLINGUAL = {
     "android": ("translate.storage.aresource", "AndroidResourceFile", {}),
     "php": ("translate.storage.php", "phpfile", {}),
+    # Java's traditional ISO-8859-1 (non-Latin text as \u escapes).
     "properties": ("translate.storage.properties", "propfile", {}),
+    "properties-utf8": ("translate.storage.properties", "propfile", {"personality": "java-utf8"}),
+    "properties-utf16": ("translate.storage.properties", "propfile", {"personality": "java-utf16"}),
     "joomla-ini": ("translate.storage.properties", "propfile", {"personality": "joomla"}),
     "json": ("translate.storage.jsonl10n", "JsonFile", {}),
     "fluent": ("translate.storage.fluent", "FluentFile", {}),
