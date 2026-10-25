@@ -21,6 +21,8 @@ dependencies = [
     "psycopg2>=2.9",
     "pycountry>=22.3",
     "translate-toolkit>=3.0",
+    # The standard library has zstd from Python 3.14.
+    'zstandard>=0.22; python_version < "3.14"',
 ]
 
 [project.optional-dependencies]
@@ -46,6 +48,8 @@ dev = [
     "pytest",
     "pytest-cov",
     "pytest-postgresql>=6",
+    # Tests the zstd fallback for Python < 3.14 on every version.
+    "zstandard>=0.22",
 ]
 
 [project.scripts]

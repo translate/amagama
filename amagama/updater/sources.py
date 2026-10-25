@@ -8,7 +8,7 @@ import shutil
 import tomllib
 
 from amagama.licences import normalise_licence
-from amagama.updater import chromium
+from amagama.updater import chromium, compressed
 from amagama.updater.fetchers import FETCHERS, FetchError
 from amagama.updater.filemask import Selection, compile_mask, fill, wildcards
 from amagama.updater.formats import (CHROMIUM, check_csv_options, check_format,
@@ -199,6 +199,15 @@ class Block(object):
             content.update(json.dumps(entry).encode("utf-8"))
             with open(os.path.join(new, entry[0]), "rb") as f:
                 content.update(hashlib.sha256(f.read()).digest())
+        # The hash is of the files as fetched, so compressing changes nothing
+        # for change detection. Templates stay as they are: Chromium's .grd
+        # includes its .grdp files by path.
+        try:
+            for entry in files:
+                compressed.compress(os.path.join(new, entry[0]))
+        except BaseException:
+            shutil.rmtree(new, ignore_errors=True)
+            raise
         previous = self.state(cache_dir)
         state = {
             "block": self.name,

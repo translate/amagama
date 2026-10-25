@@ -4,11 +4,12 @@ import concurrent.futures
 import functools
 import multiprocessing
 import os
+import tempfile
 
 from flask import current_app
 from amagama.commands import file_checksum
 from amagama.tmdb import BUILD_PREFIX, OLD_PREFIX, lang_to_table
-from amagama.updater import chromium
+from amagama.updater import chromium, compressed
 from amagama.updater.formats import CHROMIUM, open_pieces, open_store
 from amagama.updater.pairing import paired_store, without_ids
 from amagama.updater.segment import segmented
@@ -31,9 +32,22 @@ def import_file(path, slang, tlang, block, licence, format=None, template=None, 
                 reader_options=None, segment=False):
     """Import one file into the build schema.
 
-    Returns (units, skipped), or a reason the file can't be read; database
-    errors raise.
+    The cache keeps the file compressed (path + compressed.SUFFIX); it is
+    read from a decompressed copy under the same name. Returns (units,
+    skipped), or a reason the file can't be read; database errors raise.
     """
+    args = (slang, tlang, block, licence, format, template, exclude_ids, reader_options, segment)
+    if os.path.exists(path) or not os.path.exists(path + compressed.SUFFIX):
+        return _import_file(path, path, *args)
+    with tempfile.TemporaryDirectory() as tmp:
+        plain = os.path.join(tmp, os.path.basename(path))
+        compressed.decompress(path + compressed.SUFFIX, plain)
+        return _import_file(plain, path, *args)
+
+
+def _import_file(path, recorded, slang, tlang, block, licence, format, template, exclude_ids,
+                 reader_options, segment):
+    """import_file() reading path, recorded as recorded."""
     tmdb = current_app.tmdb
     if not lang_to_table(tlang):
         return "unknown language %s" % tlang
@@ -72,7 +86,7 @@ def import_file(path, slang, tlang, block, licence, format=None, template=None, 
         skipped += translatable - (whole if segment else added)
         # Let this piece go before the next is read.
         del store
-    tmdb.record_import(slang, tlang, path, file_checksum(path), units, skipped, block, licence)
+    tmdb.record_import(slang, tlang, recorded, file_checksum(path), units, skipped, block, licence)
     return units, skipped
 
 

@@ -12,7 +12,7 @@ import pytest
 from click.testing import CliRunner
 
 from amagama.cli import manage
-from amagama.updater import fetchers
+from amagama.updater import compressed, fetchers
 from amagama.updater.fetchers import DamnedLies, FetchError, Git, combine
 from amagama.updater.sources import load_sources
 
@@ -246,14 +246,18 @@ class TestSourcesFile(object):
 
 class TestFetch(object):
 
-    def test_damned_lies(self, run, site):
+    def test_damned_lies(self, run, site, tmp_path):
         root, url = site
         result = run(GNOME % url)
         assert result.exit_code == 0, result.output
         assert "gnome-51: 2 files, 2 languages." in result.output
         assert fetched(run.cache, "gnome-51") == [
             ("af/glib.glib-2-90.af.po", "af"), ("zu/glib.glib-2-90.zu.po", "zu")]
-        assert (run.cache / "gnome-51/af/glib.glib-2-90.af.po").exists()
+        # Kept compressed.
+        assert not (run.cache / "gnome-51/af/glib.glib-2-90.af.po").exists()
+        compressed.decompress(str(run.cache / "gnome-51/af/glib.glib-2-90.af.po.zst"),
+                              str(tmp_path / "af.po"))
+        assert (tmp_path / "af.po").read_text() == "msgid \"\"\nmsgstr \"\"\n"
         assert not (run.cache / "gnome-51/af/glib.glib-2-90.pot").exists()
         # Nothing translated: not downloaded (its tarball would be only templates).
         assert not (run.cache / "gnome-51/ach").exists()

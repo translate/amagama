@@ -167,7 +167,9 @@ Settings for fetching translations to import, see :ref:`sources`.
 ``UPDATER_CACHE_DIR``
   Default: ``~/.cache/amagama-updater``
 
-  Where fetched translations are kept, one directory per block.
+  Where fetched translations are kept, one directory per block. Each
+  translation file is kept zstd-compressed (``.zst``, about a fifth of its size)
+  and decompressed only while it is imported; templates are kept as they are.
 
 
 .. setting:: UPDATER_SOURCES
