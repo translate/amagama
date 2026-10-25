@@ -419,11 +419,14 @@ def fetch_sources(block_names, check):
         if later:
             print("Blocks not fetched yet, left for later runs: %d." % later)
     failed = False
+    unchanged = 0
     for block in blocks:
         try:
             if check:
                 if block.changed(cache_dir):
                     print(block.name)
+            elif not block_names and not block.changed(cache_dir):
+                unchanged += 1
             else:
                 state = block.fetch(cache_dir)
                 print("%s: %d files, %d languages." % (
@@ -445,6 +448,8 @@ def fetch_sources(block_names, check):
         else:
             if not check:
                 block.clear_failures(cache_dir)
+    if unchanged:
+        print("Unchanged since the last fetch: %d blocks." % unchanged)
     if failed:
         raise SystemExit(1)
 

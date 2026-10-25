@@ -96,7 +96,9 @@ fetch_sources
 -------------
 
 This subcommand downloads the blocks in the :ref:`sources file <sources>`
-into :setting:`UPDATER_CACHE_DIR`, or with ``--block`` only the named ones:
+that have changed since they were last fetched (see ``min_age_days`` and
+``max_age_days``) into :setting:`UPDATER_CACHE_DIR`, or with ``--block`` the
+named ones whether or not they have:
 
 .. code-block:: bash
 

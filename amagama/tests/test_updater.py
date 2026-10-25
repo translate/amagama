@@ -546,6 +546,7 @@ class TestFetch(object):
         root, url = site
         run(GNOME % url)
         (root / "languages/zu/gnome-51/ui.tar.gz").unlink()
+        write_stats(root, af=11, zu=5, ach=0)
         result = run(GNOME % url)
         assert result.exit_code == 1
         assert "gnome-51: failed:" in result.output
@@ -559,6 +560,15 @@ class TestFetch(object):
                       {"glib.glib-2-90.zu.po": "msgid \"\"\nmsgstr \"\"\n"})
         assert run(GNOME % url).exit_code == 0
         assert sorted(os.listdir(run.cache)) == ["gnome-51"]
+
+    def test_unchanged_not_fetched(self, run, site):
+        root, url = site
+        run(GNOME % url)
+        result = run(GNOME % url)
+        assert result.exit_code == 0, result.output
+        assert result.output == "Unchanged since the last fetch: 1 blocks.\n"
+        # Named, it's fetched anyway.
+        assert "gnome-51: 2 files" in run(GNOME % url, "--block", "gnome-51").output
 
     def test_only_named_block(self, run, site):
         root, url = site
