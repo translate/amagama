@@ -26,11 +26,15 @@ def import_file(path, slang, tlang, block, licence, format=None, template=None, 
     try:
         if template is not None and not os.path.exists(template):
             return "no English template %s" % os.path.basename(template)
+        in_pieces = False
         if format == CHROMIUM:
             stores = [chromium.paired_store(path, template)]
         else:
             stores = None if template is not None else \
                 open_po_pieces(path, format, **(reader_options or {}))
+            # Every piece has been read already: commit each, so its locks
+            # don't hold up other workers until the file is done.
+            in_pieces = stores is not None
             if stores is None:
                 store = open_store(path, format, **(reader_options or {}))
                 if template is not None:
@@ -46,7 +50,7 @@ def import_file(path, slang, tlang, block, licence, format=None, template=None, 
         if segment:
             whole = sum(1 for u in store.units if tmdb._usable_unit(u))
             store = segmented(store, slang, tlang, tmdb._usable_unit)
-        added = tmdb.add_store(store, slang, tlang, commit=False)
+        added = tmdb.add_store(store, slang, tlang, commit=in_pieces)
         units += added
         # Sentence pairs add units; skipped counts the file's own.
         skipped += translatable - (whole if segment else added)
