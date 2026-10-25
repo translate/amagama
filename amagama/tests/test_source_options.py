@@ -13,7 +13,7 @@ from click.testing import CliRunner
 
 from amagama.application import amagama_server_factory
 from amagama.cli import manage
-from amagama.source_options import SourceOptions
+from amagama.source_options import SourceOptions, licence_allowed
 
 
 class TestSourceOptions(object):
@@ -27,6 +27,47 @@ class TestSourceOptions(object):
 
     def test_none(self):
         assert not SourceOptions.from_args({})
+
+    def test_licence_args(self):
+        options = SourceOptions.from_args({'licence': 'GPL-*, MIT'})
+        assert options and options.licences == ('GPL-*', 'MIT')
+
+    @pytest.mark.parametrize('expression, allowed, result', [
+        ('GPL-2.0-or-later', ('GPL-*',), True),
+        # A glob is matched whole: GPL-* isn't LGPL.
+        ('LGPL-2.1-or-later', ('GPL-*',), False),
+        # Either side of OR will do; every side of AND is needed.
+        ('LGPL-2.1-or-later OR GPL-3.0-only', ('GPL-*',), True),
+        ('MIT AND (Apache-2.0 OR BSD-3-Clause)', ('MIT', 'BSD-*'), True),
+        ('MIT AND (Apache-2.0 OR BSD-3-Clause)', ('BSD-*',), False),
+        # An exception only adds permissions.
+        ('GPL-2.0-or-later WITH Classpath-exception-2.0', ('GPL-2.0-or-later',), True),
+        # SPDX identifiers ignore case.
+        ('GPL-2.0-or-later', ('gpl-*',), True),
+        # ! leaves licences out; on its own, it allows every other licence.
+        ('AGPL-3.0-only', ('*', '!AGPL-*'), False),
+        ('AGPL-3.0-only', ('!AGPL-*',), False),
+        ('MIT', ('!AGPL-*',), True),
+        ('MIT OR AGPL-3.0-only', ('!AGPL-*',), True),
+        ('MIT AND AGPL-3.0-only', ('!AGPL-*',), False),
+        ('GPL-3.0-only', ('GPL-*', '!GPL-3.0-*'), False),
+        ('GPL-2.0-only', ('GPL-*', '!GPL-3.0-*'), True),
+        (None, ('*',), False),
+        ('(MIT', ('*',), False),
+    ])
+    def test_licence_allowed(self, expression, allowed, result):
+        assert licence_allowed(expression, allowed) is result
+
+    @pytest.mark.parametrize('names, kept', [
+        (['gnome-51', 'kde'], ['gnome-51']),
+        (['kde'], None),
+        # Unknown licences and unrecorded sources don't count as allowed.
+        (['mixed'], None),
+        ([], None),
+    ])
+    def test_kept_by_licence(self, names, kept):
+        licences = {'gnome-51': 'GPL-2.0-or-later', 'kde': 'LGPL-2.1-or-later', 'mixed': None}
+        assert SourceOptions(licences=['GPL-*']).kept(names, licences) == kept
 
     @pytest.mark.parametrize('weight', ['gnome', ':2', 'gnome:', 'gnome:x', 'gnome:-1',
                                         'gnome:11', 'gnome:nan', 'gnome:inf'])
@@ -68,6 +109,10 @@ def po(*units):
         '\nmsgid "%s"\nmsgstr "%s"\n' % unit for unit in units)
 
 
+LICENCES = {'gnome-51': 'GPL-2.0-or-later', 'hosted-x': 'MIT',
+            'kde': 'LGPL-2.1-or-later OR GPL-3.0-only'}
+
+
 @pytest.fixture
 def client(amagama_config, tmp_path):
     runner = CliRunner()
@@ -80,7 +125,7 @@ def client(amagama_config, tmp_path):
             path = tmp_path / ('%s-%d.po' % (block, n))
             path.write_text(po(unit), encoding='utf-8')
             result = runner.invoke(manage, ('build_tmdb', '-s', 'en', '-t', 'af', '-i', str(path),
-                                            '--block', block))
+                                            '--block', block, '--licence', LICENCES[block]))
             assert result.exit_code == 0, result.output
     with amagama_server_factory().test_client() as client:
         yield client
@@ -117,6 +162,15 @@ class TestLookup(object):
 
     def test_bad_weight(self, client):
         assert client.get('/api/v1/en/af/unit/Open file?weight=kde').status_code == 400
+
+    def test_licence(self, client):
+        assert sorted(lookup(client, 'licence=GPL-*')) == [
+            ('Maak lêer oop', ['gnome-51']), ('Maak lêers oop', ['kde'])]
+        assert lookup(client, 'licence=MIT') == [
+            ('Maak lêer oop', ['hosted-x']), ('Open lêer', ['hosted-x'])]
+        assert lookup(client, 'licence=Apache-2.0') == []
+        assert sorted(lookup(client, 'licence=!MIT')) == [
+            ('Maak lêer oop', ['gnome-51']), ('Maak lêers oop', ['kde'])]
 
 
 def record_weights(weights):

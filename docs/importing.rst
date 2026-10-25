@@ -64,7 +64,9 @@ anything is loaded:
     $ amagama-manage build_tmdb -s en -i gnome-51/ --block gnome-51 \
         --licence GPL-2.0-or-later
 
-:ref:`tmdb_stats <managing#tmdb-stats>` summarises the imports by block.
+:ref:`tmdb_stats <managing#tmdb-stats>` summarises the imports by block, and
+lookups can keep only translations under chosen licences with
+:ref:`licence <api#providing-options>`.
 
 Each translation is linked to every import that supplied it, in the
 ``target_imports`` table, so a lookup lists its blocks in :ref:`sources

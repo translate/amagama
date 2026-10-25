@@ -283,6 +283,7 @@ ORDER BY rank DESC;
         self._available_langs = {}
         self._sources = None
         self._weights = {}
+        self._licences = {}
         self._load_source_langs()
         # set of languages with prepared statements per connection key:
         self._prepared_statements = defaultdict(set)
@@ -305,6 +306,7 @@ ORDER BY rank DESC;
         self._available_langs = {}
         self._sources = None
         self._weights = {}
+        self._licences = {}
         self._load_source_langs()
 
     def schema(self, slang):
@@ -739,6 +741,7 @@ ORDER BY rank DESC;
         self._available_langs = {}
         self._sources = None
         self._weights = {}
+        self._licences = {}
         self._load_source_langs()
         current_app.cache.clear()
 
@@ -826,6 +829,19 @@ ORDER BY rank DESC;
                 weights = dict(cursor.fetchall())
             self._weights[slang] = weights
         return self._weights[slang]
+
+    def block_licences(self, slang):
+        """{block name: licence} of the slang blocks; None for a mix of licences."""
+        if slang not in self._licences:
+            cursor = self.get_cursor(self.schema(slang))
+            licences = {}
+            if self._has_relation(cursor, 'imports'):
+                cursor.execute("""SELECT block,
+                        CASE WHEN COUNT(DISTINCT licence) = 1 THEN MAX(licence) END
+                    FROM imports WHERE block IS NOT NULL GROUP BY block""")
+                licences = dict(cursor.fetchall())
+            self._licences[slang] = licences
+        return self._licences[slang]
 
     def get_sid(self, unit_dict, cursor):
         source = unit_dict['source']
@@ -1072,6 +1088,7 @@ ORDER BY rank DESC;
             self._available_langs = {}
             self._sources = None
             self._weights = {}
+            self._licences = {}
         return count
 
     @property
@@ -1146,7 +1163,9 @@ ORDER BY rank DESC;
             return results
         # Choosing by source needs the sources of every match, not just the best.
         self._add_sources(cursor, tlang, results)
-        return (source_options or SourceOptions()).choose(results, max_candidates, weights)
+        source_options = source_options or SourceOptions()
+        licences = self.block_licences(slang) if source_options.licences else None
+        return source_options.choose(results, max_candidates, weights, licences)
 
     def _add_sources(self, cursor, tlang, results):
         """Give each result the names of the blocks it was imported from."""
