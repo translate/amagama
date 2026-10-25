@@ -475,11 +475,8 @@ class WordPress(Fetcher):
     optional = ("slugs", "release", "base_url", "pause")
     kinds = ("core", "plugins", "themes")
 
-    # WordPress locales with a shorter code elsewhere, and register and
-    # spelling variants kept with their language.
+    # Register and spelling variants, kept with their language.
     locales = {
-        "arg": "an", "bel": "be", "dzo": "dz", "kir": "ky", "oci": "oc", "snd": "sd",
-        "tah": "ty", "yor": "yo",
         "de_CH_informal": "de_CH", "de_DE_formal": "de_DE", "nl_NL_formal": "nl_NL",
         "pt_PT_ao90": "pt_PT",
     }

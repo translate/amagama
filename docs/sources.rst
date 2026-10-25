@@ -273,9 +273,7 @@ Source types
   ``themes``; ``slugs`` lists the plugins or themes. For ``core``,
   ``release`` (such as ``"7.1"``) takes the pack each language has for that
   release, which may be an older one; without it, each language's newest
-  pack. WordPress's
-  three-letter codes with a two-letter one (``arg``, ``bel``, ...) are
-  shortened, and its formal, informal and ``ao90`` variants are kept with
+  pack. WordPress's formal, informal and ``ao90`` variants are kept with
   their language. ``base_url`` can name a mirror of the API; ``pause``
   (default 1) is the seconds between downloads.
 
