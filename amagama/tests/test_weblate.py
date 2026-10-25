@@ -1,6 +1,7 @@
 import functools
 import http.server
 import json
+import subprocess
 import threading
 import types
 
@@ -151,6 +152,7 @@ def test_names_taken():
                                taken={"test-app"})
     assert list(found) == ["test-app-ui"]
 
+
 def test_names_kept():
     first, skipped = generated([component("app", "ui", "https://git.example/app", "po/*.po")])
     assert list(first) == ["test-app"]
@@ -219,7 +221,7 @@ def test_command(amagama_config, instance, tmp_path):
     amagama_config(UPDATER_SOURCES=str(sources))
     output = tmp_path / "weblate-test.toml"
     result = CliRunner().invoke(manage, ("weblate_sources", instance, "--prefix", "test",
-                                         "--output", str(output)))
+                                         "--output", str(output), "--no-verify"))
     assert result.exit_code == 0, result.output
     assert "1 blocks." in result.output
     assert "Skipped 1 components: repository imported by another block." in result.output
@@ -230,7 +232,8 @@ def test_command_regenerates_own_blocks(amagama_config, instance, tmp_path):
     sources = tmp_path / "sources.toml"
     sources.write_text(block("test-app", "git", url="https://git.example/app", files=["po/{lang}.po"]))
     amagama_config(UPDATER_SOURCES=str(sources))
-    result = CliRunner().invoke(manage, ("weblate_sources", instance, "--prefix", "test"))
+    result = CliRunner().invoke(manage, ("weblate_sources", instance, "--prefix", "test",
+                                         "--no-verify"))
     assert result.exit_code == 0, result.output
     assert 'name = "test-app"' in result.output
 
@@ -239,7 +242,7 @@ def test_command_stdout(amagama_config, instance, tmp_path):
     # No sources file to check against; only projects matching --project.
     amagama_config(UPDATER_SOURCES=str(tmp_path / "missing.toml"))
     result = CliRunner().invoke(manage, ("weblate_sources", instance, "--prefix", "test",
-                                         "--project", "t*"))
+                                         "--project", "t*", "--no-verify"))
     assert result.exit_code == 0, result.output
     assert 'name = "test-tool"' in result.output
     assert "test-app" not in result.output
@@ -287,3 +290,60 @@ def test_dead_host():
     found, skipped = generated([component("libuser", "ui", "https://pagure.io/libuser/", "po/*.po")])
     assert found == {}
     assert skipped == {"host pagure.io archived": 1}
+
+
+def verified(blocks, trees):
+    return weblate.verify(blocks, pause=0, tree=lambda url, ref: trees.get((url, ref)))
+
+
+def test_verify():
+    blocks = [
+        {"name": "ok", "url": "u1", "ref": "main", "files": ["po/{lang}.po", "old/{lang}.po"],
+         "sparse": ["old/*.po", "po/*.po"]},
+        {"name": "moved", "url": "u2", "ref": "master", "version": "master",
+         "files": ["po/{lang}.po"]},
+        {"name": "gone", "url": "u3", "ref": "main", "files": ["po/{lang}.po"]},
+        {"name": "notemplate", "url": "u1", "ref": "main", "files": ["res/values-{lang}/s.xml"],
+         "template": "res/values/s.xml"},
+        {"name": "missing", "url": "u4", "files": ["po/{lang}.po"]},
+    ]
+    trees = {("u1", "main"): ["po/af.po", "res/values-af/s.xml"],
+             ("u2", None): ["po/af.po"],
+             ("u3", "main"): ["README"]}
+    kept, problems = verified(blocks, trees)
+    # The mask that matches nothing is dropped; the missing branch becomes the default.
+    assert kept == [
+        {"name": "ok", "url": "u1", "ref": "main", "files": ["po/{lang}.po"], "sparse": ["po/*.po"]},
+        {"name": "moved", "url": "u2", "files": ["po/{lang}.po"], "sparse": ["po/*.po"]}]
+    assert problems == {"branch gone, default branch used": 1, "filemask matches nothing": 2,
+                        "repository or branch not found": 1}
+
+
+def test_verify_duplicate_after_fallback():
+    blocks = [{"name": "a-1.x", "url": "u", "ref": "1.x", "files": ["po/{lang}.po"]},
+              {"name": "a-2.x", "url": "u", "ref": "2.x", "files": ["po/{lang}.po"]}]
+    kept, problems = verified(blocks, {("u", None): ["po/af.po"]})
+    assert [b["name"] for b in kept] == ["a-1.x"]
+    assert problems == {"branch gone, default branch used": 1, "duplicate after branch fallback": 1}
+
+
+def test_tree(tmp_path):
+    repo = tmp_path / "repo"
+    (repo / "po").mkdir(parents=True)
+    (repo / "po/af.po").write_text("af")
+    subprocess.run(["sh", "-c", "git init -q -b main && git add . && git -c user.name=t "
+                    "-c user.email=t@example.org commit -q -m po && git branch stable"],
+                   cwd=repo, check=True)
+    assert weblate._tree(repo.as_uri(), "stable") == ["po/af.po"]
+    assert weblate._tree(repo.as_uri(), None) == ["po/af.po"]
+    assert weblate._tree(repo.as_uri(), "gone") is None
+    assert weblate._tree((tmp_path / "nothing").as_uri(), None) is None
+
+
+def test_command_verifies(amagama_config, instance, tmp_path, monkeypatch):
+    amagama_config(UPDATER_SOURCES=str(tmp_path / "missing.toml"))
+    monkeypatch.setattr(weblate, "verify", lambda blocks: (blocks[:1], {"filemask matches nothing": 1}))
+    result = CliRunner().invoke(manage, ("weblate_sources", instance, "--prefix", "test"))
+    assert result.exit_code == 0, result.output
+    assert "1 blocks." in result.output
+    assert "Skipped 1 components: filemask matches nothing." in result.output
