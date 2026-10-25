@@ -10,6 +10,7 @@ User=amagama
 Group=amagama
 Environment=AMAGAMA_CONFIG=/srv/amagama/updater_settings.py
 Environment=PYTHONUNBUFFERED=1
+SyslogIdentifier=amagama-update
 # Not while a fetch is running: skipped (75) rather than failed.
 ExecStart=/usr/bin/flock --nonblock --conflict-exit-code 75 \
         /srv/amagama/cache/.lock \
