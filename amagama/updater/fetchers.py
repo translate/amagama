@@ -223,12 +223,19 @@ class TranslationProject(TarballPerLanguage):
         return [self.base_url + urllib.parse.quote(lang) + ".tgz"]
 
 
-def run_tool(tool, *args):
+def run_tool(tool, *args, trusted=None):
     """A version-control command's output, run outside any repository.
 
-    The caller's GIT_DIR and friends are left out.
+    The caller's GIT_DIR and friends are left out. trusted is a git
+    repository of the updater's own (a clone in the cache), which git
+    otherwise refuses as "dubious ownership" when another user owns the
+    cache (a mounted volume); it is set in the environment so the git
+    processes git starts get it too.
     """
     env = {key: value for key, value in os.environ.items() if not key.startswith("GIT_")}
+    if trusted is not None:
+        env.update(GIT_CONFIG_COUNT="1", GIT_CONFIG_KEY_0="safe.directory",
+                   GIT_CONFIG_VALUE_0=os.path.realpath(trusted))
     try:
         return subprocess.run((tool,) + args, check=True, capture_output=True, text=True,
                               timeout=3600, cwd=tempfile.gettempdir(), env=env).stdout
@@ -387,8 +394,8 @@ class Git(Fetcher):
                 isinstance(pattern, str) for pattern in sparse)):
             raise ValueError("sparse must be a list of patterns")
 
-    def _git(self, *args):
-        return run_tool("git", *args)
+    def _git(self, *args, clone=None):
+        return run_tool("git", *args, trusted=clone)
 
     def fingerprint(self):
         ref = self.settings.get("ref", "HEAD")
@@ -415,10 +422,10 @@ class Git(Fetcher):
         sparse = self.settings.get("sparse")
         if sparse:
             args += ["--filter=blob:none", "--sparse", "--no-checkout"]
-        self._git(*(args + [self.settings["url"], dest]))
+        self._git(*(args + [self.settings["url"], dest]), clone=dest)
         if sparse:
-            self._git("-C", dest, "sparse-checkout", "set", "--no-cone", *sparse)
-            self._git("-C", dest, "checkout", "--quiet")
+            self._git("-C", dest, "sparse-checkout", "set", "--no-cone", *sparse, clone=dest)
+            self._git("-C", dest, "checkout", "--quiet", clone=dest)
         shutil.rmtree(os.path.join(dest, ".git"))
         return [(path, None) for path in files_under(dest)]
 
