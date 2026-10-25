@@ -259,6 +259,21 @@ Source types
   ``["messages"]``; ``pause`` (default 1) is the seconds between exports, to
   go easy on a shared server. Needs the ``svn`` command.
 
+``moodle``
+  `Moodle <https://moodle.org>`_'s language packs for ``release`` (required),
+  such as ``"5.3"``: a zip per language, English included, from the index
+  Moodle's own language installer reads. Each pack holds
+  :file:`{lang}/{component}.php`, so the English pack is the template:
+
+  .. code-block:: toml
+
+      files = ["{lang}/*.php"]
+      format = "php"
+      template = "en/*.php"
+
+  Downloads are checked against the index's MD5s. ``base_url`` can name a
+  mirror; ``pause`` (default 1) is the seconds between downloads.
+
 ``pontoon``
   Mozilla's `Pontoon <https://pontoon.mozilla.org>`_: each locale's whole
   translation memory as one TMX file, holding only approved translations,
@@ -290,12 +305,12 @@ Change detection
 
 Each fetch records a fingerprint of the block: for ``damned-lies`` the
 release's translation statistics (one request; a reworded translation alone
-doesn't change them), for ``wordpress`` every pack's version and update
-time, for ``drupal`` the projects' releases (the files are rebuilt daily), for
-``pontoon`` none (its files are generated on
-request), for ``translationproject`` the ETag or Last-Modified
-header of every tarball, for ``git`` the commit of the ref (from Gitiles'
-JSON on ``googlesource.com``, where ``ls-remote`` is too costly). ``fetch_sources
+doesn't change them), for ``wordpress`` every pack's version and update time,
+for ``moodle`` the pack index with its MD5s, for ``drupal`` the projects'
+releases (the files are rebuilt daily), for ``pontoon`` none (its files are
+generated on request), for ``translationproject`` the ETag or Last-Modified
+header of every tarball, for ``git`` the commit of the ref (from Gitiles' JSON
+on ``googlesource.com``, where ``ls-remote`` is too costly). ``fetch_sources
 --check`` recomputes it without downloading and lists the blocks whose
 fingerprint changed.
 
