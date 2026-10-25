@@ -227,6 +227,9 @@ files it includes); a block's own settings take precedence. ``name`` and
   its fingerprint, so its server never gets every language at once. 0 turns that off: the whole block is fetched whenever its
   fingerprint changes, or on every run without one.
 
+  An old release that hardly changes can have a longer ``max_age_days`` than
+  the current ones, as an item of ``versions``.
+
   Within ``min_age_days`` a block isn't touched, even past ``max_age_days``.
 
 ``exclude_ids``

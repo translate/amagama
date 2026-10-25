@@ -16,7 +16,17 @@ name = "gnome-{version}"
 title = "GNOME"
 source = "damned-lies"
 release = "gnome-{version}"
-versions = ["44", "45", "46", "47", "48", "49", "50", "51"]
+# Old releases hardly change: each language once a year.
+versions = [
+  { version = "44", max_age_days = 365 },
+  { version = "45", max_age_days = 365 },
+  { version = "46", max_age_days = 365 },
+  { version = "47", max_age_days = 365 },
+  { version = "48", max_age_days = 365 },
+  { version = "49", max_age_days = 365 },
+  "50",
+  "51",
+]
 
 [[block]]
 name = "gnome-help-{version}"
@@ -25,7 +35,17 @@ source = "damned-lies"
 release = "gnome-{version}"
 tarballs = ["doc"]
 segment = true
-versions = ["44", "45", "46", "47", "48", "49", "50", "51"]
+# Old releases hardly change: each language once a year.
+versions = [
+  { version = "44", max_age_days = 365 },
+  { version = "45", max_age_days = 365 },
+  { version = "46", max_age_days = 365 },
+  { version = "47", max_age_days = 365 },
+  { version = "48", max_age_days = 365 },
+  { version = "49", max_age_days = 365 },
+  "50",
+  "51",
+]
 
 [[block]]
 name = "kde"
@@ -300,7 +320,12 @@ kind = "core"
 release = "{version}"
 files = ["**/*.po"]
 licence = "GPL-2.0-or-later"
-versions = ["6.8", "6.9", "7.0", "7.1"]
+versions = [
+  { version = "6.8", max_age_days = 365 },
+  { version = "6.9", max_age_days = 365 },
+  "7.0",
+  "7.1",
+]
 
 [[block]]
 name = "wordpress-themes"
