@@ -103,3 +103,11 @@ def test_update_exclude_ids(run, pontoon):
     assert "Imported 2 files: 2 units (0 skipped)." in result.output
     assert lookup("af", "Save file") == ["Stoor lêer"]
     assert lookup("af", "Read our blog") == []
+
+
+def test_fetch_some_languages(pontoon, tmp_path):
+    root, url = pontoon
+    fetcher = Pontoon({"base_url": url, "pause": 0})
+    lang = fetcher.languages()[0]
+    files = fetcher.fetch(str(tmp_path / "out"), [lang])
+    assert files and {code for path, code in files} == {lang}

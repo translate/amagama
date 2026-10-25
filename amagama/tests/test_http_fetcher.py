@@ -29,3 +29,9 @@ def test_server_error_stops_fingerprint(fetcher):
 def test_server_error_stops_fetch(fetcher, tmp_path):
     with pytest.raises(FetchError, match="HTTP Error 500"):
         fetcher.fetch(str(tmp_path))
+
+
+def test_fetch_some_languages(fetcher, monkeypatch, tmp_path):
+    monkeypatch.setattr(fetcher, "languages", lambda: ["de", "fr"])
+    monkeypatch.setattr(fetchers, "download", lambda url, path: open(path, "w").close())
+    assert fetcher.fetch(str(tmp_path), ["fr"]) == [("fr/fr.po", "fr")]

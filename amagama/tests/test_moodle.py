@@ -95,7 +95,7 @@ def test_bad_index(moodle):
 
 def test_index_change(run, moodle):
     root, url = moodle
-    text = moodle_block(url)
+    text = moodle_block(url, max_age_days=0)
     run(text)
     assert run(text, "--check").output == ""
     index = root / "5.1/languages.md5"
@@ -118,3 +118,11 @@ def test_update(run, moodle):
     assert "Imported 2 files: 3 units (0 skipped)." in result.output
     assert lookup("af", "Save changes") == ["Stoor veranderinge"]
     assert lookup("de", "Course") == ["Kurs"]
+
+
+def test_fetch_some_languages(moodle, tmp_path):
+    root, url = moodle
+    fetcher = Moodle({"release": "5.1", "base_url": url, "pause": 0})
+    lang = fetcher.languages()[0]
+    files = fetcher.fetch(str(tmp_path / "out"), [lang])
+    assert files and {code for path, code in files} == {lang}

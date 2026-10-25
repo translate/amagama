@@ -88,7 +88,8 @@ def test_fetch(run, wordpress, pauses):
 
 def test_fingerprint_change(run, wordpress):
     root, url, publish = wordpress
-    text = block("wp", "wordpress", kind="core", base_url=url, files=["**/*.po"], pause=0)
+    text = block("wp", "wordpress", kind="core", base_url=url, files=["**/*.po"], pause=0,
+                 max_age_days=0)
     run(text)
     assert run(text, "--check").output == ""
     publish("core", "core", "af", ("Save file", "Stoor"), updated="2026-10-20 00:00:00")
@@ -144,3 +145,11 @@ def test_release(wordpress):
     packs = WordPress({"kind": "core", "release": "7.1", "base_url": url}).packs()
     assert [(slug, lang, version) for slug, lang, version, updated, package in packs] == [
         ("core", "af", "5.8"), ("core", "de_DE_formal", "5.8")]
+
+
+def test_fetch_some_languages(wordpress):
+    root, url, publish = wordpress
+    fetcher = WordPress({"kind": "core", "base_url": url, "pause": 0})
+    lang = fetcher.languages()[0]
+    files = fetcher.fetch(str(root / "out"), [lang])
+    assert files and {code for path, code in files} == {lang}

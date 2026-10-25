@@ -3,6 +3,7 @@
 import datetime
 import hashlib
 import json
+import math
 import os
 import shutil
 import tomllib
@@ -147,10 +148,39 @@ class Block(object):
         age = datetime.datetime.now(datetime.timezone.utc) - fetched
         if age < self.rest(state):
             return False
+        if self.rotates:
+            # A language comes due every max_age_days / languages; fetch()
+            # takes the ones due. Without dates yet, a full fetch sets them.
+            dates = state.get("language_fetched")
+            return dates is None or age >= datetime.timedelta(
+                days=self.max_age_days / max(len(dates), 1))
         fingerprint = self.fetcher.fingerprint()
         if fingerprint is None:
             return age >= datetime.timedelta(days=self.max_age_days)
         return state["fingerprint"] != fingerprint
+
+    @property
+    def rotates(self):
+        """Whether each run refreshes only the languages that are due."""
+        return self.fetcher.rotates and self.max_age_days > 0
+
+    def due(self, previous, languages):
+        """The languages to fetch this run, or None for all of them.
+
+        Each language is refreshed within max_age_days: a run takes the ones
+        fetched longest ago, its share of them for the days since the last
+        fetch, and every language not fetched before.
+        """
+        dates = (previous or {}).get("language_fetched")
+        if not self.rotates or dates is None:
+            return None
+        now = datetime.datetime.now(datetime.timezone.utc)
+        days = (now - datetime.datetime.fromisoformat(previous["fetched"])).total_seconds() / 86400
+        share = math.ceil(len(languages) * days / self.max_age_days)
+        new = [lang for lang in languages if lang not in dates]
+        oldest = sorted((lang for lang in languages if lang in dates), key=lambda lang: dates[lang])
+        due = new + oldest[:max(0, share - len(new))]
+        return due if len(due) < len(languages) else None
 
     def rest(self, state):
         """How long after a fetch the block isn't checked again: min_age_days.
@@ -171,7 +201,11 @@ class Block(object):
         Returns the state written: fingerprint, time and files with their
         target languages.
         """
-        fingerprint = self.fetcher.fingerprint()
+        previous = self.state(cache_dir)
+        # A rotating block's change is found by fetching its due languages.
+        fingerprint = None if self.rotates else self.fetcher.fingerprint()
+        available = self.fetcher.languages() if self.rotates else None
+        due = self.due(previous, available) if self.rotates else None
         final = self.directory(cache_dir)
         new = final + ".new"
         shutil.rmtree(new, ignore_errors=True)
@@ -180,7 +214,7 @@ class Block(object):
             files = []
             unknown = set()
             codes = {}
-            fetched = self.fetcher.fetch(new)
+            fetched = self.fetcher.fetch(new) if due is None else self.fetcher.fetch(new, due)
             outside = _resolve_links(new)
             fetched = [(path, lang) for path, lang in fetched
                        if path.replace("\\", "/") not in outside]
@@ -193,7 +227,9 @@ class Block(object):
                 templates = {self.template_for(path) for path, lang in fetched} - {None}
             # Templates (.pot) are never imported; GNOME repeats them for
             # every language. An English template is kept but not imported.
+            origin = {}
             for path, lang in fetched:
+                origin[path] = lang
                 if listed is not None:
                     lang = listed.get(path.replace("\\", "/"), (None, None))[1]
                     lang = lang and self.selection.select(path, lang)
@@ -220,6 +256,24 @@ class Block(object):
             for dirpath, dirnames, filenames in os.walk(new, topdown=False):
                 if dirpath != new and not os.listdir(dirpath):
                     os.rmdir(dirpath)
+            hashes = {}
+            for entry in files:
+                with open(os.path.join(new, entry[0]), "rb") as f:
+                    hashes[entry[0]] = hashlib.sha256(f.read()).hexdigest()
+            fresh = list(files)
+            by_language = {}
+            for entry in files:
+                by_language.setdefault(origin[entry[0]], []).append(list(entry))
+            if due is not None:
+                # The languages not due keep their last fetch.
+                for lang in set(available) - set(due):
+                    for entry in previous.get("by_language", {}).get(lang, []):
+                        _carry(final, new, entry, previous)
+                        files.append(tuple(entry))
+                        hashes[entry[0]] = previous["hashes"][entry[0]]
+                        codes.setdefault(entry[1], set()).update(
+                            previous["languages"].get(entry[1], []))
+                        by_language.setdefault(lang, []).append(entry)
             if self.selection.masks and not files:
                 raise FetchError("no file matches %s" % ", ".join(self.selection.mask_texts))
         except BaseException:
@@ -228,26 +282,26 @@ class Block(object):
         content = hashlib.sha256()
         for entry in sorted(files):
             content.update(json.dumps(entry).encode("utf-8"))
-            with open(os.path.join(new, entry[0]), "rb") as f:
-                content.update(hashlib.sha256(f.read()).digest())
+            content.update(bytes.fromhex(hashes[entry[0]]))
         # The hash is of the files as fetched, so compressing changes nothing
         # for change detection. Templates stay as they are: Chromium's .grd
         # includes its .grdp files by path.
         try:
-            for entry in files:
+            for entry in fresh:
                 compressed.compress(os.path.join(new, entry[0]))
         except BaseException:
             shutil.rmtree(new, ignore_errors=True)
             raise
-        previous = self.state(cache_dir)
+        now = datetime.datetime.now(datetime.timezone.utc).isoformat()
         state = {
             "block": self.name,
             "fingerprint": fingerprint,
             "content": content.hexdigest(),
             "same_as_last": bool(previous) and previous.get("content") == content.hexdigest(),
             "fetches": (previous or {}).get("fetches", 0) + 1,
-            "fetched": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "fetched": now,
             "files": sorted(files),
+            "hashes": hashes,
             "unknown_languages": sorted(unknown),
             "outside_links": outside,
             "languages": {code: sorted(sources) for code, sources in sorted(codes.items())},
@@ -255,6 +309,11 @@ class Block(object):
             "merged_languages": {code: sorted(sources) for code, sources in sorted(codes.items())
                                  if len(sources - set(self.languages)) > 1},
         }
+        if self.rotates:
+            state["by_language"] = by_language
+            dates = (previous or {}).get("language_fetched", {})
+            state["language_fetched"] = {
+                lang: now if due is None or lang in due else dates[lang] for lang in available}
         with open(os.path.join(new, STATE_FILE), "w", encoding="utf-8") as f:
             json.dump(state, f, indent=1)
         old = final + ".old"
@@ -264,6 +323,22 @@ class Block(object):
         os.rename(new, final)
         shutil.rmtree(old, ignore_errors=True)
         return state
+
+
+def _carry(final, new, entry, previous):
+    """Link a file of the last fetch (and its template) into the new one."""
+    names = [entry[0] + compressed.SUFFIX]
+    if len(entry) > 2 and entry[2]:
+        names.append(entry[2])
+    for name in names:
+        source, target = os.path.join(final, name), os.path.join(new, name)
+        if os.path.exists(target):
+            continue
+        os.makedirs(os.path.dirname(target), exist_ok=True)
+        try:
+            os.link(source, target)
+        except OSError:
+            shutil.copy2(source, target)
 
 
 def _resolve_links(root):
