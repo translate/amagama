@@ -317,8 +317,16 @@ class Block(object):
         # for change detection. Templates stay as they are: Chromium's .grd
         # includes its .grdp files by path.
         try:
+            last = (previous or {}).get("hashes", {})
             for entry in fresh:
-                compressed.compress(os.path.join(new, entry[0]))
+                path = os.path.join(new, entry[0])
+                kept = os.path.join(final, entry[0]) + compressed.SUFFIX
+                if last.get(entry[0]) == hashes[entry[0]] and os.path.exists(kept):
+                    # Unchanged since the last fetch: keep its compressed copy.
+                    os.remove(path)
+                    _link(kept, path + compressed.SUFFIX)
+                else:
+                    compressed.compress(path)
         except BaseException:
             shutil.rmtree(new, ignore_errors=True)
             raise
@@ -367,10 +375,15 @@ def _carry(final, new, entry, previous):
         if os.path.exists(target):
             continue
         os.makedirs(os.path.dirname(target), exist_ok=True)
-        try:
-            os.link(source, target)
-        except OSError:
-            shutil.copy2(source, target)
+        _link(source, target)
+
+
+def _link(source, target):
+    """Hard-link source to target, or copy it where links fail."""
+    try:
+        os.link(source, target)
+    except OSError:
+        shutil.copy2(source, target)
 
 
 def _resolve_links(root):
