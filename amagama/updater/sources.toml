@@ -241,3 +241,34 @@ source = "git"
 url = "https://github.com/openSUSE/libstorage-ng"
 files = ["po/{lang}.po"]
 licence = "GPL-2.0-only"
+
+[[block]]
+name = "android-{version}"
+title = "Android"
+source = "git"
+url = "https://android.googlesource.com/platform/frameworks/base"
+sparse = ["**/res/values*/strings.xml"]
+files = ["**/res/values-{lang}/strings.xml"]
+exclude = ["**/tests/**"]
+format = "android"
+template = "**/res/values/strings.xml"
+licence = "Apache-2.0"
+versions = [
+  { version = "16", ref = "android16-qpr2-release" },
+  { version = "17", ref = "android17-release" },
+]
+
+[[block]]
+name = "android-settings-{version}"
+title = "Android Settings"
+source = "git"
+url = "https://android.googlesource.com/platform/packages/apps/Settings"
+sparse = ["/res/values*/strings.xml", "/res-product/values*/strings.xml"]
+files = ["*/values-{lang}/strings.xml"]
+format = "android"
+template = "*/values/strings.xml"
+licence = "Apache-2.0"
+versions = [
+  { version = "16", ref = "android16-qpr2-release" },
+  { version = "17", ref = "android17-release" },
+]
