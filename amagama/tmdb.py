@@ -43,6 +43,7 @@ from translate.storage import xliff
 from amagama import postgres
 from amagama.mojibake import CANDIDATE_REGEX, unmangle
 from amagama.normalise import indexing_version
+from amagama.updater.languages import normalise_language
 
 _table_name_cache = {}
 
@@ -60,10 +61,19 @@ OLD_PREFIX = '_old_'
 
 
 def lang_to_table(code):
+    """The name a language's data is stored under, or None for a bad code.
+
+    Any spelling of a code gives the same name. The country is dropped where
+    the language is rarely localised by country (es_ES is es), but a variant
+    is kept: sr@latin and sr, or ca@valencia and ca, stay apart.
+    """
     if code in _table_name_cache:
         return _table_name_cache[code]
-    # Normalize to simplest form.
-    result = data.simplify_to_common(code)
+    canonical = normalise_language(code) if code else None
+    if not canonical:
+        return None
+    base, _, variant = canonical.partition("@")
+    result = data.simplify_to_common(base) + ("@" + variant if variant else "")
     if data.langcode_ire.match(result):
         # Normalize to legal table name.
         table_name = result.replace("-", "_").replace("@", "_").lower()
