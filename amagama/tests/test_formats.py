@@ -224,3 +224,12 @@ def test_update_po_in_pieces(amagama_config, tmp_path, monkeypatch):
     with app.test_client() as client:
         response = client.get("/api/v1/en/af/unit/Open file")
     assert [c["target"] for c in response.get_json()] == ["Maak lêer oop"]
+
+
+@pytest.mark.parametrize("size", [None, 40])
+def test_po_domain_lines_ignored(tmp_path, size):
+    """msgcat keeps gettext's domain lines; the parser doesn't accept them."""
+    path = tmp_path / "af.po"
+    path.write_bytes(PO_HEADER + b'domain "gmtp"\n\n' + PO_ENTRIES)
+    stores = open_po_pieces(str(path), size=size) if size else [open_store(str(path))]
+    assert sources(stores) == ["Save file", "Open file", "Close file", "Quit"]

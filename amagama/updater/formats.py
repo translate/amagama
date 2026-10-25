@@ -111,6 +111,18 @@ def check_csv_options(format, columns, header_row):
         raise ValueError("header_row needs columns")
 
 
+# gettext's domain directive, which msgcat keeps when merging files; the
+# Translate Toolkit's PO parser rejects it, and amaGama keeps no domains.
+_PO_DOMAIN = re.compile(rb'^domain[ \t]+"[^"\n]*"[ \t]*\r?\n', re.MULTILINE)
+
+
+def _read_po(path, data):
+    store = po.pofile()
+    store.filename = path
+    store.parse(_PO_DOMAIN.sub(b"", data))
+    return store
+
+
 def open_store(path, format=None, columns=None, header_row=False, xliff_states=None):
     """Read path with the named reader, or the one its extension picks.
 
@@ -119,7 +131,10 @@ def open_store(path, format=None, columns=None, header_row=False, xliff_states=N
     """
     if format == "csv" and columns:
         return _read_csv(path, columns, header_row)
-    if format is None:
+    if format in (None, "po") and path.endswith(".po"):
+        with open(path, "rb") as f:
+            store = _read_po(path, f.read())
+    elif format is None:
         store = factory.getobject(path)
     else:
         module, name, kwargs = FORMATS.get(format) or MONOLINGUAL[format]
@@ -180,14 +195,9 @@ def open_po_pieces(path, format=None, columns=None, header_row=False, xliff_stat
     if format not in (None, "po") or not path.endswith(".po") or os.path.getsize(path) <= size:
         return None
 
-    def read(piece):
-        store = po.pofile()
-        store.filename = path
-        store.parse(piece)
-        return store
     for piece in po_pieces(path, size):
-        read(piece)
-    return (read(piece) for piece in po_pieces(path, size))
+        _read_po(path, piece)
+    return (_read_po(path, piece) for piece in po_pieces(path, size))
 
 
 _NEXTCLOUD_PLURAL = re.compile(r"_(.*)_::_.*_", re.DOTALL)
