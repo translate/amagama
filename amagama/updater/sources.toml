@@ -201,3 +201,43 @@ languages.rm-vallader = "rm@vallader"
 licence = "MPL-2.0"
 # Each file is generated on request.
 pause = 5
+
+[[block]]
+name = "yast"
+title = "YaST"
+source = "git"
+url = "https://github.com/yast/yast-translations"
+files = ["po/*/{lang}.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "zypper"
+title = "zypper"
+source = "git"
+url = "https://github.com/openSUSE/zypper"
+files = ["po/{lang}.po"]
+licence = "GPL-2.0-or-later"
+
+[[block]]
+name = "libzypp"
+title = "libzypp"
+source = "git"
+url = "https://github.com/openSUSE/libzypp"
+files = ["po/{lang}.po"]
+licence = "GPL-2.0-or-later"
+
+[[block]]
+name = "snapper"
+title = "Snapper"
+source = "git"
+url = "https://github.com/openSUSE/snapper"
+files = ["po/{lang}.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "libstorage-ng"
+title = "libstorage-ng"
+source = "git"
+url = "https://github.com/openSUSE/libstorage-ng"
+files = ["po/{lang}.po"]
+licence = "GPL-2.0-only"
