@@ -7,6 +7,7 @@ paired with its template first.
 """
 
 import csv
+import functools
 import importlib
 import io
 import os
@@ -123,6 +124,33 @@ def _read_po(path, data):
     return store
 
 
+@functools.cache
+def _php_parser(make_parser):
+    parser = make_parser()
+    return parser, [production.callable for production in parser.productions]
+
+
+def _reader(module):
+    """The reader module, with translate's PHP parser built once per process.
+
+    The PHP reader builds a parser for each file, and phply rebuilds its
+    tables each time it can't save them (a read-only site-packages): about
+    2 seconds a file. The reader wraps the parser's productions on each use,
+    so they're restored first.
+    """
+    module = importlib.import_module(module)
+    if module.__name__ == "translate.storage.php" and not hasattr(module, "_amagama_parser"):
+        make_parser = module.make_parser
+
+        def parser():
+            parser, callables = _php_parser(make_parser)
+            for production, callable in zip(parser.productions, callables):
+                production.callable = callable
+            return parser
+        module.make_parser = module._amagama_parser = parser
+    return module
+
+
 def open_store(path, format=None, columns=None, header_row=False, xliff_states=None):
     """Read path with the named reader, or the one its extension picks.
 
@@ -138,7 +166,7 @@ def open_store(path, format=None, columns=None, header_row=False, xliff_states=N
         store = factory.getobject(path)
     else:
         module, name, kwargs = FORMATS.get(format) or MONOLINGUAL[format]
-        store = getattr(importlib.import_module(module), name)(**kwargs)
+        store = getattr(_reader(module), name)(**kwargs)
         store.filename = path
         with open(path, "rb") as f:
             # Not store_class(f): NextcloudJsonFile then fails on _metadata.

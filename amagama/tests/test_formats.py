@@ -233,3 +233,13 @@ def test_po_domain_lines_ignored(tmp_path, size):
     path.write_bytes(PO_HEADER + b'domain "gmtp"\n\n' + PO_ENTRIES)
     stores = open_po_pieces(str(path), size=size) if size else [open_store(str(path))]
     assert sources(stores) == ["Save file", "Open file", "Close file", "Quit"]
+
+
+def test_php_parser_built_once(tmp_path):
+    # More files than Python's recursion limit: the reader wraps the
+    # parser's productions on each use.
+    for i in range(1100):
+        path = tmp_path / "a.php"
+        path.write_text("<?php\n$string['k%d'] = 'v%d';\n" % (i, i))
+        assert [u.target or u.source for u in open_store(str(path), "php").units] == ["v%d" % i]
+    assert formats._php_parser.cache_info().misses == 1
