@@ -346,6 +346,11 @@ class Pontoon(Fetcher):
         return files
 
 
+# Gitiles hosts give a ref's commit as JSON; ls-remote on chromium/src
+# lists millions of refs, whatever the pattern.
+GITILES_HOSTS = (".googlesource.com",)
+
+
 class Git(Fetcher):
     """A shallow clone of one branch or tag; files gives each file's language.
 
@@ -369,10 +374,21 @@ class Git(Fetcher):
 
     def fingerprint(self):
         ref = self.settings.get("ref", "HEAD")
+        host = urllib.parse.urlsplit(self.settings["url"]).hostname or ""
+        if host.endswith(GITILES_HOSTS):
+            return self._gitiles_commit(ref)
         lines = self._git("ls-remote", self.settings["url"], ref).split()
         if not lines:
             raise FetchError("%s: no ref %s" % (self.settings["url"], ref))
         return lines[0]
+
+    def _gitiles_commit(self, ref):
+        url = "%s/+/%s?format=JSON" % (self.settings["url"].rstrip("/"), urllib.parse.quote(ref))
+        try:
+            # Gitiles prefixes its JSON with )]}' to stop it being run as script.
+            return json.loads(http_text(url).split("\n", 1)[1])["commit"]
+        except (IndexError, ValueError, KeyError, TypeError) as e:
+            raise FetchError("%s: %s" % (url, e))
 
     def fetch(self, dest):
         args = ["clone", "--quiet", "--depth", "1"]

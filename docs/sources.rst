@@ -259,7 +259,8 @@ Each fetch records a fingerprint of the block: for ``damned-lies`` the
 release's translation statistics (one request; a reworded translation alone
 doesn't change them), for ``pontoon`` none (its files are generated on
 request), for ``translationproject`` the ETag or Last-Modified
-header of every tarball, for ``git`` the commit of the ref. ``fetch_sources
+header of every tarball, for ``git`` the commit of the ref (from Gitiles'
+JSON on ``googlesource.com``, where ``ls-remote`` is too costly). ``fetch_sources
 --check`` recomputes it without downloading and lists the blocks whose
 fingerprint changed.
 
