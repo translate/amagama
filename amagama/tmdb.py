@@ -162,22 +162,24 @@ def _long(text):
     return len(text.encode("utf-8")) > SAFE_INDEX_BYTES
 
 
-def _insert_indexable(cursor, query, params, text):
+def _insert_indexable(cursor, query, params, text, returning=False):
     """Run an INSERT of text; False if text is too long for the index.
 
+    With returning, give the row the INSERT returned instead of True.
     Only a long text risks the limit, and only it pays for a savepoint.
     """
     if not _long(text):
         cursor.execute(query, params)
-        return True
+        return cursor.fetchone() if returning else True
     cursor.execute("SAVEPOINT long_text")
     try:
         cursor.execute(query, params)
     except errors.ProgramLimitExceeded:
         cursor.execute("ROLLBACK TO SAVEPOINT long_text")
         return False
+    row = cursor.fetchone() if returning else True
     cursor.execute("RELEASE SAVEPOINT long_text")
-    return True
+    return row
 
 class TMDB(postgres.PostGres):
 
@@ -201,12 +203,19 @@ CREATE UNIQUE INDEX sources_text_unique_idx ON sources (text);
 
     INIT_TARGET = """
 CREATE TABLE targets (
+    tid SERIAL,
     sid INTEGER NOT NULL,
     text TEXT NOT NULL,
     lang VARCHAR(32) NOT NULL,
     FOREIGN KEY (sid) references sources(sid)
 );
 CREATE UNIQUE INDEX targets_unique_idx ON targets (sid, text, lang);
+-- The imports that supplied each target.
+CREATE TABLE target_imports (
+    tid INTEGER NOT NULL,
+    iid INTEGER NOT NULL
+);
+CREATE UNIQUE INDEX target_imports_unique_idx ON target_imports (tid, iid);
 """
 
     INIT_IMPORTS = """
@@ -244,7 +253,7 @@ CREATE INDEX targets_lang_sid_idx ON targets (lang, sid) WITH (fillfactor = 100)
     PREPARE_LOOKUP = """
 PREPARE lookup AS
 SELECT * from (
-    SELECT s.text AS source, t.text AS target, TS_RANK(s.vector, query, 32) * 1744.93406073519 AS rank
+    SELECT s.sid, s.text AS source, t.text AS target, TS_RANK(s.vector, query, 32) * 1744.93406073519 AS rank
     FROM sources s JOIN targets t ON s.sid = t.sid,
     TO_TSQUERY($1, public.prepare_or_tsquery($2)) query
     WHERE t.lang = $3 AND s.length BETWEEN $4 AND $5
@@ -321,15 +330,38 @@ ORDER BY rank DESC;
         cursor.execute(self.INIT_IMPORTS)
         cursor.connection.commit()
 
-    def record_import(self, slang, tlang, filename, checksum, units, skipped,
-                      block=None, licence=None, commit=True):
+    def start_import(self, slang, tlang, filename, block=None, licence=None):
+        """Add the imports row of a file about to be imported; return its iid.
+
+        The row is part of the import's transaction, and its targets link to
+        it. finish_import() records the counts.
+        """
         cursor = self.get_cursor(self.schema(lang_to_table(slang)))
-        cursor.execute("""INSERT INTO imports
-            (block, filename, checksum, lang, licence, units, skipped)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)""",
-            (block, filename, checksum, lang_to_table(tlang), licence, units, skipped))
+        cursor.execute("""INSERT INTO imports (block, filename, lang, licence, units, skipped)
+            VALUES (%s, %s, %s, %s, 0, 0) RETURNING iid""",
+            (block, filename, lang_to_table(tlang), licence))
+        return cursor.fetchone()[0]
+
+    def finish_import(self, slang, iid, units, skipped, checksum=None, commit=True):
+        cursor = self.get_cursor(self.schema(lang_to_table(slang)))
+        cursor.execute("""UPDATE imports SET units = %s, skipped = %s, checksum = %s,
+            imported = now() WHERE iid = %s""", (units, skipped, checksum, iid))
         if commit:
             cursor.connection.commit()
+
+    @staticmethod
+    def _has_relation(cursor, name):
+        cursor.execute("SELECT to_regclass(%s) IS NOT NULL", (name,))
+        return cursor.fetchone()[0]
+
+    def _link_mode(self, cursor, iid):
+        """The iid to link targets to, and whether targets has its unique index.
+
+        A schema made before target_imports existed gets no links.
+        """
+        if iid is not None and not self._has_relation(cursor, 'target_imports'):
+            iid = None
+        return iid, self._has_relation(cursor, 'targets_unique_idx')
 
     def snapshot(self, slang, name):
         """Copy the live slang schema to _<name>_<slang>, which isn't served.
@@ -417,11 +449,18 @@ ORDER BY rank DESC;
                 LEFT JOIN (SELECT lang, COUNT(*) AS loaded FROM targets GROUP BY lang) t
                 ON s.lang = t.lang ORDER BY s.lang""").format(snap_targets))
             per_lang = cursor.fetchall()
+            iids = []
             for lang, total, loaded in per_lang:
                 cursor.execute("""INSERT INTO imports
                     (block, filename, lang, licence, units, skipped)
-                    VALUES (%s, %s, %s, %s, %s, %s)""",
+                    VALUES (%s, %s, %s, %s, %s, %s) RETURNING iid""",
                     (block, snapshot, lang, licence, loaded, total - loaded))
+                iids.append(cursor.fetchone()[0])
+            if self._has_relation(cursor, 'target_imports'):
+                # Every target came from the snapshot: link it to its language's import.
+                cursor.execute("""INSERT INTO target_imports (tid, iid)
+                    SELECT t.tid, i.iid FROM targets t JOIN imports i ON i.lang = t.lang
+                    WHERE i.iid = ANY(%s)""", (iids,))
             cursor.connection.commit()
         except Exception:
             cursor.connection.rollback()
@@ -529,20 +568,35 @@ ORDER BY rank DESC;
         lang_config = lang_to_config(slang)
         checker = project_checker(None, slang)
         try:
+            links = self._has_relation(cursor, 'target_imports')
             for sid, lang, text, fixed in targets:
-                cursor.execute("DELETE FROM targets WHERE sid = %s AND lang = %s AND text = %s",
-                               (sid, lang, text))
-                cursor.execute("""INSERT INTO targets (sid, text, lang)
-                    SELECT %(sid)s, %(text)s, %(lang)s WHERE NOT EXISTS (
-                        SELECT 1 FROM targets
-                        WHERE sid = %(sid)s AND lang = %(lang)s AND text = %(text)s)""",
-                    {'sid': sid, 'text': fixed, 'lang': lang})
+                params = {'sid': sid, 'lang': lang, 'text': text, 'fixed': fixed}
+                # Fixing in place keeps the target's imports.
+                cursor.execute("""UPDATE targets SET text = %(fixed)s
+                    WHERE sid = %(sid)s AND lang = %(lang)s AND text = %(text)s
+                    AND NOT EXISTS (SELECT 1 FROM targets
+                        WHERE sid = %(sid)s AND lang = %(lang)s AND text = %(fixed)s)""", params)
+                if cursor.rowcount:
+                    continue
+                if links:
+                    self._move_links(cursor, """SELECT t.tid AS old, u.tid AS new
+                        FROM targets t JOIN targets u
+                        ON u.sid = t.sid AND u.lang = t.lang AND u.text = %(fixed)s
+                        WHERE t.sid = %(sid)s AND t.lang = %(lang)s AND t.text = %(text)s""",
+                        params)
+                cursor.execute("""DELETE FROM targets
+                    WHERE sid = %(sid)s AND lang = %(lang)s AND text = %(text)s""", params)
             for sid, fixed in sources:
                 cursor.execute("SELECT sid FROM sources WHERE text = %s", (fixed,))
                 existing = cursor.fetchone()
                 if existing:
                     # Move the targets to the existing source, dropping ones
                     # it already has.
+                    if links:
+                        self._move_links(cursor, """SELECT t.tid AS old, u.tid AS new
+                            FROM targets t JOIN targets u
+                            ON u.sid = %(new)s AND u.lang = t.lang AND u.text = t.text
+                            WHERE t.sid = %(old)s""", {'old': sid, 'new': existing[0]})
                     cursor.execute("""DELETE FROM targets t WHERE t.sid = %(old)s AND EXISTS (
                         SELECT 1 FROM targets u WHERE u.sid = %(new)s
                         AND u.lang = t.lang AND u.text = t.text)""",
@@ -562,6 +616,15 @@ ORDER BY rank DESC;
             raise
         current_app.cache.clear()
         return len(sources), len(targets), unconverted
+
+    @staticmethod
+    def _move_links(cursor, pairs, params):
+        """Give each new target of the (old, new) tid pairs the old one's imports."""
+        cursor.execute("""INSERT INTO target_imports (tid, iid)
+            SELECT p.new, l.iid FROM (%s) p JOIN target_imports l ON l.tid = p.old
+            ON CONFLICT DO NOTHING""" % pairs, params)
+        cursor.execute("DELETE FROM target_imports WHERE tid IN (SELECT old FROM (%s) p)"
+                       % pairs, params)
 
     def drop_db(self, source_langs):
         for slang in source_langs:
@@ -682,8 +745,8 @@ ORDER BY rank DESC;
         raise Exception("sid not found although it should have existed")
 
     def add_unit(self, unit, source_lang, target_lang, commit=True,
-                 cursor=None):
-        """Insert unit in the database."""
+                 cursor=None, iid=None):
+        """Insert unit in the database, linked to import iid; 1 if stored."""
         #TODO: is that really the best way to handle unspecified source and
         # target languages? what about conflicts between unit attributes and
         # passed arguments?
@@ -707,28 +770,54 @@ ORDER BY rank DESC;
             # (add_dict()'s get_sid() only looks one up, it doesn't insert).
             if self.get_all_sids([unitdict], source_lang, None):
                 # The source is too long for the index.
-                return
-            self.add_dict(unitdict, cursor)
+                return 0
+            iid, unique = self._link_mode(cursor, iid)
+            added = self.add_dict(unitdict, cursor, iid, unique)
 
             if commit:
                 cursor.connection.commit()
         except Exception:
             cursor.connection.rollback()
             raise
+        return int(bool(added))
 
-    def add_dict(self, unit, cursor):
+    def add_dict(self, unit, cursor, iid=None, unique=True):
         """Insert units represented as dictionaries in database.
 
-        The caller is expected to handle errors.
+        With iid, link the target to that import; unique says whether
+        targets has its unique index, which a deployed schema doesn't. The
+        caller is expected to handle errors.
         """
         unit['sid'] = self.get_sid(unit, cursor)
-        # ON CONFLICT covers a parallel import adding the same target; NOT
-        # EXISTS a deployed schema, which has no unique index.
-        return _insert_indexable(cursor, """INSERT INTO targets (sid, text, lang)
-            SELECT %(sid)s, %(target)s, %(target_lang)s
-            WHERE NOT EXISTS (SELECT 1 FROM targets
-                WHERE sid = %(sid)s AND lang = %(target_lang)s AND text = %(target)s)
-            ON CONFLICT DO NOTHING""", unit, unit['target'])
+        if iid is None:
+            # ON CONFLICT covers a parallel import adding the same target; NOT
+            # EXISTS a deployed schema, which has no unique index.
+            return _insert_indexable(cursor, """INSERT INTO targets (sid, text, lang)
+                SELECT %(sid)s, %(target)s, %(target_lang)s
+                WHERE NOT EXISTS (SELECT 1 FROM targets
+                    WHERE sid = %(sid)s AND lang = %(target_lang)s AND text = %(target)s)
+                ON CONFLICT DO NOTHING""", unit, unit['target'])
+        if unique:
+            # Unlike DO NOTHING, DO UPDATE returns the tid of a target that
+            # is already there, even one a parallel import just added.
+            row = _insert_indexable(cursor, """INSERT INTO targets (sid, text, lang)
+                VALUES (%(sid)s, %(target)s, %(target_lang)s)
+                ON CONFLICT (sid, text, lang) DO UPDATE SET sid = EXCLUDED.sid
+                RETURNING tid""", unit, unit['target'], returning=True)
+            if not row:
+                return False
+        else:
+            cursor.execute("""SELECT tid FROM targets
+                WHERE sid = %(sid)s AND lang = %(target_lang)s AND text = %(target)s
+                LIMIT 1""", unit)
+            row = cursor.fetchone()
+            if row is None:
+                cursor.execute("""INSERT INTO targets (sid, text, lang)
+                    VALUES (%(sid)s, %(target)s, %(target_lang)s) RETURNING tid""", unit)
+                row = cursor.fetchone()
+        cursor.execute("""INSERT INTO target_imports (tid, iid) VALUES (%s, %s)
+            ON CONFLICT DO NOTHING""", (row[0], iid))
+        return True
 
     def get_all_sids(self, units, source_lang, project_style):
         """Ensure that all source strings are in the database+cache.
@@ -821,7 +910,7 @@ ORDER BY rank DESC;
                self._indexable_string(u.target)
 
     def add_store(self, store, source_lang, target_lang, project_style=None,
-                  commit=True):
+                  commit=True, iid=None):
         """Insert all units in store in database.
 
         A unit whose text can't be stored even with its surrogate pairs
@@ -838,11 +927,11 @@ ORDER BY rank DESC;
         if not units:
             return 0
         return self.add_list(units, source_lang, target_lang, project_style,
-                             commit)
+                             commit, iid)
 
     def add_list(self, units, source_lang, target_lang, project_style=None,
-                 commit=True):
-        """Insert all units in list into the database.
+                 commit=True, iid=None):
+        """Insert all units in list into the database, linked to import iid.
 
         Units are represented as dictionaries.
         """
@@ -859,6 +948,7 @@ ORDER BY rank DESC;
 
         cursor = self.get_cursor(self.schema(slang))
         try:
+            iid, unique = self._link_mode(cursor, iid)
             # We sort to avoid deadlocks during parallel import.
             units.sort(key=lambda x: x['target'])
             count = 0
@@ -868,7 +958,7 @@ ORDER BY rank DESC;
                     'target_lang': tlang,
                     'lang_config': lang_config,
                 })
-                if unit['source'] not in too_long and self.add_dict(unit, cursor=cursor):
+                if unit['source'] not in too_long and self.add_dict(unit, cursor, iid, unique):
                     count += 1
             if commit:
                 cursor.connection.commit()
@@ -947,7 +1037,21 @@ ORDER BY rank DESC;
                 results.append(result)
         results.sort(key=lambda match: match['quality'], reverse=True)
         results = results[:max_candidates]
+        self._add_sources(cursor, tlang, results)
         return results
+
+    def _add_sources(self, cursor, tlang, results):
+        """Give each result the names of the blocks it was imported from."""
+        blocks = {}
+        if results and self._has_relation(cursor, 'target_imports'):
+            cursor.execute("""SELECT t.sid, t.text, ARRAY_AGG(DISTINCT i.block ORDER BY i.block)
+                FROM targets t JOIN target_imports l ON l.tid = t.tid
+                JOIN imports i ON i.iid = l.iid
+                WHERE t.lang = %s AND t.sid = ANY(%s) AND i.block IS NOT NULL
+                GROUP BY t.sid, t.text""", (tlang, [result['sid'] for result in results]))
+            blocks = {(sid, text): names for sid, text, names in cursor.fetchall()}
+        for result in results:
+            result['sources'] = blocks.get((result.pop('sid'), result['target']), [])
 
 
 def min_levenshtein_length(length, min_similarity):

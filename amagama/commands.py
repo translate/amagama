@@ -260,12 +260,13 @@ class BuildTMDB(object):
         # Do something useful with the store and the database.
         try:
             logging.info("Importing strings from: %s", filename)
+            iid = current_app.tmdb.start_import(source_lang, target_lang, filename,
+                                                self.block, self.licence)
             units = current_app.tmdb.add_store(store, source_lang, target_lang,
-                                               project_style, commit=False)
+                                               project_style, commit=False, iid=iid)
             skipped = sum(1 for u in store.units if u.istranslatable()) - units
-            current_app.tmdb.record_import(
-                source_lang, target_lang, filename, file_checksum(filename),
-                units, skipped, self.block, self.licence)
+            current_app.tmdb.finish_import(source_lang, iid, units, skipped,
+                                           file_checksum(filename))
         except Exception:
             logging.exception("Error importing strings from: %s", filename)
             raise

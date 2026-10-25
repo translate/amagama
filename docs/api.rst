@@ -112,6 +112,11 @@ list containing zero or more results. The results contain the following fields:
 | rank      | An internal quantity that might       |
 |           | disappear. Ignore.                    |
 +-----------+---------------------------------------+
+| sources   | The :ref:`blocks <sources>` whose     |
+|           | imports supplied this translation, in |
+|           | alphabetical order. Empty if none was |
+|           | recorded.                             |
++-----------+---------------------------------------+
 
 An example:
 
@@ -122,31 +127,36 @@ An example:
         "source": "Computer",
         "quality": 100.0,
         "target": "Rekenaar",
-        "rank": 100.0
+        "rank": 100.0,
+        "sources": ["gnome-51", "kde"]
       },
       {
         "source": "Computers",
          "quality": 88.888888888888886,
          "target": "Rekenaars",
-         "rank": 100.0
+         "rank": 100.0,
+         "sources": ["kde"]
        },
        {
          "source": "&Computer",
          "quality": 88.888888888888886,
          "target": "Rekenaar",
-         "rank": 100.0
+         "rank": 100.0,
+         "sources": ["libreoffice-26.8"]
        },
        {
          "source": "_Computer",
          "quality": 88.888888888888886,
          "target": "_Rekenaar",
-         "rank": 100.0
+         "rank": 100.0,
+         "sources": ["gnome-51"]
        },
        {
          "source": "My Computer",
          "quality": 72.727272727272734,
          "target": "My Rekenaar",
-         "rank": 100.0
+         "rank": 100.0,
+         "sources": ["legacy-2019"]
        }
      ]
 
