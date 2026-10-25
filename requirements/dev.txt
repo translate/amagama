@@ -7,3 +7,4 @@ Sphinx>=1.1
 pytest
 pytest-cov
 pytest-postgresql>=6
+zstandard>=0.22

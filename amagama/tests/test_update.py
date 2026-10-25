@@ -7,6 +7,7 @@ from click.testing import CliRunner
 
 from amagama.application import amagama_server_factory
 from amagama.cli import manage
+from amagama.updater import compressed
 from amagama.updater import pipeline
 from amagama.tests.test_updater import QuietHandler, block, write_stats, write_tarball
 
@@ -153,6 +154,30 @@ class TestUpdate(object):
         assert "Imported 3 files" in result.output
         assert schemas(pg_connection) == {"en", "_old_en"}
 
+    def test_uncompressed_cache_imports(self, run, tmp_path, pg_connection):
+        """A cache fetched before files were kept compressed still imports."""
+        run("update", "-s", "en")
+        for packed in (tmp_path / "cache").rglob("*" + compressed.SUFFIX):
+            compressed.decompress(str(packed), str(packed)[:-len(compressed.SUFFIX)])
+            packed.unlink()
+        result = run("update", "-s", "en", "--force")
+        assert result.exit_code == 0, result.output
+        assert "Imported 3 files: 3 units (0 skipped)." in result.output
+        assert lookup("af", "Open file") == ["Maak lêer oop"]
+
+    def test_compression_failure_leaves_no_fetch(self, run, site, tmp_path, monkeypatch):
+        root, url = site
+        run("update", "-s", "en")
+
+        def full_disk(path):
+            raise OSError("No space left on device")
+        monkeypatch.setattr(compressed, "compress", full_disk)
+        write_stats(root, af=2, zu=1)
+        result = run("update", "-s", "en")
+        assert result.exit_code == 1
+        assert not list((tmp_path / "cache").glob("*.new"))
+        assert lookup("af", "Open file") == ["Maak lêer oop"]
+
     def test_snapshot_loaded_first(self, run, tmp_path, pg_connection):
         legacy = tmp_path / "legacy.po"
         legacy.write_text(po("af", ("Close file", "Maak lêer toe")))
@@ -218,3 +243,10 @@ class TestUpdate(object):
         assert result.exit_code == 0, result.output
         assert "Imported 3 files: 3 units (0 skipped)." in result.output
         assert lookup("zu", "Open file") == ["Vula ifayela"]
+
+
+def test_import_file_unknown_language(amagama, tmp_path):
+    path = tmp_path / "x.po"
+    path.write_text(po("x!", ("Save file", "?")))
+    with amagama.app_context():
+        assert pipeline.import_file(str(path), "en", "x!", "tp", None) == "unknown language x!"
