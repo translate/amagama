@@ -38,8 +38,9 @@ repos:
     rev: v2.4.3
     hooks:
       - id: codespell
-        # Generated from Weblate: project and file names, not prose.
-        exclude: ^amagama/updater/weblate-.*\.toml$
+        # Generated from Weblate, and the titles template from them: project
+        # and file names, not prose.
+        exclude: ^amagama/(updater/weblate-.*\.toml|po/sources/sources\.pot)$
 
   - repo: https://github.com/jorisroovers/gitlint
     rev: v0.19.1

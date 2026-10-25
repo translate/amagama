@@ -45,7 +45,7 @@ files it includes); a block's own settings take precedence. ``name`` and
 
 ``title``
   The name shown to people, such as ``GNOME`` or ``Legacy OSS``. Titles are
-  meant to be translated, so keep release numbers in ``version``.
+  :ref:`translated <sources#titles>`, so keep release numbers in ``version``.
 
 ``version``
   Optional release, such as ``"51"``; shown after the title (GNOME 51).
@@ -400,3 +400,20 @@ download per language refreshes its languages in turn instead, and
 ``min_age_days`` isn't checked at all. Every fetch also records a hash of the files it kept, and when
 all the blocks :ref:`update <managing#update>` fetched are the same as last
 time, it doesn't rebuild.
+
+
+.. _sources#titles:
+
+Translated titles
+=================
+
+Block titles are translated in :file:`amagama/po/sources/`: one
+:file:`<lang>.po` per language, from the template :file:`sources.pot`. Beside
+the titles, translators word "{title} {version}" for their language and give
+its text direction. After adding or changing a title, here or with
+:ref:`weblate_sources <managing#weblate-sources>`, regenerate the template;
+the tests fail while it's out of date:
+
+.. code-block:: bash
+
+    $ amagama-manage sources_pot
