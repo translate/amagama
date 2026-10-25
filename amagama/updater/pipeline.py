@@ -22,7 +22,7 @@ from amagama.updater.formats import CHROMIUM, open_pieces, open_store
 from amagama.updater.pairing import paired_store, without_ids
 from amagama.updater.segment import segmented
 from amagama.updater.fetchers import FetchError
-from amagama.updater.sources import FAILURES_TO_REPORT, load_sources
+from amagama.updater.sources import FAILURES_TO_REPORT, limit_first_fetches, load_sources
 
 
 @functools.lru_cache(maxsize=16)
@@ -156,12 +156,14 @@ def import_files(tasks, workers):
     return in_workers(_import_task, tasks, workers, _start_worker)
 
 
-def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=print):
+def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=print,
+           first_fetches=None):
     """Fetch changed blocks, rebuild slang from every block and swap it in.
 
-    A block that fails to fetch is skipped, and rebuilt from its last
-    fetch if it has one. Returns {block name: its failures in a row} for
-    those. Any other failure raises before the swap, leaving the live data
+    At most first_fetches blocks are fetched for the first time; the rest
+    wait for later updates. A block that fails to fetch is skipped, and
+    rebuilt from its last fetch if it has one. Returns {block name: its
+    failures in a row} for those. Any other failure raises before the swap, leaving the live data
     as it was, and the next update rebuilds even if nothing has changed
     since.
     """
@@ -189,7 +191,10 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
         if not changed:
             block.clear_failures(cache_dir)
         return changed
-    changed = [block for block in blocks if checked(block)]
+    due, later = limit_first_fetches(blocks, cache_dir, first_fetches)
+    if later:
+        out("Blocks not fetched yet, left for later updates: %d." % later)
+    changed = [block for block in due if checked(block)]
     # Fetches save their state before the rebuild; this marks one still owed.
     pending = os.path.join(cache_dir, ".rebuild-%s" % slang)
     was_pending = os.path.exists(pending)
@@ -243,7 +248,8 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
             continue
         state = block.state(cache_dir)
         if state is None:
-            out("Nothing to import from %s: it has never been fetched." % block.name)
+            if block in due:
+                out("Nothing to import from %s: it has never been fetched." % block.name)
             continue
         directory = block.directory(cache_dir)
         block_tasks = [(os.path.join(directory, path), slang, lang, block.name, block.licence,

@@ -24,7 +24,7 @@ from translate.storage import factory
 from amagama.licences import normalise_licence
 from amagama.updater import weblate
 from amagama.updater.fetchers import FetchError
-from amagama.updater.sources import FAILURES_TO_REPORT, load_sources
+from amagama.updater.sources import FAILURES_TO_REPORT, limit_first_fetches, load_sources
 from amagama.tmdb import BUILD_PREFIX, OLD_PREFIX
 
 def ensure_source_exists():
@@ -412,6 +412,11 @@ def fetch_sources(block_names, check):
         raise click.UsageError("No block named %s." % ", ".join(sorted(unknown)))
     if block_names:
         blocks = [block for block in blocks if block.name in block_names]
+    else:
+        blocks, later = limit_first_fetches(
+            blocks, cache_dir, current_app.config.get('UPDATER_FIRST_FETCHES'))
+        if later:
+            print("Blocks not fetched yet, left for later runs: %d." % later)
     failed = False
     for block in blocks:
         try:
@@ -514,7 +519,8 @@ def update(source_langs, force):
         for slang in source_langs:
             failed |= bool(update_from_sources(
                 slang, cache_dir, current_app.config.get('UPDATER_SOURCES'),
-                current_app.config.get('UPDATER_WORKERS', 4), force))
+                current_app.config.get('UPDATER_WORKERS', 4), force,
+                first_fetches=current_app.config.get('UPDATER_FIRST_FETCHES')))
     except (OSError, ValueError, FetchError) as e:
         print(e)
         raise SystemExit(1)

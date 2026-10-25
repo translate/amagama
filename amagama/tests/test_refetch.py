@@ -101,3 +101,21 @@ def test_force_rebuilds_same_content(update, pg_connection):
     result = update(0, "--force")
     assert "Imported 1 files" in result.output
     assert old_copy(pg_connection)
+
+
+def test_first_fetches_wait_for_later_updates(amagama_config, tmp_path, site):
+    root, url = site
+    sources = tmp_path / "sources.toml"
+    sources.write_text(block("a", "translationproject", base_url=url, max_age_days=0)
+                       + block("b", "translationproject", base_url=url, max_age_days=0))
+    amagama_config(UPDATER_SOURCES=str(sources), UPDATER_CACHE_DIR=str(tmp_path / "cache"),
+                   UPDATER_WORKERS=1, UPDATER_FIRST_FETCHES=1)
+    result = CliRunner().invoke(manage, ("update", "-s", "en"))
+    assert result.exit_code == 0, result.output
+    assert "Blocks not fetched yet, left for later updates: 1." in result.output
+    assert "Fetched a:" in result.output
+    assert "never been fetched" not in result.output
+    assert "Imported 1 files" in result.output
+    result = CliRunner().invoke(manage, ("update", "-s", "en"))
+    assert "Fetched b:" in result.output
+    assert "Imported 2 files" in result.output
