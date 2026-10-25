@@ -10,7 +10,7 @@ license = "GPL-3.0-or-later"
 requires-python = ">=3.11"
 dynamic = ["version"]
 authors = [
-    { name = "Translate", email = "translate-devel@lists.sourceforge.net" },
+    { name = "Translate" },
 ]
 urls = { Homepage = "http://amagama.translatehouse.org", Source = "https://github.com/translate/amagama" }
 
