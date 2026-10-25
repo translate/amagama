@@ -201,6 +201,15 @@ def test_po_piece_unreadable(tmp_path):
         open_po_pieces(str(path), size=40)
 
 
+def test_po_domain_lines(tmp_path):
+    path = tmp_path / "af.po"
+    path.write_bytes(PO_HEADER + b'domain "gmtp"\n\n' + PO_ENTRIES)
+    expected = ["Save file", "Open file", "Close file", "Quit"]
+    assert sources([open_store(str(path))]) == expected
+    assert sources([open_store(str(path), "po")]) == expected
+    assert sources(open_po_pieces(str(path), size=40)) == expected
+
+
 def test_update_po_in_pieces(amagama_config, tmp_path, monkeypatch):
     monkeypatch.setattr(formats, "PO_PIECE_SIZE", 40)
     repo = tmp_path / "repo"

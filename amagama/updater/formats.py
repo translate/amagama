@@ -45,6 +45,18 @@ CHROMIUM = "xtb"
 # reader holds the whole file (a 161 MB compendium takes 2.8 GB).
 PO_PIECE_SIZE = 8 * 1024 * 1024
 
+# A gettext domain line, which msgcat keeps when it merges files. Translate
+# Toolkit can't parse one, and amaGama keeps no domains, so it is dropped.
+_PO_DOMAIN = re.compile(rb'[ \t]*domain[ \t]+"')
+
+
+def _is_domain(line):
+    return _PO_DOMAIN.match(line) is not None
+
+
+def _without_domains(data):
+    return b"".join(line for line in data.splitlines(keepends=True) if not _is_domain(line))
+
 
 def check_format(name):
     if name not in FORMATS and name not in MONOLINGUAL and name != CHROMIUM:
@@ -119,7 +131,12 @@ def open_store(path, format=None, columns=None, header_row=False, xliff_states=N
     """
     if format == "csv" and columns:
         return _read_csv(path, columns, header_row)
-    if format is None:
+    if format == "po" or (format is None and path.endswith(".po")):
+        store = po.pofile()
+        store.filename = path
+        with open(path, "rb") as f:
+            store.parse(_without_domains(f.read()))
+    elif format is None:
         store = factory.getobject(path)
     else:
         module, name, kwargs = FORMATS.get(format) or MONOLINGUAL[format]
@@ -149,6 +166,8 @@ def po_pieces(path, size=None):
     header, piece, entry, length = b"", [], [], 0
     with open(path, "rb") as f:
         for line in f:
+            if _is_domain(line):
+                continue
             if line.strip():
                 entry.append(line)
                 continue
