@@ -160,7 +160,6 @@ class TestSourcesFile(object):
         (block("a", "translationproject", exclude_ids="@*"), "exclude_ids must be a list"),
         (block("a", "translationproject", keep="*.grdp"), "keep must be a list of filemasks"),
         (block("a", "translationproject", keep=["{lang}.grdp"]), "not in exclude"),
-        (block("a", "translationproject", format="xtb"), "format xtb needs a template"),
         (block("a", "translationproject", columns=["source", "target"]),
          "columns and header_row are for format csv only"),
         (block("a", "translationproject", format="csv", columns=["source", "english"]),

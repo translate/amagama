@@ -6,7 +6,7 @@ from click.testing import CliRunner
 from amagama.application import amagama_server_factory
 from amagama.cli import manage
 from amagama.tests.test_updater import block
-from amagama.updater.chromium import message_id, paired_store, read_grd
+from amagama.updater.chromium import listed_translations, message_id, paired_store, read_grd
 
 # Three messages from Chromium's ui/strings/ui_strings.grd, with the ids its
 # translations use.
@@ -116,6 +116,7 @@ def update(amagama_config, tmp_path, url, **extra):
     settings = {"files": ["*/strings/translations/*_{lang}.xtb"],
                 "template": "*/strings/*.grd", "format": "xtb"}
     settings.update(extra)
+    settings = {key: value for key, value in settings.items() if value is not None}
     sources = tmp_path / "sources.toml"
     sources.write_text(block("chromium", "git", url=url, **settings))
     amagama_config(UPDATER_SOURCES=str(sources), UPDATER_CACHE_DIR=str(tmp_path / "cache"),
@@ -138,3 +139,50 @@ def test_update_without_parts(amagama_config, tmp_path, chromium_repo):
     assert result.exit_code == 0, result.output
     assert "Couldn't read 1 files:" in result.output
     assert "extra.grdp" in result.output
+
+
+TRANSLATIONS = """
+  <translations>
+    <file path="translations/ui_strings_af.xtb" lang="af" />
+    <if expr="is_android">
+      <file path="../android/ui_strings_zu.xtb" lang="zu" />
+    </if>
+    <file path="translations/ui_strings_ar-XB.xtb" lang="ar-XB" />
+  </translations>
+  <release"""
+
+
+def test_listed_translations(tmp_path):
+    (tmp_path / "ui/strings").mkdir(parents=True)
+    (tmp_path / "ui/strings/ui_strings.grd").write_text(
+        GRD.replace("\n  <release", TRANSLATIONS, 1), encoding="utf-8")
+    assert listed_translations(str(tmp_path), ["ui/strings/ui_strings.grd"]) == {
+        "ui/strings/translations/ui_strings_af.xtb": ("ui/strings/ui_strings.grd", "af"),
+        "ui/android/ui_strings_zu.xtb": ("ui/strings/ui_strings.grd", "zu"),
+        "ui/strings/translations/ui_strings_ar-XB.xtb": ("ui/strings/ui_strings.grd", "ar-XB"),
+    }
+
+
+def test_listed_translations_bad_grd(tmp_path):
+    (tmp_path / "bad.grd").write_text("<grit>", encoding="utf-8")
+    with pytest.raises(ValueError, match="bad.grd"):
+        listed_translations(str(tmp_path), ["bad.grd"])
+
+
+def test_update_grd_listed(amagama_config, tmp_path):
+    repo = tmp_path / "repo"
+    (repo / "ui/strings/translations").mkdir(parents=True)
+    (repo / "ui/strings/ui_strings.grd").write_text(
+        GRD.replace("\n  <release", TRANSLATIONS, 1), encoding="utf-8")
+    (repo / "ui/strings/extra.grdp").write_text(GRDP, encoding="utf-8")
+    xtb = XTB % (message_id("Save file"), message_id("TYPE_1, TYPE_2"))
+    for name in ("ui_strings_af.xtb", "ui_strings_ar-XB.xtb", "ui_strings_xh.xtb"):
+        (repo / "ui/strings/translations" / name).write_text(xtb, encoding="utf-8")
+    subprocess.run(["sh", "-c", "git init -q -b main && git add . && git -c user.name=t "
+                    "-c user.email=t@example.org commit -q -m strings"], cwd=repo, check=True)
+    # Languages come from the .grd: xh isn't listed, ar-XB is a pseudo-locale.
+    result = update(amagama_config, tmp_path, repo.as_uri(), files=["**/*.xtb"], template=None,
+                    keep=["**/*.grdp"], languages={"ar-XB": ""})
+    assert result.exit_code == 0, result.output
+    assert "Imported 1 files: 4 units (0 skipped)." in result.output
+    assert lookup("Tab") == ["Oortjie"]

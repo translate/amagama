@@ -7,6 +7,7 @@ placeholders shown by name; this computes the same ids to join the two.
 
 import hashlib
 import os
+import posixpath
 import xml.etree.ElementTree as ET
 
 from translate.storage.base import TranslationStore, TranslationUnit
@@ -81,6 +82,24 @@ def read_grd(path):
             (part.get("name") or "").upper(), "") for part in parts).strip()
         english[message_id(presentable, message.get("meaning", ""))] = (text, placeholders)
     return english
+
+
+def listed_translations(root, grds):
+    """{.xtb path: (.grd path, language)} from each .grd's <translations>.
+
+    Paths are relative to root, with "/".
+    """
+    listed = {}
+    for grd in grds:
+        try:
+            tree = ET.parse(os.path.join(root, grd))
+        except ET.ParseError as e:
+            raise ValueError("%s: %s" % (grd, e))
+        for translations in tree.getroot().iter("translations"):
+            for element in translations.iter("file"):
+                path = posixpath.normpath(posixpath.join(posixpath.dirname(grd), element.get("path")))
+                listed[path] = (grd, element.get("lang"))
+    return listed
 
 
 def paired_store(xtb_path, grd_path):
