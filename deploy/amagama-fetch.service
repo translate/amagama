@@ -1,0 +1,19 @@
+[Unit]
+Description=Refresh amaGama's fetch cache from its translation sources
+Documentation=https://docs.translatehouse.org/projects/amagama/en/latest/managing.html#fetch-sources
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=amagama
+Group=amagama
+Environment=AMAGAMA_CONFIG=/var/www/sites/amagama_fw/updater_settings.py
+# Not while an update is running: skipped (75) rather than failed.
+ExecStart=/usr/bin/flock --nonblock --conflict-exit-code 75 \
+        /var/www/sites/amagama_fw/cache/.lock \
+        /var/www/sites/amagama_fw/env3/bin/amagama-manage fetch_sources
+SuccessExitStatus=75
+Nice=10
+IOSchedulingClass=idle
+TimeoutStartSec=24h
