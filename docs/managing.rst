@@ -293,7 +293,8 @@ failure the update still swaps in, but exits with status 1 so a timer can
 alert.
 
 When nothing changed it prints ``Nothing changed.`` and exits, so it can run
-from a timer. It refuses to run while a snapshot block's snapshot is missing
+from a timer: :file:`deploy/` has systemd units for a daily ``fetch_sources``
+and a weekly ``update`` (see :file:`deploy/README.rst`). It refuses to run while a snapshot block's snapshot is missing
 and the live data holds anything the blocks don't re-import, such as a
 migrated database: run :ref:`snapshot_db <managing#snapshot-db>` first.
 
