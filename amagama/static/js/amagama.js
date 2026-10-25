@@ -112,4 +112,52 @@
     }
   };
 
+  MGM.sources = {
+
+    init: function () {
+      $('#dataSourcesModal').one('show.bs.modal', function () {
+        $.getJSON('/api/v1/sources/', MGM.sources.display);
+      });
+      $(document).on('input', '#js-sources-filter', MGM.sources.filter);
+    },
+
+    display: function (data) {
+      var sources = data.sources,
+          rowsHTML = [];
+
+      // Without a list, the dialog keeps its general description.
+      if (!sources.length) {
+        return;
+      }
+      sources.sort(function (a, b) {
+        return a.displayTitle.localeCompare(b.displayTitle, data.lang, {numeric: true});
+      });
+      for (var i = 0; i < sources.length; i++) {
+        var source = sources[i];
+        rowsHTML.push('<tr data-name="', escapeHTML(source.name), '"><td><span lang="',
+                      escapeHTML(data.lang), '" dir="', escapeHTML(data.dir), '">',
+                      escapeHTML(source.displayTitle), '</span></td><td>',
+                      escapeHTML(source.licence || ''), '</td><td title="',
+                      escapeHTML(source.targetLanguages.join(' ')), '">',
+                      source.targetLanguages.length, '</td><td>',
+                      source.units.toLocaleString(), '</td><td>',
+                      escapeHTML(source.imported.slice(0, 10)), '</td></tr>');
+      }
+      $('#js-sources-results').html(rowsHTML.join(''));
+      $('#js-sources-count').text(sources.length + ' projects and releases.');
+      $('#js-sources-fallback').hide();
+      $('#js-sources').show();
+    },
+
+    filter: function () {
+      var query = $(this).val().toLowerCase();
+
+      $('#js-sources-results tr').each(function () {
+        var $row = $(this),
+            text = ($row.text() + ' ' + $row.data('name')).toLowerCase();
+        $row.toggle(text.indexOf(query) !== -1);
+      });
+    }
+  };
+
 }(jQuery));

@@ -8,8 +8,30 @@
             <h4 class="modal-title" id="dataSourcesModalLabel">Sources of the data used in amaGama</h4>
           </div>
           <div class="modal-body">
-            amaGama data come from the most important free software projects,
-            like LibreOffice, KDE, GNOME...
+            <p id="js-sources-fallback">
+              amaGama data come from the most important free software projects,
+              like LibreOffice, KDE, GNOME...
+            </p>
+            <div id="js-sources" style="display: none">
+              <p>amaGama's translations come from these projects.
+                <span id="js-sources-count"></span></p>
+              <input type="search" class="form-control" id="js-sources-filter"
+                placeholder="Filter" aria-label="Filter the projects">
+              <div class="sources-table">
+                <table class="table table-condensed table-striped">
+                  <thead>
+                    <tr>
+                      <th>Project</th>
+                      <th>Licence</th>
+                      <th>Languages</th>
+                      <th>Translations</th>
+                      <th>Imported</th>
+                    </tr>
+                  </thead>
+                  <tbody id="js-sources-results"></tbody>
+                </table>
+              </div>
+            </div>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>

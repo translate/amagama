@@ -35,3 +35,9 @@ def test_web_ui(amagama_config):
     amagama_config(ENABLE_WEB_UI=True)
     response = amagama_server_factory().test_client().get('/')
     assert response.status_code == 200
+    # The data sources dialog fills its list from /api/v1/sources/, keeping
+    # the general description when there's none.
+    page = response.get_data(as_text=True)
+    assert 'MGM.sources.init();' in page
+    assert 'id="js-sources-results"' in page
+    assert 'id="js-sources-fallback"' in page
