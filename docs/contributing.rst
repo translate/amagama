@@ -20,8 +20,8 @@ Coding style
 Please follow the :ref:`Translate Toolkit Style Guide <toolkit:styleguide>`.
 
 Every commit is checked by the hooks in ``.pre-commit-config.yaml``: ruff,
-codespell, whitespace and file checks, the GitHub workflow files (zizmor and
-their schema) and the commit message (gitlint). Install them once per checkout
+codespell, the copyright header, whitespace and file checks, the GitHub
+workflow files (zizmor and their schema) and the commit message (gitlint). Install them once per checkout
 with `prek <https://github.com/j178/prek>`_ (installed by
 ``requirements/dev.txt``; `pre-commit <https://pre-commit.com>`_ reads the same
 config); CI runs the same hooks:
@@ -35,6 +35,10 @@ To check the whole tree:
 .. code-block:: bash
 
     $ prek run --all-files
+
+Every Python file and ``bin/`` script starts with the copyright header in
+``.license.header.txt``; ``AUTHORS.md`` lists who has contributed. Add
+yourself there with your first change.
 
 Running the tests
 -----------------
