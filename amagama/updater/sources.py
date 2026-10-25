@@ -24,7 +24,7 @@ class Block(object):
     def __init__(self, name, title, source, version=None, licence=None, files=None,
                  exclude=None, keep=None, languages=None, format=None, template=None,
                  exclude_ids=None, columns=None, header_row=None, xliff_states=None,
-                 refetch_days=30, min_days=0, segment=False, **settings):
+                 max_age_days=30, min_age_days=0, segment=False, **settings):
         self.name = name
         self.title = title
         self.version = version
@@ -70,12 +70,12 @@ class Block(object):
         check_xliff_states(format, xliff_states)
         self.reader_options = {"columns": columns, "header_row": bool(header_row),
                                "xliff_states": xliff_states}
-        if type(refetch_days) is not int or refetch_days < 0:
-            raise ValueError("refetch_days must be a whole number of days")
-        self.refetch_days = refetch_days
-        if type(min_days) is not int or min_days < 0:
-            raise ValueError("min_days must be a whole number of days")
-        self.min_days = min_days
+        if type(max_age_days) is not int or max_age_days < 0:
+            raise ValueError("max_age_days must be a whole number of days")
+        self.max_age_days = max_age_days
+        if type(min_age_days) is not int or min_age_days < 0:
+            raise ValueError("min_age_days must be a whole number of days")
+        self.min_age_days = min_age_days
         if not isinstance(segment, bool):
             raise ValueError("segment must be true or false")
         self.segment = segment
@@ -108,9 +108,9 @@ class Block(object):
     def changed(self, cache_dir):
         """Whether the source may differ from the last fetch.
 
-        Within min_days of the last fetch it isn't checked at all. A source
+        Within min_age_days of the last fetch it isn't checked at all. A source
         without a usable fingerprint counts as changed once its last fetch is
-        refetch_days old; fetch() then tells whether it really did.
+        max_age_days old; fetch() then tells whether it really did.
         """
         state = self.state(cache_dir)
         if state is None:
@@ -121,17 +121,17 @@ class Block(object):
             return False
         fingerprint = self.fetcher.fingerprint()
         if fingerprint is None:
-            return age >= datetime.timedelta(days=self.refetch_days)
+            return age >= datetime.timedelta(days=self.max_age_days)
         return state["fingerprint"] != fingerprint
 
     def rest(self, state):
-        """How long after a fetch the block isn't checked again: min_days.
+        """How long after a fetch the block isn't checked again: min_age_days.
 
         Blocks first fetched together would all come due on one day, so the
-        first refetch comes after a part of min_days fixed by the block's
+        first refetch comes after a part of min_age_days fixed by the block's
         name; they stay that far apart.
         """
-        days = datetime.timedelta(days=self.min_days)
+        days = datetime.timedelta(days=self.min_age_days)
         if state.get("fetches", 1) > 1:
             return days
         part = int(hashlib.sha256(self.name.encode("utf-8")).hexdigest()[:8], 16) / 0x100000000
