@@ -272,3 +272,19 @@ versions = [
   { version = "16", ref = "android16-qpr2-release" },
   { version = "17", ref = "android17-release" },
 ]
+
+[[block]]
+name = "chromium"
+title = "Chromium"
+source = "git"
+url = "https://chromium.googlesource.com/chromium/src"
+sparse = ["*.xtb", "*.grd", "*.grdp"]
+files = ["**/*.xtb"]
+# grit's test data; the omnibox's synonym lists.
+exclude = ["tools/**", "components/omnibox/resources/**"]
+format = "xtb"
+keep = ["**/*.grdp"]
+languages.ar-XB = ""
+languages.iw = "he"
+languages.no = "nb"
+licence = "BSD-3-Clause"
