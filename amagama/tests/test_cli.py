@@ -121,8 +121,9 @@ class TestCLI(object):
         (tmp_path / 'po' / 'messages.po').write_text(PO_FILE, encoding='utf-8')
         run('initdb', '-s', 'en')
         result = run('build_tmdb', '-s', 'en', '-i', str(tmp_path))
-        assert result.exit_code == 0, result.output
+        assert result.exit_code == 1, result.output
         assert any("Missing source or target language" in e for e in errors(caplog))
+        assert "messages.po: missing source or target language" in result.output
         assert lookup('Open file') == []
 
     def test_build_tmdb_skips(self, run, po_dir, caplog):
@@ -143,23 +144,35 @@ class TestCLI(object):
         (po_dir / 'nl.po').write_text('msgid "Open', encoding='utf-8')
         run('initdb', '-s', 'en')
         result = run('build_tmdb', '-s', 'en', '-i', str(po_dir))
-        assert result.exit_code == 0, result.output
+        # The other files are still imported.
+        assert result.exit_code == 1, result.output
         assert any("nl.po" in e for e in errors(caplog))
+        assert "Imported 1 files: 1 units (0 skipped).\nCouldn't import 1 files:\n  %s: " \
+            % (po_dir / 'nl.po') in result.output
         assert lookup('Open file') == [('Open file', 'Maak lêer oop')]
+
+    def test_build_tmdb_read_error(self, run, po_dir, monkeypatch):
+        def bad(*args):
+            raise OSError("bad header")
+        monkeypatch.setattr(factory, 'getobject', bad)
+        run('initdb', '-s', 'en')
+        result = run('build_tmdb', '-s', 'en', '-t', 'af', '-i', str(po_dir / 'af.po'))
+        assert result.exit_code == 1, result.output
+        assert "af.po: OSError: bad header" in result.output
 
     def test_build_tmdb_missing_input(self, run, tmp_path, caplog):
         run('initdb', '-s', 'en')
         result = run('build_tmdb', '-s', 'en', '-i', str(tmp_path / 'af.po'))
-        assert result.exit_code == 0, result.output
+        assert result.exit_code == 1, result.output
         assert any("does not exist" in e for e in errors(caplog))
+        assert "af.po: does not exist" in result.output
 
     def test_build_tmdb_verbose(self, run, po_dir):
         run('initdb', '-s', 'en')
         po = str(po_dir / 'af.po')
         result = run('build_tmdb', '-s', 'en', '-t', 'af', '-i', po, '--verbose')
         assert result.exit_code == 0, result.output
-        assert "Importing %s" % po in result.output
-        assert "Successfully imported %s" % po in result.output
+        assert result.output == "Importing %s\nImported 1 files: 1 units (0 skipped).\n" % po
 
     def test_build_tmdb_profile(self, run, po_dir, tmp_path):
         run('initdb', '-s', 'en')
