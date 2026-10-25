@@ -5,6 +5,29 @@ from amagama import tmdb
 # from amagama.tests.conftest import amagama
 
 
+@pytest.mark.parametrize("code, table", [
+    ("af", "af"),
+    ("es_ES", "es"),
+    ("pt_BR", "pt_br"),
+    ("pt-BR", "pt_br"),
+    ("zh-Hans", "zh_cn"),
+    ("iw", "he"),
+    ("sr", "sr"),
+    ("sr@latin", "sr_latin"),
+    ("sr_RS@latin", "sr_latin"),
+    ("sr-Latn", "sr_latin"),
+    ("ca@valencia", "ca_valencia"),
+    ("ca_ES@valencia", "ca_valencia"),
+    ("ca-ES-valencia", "ca_valencia"),
+    ("ca-valencia", "ca_valencia"),
+    ("tr@crh", "tr_crh"),
+    ("x!", None),
+    ("", None),
+])
+def test_lang_to_table(code, table):
+    assert tmdb.lang_to_table(code) == table
+
+
 class TestTMDB(object):
 
     def test_initdb(self, amagama):
@@ -49,6 +72,15 @@ class TestTMDB(object):
             cursor = amagama.tmdb.get_cursor(amagama.tmdb.schema('en'))
             with pytest.raises(Exception, match="sid not found"):
                 amagama.tmdb.get_sid({'source': 'Network', 'source_lang': 'en'}, cursor)
+
+    def test_variants_apart(self, amagama):
+        with amagama.app_context():
+            amagama.tmdb.add_test_unit('Network', 'Мрежа', 'en', 'sr')
+            amagama.tmdb.add_test_unit('Network', 'Mreža', 'en', 'sr@latin')
+            assert [r['target'] for r in amagama.tmdb.translate_unit('Network', 'en', 'sr')] \
+                == ['Мрежа']
+            assert [r['target'] for r in amagama.tmdb.translate_unit('Network', 'en', 'sr-Latn')] \
+                == ['Mreža']
 
     def test_translate_bytes(self, amagama):
         with amagama.app_context():
@@ -107,7 +139,6 @@ class TestTMDB(object):
         assert type(tmdb.min_levenshtein_length(100, 70)) is int
         assert type(tmdb.max_levenshtein_length(100, 70, 1000)) is int
 
-    @pytest.mark.xfail
     def test_ca_valencia(self, amagama):
         with amagama.app_context():
             targets = amagama.tmdb.available_languages['targetLanguages']
