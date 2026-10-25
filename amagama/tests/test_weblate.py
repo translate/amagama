@@ -153,6 +153,17 @@ def test_names_taken():
     assert list(found) == ["test-app-ui"]
 
 
+def test_names_counted_last():
+    found, skipped = generated([component("app", "ui", "https://git.example/app", "po/*.po")],
+                               taken={"test-app", "test-app-ui"})
+    assert list(found) == ["test-app-ui-2"]
+
+
+def test_identity_keeps_unknown_licence():
+    assert weblate.identity("https://git.example/app.git", None, None, False, "proprietary") == (
+        "git.example/app", None, None, False, "proprietary")
+
+
 def test_names_kept():
     first, skipped = generated([component("app", "ui", "https://git.example/app", "po/*.po")])
     assert list(first) == ["test-app"]
