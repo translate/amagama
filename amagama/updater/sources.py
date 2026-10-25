@@ -18,6 +18,7 @@ import shutil
 import tomllib
 
 from amagama.licences import normalise_licence
+from amagama.source_options import MAX_WEIGHT
 from amagama.updater import chromium, compressed
 from amagama.updater.fetchers import FETCHERS, FetchError
 from amagama.updater.filemask import Selection, compile_mask, fill, wildcards
@@ -45,7 +46,7 @@ class Block(object):
     def __init__(self, name, title, source, version=None, licence=None, files=None,
                  exclude=None, keep=None, languages=None, format=None, template=None,
                  exclude_ids=None, columns=None, header_row=None, xliff_states=None,
-                 max_age_days=30, min_age_days=0, segment=False, **settings):
+                 max_age_days=30, min_age_days=0, segment=False, weight=1, **settings):
         self.name = name
         self.title = title
         self.version = version
@@ -105,6 +106,9 @@ class Block(object):
         if not isinstance(segment, bool):
             raise ValueError("segment must be true or false")
         self.segment = segment
+        if type(weight) not in (int, float) or not 0 <= weight <= MAX_WEIGHT:
+            raise ValueError("weight must be a number from 0 to %d" % MAX_WEIGHT)
+        self.weight = float(weight)
 
     def template_for(self, path):
         """The English template path for a selected file, if the block pairs."""

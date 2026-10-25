@@ -129,7 +129,7 @@ class TestAPI(object):
         assert result.exit_code == 0, result.output
         app = amagama_server_factory()
         with app.app_context():
-            app.tmdb.record_blocks('en', [('gnome-51', 'GNOME', '51')])
+            app.tmdb.record_blocks('en', [('gnome-51', 'GNOME', '51', 1)])
         with app.test_client() as client:
             yield client
 

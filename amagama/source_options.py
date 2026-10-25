@@ -58,18 +58,20 @@ class SourceOptions(object):
             return None
         return kept
 
-    def weight(self, names):
-        """The best weight of names: that of each name's first matching glob, else 1."""
-        return max((next((weight for glob, weight in self.weights if fnmatchcase(name, glob)), 1.0)
+    def weight(self, names, defaults=None):
+        """The best weight of names: each one's first matching glob's, else its default, else 1."""
+        defaults = defaults or {}
+        return max((next((weight for glob, weight in self.weights if fnmatchcase(name, glob)),
+                         defaults.get(name, 1.0))
                     for name in names), default=1.0)
 
-    def choose(self, results, max_candidates):
+    def choose(self, results, max_candidates, defaults=None):
         """The results kept, best quality times weight first, at most max_candidates."""
         chosen = []
         for result in results:
             kept = self.kept(result['sources'])
             if kept is not None:
                 chosen.append(dict(result, sources=kept))
-        chosen.sort(key=lambda result: result['quality'] * self.weight(result['sources']),
+        chosen.sort(key=lambda result: result['quality'] * self.weight(result['sources'], defaults),
                     reverse=True)
         return chosen[:max_candidates]

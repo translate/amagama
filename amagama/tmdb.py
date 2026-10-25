@@ -31,6 +31,7 @@ from translate.storage import xliff
 
 from amagama import postgres
 from amagama.mojibake import CANDIDATE_REGEX, unmangle
+from amagama.source_options import SourceOptions
 from amagama.normalise import indexing_version
 from amagama.updater.languages import normalise_language
 
@@ -237,8 +238,10 @@ CREATE TABLE IF NOT EXISTS imports (
 CREATE TABLE IF NOT EXISTS blocks (
     name TEXT PRIMARY KEY,
     title TEXT NOT NULL,
-    version TEXT
+    version TEXT,
+    weight DOUBLE PRECISION NOT NULL DEFAULT 1
 );
+ALTER TABLE blocks ADD COLUMN IF NOT EXISTS weight DOUBLE PRECISION NOT NULL DEFAULT 1;
 """
 
     DEPLOY_QUERY = """
@@ -279,6 +282,7 @@ ORDER BY rank DESC;
         super(TMDB, self).__init__(*args, **kwargs)
         self._available_langs = {}
         self._sources = None
+        self._weights = {}
         self._load_source_langs()
         # set of languages with prepared statements per connection key:
         self._prepared_statements = defaultdict(set)
@@ -300,6 +304,7 @@ ORDER BY rank DESC;
         self.schema_prefix = prefix
         self._available_langs = {}
         self._sources = None
+        self._weights = {}
         self._load_source_langs()
 
     def schema(self, slang):
@@ -355,12 +360,13 @@ ORDER BY rank DESC;
         return cursor.fetchone()[0]
 
     def record_blocks(self, slang, blocks):
-        """Record the title and version of each of the (name, title, version) blocks."""
+        """Record each of the (name, title, version, weight) blocks."""
         cursor = self.get_cursor(self.schema(lang_to_table(slang)))
         cursor.execute(self.INIT_BLOCKS)
-        cursor.executemany("""INSERT INTO blocks (name, title, version) VALUES (%s, %s, %s)
+        cursor.executemany("""INSERT INTO blocks (name, title, version, weight)
+            VALUES (%s, %s, %s, %s)
             ON CONFLICT (name) DO UPDATE SET title = EXCLUDED.title,
-            version = EXCLUDED.version""", blocks)
+            version = EXCLUDED.version, weight = EXCLUDED.weight""", blocks)
         cursor.connection.commit()
 
     def finish_import(self, slang, iid, units, skipped, checksum=None, commit=True):
@@ -732,6 +738,7 @@ ORDER BY rank DESC;
             raise
         self._available_langs = {}
         self._sources = None
+        self._weights = {}
         self._load_source_langs()
         current_app.cache.clear()
 
@@ -772,21 +779,27 @@ ORDER BY rank DESC;
                 cursor = self.get_cursor(self.schema(slang))
                 if not self._has_relation(cursor, 'imports'):
                     continue
-                if self._has_relation(cursor, 'blocks'):
-                    titles, join = "b.title, b.version", "LEFT JOIN blocks b ON b.name = i.block"
+                if self._has_weights(cursor):
+                    titles = "b.title, b.version, b.weight"
+                    join = "LEFT JOIN blocks b ON b.name = i.block"
+                elif self._has_relation(cursor, 'blocks'):
+                    titles = "b.title, b.version, NULL"
+                    join = "LEFT JOIN blocks b ON b.name = i.block"
                 else:
-                    titles, join = "NULL, NULL", ""
+                    titles, join = "NULL, NULL, NULL", ""
                 # A block's files share its licence; a mix of them is no licence.
                 cursor.execute("""SELECT i.block, %s,
                         CASE WHEN COUNT(DISTINCT i.licence) = 1 THEN MAX(i.licence) END,
                         ARRAY_AGG(DISTINCT i.lang ORDER BY i.lang), SUM(i.units)::bigint, MAX(i.imported)
                     FROM imports i %s WHERE i.block IS NOT NULL
-                    GROUP BY 1, 2, 3 ORDER BY 1""" % (titles, join))
-                for name, title, version, licence, langs, units, imported in cursor.fetchall():
+                    GROUP BY 1, 2, 3, 4 ORDER BY 1""" % (titles, join))
+                for name, title, version, weight, licence, langs, units, imported in \
+                        cursor.fetchall():
                     sources.append({
                         'name': name,
                         'title': title or name,
                         'version': version,
+                        'weight': 1.0 if weight is None else weight,
                         'licence': licence,
                         'sourceLanguage': slang,
                         'targetLanguages': langs,
@@ -796,6 +809,23 @@ ORDER BY rank DESC;
                     })
             self._sources = sources
         return self._sources
+
+    def _has_weights(self, cursor):
+        cursor.execute("""SELECT EXISTS(SELECT 1 FROM information_schema.columns
+            WHERE table_schema = current_schema() AND table_name = 'blocks'
+            AND column_name = 'weight')""")
+        return cursor.fetchone()[0]
+
+    def block_weights(self, slang):
+        """{block name: default weight} of the slang blocks weighted other than 1."""
+        if slang not in self._weights:
+            cursor = self.get_cursor(self.schema(slang))
+            weights = {}
+            if self._has_weights(cursor):
+                cursor.execute("SELECT name, weight FROM blocks WHERE weight <> 1")
+                weights = dict(cursor.fetchall())
+            self._weights[slang] = weights
+        return self._weights[slang]
 
     def get_sid(self, unit_dict, cursor):
         source = unit_dict['source']
@@ -1041,6 +1071,7 @@ ORDER BY rank DESC;
         if count:
             self._available_langs = {}
             self._sources = None
+            self._weights = {}
         return count
 
     @property
@@ -1109,13 +1140,14 @@ ORDER BY rank DESC;
                 result['quality'] = quality
                 results.append(result)
         results.sort(key=lambda match: match['quality'], reverse=True)
-        if not source_options:
+        weights = self.block_weights(slang)
+        if not source_options and not weights:
             results = results[:max_candidates]
             self._add_sources(cursor, tlang, results)
             return results
         # Choosing by source needs the sources of every match, not just the best.
         self._add_sources(cursor, tlang, results)
-        return source_options.choose(results, max_candidates)
+        return (source_options or SourceOptions()).choose(results, max_candidates, weights)
 
     def _add_sources(self, cursor, tlang, results):
         """Give each result the names of the blocks it was imported from."""
