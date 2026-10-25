@@ -460,12 +460,15 @@ def fetch_sources(block_names, check):
 def weblate_sources(url, prefix, projects, docs, output, min_age_days):
     """Write sources-file blocks for a Weblate instance's projects, for review.
 
-    Repositories that blocks in the sources file already import are left out.
+    Repositories that blocks in the sources file already import are left out,
+    but for blocks with the same prefix, which this regenerates.
     """
     try:
         existing = load_sources(current_app.config.get('UPDATER_SOURCES'))
     except (OSError, ValueError):
         existing = []
+    # Blocks with this prefix are the ones being regenerated.
+    existing = [block for block in existing if not block.name.startswith(prefix + "-")]
     covered = [block.fetcher.settings["url"] for block in existing
                if block.source in ("git", "svn")]
     try:
