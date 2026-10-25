@@ -52,6 +52,13 @@ def test_fetch_dirs(repo):
                              ("de/messages/lib/lib.po", "de")]
 
 
+def test_fetch_some_languages(repo):
+    url, tmp_path = repo
+    files = Svn({"url": url, "dirs": ["messages"], "pause": 0}).fetch(str(tmp_path / "dest"), ["de"])
+    assert sorted(files) == [("de/messages/app/app.po", "de"), ("de/messages/lib/lib.po", "de")]
+    assert not (tmp_path / "dest/af").exists()
+
+
 def test_fetch_whole_language(repo):
     url, tmp_path = repo
     files = Svn({"url": url, "pause": 0}).fetch(str(tmp_path / "dest"))

@@ -217,8 +217,8 @@ files it includes); a block's own settings take precedence. ``name`` and
   ``max_age_days`` (default 30): a copy this old is fetched again, though
   nothing says it changed. For a source with one download per language
   (``damned-lies``, ``translationproject``, ``http``, ``pontoon``,
-  ``wordpress``, ``drupal``, ``moodle``, ``joomla``) it applies to each
-  language, and the downloads are spread out: a run takes its share of
+  ``wordpress``, ``drupal``, ``moodle``, ``joomla``, ``svn``) it applies to
+  each language, and the downloads are spread out: a run takes its share of
   the languages for the days since the last fetch (rounded up; a day's share
   the first time), languages never fetched first, then those fetched longest
   ago. With 57 languages a daily run fetches 2, so the first fetch takes

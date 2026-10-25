@@ -464,6 +464,7 @@ class Svn(Fetcher):
 
     required = ("url",)
     optional = ("dirs", "pause")
+    rotates = True
 
     @property
     def url(self):
@@ -479,9 +480,11 @@ class Svn(Fetcher):
     def fingerprint(self):
         return run_tool("svn", "info", "--show-item", "last-changed-revision", self.url).strip()
 
-    def fetch(self, dest):
+    def fetch(self, dest, languages=None):
         files = []
         for lang in self.languages():
+            if languages is not None and lang not in languages:
+                continue
             for directory in self.settings.get("dirs", [""]):
                 target = os.path.join(dest, lang, directory)
                 os.makedirs(os.path.dirname(target.rstrip(os.sep)), exist_ok=True)
