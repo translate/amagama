@@ -83,9 +83,10 @@ def run(amagama_config, tmp_path):
 
 def test_fetch(run, wordpress, pauses):
     root, url, publish = wordpress
-    result = run(block("wp", "wordpress", kind="core", base_url=url, files=["**/*.po"], pause=3)
+    result = run(block("wp", "wordpress", kind="core", base_url=url, files=["**/*.po"], pause=3,
+                       max_age_days=0)
                  + block("plugins", "wordpress", kind="plugins", slugs=["woocommerce"],
-                         base_url=url, files=["**/*.po"], pause=3))
+                         base_url=url, files=["**/*.po"], pause=3, max_age_days=0))
     assert result.exit_code == 0, result.output
     # The formal German is German's; the .mo copies aren't imported.
     assert fetched(run.cache, "wp") == [("core/af/af.po", "af"),
@@ -135,7 +136,8 @@ def test_invalid(tmp_path, settings, error):
 
 def test_update(run, wordpress):
     root, url, publish = wordpress
-    result = run(block("wp", "wordpress", kind="core", base_url=url, files=["**/*.po"], pause=0),
+    result = run(block("wp", "wordpress", kind="core", base_url=url, files=["**/*.po"], pause=0,
+                       max_age_days=0),
                  "-s", "en", command="update")
     assert result.exit_code == 0, result.output
     assert "Imported 2 files: 2 units (0 skipped)." in result.output

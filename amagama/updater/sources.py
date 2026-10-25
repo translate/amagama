@@ -162,7 +162,7 @@ class Block(object):
             # takes the ones due. Without dates yet, a full fetch sets them.
             dates = state.get("language_fetched")
             return dates is None or age >= datetime.timedelta(
-                days=self.max_age_days / max(len(dates), 1))
+                days=self.max_age_days / max(state.get("language_count", len(dates)), 1))
         fingerprint = self.fetcher.fingerprint()
         if fingerprint is None:
             return age >= datetime.timedelta(days=self.max_age_days)
@@ -176,19 +176,28 @@ class Block(object):
     def due(self, previous, languages):
         """The languages to fetch this run, or None for all of them.
 
-        Each language is refreshed within max_age_days: a run takes the ones
-        fetched longest ago, its share of them for the days since the last
-        fetch, and every language not fetched before.
+        Each language is refreshed within max_age_days: a run takes its share
+        of them for the days since the last fetch (a day's share the first
+        time), languages never fetched first, then those fetched longest ago.
+        So a first fetch is spread over max_age_days too.
         """
-        dates = (previous or {}).get("language_fetched")
-        if not self.rotates or dates is None:
+        if not self.rotates:
             return None
-        now = datetime.datetime.now(datetime.timezone.utc)
-        days = (now - datetime.datetime.fromisoformat(previous["fetched"])).total_seconds() / 86400
+        if previous is None:
+            dates, days = {}, 1
+        else:
+            dates = previous.get("language_fetched")
+            if dates is None:
+                return None
+            now = datetime.datetime.now(datetime.timezone.utc)
+            # To the hour, so a run a few seconds late doesn't take an extra one.
+            hours = round((now - datetime.datetime.fromisoformat(previous["fetched"]))
+                          .total_seconds() / 3600)
+            days = hours / 24
         share = math.ceil(len(languages) * days / self.max_age_days)
         new = [lang for lang in languages if lang not in dates]
         oldest = sorted((lang for lang in languages if lang in dates), key=lambda lang: dates[lang])
-        due = new + oldest[:max(0, share - len(new))]
+        due = (new + oldest)[:share]
         return due if len(due) < len(languages) else None
 
     def rest(self, state):
@@ -276,14 +285,16 @@ class Block(object):
             if due is not None:
                 # The languages not due keep their last fetch.
                 for lang in set(available) - set(due):
-                    for entry in previous.get("by_language", {}).get(lang, []):
+                    for entry in (previous or {}).get("by_language", {}).get(lang, []):
                         _carry(final, new, entry, previous)
                         files.append(tuple(entry))
                         hashes[entry[0]] = previous["hashes"][entry[0]]
                         codes.setdefault(entry[1], set()).update(
                             previous["languages"].get(entry[1], []))
                         by_language.setdefault(lang, []).append(entry)
-            if self.selection.masks and not files:
+            # Only once every language has been tried: a run's few may lack them.
+            tried = set(available or []) <= set((previous or {}).get("language_fetched", {}))
+            if self.selection.masks and not files and (due is None or tried):
                 raise FetchError("no file matches %s" % ", ".join(self.selection.mask_texts))
         except BaseException:
             shutil.rmtree(new, ignore_errors=True)
@@ -321,8 +332,10 @@ class Block(object):
         if self.rotates:
             state["by_language"] = by_language
             dates = (previous or {}).get("language_fetched", {})
-            state["language_fetched"] = {
-                lang: now if due is None or lang in due else dates[lang] for lang in available}
+            done = set(available if due is None else due)
+            state["language_fetched"] = {lang: now if lang in done else dates[lang]
+                                         for lang in available if lang in done or lang in dates}
+            state["language_count"] = len(available)
         with open(os.path.join(new, STATE_FILE), "w", encoding="utf-8") as f:
             json.dump(state, f, indent=1)
         old = final + ".old"

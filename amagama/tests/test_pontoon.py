@@ -70,7 +70,7 @@ def run(amagama_config, tmp_path):
 
 def test_fetch(run, pontoon, pauses):
     root, url = pontoon
-    result = run(block("mozilla", "pontoon", base_url=url, pause=5))
+    result = run(block("mozilla", "pontoon", base_url=url, pause=5, max_age_days=0))
     assert result.exit_code == 0, result.output
     # ach has nothing approved.
     assert fetched(run.cache, "mozilla") == [
@@ -104,7 +104,7 @@ def test_update_exclude_ids(run, pontoon):
         "af", ("firefox:browser.ftl:save", "Save file", "Stoor lêer"),
         ("foundation-website-content:blog:intro", "Read our blog", "Lees die blog")),
         encoding="utf-8")
-    result = run(block("mozilla", "pontoon", base_url=url, pause=0,
+    result = run(block("mozilla", "pontoon", base_url=url, pause=0, max_age_days=0,
                        exclude_ids=["foundation-website-content:*"]),
                  "-s", "en", command="update")
     assert result.exit_code == 0, result.output

@@ -218,13 +218,13 @@ files it includes); a block's own settings take precedence. ``name`` and
   nothing says it changed. For a source with one download per language
   (``damned-lies``, ``translationproject``, ``http``, ``pontoon``,
   ``wordpress``, ``drupal``, ``moodle``, ``joomla``) it applies to each
-  language, and the downloads are spread out: after the first full fetch, a
-  run takes the languages fetched longest ago, its share of them for the
-  days since the last fetch (rounded up), plus any language new to the
-  source. With 57 languages a daily run fetches 2, and the block isn't due
-  again until ``max_age_days`` / 57 days later. Such a source is refreshed by
-  age, not by its fingerprint, so its server never gets every language at
-  once. 0 turns that off: the whole block is fetched whenever its
+  language, and the downloads are spread out: a run takes its share of
+  the languages for the days since the last fetch (rounded up; a day's share
+  the first time), languages never fetched first, then those fetched longest
+  ago. With 57 languages a daily run fetches 2, so the first fetch takes
+  ``max_age_days`` too, and the block isn't due again until
+  ``max_age_days`` / 57 days later. Such a source is refreshed by age, not by
+  its fingerprint, so its server never gets every language at once. 0 turns that off: the whole block is fetched whenever its
   fingerprint changes, or on every run without one.
 
   Within ``min_age_days`` a block isn't touched, even past ``max_age_days``.
