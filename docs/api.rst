@@ -110,10 +110,11 @@ For example::
     https://amagama-live.translatehouse.org/api/v1/en/af/unit/File?style=gnome&max_candidates=10
     https://amagama-live.translatehouse.org/api/v1/en/af/unit/File?exclude=hosted-*&weight=gnome-*:1.5
 
-A request returns 404 if the source language isn't in the database, if the
-source and target languages are the same, or if no string is given, and 400
-if a weight isn't ``glob:weight``. Replies
-may be cached for an hour (``Cache-Control: max-age=3600, public``).
+A request returns 404 if the source language isn't in the database or if no
+string is given. It returns 400 if the source and target languages are the
+same (``en_US`` is the same as ``en``, ``en_GB`` isn't) or if a weight isn't
+``glob:weight``. Replies may be cached for an hour (``Cache-Control:
+max-age=3600, public``).
 
 
 .. _api#tm-suggestion-results:

@@ -6,6 +6,9 @@
 # the AUTHORS.md file for copyright and authorship information.
 
 
+import pytest
+
+
 # fixtures:
 # from amagama.tests.conftest import amagama
 
@@ -105,12 +108,18 @@ class TestURLs(object):
         data = response.json
         assert len(data) <= 50  # assuming default setting of max_candidates=30
 
+    @pytest.mark.parametrize('tlang', ['en', 'en_US', 'en-US'])
+    def test_same_language(self, amagama, tlang):
+        client = amagama.test_client()
+        response = client.get('/tmserver/en/%s/unit/File' % tlang)
+        response_v1 = client.get('/api/v1/en/%s/unit/File' % tlang)
+        assert response.status_code == 400 == response_v1.status_code
+
+    def test_english_region(self, amagama):
+        assert amagama.test_client().get('/api/v1/en/en_GB/unit/File').status_code == 200
+
     def test_404s(self, amagama):
         client = amagama.test_client()
-
-        response = client.get('/tmserver/en/en/unit/File')
-        response_v1 = client.get('/api/v1/en/en/unit/File')
-        assert response.status_code == 404 == response_v1.status_code
 
         response = client.get('/tmserver/xx/en/unit/File')
         response_v1 = client.get('/api/v1/xx/en/unit/File')
