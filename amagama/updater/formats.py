@@ -1,3 +1,11 @@
+#
+# Copyright (C) amaGama contributors.
+#
+# This file is part of amaGama. It is distributed under the GPL3 or
+# later license. See the LICENSE file for a copy of the license and
+# the AUTHORS.md file for copyright and authorship information.
+
+
 """Translate Toolkit readers by name, for files whose extension doesn't say.
 
 Translate Toolkit picks a reader by file extension, and doesn't know .json

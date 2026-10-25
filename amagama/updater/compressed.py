@@ -1,3 +1,11 @@
+#
+# Copyright (C) amaGama contributors.
+#
+# This file is part of amaGama. It is distributed under the GPL3 or
+# later license. See the LICENSE file for a copy of the license and
+# the AUTHORS.md file for copyright and authorship information.
+
+
 """zstd-compressed files in the fetch cache.
 
 The cache's translation files sit unused between rebuilds, so they are

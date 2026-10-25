@@ -1,3 +1,11 @@
+#
+# Copyright (C) amaGama contributors.
+#
+# This file is part of amaGama. It is distributed under the GPL3 or
+# later license. See the LICENSE file for a copy of the license and
+# the AUTHORS.md file for copyright and authorship information.
+
+
 """Read PO files in a legacy charset with Translate Toolkit 3.19.0 and later.
 
 PoParseState.set_encoding() restarts the parse in the header's charset but

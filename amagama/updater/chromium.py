@@ -1,3 +1,11 @@
+#
+# Copyright (C) amaGama contributors.
+#
+# This file is part of amaGama. It is distributed under the GPL3 or
+# later license. See the LICENSE file for a copy of the license and
+# the AUTHORS.md file for copyright and authorship information.
+
+
 """Chromium's translations: .xtb files keyed by a fingerprint of the English.
 
 The English is in .grd files (and the .grdp parts they include). Each

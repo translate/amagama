@@ -1,3 +1,11 @@
+#
+# Copyright (C) amaGama contributors.
+#
+# This file is part of amaGama. It is distributed under the GPL3 or
+# later license. See the LICENSE file for a copy of the license and
+# the AUTHORS.md file for copyright and authorship information.
+
+
 """Pair a monolingual translation file with its English by message id.
 
 Monolingual formats (Android strings.xml, PHP and INI language files, JSON
