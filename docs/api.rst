@@ -93,8 +93,10 @@ following fields.
 |                   | ``gnome-*:1.5,hosted-*:0.5``. Suggestions |
 |                   | are ordered by quality times the best     |
 |                   | weight of their sources: each source's    |
-|                   | first matching glob, else 1. ``quality``  |
-|                   | itself isn't changed.                     |
+|                   | first matching glob, else the block's     |
+|                   | default ``weight`` in the :ref:`sources   |
+|                   | list <api#sources>`. ``quality`` itself   |
+|                   | isn't changed.                            |
 +-------------------+-------------------------------------------+
 | jsoncallback      | Wrap the reply in a call to this          |
 |                   | JavaScript function (JSONP).              |
@@ -236,6 +238,9 @@ or else the best of ``Accept-Language``, among the :ref:`translated ones
 +-----------------+-------------------------------------------------+
 | imported        | When it was last imported, in UTC               |
 +-----------------+-------------------------------------------------+
+| weight          | Its default ``weight`` in lookups: 1 unless the |
+|                 | server sets one                                 |
++-----------------+-------------------------------------------------+
 
 .. code-block:: json
 
@@ -252,6 +257,7 @@ or else the best of ``Accept-Language``, among the :ref:`translated ones
           "sourceLanguage": "en",
           "targetLanguages": ["af", "ar", "de"],
           "units": 5000,
+          "weight": 1.0,
           "imported": "2026-10-25T12:00:00Z"
         }
       ]

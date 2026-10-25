@@ -203,6 +203,13 @@ files it includes); a block's own settings take precedence. ``name`` and
   (an element around the whole message, such as LibreOffice's ``<ahelp>``,
   is set aside first). The whole message is imported too.
 
+``weight``
+  Optional number from 0 to 10, default 1: how suggestions from the block
+  rank in lookups, by quality times weight, unless a client gives its own
+  :ref:`weight <api#providing-options>`. A translation also found in a block
+  of higher weight takes that weight. Set it in a file's ``[defaults]`` to
+  weight all of an included file's blocks.
+
 ``min_age_days`` and ``max_age_days``
   Both count days since the block was last fetched; ``min_age_days`` is a
   floor and ``max_age_days`` a ceiling.

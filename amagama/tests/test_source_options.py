@@ -47,6 +47,13 @@ class TestSourceOptions(object):
     def test_kept(self, options, names, kept):
         assert SourceOptions(**options).kept(names) == kept
 
+    def test_default_weights(self):
+        defaults = {'hosted-x': 0.5, 'kde': 3}
+        assert SourceOptions().weight(['hosted-x'], defaults) == 0.5
+        assert SourceOptions().weight(['hosted-x', 'gnome-51'], defaults) == 1.0
+        # A client's weight replaces the default.
+        assert SourceOptions(weights=[('kde', 0.1)]).weight(['kde'], defaults) == 0.1
+
     def test_weight(self):
         options = SourceOptions(weights=[('hosted-*', 0.5), ('*', 2)])
         assert options.weight([]) == 1.0
@@ -110,3 +117,36 @@ class TestLookup(object):
 
     def test_bad_weight(self, client):
         assert client.get('/api/v1/en/af/unit/Open file?weight=kde').status_code == 400
+
+
+def record_weights(weights):
+    app = amagama_server_factory()
+    with app.app_context():
+        app.tmdb.record_blocks('en', [(name, name, None, weight) for name, weight in weights])
+
+
+class TestDefaultWeights(object):
+
+    def test_reorder_lookups(self, client):
+        record_weights([('kde', 2), ('gnome-51', 1)])
+        with amagama_server_factory().test_client() as fresh:
+            assert lookup(fresh)[0] == ('Maak lêers oop', ['kde'])
+            # A client's weight replaces the default.
+            assert lookup(fresh, 'weight=kde:1')[0][0] != 'Maak lêers oop'
+
+    def test_listed_in_sources(self, client):
+        record_weights([('kde', 2)])
+        with amagama_server_factory().test_client() as fresh:
+            weights = {s['name']: s['weight']
+                       for s in fresh.get('/api/v1/sources/').get_json()['sources']}
+        assert weights == {'gnome-51': 1.0, 'hosted-x': 1.0, 'kde': 2.0}
+
+    def test_blocks_table_without_weights(self, client, pg_connection):
+        record_weights([('kde', 2)])
+        with pg_connection.cursor() as cursor:
+            cursor.execute("ALTER TABLE en.blocks DROP COLUMN weight")
+        pg_connection.commit()
+        with amagama_server_factory().test_client() as fresh:
+            assert len(lookup(fresh)) == 3
+            assert {s['weight'] for s in fresh.get('/api/v1/sources/').get_json()['sources']} \
+                == {1.0}

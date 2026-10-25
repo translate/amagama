@@ -62,15 +62,17 @@ class TestSources(object):
         load('gnome-51', 'zu', '--licence', 'GPL-2.0-or-later')
         load('gnome-51', 'af', '--licence', 'GPL-2.0-or-later')
         load('kde', 'af')
-        record_blocks([('gnome-51', 'GNOME', '51'), ('kde', 'KDE', None)])
+        record_blocks([('gnome-51', 'GNOME', '51', 1), ('kde', 'KDE', None, 1)])
         listed = sources()
         for block in listed:
             assert re.fullmatch(r'\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ', block.pop('imported'))
         assert listed == [
             {'name': 'gnome-51', 'title': 'GNOME', 'version': '51', 'displayTitle': 'GNOME 51',
+             'weight': 1,
              'licence': 'GPL-2.0-or-later', 'sourceLanguage': 'en',
              'targetLanguages': ['af', 'zu'], 'units': 2},
             {'name': 'kde', 'title': 'KDE', 'version': None, 'displayTitle': 'KDE', 'licence': None,
+             'weight': 1,
              'sourceLanguage': 'en', 'targetLanguages': ['af'], 'units': 1}]
 
     def test_untitled_block_shows_its_name(self, load):
@@ -96,8 +98,8 @@ class TestSources(object):
     def test_retitled_block(self, load):
         run('initdb', '-s', 'en')
         load('kde', 'af')
-        record_blocks([('kde', 'KDE', None)])
-        record_blocks([('kde', 'KDE Plasma', '6')])
+        record_blocks([('kde', 'KDE', None, 1)])
+        record_blocks([('kde', 'KDE Plasma', '6', 1)])
         [block] = sources()
         assert (block['title'], block['version']) == ('KDE Plasma', '6')
 

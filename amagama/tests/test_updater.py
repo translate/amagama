@@ -186,6 +186,10 @@ class TestSourcesFile(object):
         (block("a", "translationproject", max_age_days=-1), "max_age_days must be a whole number"),
         (block("a", "translationproject", max_age_days=1.5), "max_age_days must be a whole number"),
         (block("a", "translationproject", segment="yes"), "segment must be true or false"),
+        (block("a", "translationproject", weight=11), "weight must be a number from 0 to 10"),
+        (block("a", "translationproject", weight=-0.5), "weight must be a number from 0 to 10"),
+        (block("a", "translationproject", weight="1"), "weight must be a number from 0 to 10"),
+        (block("a", "translationproject", weight=True), "weight must be a number from 0 to 10"),
         (block("a", "git", url="x", files=["{lang}.po"], sparse="*.po"),
          "sparse must be a list of patterns"),
         (block("a", "http", base_url="x", path="all.po"), "path must contain {lang}"),
@@ -217,6 +221,16 @@ class TestSourcesFile(object):
             "a": ("translationproject", 60), "b": ("translationproject", 7),
             # An included file's blocks don't take the including file's defaults.
             "c": ("translationproject", 0)}
+
+    def test_weight(self, tmp_path):
+        (tmp_path / "sources.toml").write_text(
+            '[defaults]\nsource = "translationproject"\nweight = 0.5\n'
+            '[[block]]\nname = "a"\ntitle = "A"\n'
+            '[[block]]\nname = "b"\ntitle = "B"\nweight = 2\n')
+        (tmp_path / "plain.toml").write_text(block("c", "translationproject"))
+        blocks = load_sources(str(tmp_path / "sources.toml")) + load_sources(
+            str(tmp_path / "plain.toml"))
+        assert [(b.name, b.weight) for b in blocks] == [("a", 0.5), ("b", 2.0), ("c", 1.0)]
 
     @pytest.mark.parametrize("text", ['defaults = 1\n', '[defaults]\nname = "x"\n',
                                       '[defaults]\nversions = ["1"]\n'])

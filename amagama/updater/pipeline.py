@@ -234,7 +234,8 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
     tmdb.use_schemas(BUILD_PREFIX)
     tmdb.drop_db([slang])
     tmdb.init_db([slang])
-    tmdb.record_blocks(slang, [(block.name, block.title, block.version) for block in blocks])
+    tmdb.record_blocks(slang, [(block.name, block.title, block.version, block.weight)
+                               for block in blocks])
     # load_snapshot needs an empty schema, so snapshots go first.
     for block in snapshots:
         name = block.fetcher.settings["snapshot"]
