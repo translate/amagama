@@ -160,6 +160,60 @@ class TestOldSchema(object):
         with client() as c:
             assert lookup(c, 'Save file') == [('Stoor lêer', [])]
 
+    def test_write_api(self, old, amagama_config, pg_connection):
+        amagama_config(ENABLE_DATA_ALTERING_API=True)
+        with client() as c:
+            response = c.put('/api/v1/en/af/unit/Save file',
+                             json={'source': 'Save file', 'target': 'Stoor lêer'})
+            assert response.status_code == 200
+            assert lookup(c, 'Save file') == [('Stoor lêer', [])]
+        assert query(pg_connection, "SELECT block FROM en.imports") == [('gnome-51',)]
+
+
+class TestWriteAPI(object):
+
+    @pytest.fixture
+    def deployed(self, load, amagama_config):
+        run('initdb', '-s', 'en')
+        load('gnome-51', 'af', [('Open file', 'Maak lêer oop')])
+        run('deploy_db', input='y\n')
+        amagama_config(ENABLE_DATA_ALTERING_API=True)
+
+    @pytest.mark.parametrize('method', ['put', 'post'])
+    def test_unit(self, deployed, pg_connection, method):
+        with client() as c:
+            response = getattr(c, method)('/api/v1/en/af/unit/Open file',
+                                          json={'source': 'Open file', 'target': 'Maak lêer oop'})
+            assert response.status_code == 200
+            response = getattr(c, method)('/api/v1/en/af/unit/Save file',
+                                          json={'source': 'Save file', 'target': 'Stoor lêer'})
+            assert response.status_code == 200
+            assert lookup(c, 'Open file') == [('Maak lêer oop', ['api', 'gnome-51'])]
+            assert lookup(c, 'Save file') == [('Stoor lêer', ['api'])]
+        # The deployed schema has no unique index, but gets no duplicate.
+        assert query(pg_connection, "SELECT COUNT(*) FROM en.targets") == [(2,)]
+        assert query(pg_connection, """SELECT block, filename, units, skipped
+            FROM en.imports WHERE block = 'api'""") == [('api', 'unit', 1, 0)] * 2
+
+    def test_store_list(self, deployed, pg_connection):
+        with client() as c:
+            response = c.post('/api/v1/en/af/store/upload.po', json=[
+                {'source': 'Save file', 'target': 'Stoor lêer'},
+                {'source': 'Close file', 'target': 'Maak lêer toe'}])
+            assert response.status_code == 200
+            assert lookup(c, 'Close file') == [('Maak lêer toe', ['api'])]
+        assert query(pg_connection, """SELECT filename, units, skipped
+            FROM en.imports WHERE block = 'api'""") == [('upload.po', 2, 0)]
+
+    def test_store_upload(self, deployed, pg_connection):
+        data = po([('Save file', 'Stoor lêer'), ('Close file', '')]).encode('utf-8')
+        with client() as c:
+            response = c.put('/api/v1/en/af/store/upload.po', data=data)
+            assert response.status_code == 200
+            assert lookup(c, 'Save file') == [('Stoor lêer', ['api'])]
+        assert query(pg_connection, """SELECT filename, units, skipped
+            FROM en.imports WHERE block = 'api'""") == [('upload.po', 1, 1)]
+
 
 class TestRepairMojibake(object):
 

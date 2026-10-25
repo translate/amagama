@@ -88,7 +88,8 @@ def update_unit(slang, tlang, uid):
     data = request.json
     unit = base.TranslationUnit(data['source'])
     unit.target = data['target']
-    current_app.tmdb.add_unit(unit, slang, tlang)
+    current_app.tmdb.recorded_write(slang, tlang, 'unit', 1,
+        lambda iid: current_app.tmdb.add_unit(unit, slang, tlang, iid=iid))
     return ""
 
 
@@ -100,7 +101,8 @@ def add_unit(slang, tlang, uid):
     data = request.json
     unit = base.TranslationUnit(data['source'])
     unit.target = data['target']
-    current_app.tmdb.add_unit(unit, slang, tlang)
+    current_app.tmdb.recorded_write(slang, tlang, 'unit', 1,
+        lambda iid: current_app.tmdb.add_unit(unit, slang, tlang, iid=iid))
     return ""
 
 
@@ -109,7 +111,8 @@ def add_store(slang, tlang, sid):
     """Add unit from POST data to tmdb."""
     units = request.json
     project_style = request.args.get('style', None)
-    count = current_app.tmdb.add_list(units, slang, tlang, project_style)
+    count = current_app.tmdb.recorded_write(slang, tlang, sid, len(units),
+        lambda iid: current_app.tmdb.add_list(units, slang, tlang, project_style, iid=iid))
     response = "added %d units from %s" % (count, sid)
     return response
 
@@ -124,7 +127,9 @@ def upload_store(slang, tlang, sid):
     data.name = sid
     store = factory.getobject(data)
     project_style = request.args.get('style', None)
-    count = current_app.tmdb.add_store(store, slang, tlang, project_style)
+    total = sum(1 for u in store.units if u.istranslatable())
+    count = current_app.tmdb.recorded_write(slang, tlang, sid, total,
+        lambda iid: current_app.tmdb.add_store(store, slang, tlang, project_style, iid=iid))
     response = "added %d units from %s" % (count, sid)
     return response
 

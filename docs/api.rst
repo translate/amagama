@@ -114,8 +114,9 @@ list containing zero or more results. The results contain the following fields:
 +-----------+---------------------------------------+
 | sources   | The :ref:`blocks <sources>` whose     |
 |           | imports supplied this translation, in |
-|           | alphabetical order. Empty if none was |
-|           | recorded.                             |
+|           | alphabetical order: ``api`` for the   |
+|           | :ref:`write API <api#write>`. Empty   |
+|           | if none was recorded.                 |
 +-----------+---------------------------------------+
 
 An example:
@@ -200,3 +201,5 @@ API also accepts translations. ``style`` can be passed as for lookups.
 The store requests reply ``added <N> units from <NAME>``.
 A request with a language code that isn't valid returns 400.
 Strings too long for the database's index are skipped.
+Each request is :ref:`recorded <importing#record>` as an import of block
+``api``, named ``unit`` or ``<NAME>``.
