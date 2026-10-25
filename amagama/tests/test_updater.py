@@ -195,6 +195,29 @@ class TestSourcesFile(object):
         with pytest.raises(ValueError, match=error):
             load_sources(str(path))
 
+    def test_include(self, tmp_path):
+        (tmp_path / "more").mkdir()
+        (tmp_path / "sources.toml").write_text(
+            'include = ["more/weblate.toml"]\n' + block("a", "translationproject"))
+        (tmp_path / "more/weblate.toml").write_text(
+            'include = ["deeper.toml"]\n' + block("b", "translationproject"))
+        (tmp_path / "more/deeper.toml").write_text(block("c", "translationproject"))
+        assert [b.name for b in load_sources(str(tmp_path / "sources.toml"))] == ["a", "b", "c"]
+
+    @pytest.mark.parametrize("files, error", [
+        ({"sources.toml": 'include = ["w.toml"]\n' + block("a", "translationproject"),
+          "w.toml": block("a", "translationproject")}, "w.toml: block a: duplicate name"),
+        ({"sources.toml": 'include = ["w.toml"]\n', "w.toml": 'include = ["sources.toml"]\n'},
+         "sources.toml is included twice"),
+        ({"sources.toml": 'include = "w.toml"\n'}, "include must be a list of files"),
+        ({"sources.toml": 'include = ["missing.toml"]\n'}, "missing.toml"),
+    ])
+    def test_include_invalid(self, tmp_path, files, error):
+        for name, text in files.items():
+            (tmp_path / name).write_text(text)
+        with pytest.raises((ValueError, OSError), match=error):
+            load_sources(str(tmp_path / "sources.toml"))
+
     def test_licence_normalised(self, tmp_path):
         path = tmp_path / "sources.toml"
         path.write_text(block("a", "translationproject", licence="gpl-2.0-or-later"))
