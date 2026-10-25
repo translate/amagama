@@ -377,6 +377,29 @@ class TestFetch(object):
         assert fetched(run.cache, "x") == [("po/af.po", "af"), ("po/zu.po", "zu")]
         assert not (run.cache / "x/.git").exists()
 
+    def test_git_symlinks(self, run, git_repo, tmp_path):
+        """A link to a kept file is kept; one leading outside the clone isn't."""
+        repo, git = git_repo
+        (tmp_path / "secret").write_text("not for import")
+        # Linked to a kept file, and to a file that isn't kept.
+        os.symlink("af.po", repo / "po/af_ZA.po")
+        (repo / "README").write_text("readme")
+        os.symlink("../README", repo / "po/ab.po")
+        # Leading outside the clone.
+        os.symlink(str(tmp_path / "secret"), repo / "po/xh.po")
+        os.symlink("../../secret", repo / "po/st.po")
+        git("add", ".")
+        git("commit", "-q", "-m", "links")
+        result = run(block("x", "git", url=repo.as_uri(), files=["po/{lang}.po"]))
+        assert result.exit_code == 0, result.output
+        assert [path for path, lang in fetched(run.cache, "x")] == [
+            "po/ab.po", "po/af.po", "po/af_ZA.po", "po/zu.po"]
+        assert "x: symlinks leading outside the block, skipped: po/st.po, po/xh.po" in result.output
+        unpacked = tmp_path / "ab.po"
+        compressed.decompress(str(run.cache / "x/po/ab.po.zst"), str(unpacked))
+        assert unpacked.read_text() == "readme"
+        assert not list((run.cache / "x").rglob("*.po"))
+
     def test_git_nongnu(self, run, git_repo):
         repo, git = git_repo
         (repo / "af").mkdir()

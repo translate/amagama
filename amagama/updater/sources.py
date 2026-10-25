@@ -153,6 +153,9 @@ class Block(object):
             unknown = set()
             codes = {}
             fetched = self.fetcher.fetch(new)
+            outside = _resolve_links(new)
+            fetched = [(path, lang) for path, lang in fetched
+                       if path.replace("\\", "/") not in outside]
             listed = None
             if self.grd_listed:
                 listed = chromium.listed_translations(new, [
@@ -218,6 +221,7 @@ class Block(object):
             "fetched": datetime.datetime.now(datetime.timezone.utc).isoformat(),
             "files": sorted(files),
             "unknown_languages": sorted(unknown),
+            "outside_links": outside,
             "languages": {code: sorted(sources) for code, sources in sorted(codes.items())},
             # Different codes normalised to one, not by the block's languages.
             "merged_languages": {code: sorted(sources) for code, sources in sorted(codes.items())
@@ -232,6 +236,30 @@ class Block(object):
         os.rename(new, final)
         shutil.rmtree(old, ignore_errors=True)
         return state
+
+
+def _resolve_links(root):
+    """Replace the file symlinks under root with copies of what they point to.
+
+    Afterwards files can be removed or compressed in any order. A link
+    leading outside root (a repository could link a "translation" to any
+    file on the machine) or to nothing is removed; returns those, relative
+    to root.
+    """
+    real_root = os.path.realpath(root)
+    dropped = []
+    for dirpath, dirnames, filenames in os.walk(root):
+        for name in filenames:
+            path = os.path.join(dirpath, name)
+            if not os.path.islink(path):
+                continue
+            target = os.path.realpath(path)
+            os.remove(path)
+            if target.startswith(real_root + os.sep) and os.path.isfile(target):
+                shutil.copyfile(target, path)
+            else:
+                dropped.append(os.path.relpath(path, root))
+    return sorted(dropped)
 
 
 def _fill(value, version):

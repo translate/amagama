@@ -1,5 +1,6 @@
 import functools
 import http.server
+import os
 import threading
 
 import pytest
@@ -10,6 +11,7 @@ from amagama.cli import manage
 from amagama.updater import compressed
 from amagama.updater import pipeline
 from amagama.tests.test_updater import QuietHandler, block, write_stats, write_tarball
+from amagama.tests.test_updater import git_repo  # noqa: F401 - fixture
 
 
 def po(lang, *pairs):
@@ -187,6 +189,19 @@ class TestUpdate(object):
         assert result.exit_code == 1
         assert not list((tmp_path / "cache").glob("*.new"))
         assert lookup("af", "Open file") == ["Maak lêer oop"]
+
+    def test_symlink_outside_reported(self, run, git_repo, tmp_path, pg_connection):  # noqa: F811 - fixture
+        repo, git = git_repo
+        (tmp_path / "secret").write_text('msgid "Open file"\nmsgstr "secret"\n')
+        os.symlink(str(tmp_path / "secret"), repo / "po/xh.po")
+        git("add", ".")
+        git("commit", "-q", "-m", "link")
+        sources = tmp_path / "git.toml"
+        sources.write_text(block("x", "git", url=repo.as_uri(), files=["po/{lang}.po"]))
+        result = run("update", "-s", "en", UPDATER_SOURCES=str(sources))
+        assert result.exit_code == 0, result.output
+        assert "Symlinks leading outside x, skipped: po/xh.po" in result.output
+        assert lookup("xh", "Open file") == []
 
     def test_snapshot_loaded_first(self, run, tmp_path, pg_connection):
         legacy = tmp_path / "legacy.po"
