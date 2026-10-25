@@ -390,6 +390,21 @@ class TestFetch(object):
         assert fetched(run.cache, "x") == [("po/af.po", "af"), ("po/zu.po", "zu")]
         assert not (run.cache / "x/.git").exists()
 
+    def test_unchanged_files_not_compressed_again(self, run, git_repo, tmp_path, monkeypatch):
+        repo, git = git_repo
+        text = block("x", "git", url=repo.as_uri(), files=["po/{lang}.po"])
+        assert run(text).exit_code == 0
+        (repo / "po/af.po").write_text("af changed")
+        git("commit", "-q", "-am", "af")
+        done = []
+        compress = compressed.compress
+        monkeypatch.setattr(compressed, "compress", lambda path: done.append(path) or compress(path))
+        assert run(text).exit_code == 0
+        assert [os.path.relpath(path, run.cache / "x.new") for path in done] == ["po/af.po"]
+        for lang, text in (("af", "af changed"), ("zu", "zu")):
+            compressed.decompress(str(run.cache / "x/po" / (lang + ".po.zst")), str(tmp_path / lang))
+            assert (tmp_path / lang).read_text() == text
+
     def test_git_symlinks(self, run, git_repo, tmp_path):
         """A link to a kept file is kept; one leading outside the clone isn't."""
         repo, git = git_repo

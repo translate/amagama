@@ -192,6 +192,7 @@ class TestUpdate(object):
         def full_disk(path):
             raise OSError("No space left on device")
         monkeypatch.setattr(compressed, "compress", full_disk)
+        write_gnome(root, "af", ("Open file", "Maak die lêer oop"))
         write_stats(root, af=2, zu=1)
         result = run("update", "-s", "en")
         assert result.exit_code == 1
