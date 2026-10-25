@@ -339,8 +339,9 @@ globs of a project's slug or of ``project/component``. Left out, and counted:
 glossaries, components whose source isn't English, formats amaGama doesn't
 read, no-derivatives licences, repositories another block already imports,
 repositories on archived hosts (pagure.io), and blocks that wouldn't load. The
-file's ``[defaults]`` give every block ``source = "git"`` and ``min_age_days``
-from ``--min-age-days`` (default 60).
+file's ``[defaults]`` give every block ``source = "git"``, ``min_age_days``
+from ``--min-age-days`` (default 60), and a :ref:`weight <sources>` from
+``--weight`` (default 1).
 
 Weblate's data can be out of date, so each block is then checked against its
 repository, from a clone of its file list without the files: a branch that's
