@@ -287,3 +287,33 @@ When nothing changed it prints ``Nothing changed.`` and exits, so it can run
 from a timer. It refuses to run while a snapshot block's snapshot is missing
 and the live data holds anything the blocks don't re-import, such as a
 migrated database: run :ref:`snapshot_db <managing#snapshot-db>` first.
+
+
+.. _managing#weblate-sources:
+
+weblate_sources
+---------------
+
+This subcommand writes :ref:`sources file <sources>` blocks for a Weblate
+instance's projects, to review before including them. It reads the instance's
+component list (a few API requests) and turns each component into a ``git``
+block on its repository, with its filemask, template, format and licence;
+the translations then come from the repositories, not from Weblate:
+
+.. code-block:: bash
+
+    $ amagama-manage weblate_sources https://translate.fedoraproject.org \
+          --prefix fedora --docs 'fedora-docs-*' \
+          --output amagama/updater/weblate-fedora.toml
+    259 blocks.
+    Skipped 174 components: glossary (terminology).
+    Skipped 14 components: source not English.
+
+Components of one repository, branch, format and licence share a block, and
+many single-file components under one directory are read as that directory's
+files. A project on several branches gets a block per branch, with a branch
+that looks like a release as its version. ``--project`` limits it to project
+slugs matching a glob, and ``--docs`` marks documentation projects for
+``segment``. Left out, and counted: glossaries, components whose source isn't
+English, formats amaGama doesn't read, no-derivatives licences, repositories
+another block already imports, and blocks that wouldn't load.
