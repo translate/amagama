@@ -2,4 +2,5 @@ blinker>=1.6
 Flask>=3.0
 Flask-Caching>=2.0
 psycopg2>=2.9
+pycountry>=22.3
 translate-toolkit>=3.0

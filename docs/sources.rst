@@ -198,7 +198,9 @@ Every language code is turned into one form, language with optional
 Android's ``pt-rBR`` and ``pt_br`` become ``pt_BR``; ``sr-Latn``,
 ``b+sr+Latn`` and ``sr@Latn`` become ``sr@latin``; ``zh-Hans`` and ``zh-Hant``
 become ``zh_CN`` and ``zh_TW``; ``ca-valencia`` becomes ``ca@valencia``;
-replaced codes such as ``iw`` become ``he``. Codes that aren't languages are
+replaced codes such as ``iw`` become ``he``; and a three-letter ISO 639 code
+with a two-letter one becomes it (``arg`` and ``deu`` become ``an`` and
+``de``). Codes that aren't languages are
 left out and listed by ``fetch_sources`` and ``update``.
 
 :ref:`fetch_sources <managing#fetch-sources>` downloads the blocks into
