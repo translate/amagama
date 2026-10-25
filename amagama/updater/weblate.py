@@ -61,6 +61,21 @@ def components(url, pause=1):
     return found
 
 
+def _with_encoding(component):
+    """The component's Weblate format, naming a properties file's encoding.
+
+    Newer Weblate keeps it in file_format_params, not in the format's name.
+    """
+    weblate_format = component.get("file_format")
+    if weblate_format == "properties":
+        encoding = ((component.get("file_format_params") or {}).get("properties_encoding")
+                    or "").lower().replace("_", "-")
+        if encoding in ("utf-8", "utf8"):
+            return "properties-utf8"
+        if encoding.startswith(("utf-16", "utf16")):
+            return "properties-utf16"
+    return weblate_format
+
 def _repository(component, by_url):
     """(repo, branch) of a component, or (None, None).
 
@@ -113,7 +128,7 @@ def blocks(components, prefix, projects=("*",), docs=(), covered=(), taken=()):
         project = component["project"]
         if not any(fnmatch.fnmatchcase(project["slug"], glob) for glob in projects):
             continue
-        weblate_format = component.get("file_format")
+        weblate_format = _with_encoding(component)
         licence = (component.get("license") or "").strip()
         if component.get("is_glossary") or weblate_format == "tbx":
             skip("glossary (terminology)")

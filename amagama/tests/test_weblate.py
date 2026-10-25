@@ -252,6 +252,21 @@ def test_formats_are_readers():
         check_format(format)
 
 
+@pytest.mark.parametrize("params, expected", [
+    ({"properties_encoding": "utf-8"}, "properties-utf8"),
+    ({"properties_encoding": "utf-16"}, "properties-utf16"),
+    ({"properties_encoding": "iso-8859-1"}, "properties"),
+    ({}, "properties"),
+])
+def test_properties_encoding(params, expected):
+    # A corrected reader keeps the block's name.
+    found, skipped = generated([component("app", "ui", "https://git.example/app",
+                                          "src/Bundle_*.properties", file_format="properties",
+                                          template="src/Bundle.properties",
+                                          file_format_params=params)])
+    assert found["test-app"]["format"] == expected
+
+
 def test_dead_host():
     found, skipped = generated([component("libuser", "ui", "https://pagure.io/libuser/", "po/*.po")])
     assert found == {}
