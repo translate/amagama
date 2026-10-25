@@ -11,7 +11,8 @@ import pytest
 from click.testing import CliRunner
 
 from amagama.cli import manage
-from amagama.updater.fetchers import DamnedLies, Git, combine
+from amagama.updater import fetchers
+from amagama.updater.fetchers import DamnedLies, FetchError, Git, combine
 from amagama.updater.sources import load_sources
 
 
@@ -352,6 +353,22 @@ class TestFetch(object):
         git("commit", "-q", "-m", "res")
         fetcher = Git({"url": repo.as_uri(), "sparse": ["res/values*/strings.xml"]})
         assert fetcher.fetch(str(tmp_path / "x")) == [("res/values-af/strings.xml", None)]
+
+    def test_gitiles_fingerprint(self, monkeypatch):
+        urls = []
+
+        def http_text(url):
+            urls.append(url)
+            return ')]}\'\n{"commit": "eb3df117", "tree": "d58fe66d"}'
+        monkeypatch.setattr(fetchers, "http_text", http_text)
+        git = Git({"url": "https://chromium.googlesource.com/chromium/src", "ref": "main"})
+        assert git.fingerprint() == "eb3df117"
+        assert urls == ["https://chromium.googlesource.com/chromium/src/+/main?format=JSON"]
+
+    def test_gitiles_fingerprint_bad_json(self, monkeypatch):
+        monkeypatch.setattr(fetchers, "http_text", lambda url: "<html>")
+        with pytest.raises(FetchError, match="format=JSON"):
+            Git({"url": "https://chromium.googlesource.com/chromium/src"}).fingerprint()
 
     def test_git_ref(self, run, git_repo):
         repo, git = git_repo
