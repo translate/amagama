@@ -201,16 +201,22 @@ files it includes); a block's own settings take precedence. ``name`` and
   (an element around the whole message, such as LibreOffice's ``<ahelp>``,
   is set aside first). The whole message is imported too.
 
-``max_age_days``
-  For a source whose server gives no fingerprint: how many days after a fetch
-  it counts as changed again (default 30).
+``min_age_days`` and ``max_age_days``
+  Both count days since the block was last fetched; ``min_age_days`` is a
+  floor and ``max_age_days`` a ceiling.
 
-``min_age_days``
-  Days after a fetch before the block is checked again at all (default 0):
-  for many small sources, so each is fetched at most that often. Blocks
-  first fetched together would all come due on one day, so a block's first
-  refetch comes after a part of ``min_age_days`` fixed by its name, which keeps
-  them spread out.
+  ``min_age_days`` (default 0): until the block's copy is this old, it isn't
+  checked at all, so its server gets no request; this keeps many small
+  sources from being fetched more often than they're worth. Blocks first
+  fetched together would all come due on one day, so a block's first
+  refetch comes after a fraction of ``min_age_days`` taken from a hash of its
+  name. 0 checks the block on every run.
+
+  ``max_age_days`` (default 30): for a source whose server gives no
+  fingerprint, a copy this old is fetched again, though nothing says it
+  changed. 0 fetches it on every run.
+
+  Within ``min_age_days`` a block isn't touched, even past ``max_age_days``.
 
 ``exclude_ids``
   Optional patterns of message ids to leave out, such as ``["@metadata*"]``
@@ -368,7 +374,7 @@ JSON on ``googlesource.com``, where ``ls-remote`` is too costly).
 blocks whose fingerprint changed.
 
 A server that sends neither header gives no fingerprint: such a block counts
-as changed once its last fetch is ``max_age_days`` old (default 30; 0 for
-every run). Every fetch also records a hash of the files it kept, and when
+as changed once its last fetch is ``max_age_days`` old. A block younger than
+``min_age_days`` isn't checked at all. Every fetch also records a hash of the files it kept, and when
 all the blocks :ref:`update <managing#update>` fetched are the same as last
 time, it doesn't rebuild.
