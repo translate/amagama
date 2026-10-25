@@ -280,6 +280,16 @@ class TestUpdate(object):
         assert lookup("af", "Save file") == ["Stoor die lêer"]
         assert schemas(pg_connection) == {"en", "_old_en"}
 
+    def test_change_check_failure(self, run, site, pg_connection):
+        """A block whose server can't say whether it changed is skipped too."""
+        root, url = site
+        run("update", "-s", "en")
+        (root / "api/v1/releases/gnome-51/stats").unlink()
+        result = run("update", "-s", "en")
+        assert result.exit_code == 1
+        assert "Nothing changed.\nCouldn't fetch 1 blocks:\n  gnome-51: " in result.output
+        assert lookup("af", "Open file") == ["Maak lêer oop"]
+
     def test_never_fetched_block(self, run, tmp_path, site, pg_connection):
         root, url = site
         sources = tmp_path / "sources.toml"
