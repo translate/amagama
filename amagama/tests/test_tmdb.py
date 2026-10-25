@@ -26,6 +26,14 @@ from amagama import tmdb
     ("tr@crh", "tr_crh"),
     ("arg", "an"),
     ("deu", "de"),
+    # English regions are targets; en_US is the source's English.
+    ("en_GB", "en_gb"),
+    ("en-AU", "en_au"),
+    ("en_CA", "en_ca"),
+    ("en_IN", "en_in"),
+    ("en_US", "en"),
+    ("en-US", "en"),
+    ("en", "en"),
     ("x!", None),
     ("", None),
 ])
@@ -102,6 +110,14 @@ class TestTMDB(object):
                 == ['Мрежа']
             assert [r['target'] for r in amagama.tmdb.translate_unit('Network', 'en', 'sr-Latn')] \
                 == ['Mreža']
+
+    def test_english_regions(self, amagama):
+        with amagama.app_context():
+            amagama.tmdb.add_test_unit('Color', 'Colour', 'en', 'en_AU')
+            amagama.tmdb.add_test_unit('Color', 'Color', 'en', 'en_US')
+            assert [r['target'] for r in amagama.tmdb.translate_unit('Color', 'en', 'en-AU')] \
+                == ['Colour']
+            assert amagama.tmdb.available_languages['targetLanguages'] == ['en_au']
 
     def test_translate_bytes(self, amagama):
         with amagama.app_context():

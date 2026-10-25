@@ -64,12 +64,18 @@ BUILD_PREFIX = '_build_'
 OLD_PREFIX = '_old_'
 
 
+# Languages whose every region is localised apart, with the region that is
+# the language itself: en_AU and en_GB are targets, en_US is en, the source.
+REGIONAL = {"en": "US"}
+
+
 def lang_to_table(code):
     """The name a language's data is stored under, or None for a bad code.
 
     Any spelling of a code gives the same name. The country is dropped where
     the language is rarely localised by country (es_ES is es), but a variant
-    is kept: sr@latin and sr, or ca@valencia and ca, stay apart.
+    is kept: sr@latin and sr, or ca@valencia and ca, stay apart. So are the
+    regions in REGIONAL.
     """
     if code in _table_name_cache:
         return _table_name_cache[code]
@@ -77,7 +83,12 @@ def lang_to_table(code):
     if not canonical:
         return None
     base, _, variant = canonical.partition("@")
-    result = data.simplify_to_common(base) + ("@" + variant if variant else "")
+    lang, _, region = base.partition("_")
+    if lang in REGIONAL and region and region != REGIONAL[lang]:
+        result = base
+    else:
+        result = data.simplify_to_common(base)
+    result += "@" + variant if variant else ""
     if data.langcode_ire.match(result):
         # Normalize to legal table name.
         table_name = result.replace("-", "_").replace("@", "_").lower()
