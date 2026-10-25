@@ -51,11 +51,12 @@ def test_monolingual_block_per_component():
                   file_format="aresource", template="res/values/other.xml"),
         component("app", "nolang", "https://git.example/app", "*.json", file_format="json"),
     ])
-    assert sorted(found) == ["test-app", "test-app-2"]
-    assert found["test-app"]["format"] == "android"
-    assert found["test-app"]["sparse"] == sorted(
-        [found["test-app"]["files"][0].replace("{lang}", "*"), found["test-app"]["template"]])
-    assert found["test-app"]["template"] in ("res/values/strings.xml", "res/values/other.xml")
+    # Told apart by component, so a name doesn't depend on the project's other blocks.
+    assert sorted(found) == ["test-app-other", "test-app-strings"]
+    assert found["test-app-strings"]["format"] == "android"
+    assert found["test-app-strings"]["template"] == "res/values/strings.xml"
+    assert found["test-app-strings"]["sparse"] == ["res/values-*/strings.xml",
+                                                   "res/values/strings.xml"]
     assert skipped == {"monolingual without a template": 1}
 
 
@@ -142,13 +143,28 @@ def test_docs_component():
         component("app", "docs", "https://git.example/app-docs", "docs/po/*.po"),
     ], docs=["*/docs"])
     assert {name: b.get("segment", False) for name, b in found.items()} == {
-        "test-app": False, "test-app-2": True}
+        "test-app-ui": False, "test-app-docs": True}
 
 
 def test_names_taken():
     found, skipped = generated([component("app", "ui", "https://git.example/app", "po/*.po")],
                                taken={"test-app"})
-    assert list(found) == ["test-app-2"]
+    assert list(found) == ["test-app-ui"]
+
+def test_names_kept():
+    first, skipped = generated([component("app", "ui", "https://git.example/app", "po/*.po")])
+    assert list(first) == ["test-app"]
+    previous = {weblate.identity(b["url"], b.get("ref"), b.get("template"), b.get("segment"),
+                                 b.get("licence")): name
+                for name, b in first.items()}
+    # The project gains a component in another format: the first block keeps its name.
+    found, skipped = generated([
+        component("app", "ui", "https://git.example/app", "po/*.po"),
+        component("app", "android", "https://git.example/app", "res/values-*/strings.xml",
+                  file_format="aresource", template="res/values/strings.xml"),
+    ], previous=previous)
+    assert sorted(found) == ["test-app", "test-app-android"]
+    assert found["test-app"]["files"] == ["po/{lang}.po"]
 
 
 def test_toml_defaults(tmp_path):
