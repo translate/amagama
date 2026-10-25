@@ -100,7 +100,8 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
     """Fetch changed blocks, rebuild slang from every block and swap it in.
 
     Returns False when nothing changed (and force is off). A failure raises
-    before the swap, leaving the live data as it was.
+    before the swap, leaving the live data as it was, and the next update
+    rebuilds even if nothing has changed since.
     """
     slang = lang_to_table(slang)
     tmdb = current_app.tmdb
@@ -116,9 +117,14 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
         raise ValueError("Snapshot _%s_%s doesn't exist: run snapshot_db -s %s --name %s first."
                          % (name, slang, slang, name))
     changed = [block for block in blocks if block.changed(cache_dir)]
-    if not changed and not force:
+    # Fetches save their state before the rebuild; this marks one still owed.
+    pending = os.path.join(cache_dir, ".rebuild-%s" % slang)
+    was_pending = os.path.exists(pending)
+    if not changed and not force and not was_pending:
         out("Nothing changed.")
         return False
+    os.makedirs(cache_dir, exist_ok=True)
+    open(pending, "w").close()
     same = []
     for block in changed:
         state = block.fetch(cache_dir)
@@ -130,7 +136,8 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
         if state["unknown_languages"]:
             out("Not language codes in %s, skipped: %s" % (
                 block.name, ", ".join(state["unknown_languages"])))
-    if same and all(same) and not force:
+    if same and all(same) and not force and not was_pending:
+        os.remove(pending)
         out("Nothing changed.")
         return False
 
@@ -172,5 +179,6 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
     tmdb.drop_db([slang])
     tmdb.use_schemas("")
     tmdb.swap(slang)
+    os.remove(pending)
     out("Swapped in '%s'; the replaced copy is %s%s." % (slang, OLD_PREFIX, slang))
     return True

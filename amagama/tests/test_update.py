@@ -7,6 +7,7 @@ from click.testing import CliRunner
 
 from amagama.application import amagama_server_factory
 from amagama.cli import manage
+from amagama.updater import pipeline
 from amagama.tests.test_updater import QuietHandler, block, write_stats, write_tarball
 
 
@@ -123,6 +124,27 @@ class TestUpdate(object):
         assert schemas(pg_connection) == {"en", "_old_en"}
         assert run("swap_db", "-s", "en", "--rollback").exit_code == 0
         assert lookup("af", "Open file") == ["Open lêer"]
+
+    def test_failed_import_rebuilds_next_time(self, run, site, pg_connection, monkeypatch):
+        root, url = site
+        run("update", "-s", "en")
+        write_gnome(root, "af", ("Open file", "Open lêer"))
+        write_stats(root, af=2, zu=1)
+        import_files, calls = pipeline.import_files, []
+
+        def killed_once(tasks, workers):
+            calls.append(1)
+            if len(calls) == 1:
+                raise MemoryError
+            return import_files(tasks, workers)
+        monkeypatch.setattr(pipeline, "import_files", killed_once)
+        assert run("update", "-s", "en").exit_code == 1
+        assert lookup("af", "Open file") == ["Maak lêer oop"]
+        result = run("update", "-s", "en")
+        assert result.exit_code == 0, result.output
+        assert "Imported 3 files" in result.output
+        assert lookup("af", "Open file") == ["Open lêer"]
+        assert run("update", "-s", "en").output == "Nothing changed.\n"
 
     def test_force(self, run, pg_connection):
         run("update", "-s", "en")
