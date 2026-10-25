@@ -1,5 +1,6 @@
 """Rebuild a source language from the sources file and swap it in."""
 
+import concurrent.futures
 import multiprocessing
 import os
 
@@ -92,12 +93,26 @@ def _import_task(task):
     return import_file(*task)
 
 
+def in_workers(func, tasks, workers, initializer=None):
+    """[func(task) for task in tasks] in worker processes.
+
+    A worker that dies (killed for lack of memory, say) raises instead of
+    leaving its task unfinished forever.
+    """
+    try:
+        with concurrent.futures.ProcessPoolExecutor(
+                workers, mp_context=multiprocessing.get_context("spawn"),
+                initializer=initializer) as pool:
+            return list(pool.map(func, tasks))
+    except concurrent.futures.process.BrokenProcessPool as e:
+        raise RuntimeError("An import worker died, perhaps for lack of memory") from e
+
+
 def import_files(tasks, workers):
     """Import import_file() argument tuples; stop on the first error."""
     if workers <= 1:
         return [import_file(*task) for task in tasks]
-    with multiprocessing.get_context("spawn").Pool(workers, initializer=_start_worker) as pool:
-        return pool.map(_import_task, tasks, chunksize=1)
+    return in_workers(_import_task, tasks, workers, _start_worker)
 
 
 def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=print):
