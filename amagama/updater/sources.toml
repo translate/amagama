@@ -187,3 +187,17 @@ name = "gnome-infrastructure"
 title = "GNOME Infrastructure"
 source = "damned-lies"
 release = "gnome-infrastructure"
+
+[[block]]
+name = "mozilla"
+title = "Mozilla"
+source = "pontoon"
+# Website content, not interface text.
+exclude_ids = ["foundation-website-content:*", "staging:*"]
+# Keep script and idiom apart.
+languages.pa-PK = "pa@arabic"
+languages.rm-sursilv = "rm@sursilv"
+languages.rm-vallader = "rm@vallader"
+licence = "MPL-2.0"
+# Each file is generated on request.
+pause = 5
