@@ -33,6 +33,13 @@
     width: 90%;
 }
 
+.sources-table
+{
+    max-height: 60vh;
+    overflow-y: auto;
+    margin-top: 1em;
+}
+
 .exact-match
 {
     font-weight: bold;
