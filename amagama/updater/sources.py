@@ -17,6 +17,10 @@ from amagama.updater.languages import is_android_locale, map_language
 
 DEFAULT_SOURCES = os.path.join(os.path.dirname(__file__), "sources.toml")
 STATE_FILE = "fetched.json"
+# Beside a block's directory: its failed runs in a row.
+FAILED_SUFFIX = ".failed"
+# This many failed runs in a row and a block is called out for attention.
+FAILURES_TO_REPORT = 4
 
 
 class Block(object):
@@ -104,6 +108,30 @@ class Block(object):
                 return json.load(f)
         except FileNotFoundError:
             return None
+
+    def failures(self, cache_dir):
+        """The block's failures in a row: {"runs", "error", "since"}, or None."""
+        try:
+            with open(self.directory(cache_dir) + FAILED_SUFFIX, encoding="utf-8") as f:
+                return json.load(f)
+        except FileNotFoundError:
+            return None
+
+    def record_failure(self, cache_dir, error):
+        """Count a failed run; returns the failures in a row so far."""
+        failures = self.failures(cache_dir) or {
+            "runs": 0, "since": datetime.datetime.now(datetime.timezone.utc).isoformat()}
+        failures.update(runs=failures["runs"] + 1, error=str(error))
+        os.makedirs(cache_dir, exist_ok=True)
+        with open(self.directory(cache_dir) + FAILED_SUFFIX, "w", encoding="utf-8") as f:
+            json.dump(failures, f, indent=1)
+        return failures
+
+    def clear_failures(self, cache_dir):
+        try:
+            os.remove(self.directory(cache_dir) + FAILED_SUFFIX)
+        except FileNotFoundError:
+            pass
 
     def changed(self, cache_dir):
         """Whether the source may differ from the last fetch.

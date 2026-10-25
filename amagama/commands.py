@@ -36,7 +36,7 @@ from translate.storage import factory
 from amagama.licences import normalise_licence
 from amagama.updater import weblate
 from amagama.updater.fetchers import FetchError
-from amagama.updater.sources import load_sources
+from amagama.updater.sources import FAILURES_TO_REPORT, load_sources
 from amagama.tmdb import BUILD_PREFIX, OLD_PREFIX
 
 def ensure_source_exists():
@@ -443,8 +443,14 @@ def fetch_sources(block_names, check):
                     print("%s: symlinks leading outside the block, skipped: %s" % (
                         block.name, ", ".join(state['outside_links'])))
         except FetchError as e:
-            print("%s: failed: %s" % (block.name, e))
+            failures = block.record_failure(cache_dir, e)
+            often = (" (%d runs in a row)" % failures["runs"]
+                     if failures["runs"] >= FAILURES_TO_REPORT else "")
+            print("%s: failed%s: %s" % (block.name, often, e))
             failed = True
+        else:
+            if not check:
+                block.clear_failures(cache_dir)
     if failed:
         raise SystemExit(1)
 
@@ -505,12 +511,17 @@ def update(source_langs, force):
     """Fetch the sources, rebuild from them and swap the result in."""
     from amagama.updater.pipeline import update as update_from_sources
     cache_dir = os.path.expanduser(current_app.config.get('UPDATER_CACHE_DIR'))
+    failed = False
     try:
         for slang in source_langs:
-            update_from_sources(slang, cache_dir, current_app.config.get('UPDATER_SOURCES'),
-                                current_app.config.get('UPDATER_WORKERS', 4), force)
+            failed |= bool(update_from_sources(
+                slang, cache_dir, current_app.config.get('UPDATER_SOURCES'),
+                current_app.config.get('UPDATER_WORKERS', 4), force))
     except (OSError, ValueError, FetchError) as e:
         print(e)
+        raise SystemExit(1)
+    if failed:
+        # Rebuilt without them, but a scheduled run should alert.
         raise SystemExit(1)
 
 

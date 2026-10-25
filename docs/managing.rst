@@ -104,8 +104,9 @@ into :setting:`UPDATER_CACHE_DIR`, or with ``--block`` only the named ones:
     gnome-51: 6908 files, 167 languages.
 
 Templates (``.pot``) are not kept. A block's previous download is replaced
-only once its new one is complete; a failure names the block and leaves the
-previous download in place. With ``--check`` it downloads nothing and lists
+only once its new one is complete; a failure names the block (with how many
+runs in a row it has failed, from 4) and leaves the previous download in
+place. With ``--check`` it downloads nothing and lists
 the blocks that changed since they were last fetched.
 
 
@@ -279,9 +280,17 @@ This subcommand refreshes a source language from the :ref:`sources file
 The build starts empty: snapshot blocks are loaded first, then every file of
 every other block, :setting:`UPDATER_WORKERS` at a time, each with its known
 target language, block name and licence. Files that can't be read are listed
-and left out. A fetch or database error stops it before the swap, leaving the
-live data as it was. The previous copy is kept as ``_old_<lang>`` until the
-next update (``swap_db --rollback`` restores it).
+and left out. A database error stops it before the swap, leaving the live data
+as it was. The previous copy is kept as ``_old_<lang>`` until the next update
+(``swap_db --rollback`` restores it).
+
+A block that fails to fetch (its server down, its repository moved) doesn't
+stop the update: it is rebuilt from its last fetch, or left out if it has
+none, and listed at the end with the error. Once it has failed 4 runs in a
+row the list says so and since when, a sign the block needs fixing or
+removing. With any
+failure the update still swaps in, but exits with status 1 so a timer can
+alert.
 
 When nothing changed it prints ``Nothing changed.`` and exits, so it can run
 from a timer. It refuses to run while a snapshot block's snapshot is missing
