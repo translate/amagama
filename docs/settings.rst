@@ -178,9 +178,10 @@ Settings for fetching translations to import, see :ref:`sources`.
   Default: ``100``
 
   How many blocks one run of :ref:`fetch_sources <managing#fetch-sources>` or
-  :ref:`update <managing#update>` fetches for the first time, so an empty cache
-  fills over several days instead of in one burst on every source. A block
-  whose first fetch failed is retried without counting. ``None`` is no limit.
+  :ref:`update <managing#update>` fetches for the first time, picked at random,
+  so an empty cache fills over several days instead of in one burst on every
+  source. A block whose first fetch failed is retried without counting.
+  ``None`` is no limit.
 
 
 .. setting:: UPDATER_SOURCES

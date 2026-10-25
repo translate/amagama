@@ -13,9 +13,9 @@ import hashlib
 import json
 import math
 import os
+import random
 import shutil
 import tomllib
-import urllib.parse
 
 from amagama.licences import normalise_licence
 from amagama.updater import chromium, compressed
@@ -474,23 +474,14 @@ def load_sources(path=None):
     return blocks
 
 
-def host(block):
-    """The upstream a block is fetched from: its URL's host, else its source."""
-    for key in ("url", "base_url", "repository"):
-        value = block.fetcher.settings.get(key)
-        if value:
-            return urllib.parse.urlsplit(value).hostname or value
-    return block.source
-
-
 def limit_first_fetches(blocks, cache_dir, limit):
     """The blocks to run, with at most limit of them fetched for the first time.
 
     A new cache fills over several runs rather than in one burst. Each run
-    takes the same fraction of every host's unfetched blocks, interleaved, so
-    no upstream gets its whole share at once. A block whose first fetch
-    failed is retried without counting. Returns (blocks, number left for
-    later runs); None is no limit.
+    picks its first fetches at random, so on average it takes a little from
+    every upstream and spaces a project's releases out. A block whose first
+    fetch failed is retried without counting. Returns (blocks, number left
+    for later runs); None is no limit.
     """
     blocks = list(blocks)
     new = [block for block in blocks
@@ -498,14 +489,5 @@ def limit_first_fetches(blocks, cache_dir, limit):
            and block.failures(cache_dir) is None]
     if limit is None or len(new) <= limit:
         return blocks, 0
-    by_host = {}
-    for block in new:
-        by_host.setdefault(host(block), []).append(block)
-    # A block's place in its host's queue, as a fraction: taking the lowest
-    # fractions takes each host's blocks at the same rate.
-    place = {}
-    for group in by_host.values():
-        for i, block in enumerate(group):
-            place[block.name] = (i + 0.5) / len(group)
-    chosen = sorted(new, key=lambda block: place[block.name])[:limit]
+    chosen = random.sample(new, limit)
     return [block for block in blocks if block not in new] + chosen, len(new) - limit

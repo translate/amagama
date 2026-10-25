@@ -557,7 +557,7 @@ class TestFirstFetches(object):
         result = run(text)
         assert result.exit_code == 0, result.output
         assert "Blocks not fetched yet, left for later runs: 1." in result.output
-        assert sorted(os.listdir(run.cache)) == ["a", "b"]
+        assert len(os.listdir(run.cache)) == 2
         result = run(text)
         assert "left for later" not in result.output
         assert sorted(os.listdir(run.cache)) == ["a", "b", "c"]
@@ -565,20 +565,14 @@ class TestFirstFetches(object):
     def test_failed_first_fetch_does_not_count(self, run, site, amagama_config, tmp_path):
         root, url = site
         amagama_config(UPDATER_FIRST_FETCHES=1)
-        text = block("x", "git", url=(tmp_path / "missing").as_uri(),
-                     files=["{lang}.po"]) + self.sources(url, "a")
-        assert run(text).exit_code == 1
+        bad = block("x", "git", url=(tmp_path / "missing").as_uri(), files=["{lang}.po"])
+        assert run(bad).exit_code == 1
         assert os.listdir(run.cache) == ["x.failed"]
-        assert run(text).exit_code == 1
+        # x is retried but doesn't take the one first fetch.
+        result = run(bad + self.sources(url, "a"))
+        assert result.exit_code == 1
+        assert "x: failed" in result.output
         assert sorted(os.listdir(run.cache)) == ["a", "x.failed"]
-
-    def test_spread_across_hosts(self, run, site, amagama_config):
-        root, url = site
-        amagama_config(UPDATER_FIRST_FETCHES=3)
-        other = url.replace("127.0.0.1", "localhost")
-        text = self.sources(url, "a1", "a2", "a3", "a4") + self.sources(other, "b1", "b2")
-        assert run(text).exit_code == 0
-        assert sorted(os.listdir(run.cache)) == ["a1", "a2", "b1"]
 
     def test_named_blocks_ignore_limit(self, run, site, amagama_config):
         root, url = site
