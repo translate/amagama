@@ -108,8 +108,8 @@ class Block(object):
     def changed(self, cache_dir):
         """Whether the source may differ from the last fetch.
 
-        Within min_age_days of the last fetch it isn't checked at all. A source
-        without a usable fingerprint counts as changed once its last fetch is
+        A copy younger than min_age_days isn't checked at all. A source
+        without a usable fingerprint counts as changed once its copy is
         max_age_days old; fetch() then tells whether it really did.
         """
         state = self.state(cache_dir)
@@ -128,8 +128,8 @@ class Block(object):
         """How long after a fetch the block isn't checked again: min_age_days.
 
         Blocks first fetched together would all come due on one day, so the
-        first refetch comes after a part of min_age_days fixed by the block's
-        name; they stay that far apart.
+        first refetch comes after a fraction of min_age_days taken from a hash
+        of the block's name; they stay that far apart.
         """
         days = datetime.timedelta(days=self.min_age_days)
         if state.get("fetches", 1) > 1:
