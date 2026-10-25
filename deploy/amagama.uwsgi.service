@@ -3,7 +3,7 @@ Description=Old amagama API (no web UI)
 
 [Service]
 ExecStart=/usr/bin/uwsgi \
-        --ini /var/www/sites/amagama_fw/uwsgi.ini \
+        --ini /srv/amagama/uwsgi.ini \
         --socket /run/amagama/uwsgi.socket
 RuntimeDirectory=amagama
 User=www-data
