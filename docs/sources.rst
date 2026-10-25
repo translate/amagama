@@ -282,13 +282,19 @@ Source types
 ``git``
   A shallow clone of ``url`` at ``ref`` (default: the default branch). A
   repository doesn't say which files are translations, so ``files`` is
-  required and every mask must contain ``{lang}``. ``sparse``, a list of
-  gitignore-style patterns, downloads and checks out only the matching
-  files, for a large repository:
+  required and every mask must contain ``{lang}``. Only the files the block
+  reads are downloaded and checked out: ``files`` with ``{lang}`` as ``*``,
+  ``template`` and ``keep``, or ``sparse``, a list of gitignore-style
+  patterns, instead:
 
   .. code-block:: toml
 
       sparse = ["**/res/values*/strings.xml"]
+
+  The clone is kept, one per ``url``, in ``.repos`` in
+  :setting:`UPDATER_CACHE_DIR`, and shared by the blocks that fetch from it:
+  a release's or a component's block downloads only what changed since any
+  of them last fetched.
 
 ``http``
   One file per language under a directory listing, such as Debian's

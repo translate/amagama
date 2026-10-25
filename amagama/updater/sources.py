@@ -29,6 +29,7 @@ DEFAULT_SOURCES = os.path.join(os.path.dirname(__file__), "sources.toml")
 STATE_FILE = "fetched.json"
 # Beside a block's directory: its failed runs in a row.
 FAILED_SUFFIX = ".failed"
+REPOSITORIES = ".repos"
 # This many failed runs in a row and a block is called out for attention.
 FAILURES_TO_REPORT = 4
 
@@ -242,6 +243,8 @@ class Block(object):
             files = []
             unknown = set()
             codes = {}
+            # Git keeps one repository per URL here, shared between blocks.
+            self.fetcher.store = os.path.join(cache_dir, REPOSITORIES)
             fetched = self.fetcher.fetch(new) if due is None else self.fetcher.fetch(new, due)
             outside = _resolve_links(new)
             fetched = [(path, lang) for path, lang in fetched
