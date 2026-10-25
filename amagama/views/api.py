@@ -13,6 +13,7 @@ from json import dumps
 from flask import Blueprint, abort, current_app, request
 from werkzeug.datastructures import Headers
 
+from amagama import titles
 from amagama.tmdb import lang_to_table
 
 
@@ -145,10 +146,14 @@ def get_languages():
 
 @read_api.route('/sources/', methods=('GET', ))
 def get_sources():
-    """Return the blocks of translations in the database."""
-    response = jsonwrapper({'sources': current_app.tmdb.sources})
+    """Return the blocks of translations in the database, titled in the request's language."""
+    lang = titles.negotiate(request.args.get('lang'), request.accept_languages)
+    direction, sources = titles.localise(current_app.tmdb.sources, lang)
+    response = jsonwrapper({'lang': lang, 'dir': direction, 'sources': sources})
+    headers = Headers(cache_headers)
+    headers['Vary'] = 'Accept-Language'
     return current_app.response_class(response, mimetype='application/json',
-                                      headers=cache_headers)
+                                      headers=headers)
 
 
 ###############################################################################

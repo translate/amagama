@@ -454,6 +454,31 @@ def fetch_sources(block_names, check):
         raise SystemExit(1)
 
 
+@click.command('sources_pot')
+@click.option('--check', is_flag=True,
+              help="Exit 1 if amagama/po/sources/sources.pot isn't current; write nothing.")
+def sources_pot(check):
+    """Write the template for translating block titles, from amaGama's own sources file."""
+    from amagama.titles import TEMPLATE, template
+    try:
+        text = template(load_sources())
+    except (OSError, ValueError) as e:
+        print(e)
+        raise SystemExit(1)
+    if check:
+        try:
+            with open(TEMPLATE, encoding='utf-8') as f:
+                current = f.read() == text
+        except FileNotFoundError:
+            current = False
+        if not current:
+            print("%s is out of date: run amagama-manage sources_pot." % TEMPLATE)
+            raise SystemExit(1)
+        return
+    with open(TEMPLATE, 'w', encoding='utf-8') as f:
+        f.write(text)
+
+
 @click.command('weblate_sources')
 @click.argument('url')
 @click.option('--prefix', required=True, help="Start of each block's name, such as fedora.")
@@ -568,4 +593,5 @@ cli_commands = (
     update,
     swap_db,
     weblate_sources,
+    sources_pot,
 )

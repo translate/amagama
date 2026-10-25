@@ -67,10 +67,10 @@ class TestSources(object):
         for block in listed:
             assert re.fullmatch(r'\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ', block.pop('imported'))
         assert listed == [
-            {'name': 'gnome-51', 'title': 'GNOME', 'version': '51',
+            {'name': 'gnome-51', 'title': 'GNOME', 'version': '51', 'displayTitle': 'GNOME 51',
              'licence': 'GPL-2.0-or-later', 'sourceLanguage': 'en',
              'targetLanguages': ['af', 'zu'], 'units': 2},
-            {'name': 'kde', 'title': 'KDE', 'version': None, 'licence': None,
+            {'name': 'kde', 'title': 'KDE', 'version': None, 'displayTitle': 'KDE', 'licence': None,
              'sourceLanguage': 'en', 'targetLanguages': ['af'], 'units': 1}]
 
     def test_untitled_block_shows_its_name(self, load):

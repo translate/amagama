@@ -60,7 +60,7 @@ amagama-manage = "amagama.cli:manage"
 packages = ["amagama", "amagama.tests", "amagama.updater", "amagama.views"]
 
 [tool.setuptools.package-data]
-amagama = ["templates/*", "static/**/*"]
+amagama = ["templates/*", "static/**/*", "po/sources/*"]
 "amagama.updater" = ["sources.toml", "weblate-*.toml"]
 
 [tool.setuptools.dynamic]

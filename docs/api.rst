@@ -185,16 +185,22 @@ Sources
 ``GET <SERVER>/api/v1/sources/`` lists the :ref:`blocks <sources>` the
 translations were imported from, one entry per block and source language.
 The names are those suggestions give in :ref:`sources
-<api#tm-suggestion-results>`.
+<api#tm-suggestion-results>`. Titles are in the language ``?lang=`` asks for,
+or else the best of ``Accept-Language``, among the :ref:`translated ones
+<sources#titles>`; otherwise English. The reply gives that language as
+``lang`` and its text direction (``ltr`` or ``rtl``) as ``dir``.
 
 +-----------------+-------------------------------------------------+
 | Field           | Description                                     |
 +=================+=================================================+
 | name            | The block's name                                |
 +-----------------+-------------------------------------------------+
-| title           | Its English title, or its name if it has none   |
+| title           | Its title, or its name if it has none           |
 +-----------------+-------------------------------------------------+
 | version         | Its release, such as ``"51"``, or null          |
++-----------------+-------------------------------------------------+
+| displayTitle    | The title with its release, worded for the      |
+|                 | language                                        |
 +-----------------+-------------------------------------------------+
 | licence         | Its SPDX licence expression, or null            |
 +-----------------+-------------------------------------------------+
@@ -211,11 +217,14 @@ The names are those suggestions give in :ref:`sources
 .. code-block:: json
 
     {
+      "lang": "en",
+      "dir": "ltr",
       "sources": [
         {
           "name": "gnome-51",
           "title": "GNOME",
           "version": "51",
+          "displayTitle": "GNOME 51",
           "licence": "GPL-2.0-or-later",
           "sourceLanguage": "en",
           "targetLanguages": ["af", "ar", "de"],
