@@ -705,7 +705,9 @@ ORDER BY rank DESC;
             # Unlike add_list()/add_store(), this inserts a single unit, so
             # the source string won't already be in the sources table
             # (add_dict()'s get_sid() only looks one up, it doesn't insert).
-            self.get_all_sids([unitdict], source_lang, None)
+            if self.get_all_sids([unitdict], source_lang, None):
+                # The source is too long for the index.
+                return
             self.add_dict(unitdict, cursor)
 
             if commit:

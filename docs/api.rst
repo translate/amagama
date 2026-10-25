@@ -189,3 +189,4 @@ API also accepts translations. ``style`` can be passed as for lookups.
 
 The store requests reply ``added <N> units from <NAME>``.
 A request with a language code that isn't valid returns 400.
+Strings too long for the database's index are skipped.

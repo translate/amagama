@@ -6,6 +6,8 @@
 # the AUTHORS.md file for copyright and authorship information.
 
 
+import random
+
 import pytest
 
 from amagama.application import amagama_server_factory
@@ -125,4 +127,13 @@ class TestWriteAPI(object):
     def test_invalid_language(self, client, pair, method, path, kwargs):
         response = getattr(client, method)('/api/v1/%s/%s' % (pair, path), **kwargs)
         assert response.status_code == 400
+        assert stored_sources(client) == []
+
+    def test_unit_too_long_to_index(self, client):
+        # Random CJK text, so that the index's compression can't shrink it.
+        random.seed(1)
+        source = ''.join(chr(random.randint(0x4e00, 0x9fff)) for _ in range(6000))
+        response = client.put('/api/v1/en/af/unit/', query_string={'source': source},
+                              json={'source': source, 'target': 'Lêer'})
+        assert response.status_code == 200
         assert stored_sources(client) == []
