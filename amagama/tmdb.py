@@ -19,6 +19,7 @@ except ImportError:
     COMPRESSED_LIMIT = 2000
 
 from collections import defaultdict
+import datetime
 import logging
 import math
 
@@ -232,6 +233,14 @@ CREATE TABLE IF NOT EXISTS imports (
 );
 """
 
+    INIT_BLOCKS = """
+CREATE TABLE IF NOT EXISTS blocks (
+    name TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    version TEXT
+);
+"""
+
     DEPLOY_QUERY = """
 ALTER TABLE sources DROP CONSTRAINT IF EXISTS sources_pkey CASCADE;
 DROP INDEX IF EXISTS sources_text_unique_idx;
@@ -269,6 +278,7 @@ ORDER BY rank DESC;
     def __init__(self, *args, **kwargs):
         super(TMDB, self).__init__(*args, **kwargs)
         self._available_langs = {}
+        self._sources = None
         self._load_source_langs()
         # set of languages with prepared statements per connection key:
         self._prepared_statements = defaultdict(set)
@@ -289,6 +299,7 @@ ORDER BY rank DESC;
         """Work on the schemas named <prefix><lang> instead of the live ones."""
         self.schema_prefix = prefix
         self._available_langs = {}
+        self._sources = None
         self._load_source_langs()
 
     def schema(self, slang):
@@ -319,6 +330,7 @@ ORDER BY rank DESC;
             cursor.execute(self.INIT_SOURCE)
             cursor.execute(self.INIT_TARGET)
             cursor.execute(self.INIT_IMPORTS)
+            cursor.execute(self.INIT_BLOCKS)
             self.source_langs.add(slang)
             cursor.connection.commit()
 
@@ -341,6 +353,15 @@ ORDER BY rank DESC;
             VALUES (%s, %s, %s, %s, 0, 0) RETURNING iid""",
             (block, filename, lang_to_table(tlang), licence))
         return cursor.fetchone()[0]
+
+    def record_blocks(self, slang, blocks):
+        """Record the title and version of each of the (name, title, version) blocks."""
+        cursor = self.get_cursor(self.schema(lang_to_table(slang)))
+        cursor.execute(self.INIT_BLOCKS)
+        cursor.executemany("""INSERT INTO blocks (name, title, version) VALUES (%s, %s, %s)
+            ON CONFLICT (name) DO UPDATE SET title = EXCLUDED.title,
+            version = EXCLUDED.version""", blocks)
+        cursor.connection.commit()
 
     def finish_import(self, slang, iid, units, skipped, checksum=None, commit=True):
         cursor = self.get_cursor(self.schema(lang_to_table(slang)))
@@ -710,6 +731,7 @@ ORDER BY rank DESC;
             cursor.connection.rollback()
             raise
         self._available_langs = {}
+        self._sources = None
         self._load_source_langs()
         current_app.cache.clear()
 
@@ -740,6 +762,40 @@ ORDER BY rank DESC;
             }
 
         return self._available_langs
+
+    @property
+    def sources(self):
+        """The imported blocks of each source language, by name."""
+        if self._sources is None:
+            sources = []
+            for slang in sorted(self.source_langs):
+                cursor = self.get_cursor(self.schema(slang))
+                if not self._has_relation(cursor, 'imports'):
+                    continue
+                if self._has_relation(cursor, 'blocks'):
+                    titles, join = "b.title, b.version", "LEFT JOIN blocks b ON b.name = i.block"
+                else:
+                    titles, join = "NULL, NULL", ""
+                # A block's files share its licence; a mix of them is no licence.
+                cursor.execute("""SELECT i.block, %s,
+                        CASE WHEN COUNT(DISTINCT i.licence) = 1 THEN MAX(i.licence) END,
+                        ARRAY_AGG(DISTINCT i.lang ORDER BY i.lang), SUM(i.units)::bigint, MAX(i.imported)
+                    FROM imports i %s WHERE i.block IS NOT NULL
+                    GROUP BY 1, 2, 3 ORDER BY 1""" % (titles, join))
+                for name, title, version, licence, langs, units, imported in cursor.fetchall():
+                    sources.append({
+                        'name': name,
+                        'title': title or name,
+                        'version': version,
+                        'licence': licence,
+                        'sourceLanguage': slang,
+                        'targetLanguages': langs,
+                        'units': units,
+                        'imported': imported.astimezone(datetime.timezone.utc)
+                                            .strftime('%Y-%m-%dT%H:%M:%SZ'),
+                    })
+            self._sources = sources
+        return self._sources
 
     def get_sid(self, unit_dict, cursor):
         source = unit_dict['source']
@@ -984,6 +1040,7 @@ ORDER BY rank DESC;
 
         if count:
             self._available_langs = {}
+            self._sources = None
         return count
 
     @property

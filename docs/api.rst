@@ -177,6 +177,55 @@ Available languages
     }
 
 
+.. _api#sources:
+
+Sources
+=======
+
+``GET <SERVER>/api/v1/sources/`` lists the :ref:`blocks <sources>` the
+translations were imported from, one entry per block and source language.
+The names are those suggestions give in :ref:`sources
+<api#tm-suggestion-results>`.
+
++-----------------+-------------------------------------------------+
+| Field           | Description                                     |
++=================+=================================================+
+| name            | The block's name                                |
++-----------------+-------------------------------------------------+
+| title           | Its English title, or its name if it has none   |
++-----------------+-------------------------------------------------+
+| version         | Its release, such as ``"51"``, or null          |
++-----------------+-------------------------------------------------+
+| licence         | Its SPDX licence expression, or null            |
++-----------------+-------------------------------------------------+
+| sourceLanguage  | The source language                             |
++-----------------+-------------------------------------------------+
+| targetLanguages | The target languages it was imported for        |
++-----------------+-------------------------------------------------+
+| units           | How many units its files gave, before those     |
+|                 | already there from other files were merged      |
++-----------------+-------------------------------------------------+
+| imported        | When it was last imported, in UTC               |
++-----------------+-------------------------------------------------+
+
+.. code-block:: json
+
+    {
+      "sources": [
+        {
+          "name": "gnome-51",
+          "title": "GNOME",
+          "version": "51",
+          "licence": "GPL-2.0-or-later",
+          "sourceLanguage": "en",
+          "targetLanguages": ["af", "ar", "de"],
+          "units": 5000,
+          "imported": "2026-10-25T12:00:00Z"
+        }
+      ]
+    }
+
+
 .. _api#write:
 
 Adding translations

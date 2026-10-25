@@ -143,6 +143,14 @@ def get_languages():
                                       headers=cache_headers)
 
 
+@read_api.route('/sources/', methods=('GET', ))
+def get_sources():
+    """Return the blocks of translations in the database."""
+    response = jsonwrapper({'sources': current_app.tmdb.sources})
+    return current_app.response_class(response, mimetype='application/json',
+                                      headers=cache_headers)
+
+
 ###############################################################################
 # View helpers                                                                #
 ###############################################################################
