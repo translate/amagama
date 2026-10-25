@@ -165,6 +165,16 @@ class TestUpdate(object):
         assert "Imported 3 files: 3 units (0 skipped)." in result.output
         assert lookup("af", "Open file") == ["Maak lêer oop"]
 
+    def test_corrupt_cache_file_reported(self, run, tmp_path, pg_connection):
+        run("update", "-s", "en")
+        packed = next((tmp_path / "cache/tp").rglob("*" + compressed.SUFFIX))
+        packed.write_bytes(b"not zstd")
+        result = run("update", "-s", "en", "--force")
+        assert result.exit_code == 0, result.output
+        assert "Imported 2 files" in result.output
+        assert "Couldn't read 1 files:" in result.output
+        assert lookup("af", "Open file") == ["Maak lêer oop"]
+
     def test_compression_failure_leaves_no_fetch(self, run, site, tmp_path, monkeypatch):
         root, url = site
         run("update", "-s", "en")

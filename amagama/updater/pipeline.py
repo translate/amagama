@@ -41,7 +41,10 @@ def import_file(path, slang, tlang, block, licence, format=None, template=None, 
         return _import_file(path, path, *args)
     with tempfile.TemporaryDirectory() as tmp:
         plain = os.path.join(tmp, os.path.basename(path))
-        compressed.decompress(path + compressed.SUFFIX, plain)
+        try:
+            compressed.decompress(path + compressed.SUFFIX, plain)
+        except Exception as e:
+            return "%s: %s" % (type(e).__name__, e)
         return _import_file(plain, path, *args)
 
 
