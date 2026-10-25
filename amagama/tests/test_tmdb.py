@@ -1,3 +1,6 @@
+import random
+import string
+
 import pytest
 
 from amagama import tmdb
@@ -58,6 +61,22 @@ class TestTMDB(object):
         from translate.storage.po import pofile
         with amagama.app_context():
             assert amagama.tmdb.add_store(pofile(), 'en', 'af') == 0
+
+    @pytest.mark.parametrize("long_field", ["source", "target"])
+    def test_too_long_for_index_skipped(self, amagama, monkeypatch, long_field):
+        """Text PostgreSQL can't index is skipped, not an error."""
+        # Past the estimate, so only PostgreSQL decides.
+        monkeypatch.setattr(tmdb.TMDB, "_indexable_string", staticmethod(lambda s: True))
+        rng = random.Random(1)
+        text = "".join(rng.choice(string.ascii_letters) for _ in range(6000))
+        long_unit = {"source": "Long", "target": "Lank"}
+        long_unit[long_field] = text
+        with amagama.app_context():
+            added = amagama.tmdb.add_list(
+                [long_unit, {"source": "Network", "target": "Netwerk"}], "en", "af")
+            assert added == 1
+            assert [r["target"] for r in amagama.tmdb.translate_unit("Network", "en", "af")] \
+                == ["Netwerk"]
 
     def test_get_sid_not_cached(self, amagama):
         with amagama.app_context():
