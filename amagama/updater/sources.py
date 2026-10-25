@@ -179,10 +179,9 @@ class Block(object):
         Each language is refreshed within max_age_days: a run takes its share
         of them for the days since the last fetch (a day's share the first
         time), languages never fetched first, then those fetched longest ago.
-        So a first fetch is spread over max_age_days too.
+        So a first fetch is spread over max_age_days too. Only for a block
+        that rotates.
         """
-        if not self.rotates:
-            return None
         if previous is None:
             dates, days = {}, 1
         else:
