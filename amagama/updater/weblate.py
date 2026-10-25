@@ -31,9 +31,11 @@ FORMATS = {
     "properties-utf16": "properties",
     "joomla": "joomla-ini",
     "php": "php",
+    "i18next": "json",
+    "i18nextv4": "json",
 }
 MONOLINGUAL = {"aresource", "json", "json-nested", "fluent", "properties", "properties-utf8",
-               "properties-utf16", "joomla", "php"}
+               "properties-utf16", "joomla", "php", "i18next", "i18nextv4"}
 
 # A repository with more single-file components than this is read whole,
 # from the directory before the language.
@@ -126,8 +128,10 @@ def blocks(components, prefix, projects=("*",), docs=(), covered=(), taken=()):
             elif _normal(repo) in covered:
                 skip("repository imported by another block")
             else:
+                # A bilingual file's template is only its source file.
+                template = (component.get("template") or None) if weblate_format in MONOLINGUAL \
+                    else None
                 segment = any(fnmatch.fnmatchcase(project["slug"], glob) for glob in docs)
-                template = component.get("template") or None
                 key = (project["slug"], repo, branch, weblate_format,
                        component["slug"] if template else "", licence, segment)
                 group = groups.setdefault(key, {"project": project, "masks": set(),
