@@ -478,7 +478,8 @@ class TestFetch(object):
         result = run(GNOME % url)
         assert result.exit_code == 1
         assert "gnome-51: failed:" in result.output
-        assert os.listdir(run.cache) == []
+        # No partial fetch, just the failure on record.
+        assert os.listdir(run.cache) == ["gnome-51.failed"]
 
     def test_snapshot(self, run):
         text = '[[block]]\ntitle = "Legacy OSS"\nname = "legacy-2019"\n' \
@@ -505,6 +506,13 @@ class TestFetch(object):
         assert "gnome-51: failed:" in result.output
         assert "404" in result.output
         assert len(fetched(run.cache, "gnome-51")) == 2
+        assert sorted(os.listdir(run.cache)) == ["gnome-51", "gnome-51.failed"]
+        with open(run.cache / "gnome-51.failed") as f:
+            assert json.load(f)["runs"] == 1
+        # A fetch that works again clears it.
+        write_tarball(str(root / "languages/zu/gnome-51/ui.tar.gz"),
+                      {"glib.glib-2-90.zu.po": "msgid \"\"\nmsgstr \"\"\n"})
+        assert run(GNOME % url).exit_code == 0
         assert sorted(os.listdir(run.cache)) == ["gnome-51"]
 
     def test_only_named_block(self, run, site):

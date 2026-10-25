@@ -263,6 +263,36 @@ class TestUpdate(object):
         assert lookup("af", "Open file") == ["Maak lêer oop"]
         assert schemas(pg_connection) == {"en"}
 
+    def test_failed_block_rebuilt_from_last_fetch(self, run, site, pg_connection):
+        root, url = site
+        run("update", "-s", "en")
+        (root / "languages/zu/gnome-51/ui.tar.gz").unlink()
+        write_stats(root, af=2, zu=1)
+        tarball = root / "backups/last/af.tgz"
+        write_tarball(str(tarball), {"af/bash-5.2.af.po": po("af", ("Save file", "Stoor die lêer"))})
+        mtime = os.stat(tarball).st_mtime + 10
+        os.utime(tarball, (mtime, mtime))
+        result = run("update", "-s", "en")
+        assert result.exit_code == 1
+        assert "Couldn't fetch 1 blocks:\n  gnome-51: " in result.output
+        # GNOME from its last fetch; the Translation Project's change is in.
+        assert lookup("af", "Open file") == ["Maak lêer oop"]
+        assert lookup("af", "Save file") == ["Stoor die lêer"]
+        assert schemas(pg_connection) == {"en", "_old_en"}
+
+    def test_never_fetched_block(self, run, tmp_path, site, pg_connection):
+        root, url = site
+        sources = tmp_path / "sources.toml"
+        sources.write_text(sources.read_text()
+                           + block("gone", "translationproject", base_url=url + "/missing/"))
+        result = run("update", "-s", "en")
+        assert result.exit_code == 1
+        assert "Nothing to import from gone: it has never been fetched." in result.output
+        assert lookup("af", "Save file") == ["Stoor lêer"]
+        for _ in range(3):
+            result = run("update", "-s", "en")
+        assert "gone (4 runs in a row, since " in result.output
+
     def test_workers(self, run, pg_connection):
         result = run("update", "-s", "en", UPDATER_WORKERS=2)
         assert result.exit_code == 0, result.output
