@@ -9,6 +9,7 @@
 import functools
 import http.server
 import threading
+import time
 
 import pytest
 from click.testing import CliRunner
@@ -119,3 +120,31 @@ def test_first_fetches_wait_for_later_updates(amagama_config, tmp_path, site):
     result = CliRunner().invoke(manage, ("update", "-s", "en"))
     assert "left for later" not in result.output
     assert "Imported 2 files" in result.output
+
+
+def test_update_survives_dropped_idle_connections(update, pg_connection, monkeypatch):
+    """A connection pooler (OSUOSL's) drops connections idle between queries;
+    Postgres's own idle timeouts stand in for it, with slow fetches and imports."""
+    from amagama.updater import pipeline, sources
+
+    def timeouts(value):
+        with pg_connection.cursor() as cursor:
+            for setting in ("idle_session_timeout", "idle_in_transaction_session_timeout"):
+                cursor.execute("ALTER DATABASE amagama_test SET %s = %s" % (setting, value))
+        pg_connection.commit()
+    fetch, import_file = sources.Block.fetch, pipeline.import_file
+
+    def slow(function):
+        def wrapper(*args, **kwargs):
+            time.sleep(2)
+            return function(*args, **kwargs)
+        return wrapper
+    monkeypatch.setattr(sources.Block, "fetch", slow(fetch))
+    monkeypatch.setattr(pipeline, "import_file", slow(import_file))
+    timeouts("'1s'")
+    try:
+        result = update(0)
+    finally:
+        timeouts("DEFAULT")
+    assert result.exit_code == 0, result.output
+    assert lookup("Save file") == ["Stoor lêer"]
