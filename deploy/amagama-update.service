@@ -11,10 +11,11 @@ Group=amagama
 Environment=AMAGAMA_CONFIG=/srv/amagama/updater_settings.py
 Environment=PYTHONUNBUFFERED=1
 SyslogIdentifier=amagama-update
+# The fetch timer keeps the cache current; this only rebuilds from it.
 # Not while a fetch is running: skipped (75) rather than failed.
 ExecStart=/usr/bin/flock --nonblock --conflict-exit-code 75 \
         /srv/amagama/cache/.lock \
-        /srv/amagama/venv/bin/amagama-manage update -s en
+        /srv/amagama/venv/bin/amagama-manage update -s en --no-fetch
 SuccessExitStatus=75
 Nice=10
 IOSchedulingClass=idle
