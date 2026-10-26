@@ -33,12 +33,13 @@ def moodle(tmp_path):
     release = root / "5.1"
     release.mkdir(parents=True)
     packs = {
-        "en": {"moodle.php": strings(save="Save changes", course="Course"),
-               "langconfig.php": strings(thislanguage="English")},
         "af": {"moodle.php": strings(save="Stoor veranderinge", course="Kursus"),
                "langconfig.php": strings(thislanguage="Afrikaans")},
         # Overrides for Moodle Workplace, German like de.
         "de_wp": {"moodle.php": strings(course="Kurs")},
+        # Listed alphabetically, as Moodle does.
+        "en": {"moodle.php": strings(save="Save changes", course="Course"),
+               "langconfig.php": strings(thislanguage="English")},
     }
     index = []
     for lang, files in packs.items():
@@ -133,4 +134,14 @@ def test_fetch_some_languages(moodle, tmp_path):
     fetcher = Moodle({"release": "5.1", "base_url": url, "pause": 0})
     lang = fetcher.languages()[0]
     files = fetcher.fetch(str(tmp_path / "out"), [lang])
-    assert files and {code for path, code in files} == {lang}
+    # English, the template, comes with any language.
+    assert files and {code for path, code in files} == {lang, "en"}
+
+
+def test_rotation_fetches_english(run, moodle):
+    # A day's share is one language; English, the template, comes too.
+    root, url = moodle
+    result = run(moodle_block(url, max_age_days=3), "-s", "en", command="update")
+    assert result.exit_code == 0, result.output
+    assert "Imported 1 files: 2 units (0 skipped)." in result.output
+    assert lookup("af", "Save changes") == ["Stoor veranderinge"]
