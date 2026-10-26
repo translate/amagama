@@ -639,6 +639,86 @@ class WordPress(Fetcher):
         return files
 
 
+class GlotPress(Fetcher):
+    """A GlotPress project's translations (translate.wordpress.org): a PO export
+    of the current translations per locale and translation set, of the locales
+    with anything translated.
+
+    project is the project's path, such as apps/android/dev. Its page lists
+    every locale and set with its translated count, which is the fingerprint.
+    Files are given the locale's slug as their language, so a formal or other
+    set goes with its language. Exports are pause seconds apart; a 429 is
+    retried after retry_wait seconds, twice as long the second time.
+    """
+
+    required = ("project",)
+    optional = ("base_url", "pause", "retry_wait")
+    rotates = True
+
+    # Slugs that aren't language codes as they are.
+    locales = {"ca-val": "ca@valencia"}
+    # Emoji and pirate English.
+    not_languages = {"art-xemoji", "pirate"}
+
+    def __init__(self, settings):
+        super(GlotPress, self).__init__(settings)
+        if not isinstance(settings["project"], str) or not re.fullmatch(
+                r"[a-z0-9][a-z0-9-]*(/[a-z0-9][a-z0-9.-]*)*", settings["project"]):
+            raise ValueError("project must be a GlotPress project path such as apps/android/dev")
+
+    @property
+    def project_url(self):
+        return "%s/projects/%s/" % (self.settings.get(
+            "base_url", "https://translate.wordpress.org").rstrip("/"), self.settings["project"])
+
+    def _get(self, action, url):
+        """action(url), waiting and trying again on 429 Too Many Requests."""
+        wait = self.settings.get("retry_wait", 60)
+        for attempt in range(3):
+            try:
+                return action(url)
+            except FetchError as e:
+                if e.status != 429 or attempt == 2:
+                    raise
+            time.sleep(wait * 2 ** attempt)
+
+    def sets(self):
+        """[(locale slug, set slug, translated count)] with something translated."""
+        if not hasattr(self, "_sets"):
+            path = re.escape(urllib.parse.urlsplit(self.project_url).path)
+            page = self._get(http_text, self.project_url)
+            rows = re.findall(path + r'([a-z0-9-]+)/([a-z0-9-]+)/\?filters%5Bstatus%5D=current"'
+                              r'>([\d,]+)</a>', page)
+            if not rows:
+                raise FetchError("%s: no locales listed" % self.project_url)
+            self._sets = sorted((slug, name, int(count.replace(",", "")))
+                                for slug, name, count in rows
+                                if count.strip("0,") and slug not in self.not_languages)
+        return self._sets
+
+    def fingerprint(self):
+        return combine([("%s/%s" % (slug, name), str(count)) for slug, name, count in self.sets()])
+
+    def languages(self):
+        return sorted({self.locales.get(slug, slug) for slug, name, count in self.sets()})
+
+    def fetch(self, dest, languages=None):
+        files = []
+        for slug, name, count in self.sets():
+            lang = self.locales.get(slug, slug)
+            if languages is not None and lang not in languages:
+                continue
+            path = os.path.join(slug, name + ".po")
+            os.makedirs(os.path.join(dest, slug), exist_ok=True)
+            # Current only: a whole export is mostly untranslated entries.
+            url = "%s%s/%s/export-translations/?format=po&filters%%5Bstatus%%5D=current" % (
+                self.project_url, slug, name)
+            self._get(lambda url: download(url, os.path.join(dest, path)), url)
+            files.append((path, lang))
+            time.sleep(self.settings.get("pause", 5))
+        return files
+
+
 class Drupal(Fetcher):
     """localize.drupal.org: a .po per language of each project's latest
     stable release.
@@ -1047,6 +1127,7 @@ FETCHERS = {
     "translationproject": TranslationProject,
     "vscode": VSCode,
     "git": Git,
+    "glotpress": GlotPress,
     "http": HttpPerLanguage,
     "joomla": Joomla,
     "moodle": Moodle,
