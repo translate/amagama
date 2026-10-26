@@ -5,7 +5,7 @@
 # there's no use fetching a moving branch more often.
 
 # Blocks generated from Weblate instances by weblate_sources.
-include = ["weblate-fedora.toml", "weblate-hosted.toml"]
+include = ["weblate-fedora.toml", "weblate-hosted.toml", "linguas-github.toml"]
 
 [[block]]
 name = "legacy-2019"
