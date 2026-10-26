@@ -96,7 +96,8 @@ Scheduled updates
 ``amagama-fetch.timer`` refreshes the fetch cache every day
 (``amagama-manage fetch_sources``): each source's languages come due in turn,
 so a day's fetch is small. ``amagama-update.timer`` rebuilds and swaps in the
-database every Sunday (``amagama-manage update -s en``), from the cache; a
+database every Sunday (``amagama-manage update -s en --no-fetch``), from the
+cache as the fetch timer left it, without fetching itself; a
 rebuild takes hours, so it isn't run daily. They share a lock on the cache,
 and whichever finds the other running skips that run. A run missed while the
 box was down happens when it's back.
