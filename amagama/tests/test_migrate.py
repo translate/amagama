@@ -123,6 +123,20 @@ class TestMigrateDB(object):
         assert lookup('de', 'Could not open the file') == [
             ('Could not open the file', 'Die Datei konnte nicht geöffnet werden')]
 
+    def test_equal_matches_in_import_order(self, old_database):
+        # deploy_db clusters targets by length; the shortest mustn't win ties.
+        targets = ['Löschen', 'Entfernen', 'Ausradieren', 'Tilgen', 'Lösche', 'Slet', 'Del']
+        with old_database.cursor() as cursor:
+            cursor.execute("""INSERT INTO sources_en (text, vector, length)
+                VALUES ('Delete', TO_TSVECTOR('english', 'Delete'), 6)""")
+            for target in targets:
+                cursor.execute("""INSERT INTO targets_en (sid, text, lang)
+                    SELECT sid, %s, 'de' FROM sources_en WHERE text = 'Delete'""", (target,))
+        old_database.commit()
+        assert run('migrate_db').exit_code == 0
+        assert run('deploy_db', input='y\n').exit_code == 0
+        assert [target for source, target in lookup('de', 'Delete')] == targets[:5]
+
     def test_old_tables_are_kept(self, old_database):
         run('migrate_db')
         assert count(old_database, 'public.sources_en') == 3

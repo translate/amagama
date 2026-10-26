@@ -262,18 +262,24 @@ CREATE INDEX targets_lang_sid_idx ON targets (lang, sid) WITH (fillfactor = 100)
 --- The rest is handled in the code.
 """
 
-    PREPARE_LOOKUP = """
-PREPARE lookup AS
-SELECT * from (
-    SELECT s.sid, s.text AS source, t.text AS target, TS_RANK(s.vector, query, 32) * 1744.93406073519 AS rank
+    LOOKUP = """
+PREPARE {name} AS
+SELECT sid, source, target, rank from (
+    SELECT s.sid, {tid}s.text AS source, t.text AS target,
+        TS_RANK(s.vector, query, 32) * 1744.93406073519 AS rank
     FROM sources s JOIN targets t ON s.sid = t.sid,
     TO_TSQUERY($1, public.prepare_or_tsquery($2)) query
     WHERE t.lang = $3 AND s.length BETWEEN $4 AND $5
     AND s.vector @@ query
 ) sub
 WHERE rank > $6
-ORDER BY rank DESC;
+ORDER BY rank DESC{order};
 """
+    # Equal matches in import order, not the table's physical order (which
+    # deploy_db sorts by length). A schema made before targets had a tid
+    # can't tell, so its ties stay in physical order.
+    PREPARE_LOOKUP = LOOKUP.format(name="lookup", tid="t.tid, ", order=", tid")
+    PREPARE_LOOKUP_WITHOUT_TID = LOOKUP.format(name="lookup_without_tid", tid="", order="")
     # TODO: stop returning "rank" once we're happy we have no users.
 
     schema_prefix = ''
@@ -286,7 +292,8 @@ ORDER BY rank DESC;
         self._licences = {}
         self._load_source_langs()
         # set of languages with prepared statements per connection key:
-        self._prepared_statements = defaultdict(set)
+        # {connection id: {slang: the lookup statement prepared for it}}
+        self._prepared_statements = defaultdict(dict)
 
     def _load_source_langs(self):
         cursor = self.get_cursor()
@@ -1099,12 +1106,19 @@ ORDER BY rank DESC;
         return self._comparer
 
     def _translate_query(self, cursor, slang, tlang, query, min_len, max_len, min_rank):
-        if slang not in self._prepared_statements[id(cursor.connection)]:
-            if not self.prepared_statement_exists("lookup"):
-                cursor.execute(self.PREPARE_LOOKUP)
-            self._prepared_statements[id(cursor.connection)].add(slang)
+        prepared = self._prepared_statements[id(cursor.connection)]
+        if slang not in prepared:
+            cursor.execute("""SELECT EXISTS(SELECT 1 FROM information_schema.columns
+                WHERE table_schema = current_schema() AND table_name = 'targets'
+                AND column_name = 'tid')""")
+            name, statement = (("lookup", self.PREPARE_LOOKUP) if cursor.fetchone()[0]
+                               else ("lookup_without_tid", self.PREPARE_LOOKUP_WITHOUT_TID))
+            if not self.prepared_statement_exists(name):
+                cursor.execute(statement)
+            prepared[slang] = name
         lang_config = lang_to_config(slang)
-        cursor.execute("EXECUTE lookup (%s, %s, %s, %s, %s, %s)",
+        cursor.execute(sql.SQL("EXECUTE {} (%s, %s, %s, %s, %s, %s)").format(
+                       sql.Identifier(prepared[slang])),
                        (lang_config, query, tlang, min_len, max_len, min_rank))
 
     def translate_unit(self, unit_source, source_lang, target_lang,
