@@ -62,7 +62,7 @@ packages = ["amagama", "amagama.tests", "amagama.updater", "amagama.views"]
 
 [tool.setuptools.package-data]
 amagama = ["templates/*", "static/**/*", "po/sources/*"]
-"amagama.updater" = ["sources.toml", "weblate-*.toml"]
+"amagama.updater" = ["sources.toml", "weblate-*.toml", "linguas-*.toml"]
 
 [tool.setuptools.dynamic]
 version = { attr = "amagama.__version__" }

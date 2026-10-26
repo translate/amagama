@@ -17,7 +17,7 @@ repos:
       - id: check-merge-conflict
       - id: check-added-large-files
         # Generated sources files: reviewed text, not binaries.
-        exclude: ^amagama/updater/weblate-.*\.toml$
+        exclude: ^amagama/updater/(weblate|linguas)-.*\.toml$
       - id: check-ast
       - id: debug-statements
 
@@ -38,9 +38,9 @@ repos:
     rev: v2.4.3
     hooks:
       - id: codespell
-        # Generated from Weblate, and the titles template from them: project
+        # Generated sources files, and the titles template from them: project
         # and file names, not prose.
-        exclude: ^amagama/(updater/weblate-.*\.toml|po/sources/sources\.pot)$
+        exclude: ^amagama/(updater/(weblate|linguas)-.*\.toml|po/sources/sources\.pot)$
 
   - repo: https://github.com/jorisroovers/gitlint
     rev: v0.19.1
