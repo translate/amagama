@@ -350,3 +350,36 @@ repository, from a clone of its file list without the files: a branch that's
 gone falls back to the default branch, masks that match nothing are dropped,
 and a block left with none, or whose template is missing, is left out.
 ``--no-verify`` skips the check.
+
+
+.. _managing#transifex-sources:
+
+transifex_sources
+-----------------
+
+This subcommand writes :ref:`sources file <sources>` blocks for repositories
+translated on Transifex, to review before including them. It clones each
+repository's default branch without its files, reads every
+:file:`.tx/config` in it, and turns its resources into ``git`` blocks:
+``file_filter`` gives the files (``<lang>`` is the language), ``source_file``
+the template of a monolingual format, ``type`` the format, and ``lang_map``
+the block's ``languages``. The repositories come as arguments, or one per
+line from ``--from-file``:
+
+.. code-block:: console
+
+    $ amagama-manage transifex_sources --prefix transifex \
+          https://github.com/mapeditor/tiled https://github.com/BOINC/boinc \
+          https://github.com/OpenRefine/OpenRefine --output transifex.toml
+    3 blocks.
+    Skipped 1 repositories: imported by another block.
+
+A repository's resources of one format share a block; a monolingual
+resource has its own, for its template. A source file its own filter matches
+(:file:`tiled_en.ts`) is excluded. Left out, and counted: repositories another
+block already imports, or without a :file:`.tx/config` (vendored copies,
+under :file:`vendor/`, :file:`node_modules/` and the like, don't count); resources whose
+source isn't English, of a type amaGama doesn't read, or whose files aren't
+in the repository. ``--prefix``, ``--output``, ``--min-age-days`` and
+``--weight`` are as for :ref:`weblate_sources <managing#weblate-sources>`.
+Transifex doesn't give a licence: add each block's before including it.
