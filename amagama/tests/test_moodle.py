@@ -6,8 +6,11 @@
 # the AUTHORS.md file for copyright and authorship information.
 
 
+import datetime
 import functools
 import hashlib
+import json
+import os
 import http.server
 import threading
 import zipfile
@@ -145,3 +148,22 @@ def test_rotation_fetches_english(run, moodle):
     assert result.exit_code == 0, result.output
     assert "Imported 1 files: 2 units (0 skipped)." in result.output
     assert lookup("af", "Save changes") == ["Stoor veranderinge"]
+
+
+def test_missing_carried_file_fails_the_block(run, moodle):
+    root, url = moodle
+    text = moodle_block(url, max_age_days=3)
+    assert run(text).exit_code == 0
+    os.remove(run.cache / "moodle/af/moodle.php.zst")
+    state = run.cache / "moodle/fetched.json"
+    fetched_state = json.loads(state.read_text())
+    # Fetched a day ago, af most recently: af isn't due, so it's carried.
+    fetched_state["fetched"] = (datetime.datetime.now(datetime.timezone.utc)
+                                - datetime.timedelta(days=1)).isoformat()
+    fetched_state["language_fetched"] = {lang: "2000-01-02T00:00:00+00:00"
+                                         for lang in fetched_state["language_fetched"]}
+    fetched_state["language_fetched"]["af"] = "2030-01-01T00:00:00+00:00"
+    state.write_text(json.dumps(fetched_state))
+    result = run(text)
+    assert result.exit_code == 1
+    assert "moodle: failed: af/moodle.php.zst is missing from the last fetch" in result.output
