@@ -14,6 +14,7 @@ translations are fetched from those repositories, which Weblate commits to,
 so the instance isn't asked for files.
 """
 
+import contextlib
 import fnmatch
 import json
 import os
@@ -127,7 +128,7 @@ def identity(url, ref, template, segment, licence):
         licence = normalise_licence(licence) if licence else None
     except ValueError:
         pass
-    return (_normal(url), ref or None, template or None, bool(segment), licence)
+    return (normal_url(url), ref or None, template or None, bool(segment), licence)
 
 
 def previous_names(blocks):
@@ -149,7 +150,7 @@ def blocks(components, prefix, projects=("*",), docs=(), covered=(), taken=(), p
     check it.
     """
     by_url = {component.get("url"): component for component in components}
-    covered = {_normal(repo) for repo in covered}
+    covered = {normal_url(repo) for repo in covered}
     groups, skipped = {}, {}
 
     def skip(reason):
@@ -175,7 +176,7 @@ def blocks(components, prefix, projects=("*",), docs=(), covered=(), taken=(), p
             repo, branch = _repository(component, by_url)
             if not repo:
                 skip("no repository")
-            elif _normal(repo) in covered:
+            elif normal_url(repo) in covered:
                 skip("repository imported by another block")
             elif urllib.parse.urlsplit(repo).hostname in DEAD_HOSTS:
                 host = urllib.parse.urlsplit(repo).hostname
@@ -251,7 +252,7 @@ def blocks(components, prefix, projects=("*",), docs=(), covered=(), taken=(), p
         if licence:
             block["licence"] = licence
         try:
-            _check(block)
+            check_block(block)
         except ValueError as e:
             skip("not a valid block: %s" % str(e).split(": ", 1)[-1])
             names.discard(name)
@@ -260,7 +261,7 @@ def blocks(components, prefix, projects=("*",), docs=(), covered=(), taken=(), p
     return found, skipped
 
 
-def _check(block):
+def check_block(block):
     settings = dict(block)
     licence = settings.pop("licence", None)
     if licence is not None:
@@ -269,7 +270,7 @@ def _check(block):
           settings.pop("version", None), licence, **settings)
 
 
-def _normal(repo):
+def normal_url(repo):
     """A repository URL without scheme, credentials, trailing .git or /."""
     parts = urllib.parse.urlsplit(repo)
     return (parts.hostname or "") + re.sub(r"(\.git)?/*$", "", parts.path)
@@ -294,20 +295,30 @@ def toml(blocks, header, defaults=None):
     return "\n".join(lines) + "\n"
 
 
-def _tree(url, ref):
-    """The file paths of url at ref (None: its default branch), or None if
-    the repository or ref isn't there. Only the trees are downloaded."""
+@contextlib.contextmanager
+def clone(url, ref):
+    """(directory, file paths) of a clone of url at ref (None: its default
+    branch), or None if the repository or ref isn't there. Only the trees
+    are downloaded; a file's contents come when it's read."""
     with tempfile.TemporaryDirectory() as tmp:
-        clone = os.path.join(tmp, "repo")
+        directory = os.path.join(tmp, "repo")
         args = ["clone", "--quiet", "--depth", "1", "--filter=blob:none", "--no-checkout"]
         if ref:
             args += ["--branch", ref]
         try:
-            run_tool("git", *(args + [url, clone]))
-            return run_tool("git", "-C", clone, "ls-tree", "-r", "--name-only", "HEAD",
-                            trusted=clone).splitlines()
+            run_tool("git", *(args + [url, directory]))
+            paths = run_tool("git", "-C", directory, "ls-tree", "-r", "--name-only", "HEAD",
+                             trusted=directory).splitlines()
         except FetchError:
-            return None
+            yield None
+        else:
+            yield directory, paths
+
+
+def _tree(url, ref):
+    """The file paths of url at ref, or None; see clone()."""
+    with clone(url, ref) as cloned:
+        return cloned and cloned[1]
 
 
 def verify(blocks, pause=1, tree=_tree):
