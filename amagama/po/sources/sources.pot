@@ -3564,51 +3564,7 @@ msgid "vlc"
 msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "meld"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "gnome-shell"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "Constrict"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "pika-backup"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "NetworkManager"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
 msgid "vala-panel-appmenu"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "nautilus"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "dia"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "epiphany"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "gparted"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "evince"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "gnome-terminal"
 msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
@@ -3616,79 +3572,11 @@ msgid "thunar"
 msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "gnome-builder"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "mutter"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "gitg"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "zenity"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "vte"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "gthumb"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
 msgid "xfce4-terminal"
 msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "nano"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "cryptsetup"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "baobab"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "phosh"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "orca"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "gnome-desktop"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "ModemManager"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "libadwaita"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "gnome-calendar"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "gdm"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
 msgid "xfwm4"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "wireplumber"
 msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
@@ -3716,10 +3604,6 @@ msgid "foliate"
 msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "tigervnc"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
 msgid "piper"
 msgstr ""
 
@@ -3729,10 +3613,6 @@ msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
 msgid "Akira"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "flatpak"
 msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
@@ -3757,10 +3637,6 @@ msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
 msgid "zathura"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "util-linux"
 msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
@@ -3832,10 +3708,6 @@ msgid "tether"
 msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "libgphoto2"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
 msgid "amule"
 msgstr ""
 
@@ -3901,10 +3773,6 @@ msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
 msgid "yad"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "gphoto2"
 msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
@@ -4004,10 +3872,6 @@ msgid "NetworkManager-l2tp"
 msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "Curtail"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
 msgid "amsynth"
 msgstr ""
 
@@ -4033,10 +3897,6 @@ msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
 msgid "Nocturne"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "g4music"
 msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
@@ -4120,10 +3980,6 @@ msgid "riff"
 msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "eyedropper"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
 msgid "vertical-workspaces"
 msgstr ""
 
@@ -4180,15 +4036,7 @@ msgid "pantheon-tweaks"
 msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "msmtp"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
 msgid "Folio"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "keypunch"
 msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
@@ -4201,14 +4049,6 @@ msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
 msgid "Annotator"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "Whisp"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "aspell"
 msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
@@ -4332,10 +4172,6 @@ msgid "xfce4-whiskermenu-plugin"
 msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "addwater"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
 msgid "sawfish"
 msgstr ""
 
@@ -4361,10 +4197,6 @@ msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
 msgid "Avvie"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "xdg-desktop-portal-gtk"
 msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
@@ -4425,10 +4257,6 @@ msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
 msgid "cadaver"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "drum-machine"
 msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
@@ -4524,10 +4352,6 @@ msgid "web-archives"
 msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "gcolor3"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
 msgid "subtitleeditor"
 msgstr ""
 
@@ -4545,10 +4369,6 @@ msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
 msgid "dock"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "fretboard"
 msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
