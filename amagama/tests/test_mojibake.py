@@ -43,6 +43,27 @@ def test_unmangle_windows_1252():
     assert unmangle(mangle('Don’t “quote” — …', 'cp1252')) == 'Don’t “quote” — …'
 
 
+@pytest.mark.parametrize('text', ['Järgmine', 'Balsa: sõnumi trükkimise eelvaade', 'jäta'])
+def test_unmangle_latin9(text):
+    # ISO-8859-15 has € and Œ where Windows-1252 puts them at 80 and 8C.
+    assert unmangle(mangle(text, 'iso8859_15')) == text
+
+
+def test_unmangle_latin9_as_found():
+    assert unmangle('JÃ€rgmine') == 'Järgmine'
+    assert unmangle('trÃŒkkimise') == 'trükkimise'
+
+
+def test_ambiguous_codec_is_left_alone():
+    # "À propos" through Windows-1252 or "ä propos" through ISO-8859-15.
+    assert unmangle('Ã€ propos') is None
+
+
+def test_lost_letters_are_left_alone():
+    # The replacement character, mangled: the letter was gone before.
+    assert unmangle('mudanï¿½as') is None
+
+
 def test_unmangle_twice_mangled():
     assert unmangle(mangle(mangle('Lêer'))) == 'Lêer'
 
