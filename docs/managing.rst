@@ -383,3 +383,49 @@ source isn't English, of a type amaGama doesn't read, or whose files aren't
 in the repository. ``--prefix``, ``--output``, ``--min-age-days`` and
 ``--weight`` are as for :ref:`weblate_sources <managing#weblate-sources>`.
 Transifex doesn't give a licence: add each block's before including it.
+
+
+.. _managing#discover-sources:
+
+discover_sources
+----------------
+
+This subcommand finds repositories that commit their translations, by the
+localisation configuration they commit, and writes :ref:`sources file
+<sources>` blocks for them, to review before including them. Its argument is
+the signal; ``linguas`` is gettext's :file:`po/LINGUAS`. GitHub's code search
+finds the files; it needs a token, in ``GITHUB_TOKEN``:
+
+.. code-block:: console
+
+    $ GITHUB_TOKEN=$(gh auth token) amagama-manage discover_sources linguas \
+          --prefix linguas --weight 0.8 --output amagama/updater/linguas-github.toml
+
+Code search allows 10 requests a minute and gives at most 1,000 results a
+query, so the query is split by file size until each part is under that; a
+part that can't be split further is reported as incomplete. Each
+repository's stats then select it: not archived or a fork, at least
+``--min-stars`` stars (default 100), pushed since ``--pushed-since`` (default
+1 January of last year), and a licence GitHub detected, which becomes the
+block's. GitHub gives ``GPL-3.0`` and its like, which SPDX defines as
+``GPL-3.0-only``: correct a block whose project allows later versions.
+
+A project's mirror on GitHub (GNOME's, Xfce's) is read from GitHub, but its
+block fetches from the repository it copies: a repository is taken as a
+mirror when its description says "mirror" or its issues are off, and its
+description links a repository of the same name elsewhere; or when its
+description says "mirror" and its homepage is that repository. Mirrors are
+read first, as the originals of copies with more stars.
+
+The repositories are read most stars first, each from a clone of its file
+list without the files. For ``linguas``, each :file:`po/LINGUAS` (but under
+:file:`vendor/`, :file:`node_modules/`, :file:`wp-content/`,
+:file:`subprojects/` or :file:`third_party/`) gives a block of the
+:file:`po/{lang}.po` beside it; its languages are the files there. Its
+:file:`.po` files are checked out and counted: a directory with fewer than
+``--min-units`` translated units (default 100), not fuzzy, is left out, as is
+one with the same POT (else the same :file:`.po` files) as a repository read
+before it, a copy. A repository's second :file:`po` directory is named by its
+path. Repositories another block already imports are left out, as for
+:ref:`weblate_sources <managing#weblate-sources>`, and so are ``--prefix``,
+``--output``, ``--min-age-days`` and ``--weight``.
