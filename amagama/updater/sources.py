@@ -381,6 +381,8 @@ def _carry(final, new, entry, previous):
         source, target = os.path.join(final, name), os.path.join(new, name)
         if os.path.exists(target):
             continue
+        if not os.path.exists(source):
+            raise FetchError("%s is missing from the last fetch" % name)
         os.makedirs(os.path.dirname(target), exist_ok=True)
         _link(source, target)
 
