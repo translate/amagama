@@ -369,6 +369,31 @@ slugs = [
 files = ["**/*.po"]
 licence = "GPL-2.0-or-later"
 
+# WordPress.org projects without language packs, from GlotPress.
+[[block]]
+name = "wordpress-android"
+title = "WordPress for Android"
+source = "glotpress"
+project = "apps/android/dev"
+files = ["**/*.po"]
+licence = "GPL-2.0-or-later"
+
+[[block]]
+name = "wordpress-ios"
+title = "WordPress for iOS"
+source = "glotpress"
+project = "apps/ios/dev"
+files = ["**/*.po"]
+licence = "GPL-2.0-or-later"
+
+[[block]]
+name = "wordpress-org"
+title = "WordPress.org"
+source = "glotpress"
+project = "meta/wordpress-org"
+files = ["**/*.po"]
+licence = "GPL-2.0-or-later"
+
 [[block]]
 name = "drupal-{version}"
 title = "Drupal"
