@@ -381,6 +381,17 @@ Source types
   their language. ``base_url`` can name a mirror of the API; ``pause``
   (default 1) is the seconds between downloads.
 
+``glotpress``
+  A `GlotPress <https://glotpress.blog>`_ project's translations, for
+  WordPress.org's projects without language packs: one :file:`.po` export
+  of the current translations per locale and translation set, of the locales
+  with anything translated.
+  ``project`` (required) is the project's path, such as ``apps/android/dev``.
+  A formal or other set goes with its language. ``base_url`` (default
+  ``https://translate.wordpress.org``) names the GlotPress site; ``pause``
+  (default 5) is the seconds between exports, and a 429 Too Many Requests is
+  retried after ``retry_wait`` (default 60) seconds, then twice that.
+
 ``snapshot``
   Data kept in the database by :ref:`snapshot_db <managing#snapshot-db>`,
   named by ``snapshot``; nothing is downloaded and it never changes.
@@ -394,7 +405,9 @@ Change detection
 
 Each fetch records a fingerprint of the block: for ``damned-lies`` the
 release's translation statistics (one request; a reworded translation alone
-doesn't change them), for ``wordpress`` every pack's version and update time,
+doesn't change them), for ``wordpress`` every pack's version and update time, for ``glotpress`` the
+project page's translated count per locale (one request; like Damned Lies,
+a rewording alone doesn't change it),
 for ``moodle`` the pack index with its MD5s, for ``joomla`` the packs'
 versions and the English ref's commit, for ``drupal`` the projects' releases
 (the files are rebuilt daily), for ``pontoon`` none (its files are generated
