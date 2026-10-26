@@ -297,6 +297,10 @@ Like ``fetch_sources``, an update fetches at most
 :setting:`UPDATER_FIRST_FETCHES` blocks for the first time; the others are left
 out until a later update has fetched them.
 
+With ``--no-fetch`` it fetches nothing and rebuilds from the cache as it is,
+if the cache has changed since the last rebuild (each rebuild records what it
+read): for a scheduled update when ``fetch_sources`` runs on its own schedule.
+
 A block that fails to fetch (its server down, its repository moved) doesn't
 stop the update: it is rebuilt from its last fetch, or left out if it has
 none, and listed at the end with the error. Once it has failed 4 runs in a
