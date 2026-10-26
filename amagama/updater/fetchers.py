@@ -786,6 +786,9 @@ class Moodle(Fetcher):
 
     def fetch(self, dest, languages=None):
         files = []
+        if languages is not None:
+            # English is the template the others pair with: always fetched.
+            languages = set(languages) | {"en"}
         with tempfile.TemporaryDirectory() as tmp:
             for lang, md5 in self.index():
                 if languages is not None and lang not in languages:
