@@ -24,7 +24,7 @@ from translate.storage import factory
 
 from amagama.licences import normalise_licence
 from amagama.source_options import MAX_WEIGHT
-from amagama.updater import weblate
+from amagama.updater import transifex, weblate
 from amagama.updater.fetchers import FetchError
 from amagama.updater.formats import open_pieces
 from amagama.updater.sources import FAILURES_TO_REPORT, limit_first_fetches, load_sources
@@ -595,6 +595,33 @@ def weblate_sources(url, projects, docs, no_verify, prefix, output, min_age_days
                     command, min_age_days, weight, output)
 
 
+@click.command('transifex_sources')
+@click.argument('repositories', nargs=-1)
+@click.option('--from-file', type=click.File(encoding="utf-8"),
+              help="File of repository URLs, one per line.")
+@generator_options
+@with_appcontext
+def transifex_sources(repositories, from_file, prefix, output, min_age_days, weight):
+    """Write sources-file blocks for repositories translated on Transifex, for review.
+
+    Each repository's default branch is cloned without its files, and every
+    .tx/config in it read. Repositories that blocks in the sources file
+    already import are left out, but for blocks with the same prefix, which
+    this regenerates.
+    """
+    command = " ".join(["transifex_sources --prefix", prefix] + list(repositories)
+                       + (["--from-file", from_file.name] if from_file else []))
+    repositories = list(repositories)
+    if from_file:
+        repositories += [line.strip() for line in from_file
+                         if line.strip() and not line.startswith("#")]
+    if not repositories:
+        raise click.UsageError("Give repositories, or --from-file.")
+    previous, covered, taken = generated_context(prefix)
+    found, skipped = transifex.blocks(repositories, prefix, covered, taken, previous)
+    write_generated(found, skipped, command, min_age_days, weight, output)
+
+
 @click.command('update')
 @source_language_option
 @click.option('--force', is_flag=True, help="Rebuild even if no source changed.")
@@ -651,5 +678,6 @@ cli_commands = (
     update,
     swap_db,
     weblate_sources,
+    transifex_sources,
     sources_pot,
 )

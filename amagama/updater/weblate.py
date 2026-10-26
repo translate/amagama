@@ -281,9 +281,14 @@ def toml(blocks, header, defaults=None):
 
     defaults become the file's defaults table, left out of each block.
     """
+    def value(setting):
+        if isinstance(setting, dict):
+            return "{%s}" % ", ".join("%s = %s" % (json.dumps(key, ensure_ascii=False), value(item))
+                                      for key, item in setting.items())
+        return json.dumps(setting, ensure_ascii=False)
+
     def settings(table):
-        return ["%s = %s" % (key, json.dumps(value, ensure_ascii=False))
-                for key, value in table.items()]
+        return ["%s = %s" % (key, value(setting)) for key, setting in table.items()]
     lines = ["# " + line if line else "#" for line in header.splitlines()]
     defaults = defaults or {}
     if defaults:

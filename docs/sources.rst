@@ -26,7 +26,9 @@ its own; block names must be unique across them all:
     include = ["weblate-fedora.toml"]
 
 The included Weblate files are written by :ref:`weblate_sources
-<managing#weblate-sources>`.
+<managing#weblate-sources>`; :ref:`transifex_sources
+<managing#transifex-sources>` writes blocks the same way from repositories'
+Transifex configurations.
 
 A ``[defaults]`` table gives settings for every block in its file (not in the
 files it includes); a block's own settings take precedence. ``name`` and
@@ -418,7 +420,8 @@ Block titles are translated in :file:`amagama/po/sources/`: one
 :file:`<lang>.po` per language, from the template :file:`sources.pot`. Beside
 the titles, translators word "{title} {version}" for their language and give
 its text direction. After adding or changing a title, here or with
-:ref:`weblate_sources <managing#weblate-sources>`, regenerate the template;
+:ref:`weblate_sources <managing#weblate-sources>` or :ref:`transifex_sources
+<managing#transifex-sources>`, regenerate the template;
 the tests fail while it's out of date:
 
 .. code-block:: bash
