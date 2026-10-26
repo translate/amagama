@@ -10,6 +10,7 @@
 
 import concurrent.futures
 import functools
+import json
 import multiprocessing
 import os
 import tempfile
@@ -191,11 +192,19 @@ def import_files(tasks, workers, progress=None):
     return in_workers(func, tasks, workers, _start_worker)
 
 
+def built_from(blocks, cache_dir):
+    """What a rebuild would read: {block name: its fetched content}."""
+    states = ((block.name, block.state(cache_dir)) for block in blocks)
+    return {name: state["content"] for name, state in states if state}
+
+
 def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=print,
-           first_fetches=None):
+           first_fetches=None, fetch=True):
     """Fetch changed blocks, rebuild slang from every block and swap it in.
 
-    At most first_fetches blocks are fetched for the first time; the rest
+    Without fetch, the cache is used as it is (fetch_sources keeps it
+    current), and slang is rebuilt if it differs from what the last rebuild
+    read. At most first_fetches blocks are fetched for the first time; the rest
     wait for later updates. A block that fails to fetch is skipped, and
     rebuilt from its last fetch if it has one. Returns {block name: its
     failures in a row} for those. Any other failure raises before the swap, leaving the live data
@@ -226,14 +235,25 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
         if not changed:
             block.clear_failures(cache_dir)
         return changed
-    due, later = limit_first_fetches(blocks, cache_dir, first_fetches)
-    if later:
-        out("Blocks not fetched yet, left for later updates: %d." % later)
-    changed = [block for block in due if checked(block)]
+    if fetch:
+        due, later = limit_first_fetches(blocks, cache_dir, first_fetches)
+        if later:
+            out("Blocks not fetched yet, left for later updates: %d." % later)
+        changed = [block for block in due if checked(block)]
+    else:
+        changed = []
     # Fetches save their state before the rebuild; this marks one still owed.
     pending = os.path.join(cache_dir, ".rebuild-%s" % slang)
     was_pending = os.path.exists(pending)
-    if not changed and not force and not was_pending:
+    # What the last rebuild read, against the cache now.
+    record = os.path.join(cache_dir, ".built-%s" % slang)
+    try:
+        with open(record, encoding="utf-8") as f:
+            last_built = json.load(f)
+    except (FileNotFoundError, ValueError):
+        last_built = None
+    cache_changed = not fetch and built_from(blocks, cache_dir) != last_built
+    if not changed and not force and not was_pending and not cache_changed:
         out("Nothing changed.")
         report_failures(failed, out)
         return failed
@@ -258,7 +278,7 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
         if state.get("outside_links"):
             out("Symlinks leading outside %s, skipped: %s" % (
                 block.name, ", ".join(state["outside_links"])))
-    if all(same) and not force and not was_pending:
+    if all(same) and not force and not was_pending and not cache_changed:
         os.remove(pending)
         out("Nothing changed.")
         report_failures(failed, out)
@@ -324,6 +344,9 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
     tmdb.drop_db([slang])
     tmdb.use_schemas("")
     tmdb.swap(slang)
+    with open(record + ".new", "w", encoding="utf-8") as f:
+        json.dump(built_from(blocks, cache_dir), f)
+    os.replace(record + ".new", record)
     os.remove(pending)
     out("Swapped in '%s'; the replaced copy is %s%s." % (slang, OLD_PREFIX, slang))
     report_failures(failed, out)

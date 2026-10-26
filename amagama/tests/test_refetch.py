@@ -148,3 +148,25 @@ def test_update_survives_dropped_idle_connections(update, pg_connection, monkeyp
         timeouts("DEFAULT")
     assert result.exit_code == 0, result.output
     assert lookup("Save file") == ["Stoor lêer"]
+
+
+def test_update_without_fetching(update, site):
+    root, url = site
+    # update(0) writes the sources file and settings, and fetches and builds.
+    assert update(0).exit_code == 0
+
+    def no_fetch():
+        return CliRunner().invoke(manage, ("update", "-s", "en", "--no-fetch"))
+    assert no_fetch().output == "Nothing changed.\n"
+    # The source changes, but without a fetch the cache doesn't.
+    write_tarball(str(root / "af.tgz"), {"af/bash.af.po": po("af", ("Save file", "Stoor"))})
+    assert no_fetch().output == "Nothing changed.\n"
+    assert lookup("Save file") == ["Stoor lêer"]
+    # fetch_sources brings it in; the next update --no-fetch rebuilds.
+    assert CliRunner().invoke(manage, ("fetch_sources",)).exit_code == 0
+    result = no_fetch()
+    assert result.exit_code == 0, result.output
+    assert "Fetched" not in result.output
+    assert "Swapped in 'en'" in result.output
+    assert lookup("Save file") == ["Stoor"]
+    assert no_fetch().output == "Nothing changed.\n"

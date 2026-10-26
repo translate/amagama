@@ -681,8 +681,11 @@ def discover_sources(signal, min_stars, pushed_since, min_units, prefix, output,
 @click.command('update')
 @source_language_option
 @click.option('--force', is_flag=True, help="Rebuild even if no source changed.")
+@click.option('--no-fetch', 'fetch', is_flag=True, flag_value=False, default=True,
+              help="Rebuild from the cache as it is, if it changed since the last rebuild; "
+              "for when fetch_sources keeps it current.")
 @with_appcontext
-def update(source_langs, force):
+def update(source_langs, force, fetch):
     """Fetch the sources, rebuild from them and swap the result in."""
     from amagama.updater.pipeline import update as update_from_sources
     cache_dir = os.path.expanduser(current_app.config.get('UPDATER_CACHE_DIR'))
@@ -692,7 +695,7 @@ def update(source_langs, force):
             failed |= bool(update_from_sources(
                 slang, cache_dir, current_app.config.get('UPDATER_SOURCES'),
                 current_app.config.get('UPDATER_WORKERS', 4), force,
-                first_fetches=current_app.config.get('UPDATER_FIRST_FETCHES')))
+                first_fetches=current_app.config.get('UPDATER_FIRST_FETCHES'), fetch=fetch))
     except (OSError, ValueError, FetchError) as e:
         print(e)
         raise SystemExit(1)
