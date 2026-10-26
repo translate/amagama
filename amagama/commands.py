@@ -24,7 +24,7 @@ from translate.storage import factory
 
 from amagama.licences import normalise_licence
 from amagama.source_options import MAX_WEIGHT
-from amagama.updater import transifex, weblate
+from amagama.updater import discovery, transifex, weblate
 from amagama.updater.fetchers import FetchError
 from amagama.updater.formats import open_pieces
 from amagama.updater.sources import FAILURES_TO_REPORT, limit_first_fetches, load_sources
@@ -622,6 +622,62 @@ def transifex_sources(repositories, from_file, prefix, output, min_age_days, wei
     write_generated(found, skipped, command, min_age_days, weight, output)
 
 
+
+@click.command('discover_sources')
+@click.argument('signal', type=click.Choice(sorted(discovery.SIGNALS)))
+@click.option('--min-stars', type=click.IntRange(min=0), default=100, show_default=True,
+              help="Fewest stars a repository needs.")
+@click.option('--pushed-since', type=click.DateTime(formats=["%Y-%m-%d"]),
+              help="Leave out repositories not pushed since this date; else 1 January "
+              "of last year.")
+@click.option('--min-units', type=click.IntRange(min=0), default=100, show_default=True,
+              help="Fewest translated units, not fuzzy, a block needs.")
+@generator_options
+@with_appcontext
+def discover_sources(signal, min_stars, pushed_since, min_units, prefix, output, min_age_days,
+                     weight):
+    """Write sources-file blocks for repositories that commit a signal's
+    localisation configuration, for review.
+
+    GitHub's code search finds them, with the token in GITHUB_TOKEN. Those not
+    archived or forks, with enough stars, pushed recently and with a licence,
+    are cloned without their files, mirrors then most stars first, and read.
+    A mirror's block is of the repository it copies. Repositories
+    that blocks in the sources file already import are left out, but for
+    blocks with the same prefix, which this regenerates.
+    """
+    token = os.environ.get("GITHUB_TOKEN")
+    if not token:
+        raise click.UsageError("GitHub's code search needs a token: set GITHUB_TOKEN.")
+    pushed_since = pushed_since.date() if pushed_since else discovery.default_pushed_since()
+    try:
+        names, incomplete = discovery.search(discovery.SIGNALS[signal]["query"], token)
+        click.echo("%d repositories found%s." % (
+            len(names), ", some of the search's results missing" if incomplete else ""), err=True)
+        kept, skipped = discovery.select(discovery.stats(names, token), min_stars, pushed_since)
+    except FetchError as e:
+        raise click.ClickException(str(e))
+    # A mirror's block is its upstream's, read from the mirror; mirrors come
+    # first, as originals of the copies with more stars.
+    pairs = sorted(((discovery.upstream(repository) or repository["url"], repository)
+                    for repository in kept), key=lambda pair: pair[0] == pair[1]["url"])
+    urls = [url for url, _ in pairs]
+    kept = [repository for _, repository in pairs]
+    mirrors = {url: repository["url"] for url, repository in pairs if url != repository["url"]}
+    if mirrors:
+        click.echo("%d mirrors: their blocks use the repositories they copy." % len(mirrors),
+                   err=True)
+    previous, covered, taken = generated_context(prefix)
+    found, resolved = discovery.SIGNALS[signal]["blocks"](
+        urls, prefix, covered, taken, previous,
+        licences={weblate.normal_url(url): discovery.licence(repository)
+                  for url, repository in zip(urls, kept)},
+        min_units=min_units, mirrors=mirrors)
+    skipped.update(resolved)
+    command = "discover_sources %s --prefix %s --min-stars %d --pushed-since %s --min-units %d" % (
+        signal, prefix, min_stars, pushed_since.isoformat(), min_units)
+    write_generated(found, skipped, command, min_age_days, weight, output)
+
 @click.command('update')
 @source_language_option
 @click.option('--force', is_flag=True, help="Rebuild even if no source changed.")
@@ -679,5 +735,6 @@ cli_commands = (
     swap_db,
     weblate_sources,
     transifex_sources,
+    discover_sources,
     sources_pot,
 )
