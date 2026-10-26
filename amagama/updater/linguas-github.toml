@@ -16,6 +16,7 @@ licence = "GPL-2.0-only"
 
 [[block]]
 name = "linguas-meld"
+disabled = "duplicates Damned Lies module meld"
 title = "meld"
 url = "https://gitlab.gnome.org/GNOME/meld"
 files = ["po/{lang}.po"]
@@ -24,6 +25,7 @@ licence = "GPL-2.0-only"
 
 [[block]]
 name = "linguas-gnome-shell"
+disabled = "duplicates Damned Lies module gnome-shell"
 title = "gnome-shell"
 url = "https://gitlab.gnome.org/GNOME/gnome-shell"
 files = ["po/{lang}.po"]
@@ -32,6 +34,7 @@ licence = "GPL-2.0-only"
 
 [[block]]
 name = "linguas-Constrict"
+disabled = "duplicates Damned Lies module Constrict"
 title = "Constrict"
 url = "https://gitlab.gnome.org/World/Constrict"
 files = ["po/{lang}.po"]
@@ -40,6 +43,7 @@ licence = "GPL-3.0-only"
 
 [[block]]
 name = "linguas-pika-backup"
+disabled = "duplicates Damned Lies module pika-backup"
 title = "pika-backup"
 url = "https://gitlab.gnome.org/World/pika-backup"
 files = ["po/{lang}.po"]
@@ -48,6 +52,7 @@ licence = "GPL-3.0-only"
 
 [[block]]
 name = "linguas-NetworkManager"
+disabled = "duplicates Damned Lies module NetworkManager"
 title = "NetworkManager"
 url = "https://gitlab.freedesktop.org/NetworkManager/NetworkManager"
 files = ["po/{lang}.po"]
@@ -64,6 +69,7 @@ licence = "LGPL-3.0-only"
 
 [[block]]
 name = "linguas-nautilus"
+disabled = "duplicates Damned Lies module nautilus"
 title = "nautilus"
 url = "https://gitlab.gnome.org/GNOME/nautilus"
 files = ["po/{lang}.po"]
@@ -72,6 +78,7 @@ licence = "GPL-3.0-only"
 
 [[block]]
 name = "linguas-dia"
+disabled = "duplicates Damned Lies module dia"
 title = "dia"
 url = "https://gitlab.gnome.org/GNOME/dia"
 files = ["po/{lang}.po"]
@@ -80,6 +87,7 @@ licence = "GPL-2.0-only"
 
 [[block]]
 name = "linguas-epiphany"
+disabled = "duplicates Damned Lies module epiphany"
 title = "epiphany"
 url = "https://gitlab.gnome.org/GNOME/epiphany"
 files = ["po/{lang}.po"]
@@ -88,6 +96,7 @@ licence = "GPL-3.0-only"
 
 [[block]]
 name = "linguas-gparted"
+disabled = "duplicates Damned Lies module gparted"
 title = "gparted"
 url = "https://gitlab.gnome.org/GNOME/gparted"
 files = ["po/{lang}.po"]
@@ -96,6 +105,7 @@ licence = "GPL-2.0-only"
 
 [[block]]
 name = "linguas-evince"
+disabled = "duplicates Damned Lies module evince"
 title = "evince"
 url = "https://gitlab.gnome.org/GNOME/evince"
 files = ["po/{lang}.po"]
@@ -104,6 +114,7 @@ licence = "GPL-2.0-only"
 
 [[block]]
 name = "linguas-gnome-terminal"
+disabled = "duplicates Damned Lies module gnome-terminal"
 title = "gnome-terminal"
 url = "https://gitlab.gnome.org/GNOME/gnome-terminal"
 files = ["po/{lang}.po"]
@@ -120,6 +131,7 @@ licence = "GPL-2.0-only"
 
 [[block]]
 name = "linguas-gnome-builder"
+disabled = "duplicates Damned Lies module gnome-builder"
 title = "gnome-builder"
 url = "https://gitlab.gnome.org/GNOME/gnome-builder"
 files = ["po/{lang}.po"]
@@ -128,6 +140,7 @@ licence = "GPL-3.0-only"
 
 [[block]]
 name = "linguas-mutter"
+disabled = "duplicates Damned Lies module mutter"
 title = "mutter"
 url = "https://gitlab.gnome.org/GNOME/mutter"
 files = ["po/{lang}.po"]
@@ -136,6 +149,7 @@ licence = "GPL-2.0-only"
 
 [[block]]
 name = "linguas-gitg"
+disabled = "duplicates Damned Lies module gitg"
 title = "gitg"
 url = "https://gitlab.gnome.org/GNOME/gitg"
 files = ["po/{lang}.po"]
@@ -144,6 +158,7 @@ licence = "GPL-2.0-only"
 
 [[block]]
 name = "linguas-zenity"
+disabled = "duplicates Damned Lies module zenity"
 title = "zenity"
 url = "https://gitlab.gnome.org/GNOME/zenity"
 files = ["po/{lang}.po"]
@@ -152,6 +167,7 @@ licence = "LGPL-2.1-only"
 
 [[block]]
 name = "linguas-vte"
+disabled = "duplicates Damned Lies module vte"
 title = "vte"
 url = "https://gitlab.gnome.org/GNOME/vte"
 files = ["po/{lang}.po"]
@@ -160,6 +176,7 @@ licence = "CC-BY-4.0"
 
 [[block]]
 name = "linguas-gthumb"
+disabled = "duplicates Damned Lies module gthumb"
 title = "gthumb"
 url = "https://gitlab.gnome.org/GNOME/gthumb"
 files = ["po/{lang}.po"]
@@ -184,6 +201,7 @@ licence = "GPL-2.0-only"
 
 [[block]]
 name = "linguas-nano"
+disabled = "duplicates Translation Project domain nano"
 title = "nano"
 url = "git://git.sv.gnu.org/nano.git"
 files = ["po/{lang}.po"]
@@ -192,6 +210,7 @@ licence = "GPL-3.0-only"
 
 [[block]]
 name = "linguas-cryptsetup"
+disabled = "duplicates Translation Project domain cryptsetup"
 title = "cryptsetup"
 url = "https://gitlab.com/cryptsetup/cryptsetup"
 files = ["po/{lang}.po"]
@@ -200,6 +219,7 @@ licence = "GPL-2.0-only"
 
 [[block]]
 name = "linguas-baobab"
+disabled = "duplicates Damned Lies module baobab"
 title = "baobab"
 url = "https://gitlab.gnome.org/GNOME/baobab"
 files = ["po/{lang}.po"]
@@ -208,6 +228,7 @@ licence = "GPL-2.0-only"
 
 [[block]]
 name = "linguas-phosh"
+disabled = "duplicates Damned Lies module phosh"
 title = "phosh"
 url = "https://gitlab.gnome.org/World/Phosh/phosh"
 files = ["po/{lang}.po"]
@@ -216,6 +237,7 @@ licence = "GPL-3.0-only"
 
 [[block]]
 name = "linguas-orca"
+disabled = "duplicates Damned Lies module orca"
 title = "orca"
 url = "https://gitlab.gnome.org/GNOME/orca"
 files = ["po/{lang}.po"]
@@ -224,6 +246,7 @@ licence = "LGPL-2.1-only"
 
 [[block]]
 name = "linguas-gnome-desktop"
+disabled = "duplicates Damned Lies module gnome-desktop"
 title = "gnome-desktop"
 url = "https://gitlab.gnome.org/GNOME/gnome-desktop"
 files = ["po/{lang}.po"]
@@ -232,6 +255,7 @@ licence = "GPL-2.0-only"
 
 [[block]]
 name = "linguas-ModemManager"
+disabled = "duplicates Damned Lies module ModemManager"
 title = "ModemManager"
 url = "https://gitlab.freedesktop.org/mobile-broadband/ModemManager"
 files = ["po/{lang}.po"]
@@ -240,6 +264,7 @@ licence = "GPL-2.0-only"
 
 [[block]]
 name = "linguas-libadwaita"
+disabled = "duplicates Damned Lies module libadwaita"
 title = "libadwaita"
 url = "https://gitlab.gnome.org/GNOME/libadwaita"
 files = ["po/{lang}.po"]
@@ -248,6 +273,7 @@ licence = "LGPL-2.1-only"
 
 [[block]]
 name = "linguas-gnome-calendar"
+disabled = "duplicates Damned Lies module gnome-calendar"
 title = "gnome-calendar"
 url = "https://gitlab.gnome.org/GNOME/gnome-calendar"
 files = ["po/{lang}.po"]
@@ -256,6 +282,7 @@ licence = "GPL-3.0-only"
 
 [[block]]
 name = "linguas-gdm"
+disabled = "duplicates Damned Lies module gdm"
 title = "gdm"
 url = "https://gitlab.gnome.org/GNOME/gdm"
 files = ["po/{lang}.po"]
@@ -272,6 +299,7 @@ licence = "GPL-2.0-only"
 
 [[block]]
 name = "linguas-wireplumber"
+disabled = "duplicates Damned Lies module WirePlumber"
 title = "wireplumber"
 url = "https://gitlab.freedesktop.org/pipewire/wireplumber"
 files = ["po/{lang}.po"]
@@ -344,6 +372,7 @@ licence = "GPL-3.0-only"
 
 [[block]]
 name = "linguas-tigervnc"
+disabled = "duplicates Translation Project domain tigervnc"
 title = "tigervnc"
 url = "https://github.com/TigerVNC/tigervnc"
 files = ["po/{lang}.po"]
@@ -376,6 +405,7 @@ licence = "GPL-3.0-only"
 
 [[block]]
 name = "linguas-flatpak"
+disabled = "duplicates Damned Lies module flatpak"
 title = "flatpak"
 url = "https://github.com/flatpak/flatpak"
 files = ["po/{lang}.po"]
@@ -432,6 +462,7 @@ licence = "Zlib"
 
 [[block]]
 name = "linguas-util-linux"
+disabled = "duplicates Translation Project domain util-linux"
 title = "util-linux"
 url = "https://github.com/util-linux/util-linux"
 files = ["po/{lang}.po"]
@@ -576,6 +607,7 @@ licence = "MIT"
 
 [[block]]
 name = "linguas-libgphoto2-libgphoto2_port"
+disabled = "duplicates Translation Project domain libgphoto2_port"
 title = "libgphoto2"
 url = "https://github.com/gphoto/libgphoto2"
 files = ["libgphoto2_port/po/{lang}.po"]
@@ -584,6 +616,7 @@ licence = "LGPL-2.1-only"
 
 [[block]]
 name = "linguas-libgphoto2"
+disabled = "duplicates Translation Project domain libgphoto2"
 title = "libgphoto2"
 url = "https://github.com/gphoto/libgphoto2"
 files = ["po/{lang}.po"]
@@ -736,6 +769,7 @@ licence = "MIT"
 
 [[block]]
 name = "linguas-gphoto2"
+disabled = "duplicates Translation Project domain gphoto2"
 title = "gphoto2"
 url = "https://github.com/gphoto/gphoto2"
 files = ["po/{lang}.po"]
@@ -936,6 +970,7 @@ licence = "GPL-2.0-only"
 
 [[block]]
 name = "linguas-Curtail"
+disabled = "duplicates Damned Lies module Curtail"
 title = "Curtail"
 url = "https://github.com/Huluti/Curtail"
 files = ["po/{lang}.po"]
@@ -1000,6 +1035,7 @@ licence = "GPL-3.0-only"
 
 [[block]]
 name = "linguas-g4music"
+disabled = "duplicates Damned Lies module g4music"
 title = "g4music"
 url = "https://github.com/neithern/g4music"
 files = ["po/{lang}.po"]
@@ -1168,6 +1204,7 @@ licence = "MIT"
 
 [[block]]
 name = "linguas-eyedropper"
+disabled = "duplicates Damned Lies module eyedropper"
 title = "eyedropper"
 url = "https://github.com/FineFindus/eyedropper"
 files = ["po/{lang}.po"]
@@ -1288,6 +1325,7 @@ licence = "GPL-3.0-only"
 
 [[block]]
 name = "linguas-msmtp"
+disabled = "duplicates Translation Project domain msmtp"
 title = "msmtp"
 url = "https://github.com/marlam/msmtp"
 files = ["po/{lang}.po"]
@@ -1304,6 +1342,7 @@ licence = "GPL-3.0-only"
 
 [[block]]
 name = "linguas-keypunch"
+disabled = "duplicates Damned Lies module Keypunch"
 title = "keypunch"
 url = "https://github.com/bragefuglseth/keypunch"
 files = ["po/{lang}.po"]
@@ -1336,6 +1375,7 @@ licence = "GPL-3.0-only"
 
 [[block]]
 name = "linguas-Whisp"
+disabled = "duplicates Damned Lies module whisp"
 title = "Whisp"
 url = "https://github.com/tanaybhomia/Whisp"
 files = ["po/{lang}.po"]
@@ -1344,6 +1384,7 @@ licence = "GPL-3.0-only"
 
 [[block]]
 name = "linguas-aspell"
+disabled = "duplicates Translation Project domain aspell"
 title = "aspell"
 url = "https://github.com/GNUAspell/aspell"
 files = ["po/{lang}.po"]
@@ -1600,6 +1641,7 @@ licence = "GPL-2.0-only"
 
 [[block]]
 name = "linguas-addwater"
+disabled = "duplicates Damned Lies module addwater"
 title = "addwater"
 url = "https://github.com/largestgithubuseronearth/addwater"
 files = ["po/{lang}.po"]
@@ -1664,6 +1706,7 @@ licence = "GPL-3.0-only"
 
 [[block]]
 name = "linguas-xdg-desktop-portal-gtk"
+disabled = "duplicates Damned Lies module xdg-desktop-portal-gtk"
 title = "xdg-desktop-portal-gtk"
 url = "https://github.com/flatpak/xdg-desktop-portal-gtk"
 files = ["po/{lang}.po"]
@@ -1792,6 +1835,7 @@ licence = "GPL-2.0-only"
 
 [[block]]
 name = "linguas-drum-machine"
+disabled = "duplicates Damned Lies module drum-machine"
 title = "drum-machine"
 url = "https://github.com/Revisto/drum-machine"
 files = ["po/{lang}.po"]
@@ -1984,6 +2028,7 @@ licence = "GPL-3.0-only"
 
 [[block]]
 name = "linguas-gcolor3"
+disabled = "duplicates Damned Lies module gcolor3"
 title = "gcolor3"
 url = "https://github.com/Hjdskes/gcolor3"
 files = ["po/{lang}.po"]
@@ -2032,6 +2077,7 @@ licence = "GPL-3.0-only"
 
 [[block]]
 name = "linguas-fretboard"
+disabled = "duplicates Damned Lies module Fretboard"
 title = "fretboard"
 url = "https://github.com/bragefuglseth/fretboard"
 files = ["po/{lang}.po"]
