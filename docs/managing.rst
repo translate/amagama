@@ -482,7 +482,10 @@ query, so the query is split by file size until each part is under that; a
 part that can't be split further is reported as incomplete. Code search
 gives a different set of results each run, so the repositories of the blocks
 being regenerated (a block's own GitHub repository, or its mirror) are read
-as well. Each
+as well. ``--bot-prs-days`` adds the repositories where a translation bot's pull
+request was merged in that many days, which shows the translations are
+committed (``crowdin``: "New Crowdin updates"); one without a configuration is
+counted, not made a block. Each
 repository's stats then select it: not archived or a fork, at least
 ``--min-stars`` stars (default 100), pushed since ``--pushed-since`` (default
 1 January of last year), and a licence GitHub detected, which becomes the
