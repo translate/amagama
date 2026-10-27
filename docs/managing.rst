@@ -469,7 +469,9 @@ This subcommand finds repositories that commit their translations, by the
 localisation configuration they commit, and writes :ref:`sources file
 <sources>` blocks for them, to review before including them. Its argument is
 the signal: ``linguas`` is gettext's :file:`po/LINGUAS`, ``crowdin`` is
-Crowdin's :file:`crowdin.yml`. GitHub's code search
+Crowdin's :file:`crowdin.yml`, ``l10n-toml`` Mozilla's :file:`l10n.toml`,
+``lingui`` Lingui's configuration and ``inlang`` inlang's
+:file:`project.inlang/settings.json`. GitHub's code search
 finds the files; it needs a token, in ``GITHUB_TOKEN``:
 
 .. code-block:: console
@@ -525,3 +527,21 @@ counted: files of a type amaGama doesn't read (Apple :file:`.strings`), with
 a placeholder it can't (``%language%``) or none, and patterns matching no
 file, such as a configuration whose translations aren't committed. Units
 aren't counted, so ``--min-units`` doesn't apply.
+
+For ``l10n-toml``, each ``[[paths]]`` gives the English (``reference``) and
+the translations (``l10n``, with ``{locale}`` or ``{android_locale}``) after
+the ``[env]`` variables are put in, relative to ``basepath``; a ``**`` reads
+every file below, one block per extension found under the reference.
+Translations kept in another repository (``{l10n_base}`` elsewhere) match
+nothing and are left out. For ``lingui`` (:file:`lingui.config.js` or
+``.ts``, :file:`.linguirc`, or a ``lingui`` key in the root
+:file:`package.json`), each catalog ``path`` with ``{locale}`` gives the
+files: PO, or JSON (the source locale's file the template) when the
+configuration names a JSON format. A JS or TS configuration is read with
+patterns, never run, so one whose catalog paths aren't plain strings is
+counted and left out. For ``inlang``, each plugin's ``pathPattern`` (with
+``{languageTag}`` or ``{locale}``), relative to the directory holding
+:file:`project.inlang`, gives JSON files, the source language's the template.
+As for ``crowdin``, units aren't counted; and for every signal a
+configuration in a test directory (:file:`tests/`, :file:`fixtures/` and the
+like) is left out.
