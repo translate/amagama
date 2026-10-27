@@ -7,7 +7,7 @@
 
 
 from amagama.updater import repositories
-from amagama.updater.weblate import identity
+from amagama.updater.generate import Names, identity
 
 PO = {"files": ["po/{lang}.po"], "sparse": ["po/*.po"]}
 ANDROID = {"files": ["res/values-{lang}/s.xml"], "format": "android", "template": "res/values/s.xml"}
@@ -20,8 +20,9 @@ def generated(resolved, urls=None, **kwargs):
     def resolve(url):
         read.append(url)
         return resolved.get(url)
-    found, skipped = repositories.blocks(urls or list(resolved), "t", resolve, "things", pause=0,
-                                         **kwargs)
+    names = Names(kwargs.pop("taken", ()), kwargs.pop("previous", None))
+    found, skipped = repositories.blocks(urls or list(resolved), "t", resolve, "things",
+                                         names=names, pause=0, **kwargs)
     return found, skipped, read
 
 

@@ -14,19 +14,15 @@ translations are fetched from those repositories, which Weblate commits to,
 so the instance isn't asked for files.
 """
 
-import contextlib
 import fnmatch
 import json
-import os
 import re
-import tempfile
 import time
 import urllib.parse
 
-from amagama.licences import normalise_licence
-from amagama.updater.fetchers import FetchError, http_text, run_tool
-from amagama.updater.filemask import compile_mask
-from amagama.updater.sources import Block, sparse_patterns
+from amagama.updater.fetchers import FetchError, http_text
+from amagama.updater.generate import Names, check_block, identity, normal_url
+from amagama.updater.sources import sparse_patterns
 
 # Weblate file formats amaGama reads, and the format setting each needs.
 FORMATS = {
@@ -121,33 +117,15 @@ def _collapsed(masks):
     return ["%s{lang}/**/*%s" % (prefix, extension)]
 
 
-def identity(url, ref, template, segment, licence):
-    """What a block reads, for keeping its name when it's regenerated: not
-    its format, so a corrected reader keeps the name."""
-    try:
-        licence = normalise_licence(licence) if licence else None
-    except ValueError:
-        pass
-    return (normal_url(url), ref or None, template or None, bool(segment), licence)
-
-
-def previous_names(blocks):
-    """{identity(): name} of loaded sources-file blocks, for blocks()."""
-    return {identity(block.fetcher.settings.get("url", ""), block.fetcher.settings.get("ref"),
-                     block.template, block.segment, block.licence): block.name
-            for block in blocks if block.source == "git"}
-
-
-def blocks(components, prefix, projects=("*",), docs=(), covered=(), taken=(), previous=None):
+def blocks(components, prefix, projects=("*",), docs=(), covered=(), names=None):
     """(blocks, skipped) for the components of projects matching the globs.
 
     Blocks are dicts of sources-file settings; skipped counts components
     left out, by reason. docs are globs of documentation, imported with
     segmentation, matched to a project's slug or project/component;
-    covered are repositories other blocks already import, and taken their
-    names; previous maps the identity() of blocks generated before to their
-    names, which are kept. Each block is checked as the sources file would
-    check it.
+    covered are repositories other blocks already import; names is the
+    generate.Names the blocks take theirs from. Each block is checked as the
+    sources file would check it.
     """
     by_url = {component.get("url"): component for component in components}
     covered = {normal_url(repo) for repo in covered}
@@ -196,7 +174,7 @@ def blocks(components, prefix, projects=("*",), docs=(), covered=(), taken=(), p
                 group["components"].add(component["slug"])
 
     found = []
-    names = set(taken)
+    names = names or Names()
     branches = {}
     for slug, repo, branch, *_ in groups:
         branches.setdefault((slug, repo), set()).add(branch)
@@ -209,27 +187,23 @@ def blocks(components, prefix, projects=("*",), docs=(), covered=(), taken=(), p
     bases = {}
     for slug, repo, branch, *_ in groups:
         bases[base(slug, repo, branch)] = bases.get(base(slug, repo, branch), 0) + 1
-    # Names identify imports: one generated before is kept, and a new one
-    # doesn't depend on what else the project has, as a project's blocks are
-    # told apart by a component.
+    # A new name doesn't depend on what else the project has, as a project's
+    # blocks are told apart by a component.
     chosen = {}
     for key, group in groups.items():
         slug, repo, branch, weblate_format, _, licence, segment = key
-        kept = previous and previous.get(identity(repo, branch, group["template"], segment, licence))
-        if kept and kept not in names and kept not in chosen.values():
+        kept = names.kept(identity(repo, branch, group["template"], segment, licence))
+        if kept:
             chosen[key] = kept
-    names |= set(chosen.values())
+            names.take(kept)
     for key, group in sorted(groups.items()):
         if key in chosen:
             continue
         name = base(*key[:3])
         if bases[name] > 1 or name in names:
             name += "-" + re.sub(r"[^\w.-]+", "-", min(group["components"]))
-        unique, number = name, 2
-        while unique in names:
-            unique, number = "%s-%d" % (name, number), number + 1
-        chosen[key] = unique
-        names.add(unique)
+        chosen[key] = names.unique(name)
+        names.take(chosen[key])
     for (slug, repo, branch, weblate_format, _, licence, segment), group in sorted(
             groups.items()):
         name = chosen[slug, repo, branch, weblate_format, _, licence, segment]
@@ -255,117 +229,7 @@ def blocks(components, prefix, projects=("*",), docs=(), covered=(), taken=(), p
             check_block(block)
         except ValueError as e:
             skip("not a valid block: %s" % str(e).split(": ", 1)[-1])
-            names.discard(name)
+            names.release(name)
             continue
         found.append(block)
     return found, skipped
-
-
-def check_block(block):
-    settings = dict(block)
-    licence = settings.pop("licence", None)
-    if licence is not None:
-        licence = normalise_licence(licence)
-    Block(settings.pop("name"), settings.pop("title"), settings.pop("source"),
-          settings.pop("version", None), licence, **settings)
-
-
-def normal_url(repo):
-    """A repository URL without scheme, credentials, trailing .git or /."""
-    parts = urllib.parse.urlsplit(repo)
-    return (parts.hostname or "") + re.sub(r"(\.git)?/*$", "", parts.path)
-
-
-def toml(blocks, header, defaults=None):
-    """blocks as sources-file text, after header's comment lines.
-
-    defaults become the file's defaults table, left out of each block.
-    """
-    def value(setting):
-        if isinstance(setting, dict):
-            return "{%s}" % ", ".join("%s = %s" % (json.dumps(key, ensure_ascii=False), value(item))
-                                      for key, item in setting.items())
-        return json.dumps(setting, ensure_ascii=False)
-
-    def settings(table):
-        return ["%s = %s" % (key, value(setting)) for key, setting in table.items()]
-    lines = ["# " + line if line else "#" for line in header.splitlines()]
-    defaults = defaults or {}
-    if defaults:
-        lines += ["", "[defaults]"] + settings(defaults)
-    for block in blocks:
-        lines += ["", "[[block]]"]
-        lines += settings({key: value for key, value in block.items()
-                           if key not in defaults or defaults[key] != value})
-    return "\n".join(lines) + "\n"
-
-
-@contextlib.contextmanager
-def clone(url, ref):
-    """(directory, file paths) of a clone of url at ref (None: its default
-    branch), or None if the repository or ref isn't there. Only the trees
-    are downloaded; a file's contents come when it's read."""
-    with tempfile.TemporaryDirectory() as tmp:
-        directory = os.path.join(tmp, "repo")
-        args = ["clone", "--quiet", "--depth", "1", "--filter=blob:none", "--no-checkout"]
-        if ref:
-            args += ["--branch", ref]
-        try:
-            run_tool("git", *(args + [url, directory]))
-            paths = run_tool("git", "-C", directory, "ls-tree", "-r", "--name-only", "HEAD",
-                             trusted=directory).splitlines()
-        except FetchError:
-            yield None
-        else:
-            yield directory, paths
-
-
-def _tree(url, ref):
-    """The file paths of url at ref, or None; see clone()."""
-    with clone(url, ref) as cloned:
-        return cloned and cloned[1]
-
-
-def verify(blocks, pause=1, tree=_tree):
-    """(blocks, problems): blocks as their repositories have them now.
-
-    Weblate's data can be out of date. A missing branch falls back to the
-    default branch; masks matching nothing are dropped; a block left with
-    none, or whose template is missing, is left out. problems counts by reason.
-    """
-    trees, kept, seen, problems = {}, [], set(), {}
-
-    def paths(url, ref):
-        if (url, ref) not in trees:
-            trees[url, ref] = tree(url, ref)
-            time.sleep(pause)
-        return trees[url, ref]
-
-    for block in blocks:
-        ref = block.get("ref")
-        found = paths(block["url"], ref)
-        if found is None and ref:
-            ref, found = None, paths(block["url"], None)
-        if found is None:
-            problems["repository or branch not found"] = problems.get("repository or branch not found", 0) + 1
-            continue
-        masks = [mask for mask in block["files"]
-                 if any(compile_mask(mask).match(path) for path in found)]
-        template = block.get("template")
-        if template and not any(compile_mask(template, allow_lang=False).match(path) for path in found):
-            masks = []
-        key = (block["url"], ref, tuple(masks), template)
-        if not masks or key in seen:
-            reason = "duplicate after branch fallback" if masks else "filemask matches nothing"
-            problems[reason] = problems.get(reason, 0) + 1
-            continue
-        seen.add(key)
-        block = dict(block, files=masks)
-        block["sparse"] = sparse_patterns(masks, template)
-        if ref != block.get("ref"):
-            problems["branch gone, default branch used"] = problems.get(
-                "branch gone, default branch used", 0) + 1
-            block.pop("ref", None)
-            block.pop("version", None)
-        kept.append(block)
-    return kept, problems

@@ -24,7 +24,7 @@ from amagama.updater.languages import normalise_language
 from amagama.updater.sources import sparse_patterns
 from amagama.updater.repositories import VENDORED
 from amagama.updater.repositories import blocks as repository_blocks
-from amagama.updater.weblate import clone
+from amagama.updater.generate import clone
 
 LINGUAS = re.compile(r"(?:^|/)po/LINGUAS\Z")
 
@@ -95,8 +95,8 @@ def repository(url, seen=()):
         return found
 
 
-def blocks(repositories, prefix, covered=(), taken=(), previous=None, pause=1, read=None,
-           licences=None, min_units=100, mirrors=None):
+def blocks(repositories, prefix, covered=(), names=None, pause=1, read=None, licences=None,
+           min_units=100, mirrors=None):
     """(blocks, skipped) for repositories' po/LINGUAS; see
     repositories.blocks() for the arguments and what skipped counts.
 
@@ -130,5 +130,5 @@ def blocks(repositories, prefix, covered=(), taken=(), previous=None, pause=1, r
             candidates.append({"suffix": suffix, "files": [mask], "sparse": sparse_patterns([mask])})
         return candidates, skipped
 
-    return repository_blocks(repositories, prefix, resolve, "directories", covered, taken,
-                             previous, pause, licences, mirrors)
+    return repository_blocks(repositories, prefix, resolve, "directories", covered, names, pause,
+                             licences, mirrors)

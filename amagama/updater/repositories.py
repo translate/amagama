@@ -19,7 +19,7 @@ import re
 import time
 import urllib.parse
 
-from amagama.updater.weblate import check_block, identity, normal_url
+from amagama.updater.generate import Names, check_block, identity, normal_url
 
 # Copies of other projects' trees.
 VENDORED = re.compile(r"(?:^|/)(?:vendor|node_modules|wp-content|subprojects|third_party)/")
@@ -30,8 +30,8 @@ def slug(text):
     return re.sub(r"[^\w.-]+", "-", text).strip("-")
 
 
-def blocks(repositories, prefix, resolve, what, covered=(), taken=(), previous=None, pause=1,
-           licences=None, mirrors=None):
+def blocks(repositories, prefix, resolve, what, covered=(), names=None, pause=1, licences=None,
+           mirrors=None):
     """(blocks, skipped) for repositories, as resolve reads them.
 
     resolve(url) gives None if the repository isn't there, else (candidates,
@@ -39,15 +39,14 @@ def blocks(repositories, prefix, resolve, what, covered=(), taken=(), previous=N
     name (None for the repository's name alone), and skipped counts what the
     resolver left out, {(kind, reason): count}. Blocks are dicts of
     sources-file settings; skipped adds repositories and the candidates (what)
-    left out here. covered are repositories other blocks already import, and
-    taken their names; previous maps the identity() of blocks generated before
-    to their names, which are kept; licences maps normal_url() to a
-    repository's SPDX licence. mirrors maps a repository to a copy of it for
-    resolve to read; the block is the repository's.
+    left out here. covered are repositories other blocks already import;
+    names is the generate.Names the blocks take theirs from; licences maps
+    normal_url() to a repository's SPDX licence. mirrors maps a repository
+    to a copy of it for resolve to read; the block is the repository's.
     """
     covered = {normal_url(url) for url in covered}
     licences = licences or {}
-    names = set(taken)
+    names = names or Names()
     found, skipped = [], collections.Counter()
     for number, url in enumerate(repositories):
         if number:
@@ -78,19 +77,17 @@ def blocks(repositories, prefix, resolve, what, covered=(), taken=(), previous=N
             if licence:
                 block["licence"] = licence
             # A previous name is kept only when nothing else here reads the same.
-            kept = (previous or {}).get(identity_of(settings)) \
+            kept = names.kept(identity_of(settings)) \
                 if identities[identity_of(settings)] == 1 else None
-            name = kept if kept and kept not in names else (
+            name = kept or (
                 "%s-%s" % (base, slug(candidate["suffix"])) if candidate.get("suffix") else base)
-            unique, count = name, 2
-            while unique in names:
-                unique, count = "%s-%d" % (name, count), count + 1
+            unique = names.unique(name)
             block["name"] = unique
             try:
                 check_block(block)
             except ValueError as e:
                 skipped[what, "not a valid block: %s" % str(e).split(": ", 1)[-1]] += 1
                 continue
-            names.add(unique)
+            names.take(unique)
             found.append(block)
     return found, dict(skipped)
