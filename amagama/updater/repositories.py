@@ -15,6 +15,7 @@ left out.
 """
 
 import collections
+import posixpath
 import re
 import time
 import urllib.parse
@@ -22,10 +23,51 @@ import urllib.parse
 from amagama.updater.fetchers import FetchError, run_tool
 from amagama.updater.generate import (Names, check_block, clone, identity, matches, matching,
                                       normal_url, with_mirror)
+from amagama.updater.languages import normalise_language
 from amagama.updater.sources import sparse_patterns
 
 # Copies of other projects' trees.
 VENDORED = re.compile(r"(?:^|/)(?:vendor|node_modules|wp-content|subprojects|third_party)/")
+# Tests' own configurations, of made-up projects.
+TESTS = re.compile(r"(?:^|/)(?:tests?|__tests__|testdata|fixtures?)/")
+# amaGama's format of a file, by its extension ("po" for none).
+EXTENSIONS = {
+    ".po": "po",
+    ".pot": "po",
+    ".ts": "ts",
+    ".xliff": "xliff",
+    ".xlf": "xliff",
+    ".json": "json",
+    ".properties": "properties",
+    ".php": "php",
+    ".ftl": "fluent",
+    ".dtd": "dtd",
+}
+
+
+def format_of(path):
+    """amaGama's format for a file by its name, or None if amaGama doesn't read it."""
+    extension = posixpath.splitext(path)[1].lower()
+    if extension == ".xml" and re.search(r"(?:^|/)values[^/]*/[^/]+\.xml\Z", path):
+        return "android"
+    return EXTENSIONS.get(extension)
+
+
+def is_english(code):
+    lang = normalise_language(code) if code else None
+    return bool(lang) and re.split(r"[_@]", lang)[0] == "en"
+
+
+def join(directory, path):
+    """A configuration's path, relative to its directory, as relative to the
+    repository; None if it leads outside."""
+    path = re.sub(r"/+", "/", str(path).strip().replace("\\", "/"))
+    while path.startswith("./"):
+        path = path[2:]
+    joined = posixpath.normpath(posixpath.join(directory, path.lstrip("/")))
+    if joined == ".":
+        return ""
+    return None if joined.startswith("../") or joined == ".." else joined
 
 
 def slug(text):
@@ -103,8 +145,10 @@ def _read(directory, path):
 
 
 def configs(paths, configuration):
-    """The paths configuration (a compiled pattern) matches, but vendored copies."""
-    return [path for path in paths if configuration.search(path) and not VENDORED.search(path)]
+    """The paths configuration (a compiled pattern) matches, but vendored
+    copies and tests'."""
+    return [path for path in paths if configuration.search(path)
+            and not VENDORED.search(path) and not TESTS.search(path)]
 
 
 def read(url, configuration):

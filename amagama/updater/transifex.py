@@ -69,11 +69,6 @@ def _resource(section):
     return section.split(".", 1)[-1]
 
 
-def _english(code):
-    lang = normalise_language(code) if code else None
-    return bool(lang) and re.split(r"[_@]", lang)[0] == "en"
-
-
 def resources(text, directory=""):
     """(resources, skipped) of a .tx/config in directory of the repository.
 
@@ -105,7 +100,7 @@ def resources(text, directory=""):
         file_type = setting("type").upper()
         if "<lang>" not in file_filter:
             skip("file_filter without <lang>")
-        elif not _english(setting("source_lang")):
+        elif not repositories.is_english(setting("source_lang")):
             skip("source not English")
         elif file_type not in TYPES:
             skip("type %s" % (file_type or "not given"))

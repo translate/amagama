@@ -51,17 +51,6 @@ TYPES = {
     "php": "php",
     "ftl": "fluent",
 }
-EXTENSIONS = {
-    ".po": "po",
-    ".pot": "po",
-    ".ts": "ts",
-    ".xliff": "xliff",
-    ".xlf": "xliff",
-    ".json": "json",
-    ".properties": "properties",
-    ".php": "php",
-    ".ftl": "fluent",
-}
 
 
 def _path(path):
@@ -76,10 +65,7 @@ def _format(source, given):
     """amaGama's format for a file, or None if amaGama doesn't read it."""
     if given:
         return TYPES.get(str(given).lower())
-    extension = posixpath.splitext(source)[1].lower()
-    if extension == ".xml" and re.search(r"(?:^|/)values[^/]*/[^/]+\.xml\Z", source):
-        return "android"
-    return EXTENSIONS.get(extension)
+    return repositories.format_of(source)
 
 
 def mask(translation, source):
