@@ -335,6 +335,21 @@ Source types
   a release's or a component's block downloads only what changed since any
   of them last fetched.
 
+  ``mirror`` is a copy of ``url`` to fetch from instead, to take load off a
+  community project's servers, such as GNOME's GitHub copy of a
+  gitlab.gnome.org repository. ``url`` stays the block's repository. Each
+  check compares the two refs' commits: the mirror is used while it has
+  ``url``'s commit, or is behind but moved less than ``mirror_lag_days``
+  (default 14, a block setting that ``[defaults]`` can give) ago. After
+  that, or when it can't be reached, ``url`` is, and ``fetch_sources`` and
+  ``update`` say so; a mirror that hasn't moved for twice that is asked
+  about:
+
+  .. code-block:: toml
+
+      url = "https://gitlab.gnome.org/GNOME/meld"
+      mirror = "https://github.com/GNOME/meld"
+
 ``http``
   One file per language under a directory listing, such as Debian's
   compendia: ``base_url`` is the listing, whose subdirectories are the

@@ -281,6 +281,8 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
         if state.get("outside_links"):
             out("Symlinks leading outside %s, skipped: %s" % (
                 block.name, ", ".join(state["outside_links"])))
+        if block.mirror_note(cache_dir):
+            out("%s: %s" % (block.name, block.mirror_note(cache_dir)))
     if all(same) and not force and not was_pending and not cache_changed:
         os.remove(pending)
         out("Nothing changed.")

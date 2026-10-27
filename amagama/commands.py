@@ -480,6 +480,8 @@ def fetch_sources(block_names, tags, check):
                 if state.get('outside_links'):
                     print("%s: symlinks leading outside the block, skipped: %s" % (
                         block.name, ", ".join(state['outside_links'])))
+                if block.mirror_note(cache_dir):
+                    print("%s: %s" % (block.name, block.mirror_note(cache_dir)))
         except FetchError as e:
             failures = block.record_failure(cache_dir, e)
             often = (" (%d runs in a row)" % failures["runs"]
