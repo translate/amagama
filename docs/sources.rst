@@ -178,8 +178,9 @@ files it includes); a block's own settings take precedence. ``name`` and
 ``columns`` and ``header_row``
   For ``format = "csv"``: what each column holds, from ``"source"``,
   ``"target"`` and ``"location"``, with ``""`` for a column to ignore; and
-  whether the first row is a header to skip. Files are then read as plain
-  comma-separated values:
+  whether the first row is a header to skip, or the header row's first cell,
+  so that the rows before it (a notice, say) are skipped too. Files are then
+  read as plain comma-separated values:
 
   .. code-block:: toml
 

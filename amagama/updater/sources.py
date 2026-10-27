@@ -110,7 +110,7 @@ class Block(object):
         self.language_in_ids = language_in_ids
         check_csv_options(format, columns, header_row)
         check_xliff_states(format, xliff_states)
-        self.reader_options = {"columns": columns, "header_row": bool(header_row),
+        self.reader_options = {"columns": columns, "header_row": header_row or False,
                                "xliff_states": xliff_states}
         if type(max_age_days) is not int or max_age_days < 0:
             raise ValueError("max_age_days must be a whole number of days")

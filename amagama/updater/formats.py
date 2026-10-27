@@ -123,8 +123,9 @@ def check_csv_options(format, columns, header_row):
             or "source" not in columns or "target" not in columns):
         raise ValueError('columns must list "source", "target" and optionally '
                          '"location", with "" for columns to ignore')
-    if header_row is not None and not isinstance(header_row, bool):
-        raise ValueError("header_row must be true or false")
+    if header_row is not None and not isinstance(header_row, bool) and (
+            not isinstance(header_row, str) or not header_row.strip()):
+        raise ValueError("header_row must be true, false or the first cell of the header row")
     if header_row and columns is None:
         raise ValueError("header_row needs columns")
 
@@ -233,7 +234,8 @@ def _reader(module):
 def open_store(path, format=None, columns=None, header_row=False, xliff_states=None):
     """Read path with the named reader, or the one its extension picks.
 
-    For CSV, columns names each column, and header_row drops the first row.
+    For CSV, columns names each column, and header_row drops the first row,
+    or as text everything up to the row it begins.
     For XLIFF, xliff_states lists the target states that count as translated.
     """
     if format == "csv" and columns:
@@ -422,6 +424,10 @@ def _read_csv(path, columns, header_row):
     store.filename = path
     with open(path, encoding="utf-8-sig", newline="") as f:
         rows = list(csv.reader(io.StringIO(f.read())))
+    if isinstance(header_row, str):
+        # Text before the header row (a notice) isn't translations.
+        start = next((n for n, row in enumerate(rows) if row[:1] == [header_row]), len(rows))
+        rows = rows[start:]
     for row in rows[1:] if header_row else rows:
         values = dict(zip(columns, row))
         if values.get("source"):
