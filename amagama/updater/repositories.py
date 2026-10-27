@@ -19,7 +19,7 @@ import re
 import time
 import urllib.parse
 
-from amagama.updater.generate import Names, check_block, identity, normal_url
+from amagama.updater.generate import Names, check_block, identity, normal_url, with_mirror
 
 # Copies of other projects' trees.
 VENDORED = re.compile(r"(?:^|/)(?:vendor|node_modules|wp-content|subprojects|third_party)/")
@@ -42,7 +42,8 @@ def blocks(repositories, prefix, resolve, what, covered=(), names=None, pause=1,
     left out here. covered are repositories other blocks already import;
     names is the generate.Names the blocks take theirs from; licences maps
     normal_url() to a repository's SPDX licence. mirrors maps a repository
-    to a copy of it for resolve to read; the block is the repository's.
+    to a copy of it for resolve to read; the block is the repository's, and
+    fetches from the copy if the repository is on a community host.
     """
     covered = {normal_url(url) for url in covered}
     licences = licences or {}
@@ -73,7 +74,8 @@ def blocks(repositories, prefix, resolve, what, covered=(), names=None, pause=1,
         identities = collections.Counter(identity_of(candidate) for candidate in candidates)
         for candidate in candidates:
             settings = {key: value for key, value in candidate.items() if key != "suffix"}
-            block = dict({"name": None, "title": title, "source": "git", "url": url}, **settings)
+            block = with_mirror(dict({"name": None, "title": title, "source": "git", "url": url},
+                                     **settings), (mirrors or {}).get(url), exists=lambda url: False)
             if licence:
                 block["licence"] = licence
             # A previous name is kept only when nothing else here reads the same.

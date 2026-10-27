@@ -15,6 +15,7 @@ from click.testing import CliRunner
 
 from amagama.cli import manage
 from amagama.tests.test_updater import block, git_repo, run  # noqa: F401 - fixtures
+from amagama.updater import generate
 from amagama.updater.fetchers import FetchError, Git
 from amagama.updater.sources import load_sources
 
@@ -165,3 +166,44 @@ def test_missing_ref(git_repo):  # noqa: F811 - fixture
     repo, git = git_repo
     with pytest.raises(FetchError, match="no ref gone"):
         Git({"url": repo.as_uri(), "ref": "gone"}).commit(repo.as_uri())
+
+
+def test_generated_mirror():
+    found = []
+
+    def exists(url):
+        found.append(url)
+        return url == "https://github.com/GNOME/gedit"
+    assert generate.mirror("https://gitlab.gnome.org/GNOME/gedit.git", exists=exists) \
+        == "https://github.com/GNOME/gedit"
+    assert generate.mirror("https://gitlab.gnome.org/GNOME/gone", exists=exists) is None
+    assert generate.mirror("https://gitlab.gnome.org/World/app", exists=exists) is None
+    assert found == ["https://github.com/GNOME/gedit", "https://github.com/GNOME/gone"]
+    # A copy a search found, for a community host only.
+    assert generate.mirror("https://salsa.debian.org/d/x", "https://github.com/d/x") \
+        == "https://github.com/d/x"
+    assert generate.mirror("https://git.example/d/x", "https://github.com/d/x") is None
+
+
+def test_add_mirrors():
+    looked_up = []
+
+    def exists(url):
+        looked_up.append(url)
+        return True
+    blocks = [{"name": "a", "url": "https://invent.kde.org/utilities/kate", "ref": "main"},
+              {"name": "b", "url": "https://invent.kde.org/utilities/kate", "ref": "stable"},
+              {"name": "c", "url": "https://github.com/o/c"}]
+    assert generate.add_mirrors(blocks, pause=0, exists=exists) == [
+        {"name": "a", "url": "https://invent.kde.org/utilities/kate",
+         "mirror": "https://github.com/KDE/kate", "ref": "main"},
+        {"name": "b", "url": "https://invent.kde.org/utilities/kate",
+         "mirror": "https://github.com/KDE/kate", "ref": "stable"},
+        {"name": "c", "url": "https://github.com/o/c"}]
+    assert looked_up == ["https://github.com/KDE/kate"]
+
+
+def test_exists(git_repo, tmp_path):  # noqa: F811 - fixture
+    repo, git = git_repo
+    assert generate.exists(repo.as_uri())
+    assert not generate.exists((tmp_path / "gone").as_uri())
