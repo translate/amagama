@@ -244,7 +244,8 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
             out("Blocks not fetched yet, left for later updates: %d." % later)
         changed = [block for block in due if checked(block)]
     else:
-        changed = []
+        # Blocks not fetched yet are fetch_sources' to fetch: none are due.
+        due, changed = [], []
     # Fetches save their state before the rebuild; this marks one still owed.
     pending = os.path.join(cache_dir, ".rebuild-%s" % slang)
     was_pending = os.path.exists(pending)
