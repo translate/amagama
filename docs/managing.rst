@@ -468,7 +468,8 @@ discover_sources
 This subcommand finds repositories that commit their translations, by the
 localisation configuration they commit, and writes :ref:`sources file
 <sources>` blocks for them, to review before including them. Its argument is
-the signal; ``linguas`` is gettext's :file:`po/LINGUAS`. GitHub's code search
+the signal: ``linguas`` is gettext's :file:`po/LINGUAS`, ``crowdin`` is
+Crowdin's :file:`crowdin.yml`. GitHub's code search
 finds the files; it needs a token, in ``GITHUB_TOKEN``:
 
 .. code-block:: console
@@ -504,3 +505,17 @@ before it, a copy. A repository's second :file:`po` directory is named by its
 path. Repositories another block already imports are left out, as for
 :ref:`weblate_sources <managing#weblate-sources>`, and so are ``--prefix``,
 ``--output``, ``--min-age-days``, ``--weight`` and ``--tag``.
+
+For ``crowdin`` (:file:`crowdin.yml`, :file:`crowdin.yaml` or
+:file:`.crowdin.yml`, which needs PyYAML), each file's ``translation`` gives
+the files: its first language placeholder (``%locale%``,
+``%two_letters_code%``, ``%android_code%``, ``%osx_code%`` and the like) is
+the language, and ``%original_file_name%``, ``%file_name%``,
+``%file_extension%`` and ``%original_path%`` are the source's own, so a
+monolingual source is the template. ``languages_mapping`` gives the block's
+``languages``; ``type``, else the extension, the format. Bilingual files of a
+repository share a block, and a monolingual file has its own. Left out, and
+counted: files of a type amaGama doesn't read (Apple :file:`.strings`), with
+a placeholder it can't (``%language%``) or none, and patterns matching no
+file, such as a configuration whose translations aren't committed. Units
+aren't counted, so ``--min-units`` doesn't apply.
