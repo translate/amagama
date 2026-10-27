@@ -64,7 +64,8 @@ def paired_store(translation, template, exclude_ids=(), language_in_ids=False):
     """A store of English source and translated target units.
 
     Leaves out messages with no English or no text, plurals, and ids matching
-    exclude_ids. With language_in_ids, ids name their file's language (CLDR's
+    exclude_ids; plurals counts the plurals, which are skipped until they
+    can be stored. With language_in_ids, ids name their file's language (CLDR's
     main.de...., Rails' de....): the segment where the template's ids name
     English is left out of every id before they are matched.
     """
@@ -77,11 +78,15 @@ def paired_store(translation, template, exclude_ids=(), language_in_ids=False):
                 return without_segment(uid or "", position)
     english = {key(unit.getid()): unit for unit in template.units}
     store = TranslationStore()
+    store.plurals = 0
     for unit in translation.units:
         if excluded(unit, exclude_ids):
             continue
         source = english.get(key(unit.getid()))
-        if source is None or is_plural(unit) or is_plural(source):
+        if source is None:
+            continue
+        if is_plural(unit) or is_plural(source):
+            store.plurals += 1
             continue
         target = text(unit)
         if not target or not text(source):

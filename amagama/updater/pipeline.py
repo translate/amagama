@@ -91,9 +91,9 @@ def _import_file(path, recorded, slang, tlang, block, licence, format, template,
     iid = tmdb.start_import(slang, tlang, recorded, block, licence)
     units = skipped = 0
     for store in stores:
-        # Entries left out for not decoding are skipped too.
-        translatable = sum(1 for u in store.units if u.istranslatable()) + getattr(
-            store, "undecodable", 0)
+        # Entries left out for not decoding, and plurals, are skipped too.
+        translatable = sum(1 for u in store.units if u.istranslatable()) + sum(
+            getattr(store, left_out, 0) for left_out in ("undecodable", "plurals"))
         if segment:
             whole = sum(1 for u in store.units if tmdb._usable_unit(u))
             store = segmented(store, slang, tlang, tmdb._usable_unit)
