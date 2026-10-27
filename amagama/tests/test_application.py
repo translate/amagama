@@ -41,3 +41,13 @@ def test_web_ui(amagama_config):
     assert 'MGM.sources.init();' in page
     assert 'id="js-sources-results"' in page
     assert 'id="js-sources-fallback"' in page
+
+
+def test_web_ui_favicon(amagama_config):
+    amagama_config(ENABLE_WEB_UI=True)
+    client = amagama_server_factory().test_client()
+    page = client.get('/').get_data(as_text=True)
+    assert '<link rel="icon" href="/static/favicon.ico">' in page
+    response = client.get('/static/favicon.ico')
+    assert response.status_code == 200
+    assert response.data[:4] == b"\x00\x00\x01\x00"
