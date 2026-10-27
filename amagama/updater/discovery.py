@@ -25,7 +25,7 @@ import urllib.request
 
 import spdx_license_list
 
-from amagama.updater import crowdin, inlang, l10ntoml, lingui, linguas
+from amagama.updater import crowdin, inlang, l10ntoml, lingui, linguas, wlc
 from amagama.updater.fetchers import TIMEOUT, USER_AGENT, FetchError
 
 SEARCH = "https://api.github.com/search/code"
@@ -52,6 +52,7 @@ SIGNALS = {
                            "filename:.linguirc"],
                "blocks": lingui.blocks},
     "inlang": {"queries": ["filename:settings.json path:project.inlang"], "blocks": inlang.blocks},
+    "weblate": {"queries": ["filename:.weblate translation"], "blocks": wlc.blocks},
 }
 
 FIELDS = ("url stargazerCount pushedAt isArchived isFork licenseInfo { spdxId } description "
