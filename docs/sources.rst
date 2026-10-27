@@ -277,6 +277,13 @@ files it includes); a block's own settings take precedence. ``name`` and
   (``["foundation-website-content:*"]``). JSON ids are matched without their
   leading ``.``.
 
+``language_in_ids``
+  Optional ``true`` for a block with a ``template`` whose message ids name
+  their file's language, such as CLDR's ``main.de.localeDisplayNames....``
+  or Rails' ``de.errors....``: the id segment where every one of the
+  template's ids has the same English code is left out of each id before a
+  translation is matched with its English.
+
 Templates (:file:`.pot`) are never imported.
 
 Every language code is turned into one form, language with optional

@@ -56,7 +56,7 @@ class Block(object):
                  exclude=None, keep=None, languages=None, format=None, template=None,
                  exclude_ids=None, columns=None, header_row=None, xliff_states=None,
                  max_age_days=30, min_age_days=0, segment=False, weight=1, tags=None,
-                 mirror_lag_days=14, **settings):
+                 mirror_lag_days=14, language_in_ids=False, **settings):
         self.name = name
         self.title = title
         self.version = version
@@ -103,6 +103,11 @@ class Block(object):
                 isinstance(pattern, str) for pattern in exclude_ids)):
             raise ValueError("exclude_ids must be a list of patterns")
         self.exclude_ids = exclude_ids or []
+        if not isinstance(language_in_ids, bool):
+            raise ValueError("language_in_ids must be true or false")
+        if language_in_ids and not template:
+            raise ValueError("language_in_ids is for blocks with a template")
+        self.language_in_ids = language_in_ids
         check_csv_options(format, columns, header_row)
         check_xliff_states(format, xliff_states)
         self.reader_options = {"columns": columns, "header_row": bool(header_row),

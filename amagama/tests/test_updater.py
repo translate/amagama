@@ -223,6 +223,19 @@ def test_update_tags(amagama_config, tmp_path, monkeypatch):
     assert (called["tags"], called["exclude_tags"]) == (["core"], ["trial"])
 
 
+@pytest.mark.parametrize("settings, error", [
+    ({"language_in_ids": "yes", "format": "json", "template": "en.json"},
+     "language_in_ids must be true or false"),
+    ({"language_in_ids": True}, "language_in_ids is for blocks with a template"),
+])
+def test_language_in_ids_checked(tmp_path, settings, error):
+    path = tmp_path / "sources.toml"
+    path.write_text(block("x", "git", url="https://git.example/x", files=["{lang}.json"],
+                          **settings))
+    with pytest.raises(ValueError, match=error):
+        load_sources(str(path))
+
+
 class TestSourcesFile(object):
 
     def test_shipped_sources(self):
