@@ -1,0 +1,13 @@
+# nginx and uWSGI (through systemd) append to these logs, so copytruncate
+# rotates them without a reload.
+/srv/amagama/logs/*.log {
+    monthly
+    dateext
+    dateyesterday
+    missingok
+    rotate 120
+    compress
+    delaycompress
+    notifempty
+    copytruncate
+}

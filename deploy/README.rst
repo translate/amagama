@@ -8,6 +8,7 @@ Configuration of the amaGama server at fosstranslation.osuosl.org
 File                     Installed as
 ======================== =============================================
 nginx-amagama.conf       /etc/nginx/sites-enabled/amagama
+logrotate-amagama        /etc/logrotate.d/amagama-srv
 uwsgi.ini                /srv/amagama/uwsgi.ini
 amagama.uwsgi.service    /etc/systemd/system/amagama.uwsgi.service
 amagama-fetch.service    /etc/systemd/system/amagama-fetch.service
