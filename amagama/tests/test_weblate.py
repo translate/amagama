@@ -376,11 +376,64 @@ def test_tree(tmp_path):
 
 def test_command_verifies(amagama_config, instance, tmp_path, monkeypatch):
     amagama_config(UPDATER_SOURCES=str(tmp_path / "missing.toml"))
-    monkeypatch.setattr(generate, "verify", lambda blocks: (blocks[:1], {"filemask matches nothing": 1}))
+    monkeypatch.setattr(generate, "verify", lambda blocks: (blocks[:2], {"filemask matches nothing": 1}))
+    monkeypatch.setattr(generate, "importable",
+                        lambda blocks: (blocks[:1], {"template has no units": 1}))
     result = CliRunner().invoke(manage, ("weblate_sources", instance, "--prefix", "test"))
     assert result.exit_code == 0, result.output
     assert "1 blocks." in result.output
     assert "Skipped 1 components: filemask matches nothing." in result.output
+    assert "Skipped 1 components: template has no units." in result.output
+
+
+def test_importable(tmp_path):
+    repo = tmp_path / "repo"
+    files = {
+        # Strings moved elsewhere: an empty template.
+        "moved/values/strings.xml": "<resources></resources>",
+        "moved/values-af/strings.xml": '<resources><string name="a">A</string></resources>',
+        # A new module: translation files with nothing in them yet.
+        "new/Bundle.properties": "save=Save\n",
+        "new/Bundle_af.properties": "\n",
+        "new/Bundle_de.properties": "",
+        "props/Bundle.properties": "save=Save\n",
+        "props/Bundle_af.properties": "\n",
+        "props/Bundle_de.properties": "save=Speichern\n",
+        "untranslated/af.po": 'msgid ""\nmsgstr ""\n"Language: af\\n"\n\nmsgid "Save"\nmsgstr ""\n',
+        "po/af.po": 'msgid "Save"\nmsgstr "Stoor"\n',
+        "broken/values/strings.xml": '<resources><string name="a">A</string></resources>',
+        "broken/values-af/strings.xml": '<resources><string name="a">A</str',
+        "mixed/values-af/strings.xml": '<resources><string name="a">A</str',
+        "mixed/values-de/strings.xml": '<resources><string name="a">B</string></resources>',
+    }
+    for name, text in files.items():
+        (repo / name).parent.mkdir(parents=True, exist_ok=True)
+        (repo / name).write_text(text, encoding="utf-8")
+    subprocess.run(["sh", "-c", "git init -q -b main && git add . && git -c user.name=t "
+                    "-c user.email=t@example.org commit -q -m l10n"], cwd=repo, check=True)
+    url = repo.as_uri()
+    blocks = [
+        {"name": "moved", "url": url, "files": ["moved/values-{lang}/strings.xml"],
+         "format": "android", "template": "moved/values/strings.xml"},
+        {"name": "new", "url": url, "files": ["new/Bundle_{lang}.properties"],
+         "format": "properties", "template": "new/Bundle.properties"},
+        {"name": "props", "url": url, "files": ["props/Bundle_{lang}.properties"],
+         "format": "properties", "template": "props/Bundle.properties"},
+        {"name": "untranslated", "url": url, "files": ["untranslated/{lang}.po"]},
+        {"name": "po", "url": url, "files": ["po/{lang}.po"]},
+        # A file that can't be read has no translations; the others still count.
+        {"name": "broken", "url": url, "files": ["broken/values-{lang}/strings.xml"],
+         "format": "android", "template": "broken/values/strings.xml"},
+        {"name": "mixed", "url": url, "files": ["mixed/values-{lang}/strings.xml"],
+         "format": "android", "template": "broken/values/strings.xml"},
+        {"name": "no template", "url": url, "files": ["po/{lang}.po"], "format": "android",
+         "template": "missing/strings.xml"},
+        # Can't be read, so can't be shown to be empty.
+        {"name": "gone", "url": (tmp_path / "gone").as_uri(), "files": ["po/{lang}.po"]},
+    ]
+    kept, problems = generate.importable(blocks, pause=0)
+    assert [b["name"] for b in kept] == ["props", "po", "mixed", "no template", "gone"]
+    assert problems == {"template has no units": 1, "no translations": 3}
 
 
 def test_project_components(monkeypatch):

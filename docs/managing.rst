@@ -419,8 +419,9 @@ downloaded again.
 Weblate's data can be out of date, so each block is then checked against its
 repository, from a clone of its file list without the files: a branch that's
 gone falls back to the default branch, masks that match nothing are dropped,
-and a block left with none, or whose template is missing, is left out.
-``--no-verify`` skips the check.
+and a block left with none, or whose template is missing, is left out. So is
+a block that would import nothing: its template has no units, or none of its
+files has a translation. ``--no-verify`` skips the check.
 
 A block of the file being regenerated that is ``disabled`` (see
 :ref:`sources file <sources>`) stays disabled with its reason, and one not
