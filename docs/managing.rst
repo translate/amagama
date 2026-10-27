@@ -137,7 +137,10 @@ An empty cache fills over several runs: each run fetches at most
 so each upstream sees a little of its share each run rather than all of it at
 once. ``--block`` fetches the named blocks whatever the limit.
 
-A repository several blocks read is asked for its commit once a run.
+A repository several blocks read is asked for its commit once a run. After a
+run over every block (no ``--block``, ``--tag`` or ``--check``), the shared
+git repositories in ``.repos`` that no block of the sources file uses,
+disabled ones included, are removed.
 
 Only the blocks :setting:`UPDATER_TAGS` and :setting:`UPDATER_EXCLUDE_TAGS`
 select are fetched; ``--tag`` (repeatable) narrows them to those with one of

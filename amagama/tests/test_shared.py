@@ -15,6 +15,7 @@ from amagama.tests.test_transifex import repository  # noqa: F401 - fixture
 from amagama.tests.test_updater import block, git_repo, run  # noqa: F401 - fixtures
 from amagama.updater import fetchers, generate
 from amagama.updater.fetchers import FetchError, Git
+from amagama.updater.sources import load_sources, unused_repositories
 
 
 def counted(monkeypatch):
@@ -52,6 +53,38 @@ def test_fetch_sources_asks_once(run, git_repo, monkeypatch):  # noqa: F811 - fi
     assert result.exit_code == 0, result.output
     # Each block checks the commit when it fetches; the repository is asked once.
     assert calls == [repo.as_uri()]
+
+
+def test_unused_repositories(tmp_path):
+    path = tmp_path / "sources.toml"
+    path.write_text(block("a", "git", url="https://git.example/org/a", files=["po/{lang}.po"])
+                    + block("b", "git", url="https://git.example/org/b", files=["po/{lang}.po"],
+                            disabled="kept for later")
+                    + block("c", "translationproject"))
+    store = tmp_path / "cache/.repos/git.example/org"
+    for name in ("a.git", "b.git", "gone.git"):
+        (store / name).mkdir(parents=True)
+        (store / name / "HEAD").write_text("ref: refs/heads/main\n")
+    (store / "gone.git/refs").mkdir()
+    (store / "gone.git/refs/HEAD").write_text("not a repository")
+    assert unused_repositories(load_sources(str(path), disabled=True), str(tmp_path / "cache")) \
+        == [str(store / "gone.git")]
+
+
+def test_fetch_sources_prunes(run, git_repo):  # noqa: F811 - fixture
+    repo, git = git_repo
+    text = block("a", "git", url=repo.as_uri(), files=["po/{lang}.po"])
+    assert run(text).exit_code == 0
+    stale = run.cache / ".repos/git.example/old.git"
+    stale.mkdir(parents=True)
+    (stale / "HEAD").write_text("ref: refs/heads/main\n")
+    result = run(text, "--block", "a")
+    assert stale.exists()
+    result = run(text)
+    assert result.exit_code == 0, result.output
+    assert "Removed 1 repositories no block uses." in result.output
+    assert not stale.exists()
+    assert os.path.isdir(Git({"url": repo.as_uri()}).repository(str(run.cache / ".repos")))
 
 
 def test_clone_shared(git_repo, tmp_path, monkeypatch):  # noqa: F811 - fixture

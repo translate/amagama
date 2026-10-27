@@ -13,6 +13,7 @@ import json
 import logging
 import os
 import re
+import shutil
 import sys
 
 import click
@@ -30,7 +31,7 @@ from amagama.updater import discovery, generate, status, transifex, weblate
 from amagama.updater.fetchers import FetchError, remembered_commits
 from amagama.updater.formats import open_pieces
 from amagama.updater.sources import (FAILURES_TO_REPORT, REPOSITORIES, TAGS, limit_first_fetches,
-                                     load_sources, select)
+                                     load_sources, select, unused_repositories)
 from amagama.tmdb import BUILD_PREFIX, OLD_PREFIX
 
 def ensure_source_exists():
@@ -449,7 +450,11 @@ def configured_blocks(tags=()):
 @with_appcontext
 @remembered_commits()
 def fetch_sources(block_names, tags, check):
-    """Download the translations in the sources file."""
+    """Download the translations in the sources file.
+
+    After fetching every block, the shared git repositories no block of the
+    sources file uses are removed.
+    """
     cache_dir = os.path.expanduser(current_app.config.get('UPDATER_CACHE_DIR'))
     blocks = configured_blocks(tags)
     unknown = set(block_names) - {block.name for block in blocks}
@@ -496,6 +501,13 @@ def fetch_sources(block_names, tags, check):
                 block.clear_failures(cache_dir)
     if unchanged:
         print("Unchanged since the last fetch: %d blocks." % unchanged)
+    if not (block_names or tags or check):
+        unused = unused_repositories(
+            load_sources(current_app.config.get('UPDATER_SOURCES'), disabled=True), cache_dir)
+        for path in unused:
+            shutil.rmtree(path)
+        if unused:
+            print("Removed %d repositories no block uses." % len(unused))
     if failed:
         raise SystemExit(1)
 
