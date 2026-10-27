@@ -6,7 +6,7 @@
 # the AUTHORS.md file for copyright and authorship information.
 
 
-from amagama.updater import repositories
+from amagama.updater import crowdin, repositories
 from amagama.updater.generate import Names, identity
 
 PO = {"files": ["po/{lang}.po"], "sparse": ["po/*.po"]}
@@ -90,3 +90,22 @@ def test_blocks_names_kept_only_unique():
 
 def test_slug():
     assert repositories.slug("--My App (beta)/x--") == "My-App-beta-x"
+
+
+def test_configs_left_out():
+    assert repositories.configs(["crowdin.yml", "a/crowdin.yml", "vendor/x/crowdin.yml",
+                                 "tests/fixtures/crowdin.yml", "src/__tests__/crowdin.yml"],
+                                crowdin.CONFIG) == ["crowdin.yml", "a/crowdin.yml"]
+
+
+def test_join():
+    assert repositories.join("web", "./po/{lang}.po") == "web/po/{lang}.po"
+    assert repositories.join("", "/po//x.po") == "po/x.po"
+    assert repositories.join("a", "..") == ""
+    assert repositories.join("a", "../../x") is None
+
+
+def test_format_of():
+    assert repositories.format_of("res/values-de/strings.xml") == "android"
+    assert repositories.format_of("x/strings.xml") is None
+    assert repositories.format_of("a/b.FTL") == "fluent"
