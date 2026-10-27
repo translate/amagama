@@ -184,6 +184,14 @@ msgid "Visual Studio Code"
 msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "CLDR names"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "CLDR dates"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
 msgid "ABRT"
 msgstr ""
 

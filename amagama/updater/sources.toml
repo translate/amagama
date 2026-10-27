@@ -545,3 +545,43 @@ source = "vscode"
 # A pseudo-locale for testing, not a translation.
 languages.qps-ploc = ""
 licence = "MIT"
+
+# Unicode CLDR's names of languages, scripts and regions, and Gregorian dates
+# (months, days, eras). Each id names its file's locale (main.de....), so the
+# English is matched with that segment left out. Regional locales hold only
+# what differs from their language.
+[[block]]
+name = "cldr-names-{version}"
+title = "CLDR names"
+source = "git"
+url = "https://github.com/unicode-org/cldr-json"
+ref = "{version}.0.0"
+files = ["cldr-json/cldr-localenames-full/main/{lang}/*.json"]
+format = "json"
+template = "cldr-json/cldr-localenames-full/main/en/*.json"
+language_in_ids = true
+exclude_ids = ["main.*.identity.*"]
+# Polytonic Greek isn't modern Greek; English for the world and Europe
+# aren't regions amaGama keeps.
+languages.el-polyton = ""
+languages.en-001 = ""
+languages.en-150 = ""
+licence = "Unicode-3.0"
+versions = ["49"]
+
+[[block]]
+name = "cldr-dates-{version}"
+title = "CLDR dates"
+source = "git"
+url = "https://github.com/unicode-org/cldr-json"
+ref = "{version}.0.0"
+files = ["cldr-json/cldr-dates-full/main/{lang}/ca-gregorian.json"]
+format = "json"
+template = "cldr-json/cldr-dates-full/main/en/ca-gregorian.json"
+language_in_ids = true
+exclude_ids = ["main.*.identity.*"]
+languages.el-polyton = ""
+languages.en-001 = ""
+languages.en-150 = ""
+licence = "Unicode-3.0"
+versions = ["49"]
