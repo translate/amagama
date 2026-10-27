@@ -251,6 +251,8 @@ def run_tool(tool, *args, trusted=None):
     the git processes git starts get it too.
     """
     env = {key: value for key, value in os.environ.items() if not key.startswith("GIT_")}
+    # A repository that isn't there fails rather than asking for a login.
+    env["GIT_TERMINAL_PROMPT"] = "0"
     if trusted is not None:
         paths = [trusted] if isinstance(trusted, str) else list(trusted)
         env["GIT_CONFIG_COUNT"] = str(len(paths))
