@@ -4,8 +4,12 @@
 # Git blocks have min_age_days = 7: the database is rebuilt weekly, so
 # there's no use fetching a moving branch more often.
 
-# Blocks generated from Weblate instances by weblate_sources.
+# Blocks written by weblate_sources and discover_sources.
 include = ["weblate-fedora.toml", "weblate-hosted.toml", "linguas-github.toml"]
+
+# The blocks here are chosen by hand.
+[defaults]
+tags = ["core"]
 
 [[block]]
 name = "legacy-2019"
