@@ -56,6 +56,27 @@ translation files. Please refer to the :ref:`importing translations
 into the build schema (see :ref:`swap_db <managing#swap-db>`).
 
 
+.. _managing#check-sources:
+
+check_sources
+-------------
+
+This subcommand loads the :ref:`sources file <sources>` and every file it
+includes, disabled blocks too, and says how many blocks there are; a block
+that doesn't load is named and the command fails. With ``--remote`` it also
+reads each git block's repository (its trees only, from the block's
+``mirror`` if it has one) and names what's missing: the ref, the template, or
+files a mask matches, so a block that would fail is found before it's
+fetched. ``--block`` and ``--tag`` check only those blocks:
+
+.. code-block:: console
+
+    $ amagama-manage check_sources --remote --tag discovered
+    2000 blocks, 50 disabled.
+    linguas-app: filemask po/{lang}.po matches nothing
+    200 git blocks checked, 1 with problems.
+
+
 .. _managing#deploy-db:
 
 deploy_db
@@ -218,6 +239,27 @@ into each rebuild:
     Saved 'en' as _legacy_en: 782372 sources, 21101176 targets.
 
 The name is lower-case letters and digits; ``build`` and ``old`` are reserved.
+
+
+.. _managing#sources-status:
+
+sources_status
+--------------
+
+This subcommand shows each block of the :ref:`sources file <sources>`: when
+it was last fetched, its files and languages, the units the last build of
+``--source-language`` (default ``en``) imported from it, and below that its
+failed runs in a row and why it was fetched from upstream rather than its
+mirror. ``--failing``, ``--empty`` (nothing to import), ``--never-fetched``
+and ``--tag`` list only those blocks, and ``--json`` prints the statuses as
+JSON:
+
+.. code-block:: console
+
+    $ amagama-manage sources_status --failing
+    fedora-app: fetched 9.0 days ago, 100 files, 50 languages, 5000 units imported
+      failed 4 runs in a row: git fetch: repository not found
+    1 blocks.
 
 
 .. _managing#swap-db:

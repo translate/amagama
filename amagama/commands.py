@@ -8,6 +8,7 @@
 
 import hashlib
 import itertools
+import json
 import logging
 import os
 import re
@@ -24,7 +25,7 @@ from translate.storage import factory
 
 from amagama.licences import normalise_licence
 from amagama.source_options import MAX_WEIGHT
-from amagama.updater import discovery, generate, transifex, weblate
+from amagama.updater import discovery, generate, status, transifex, weblate
 from amagama.updater.fetchers import FetchError
 from amagama.updater.formats import open_pieces
 from amagama.updater.sources import (FAILURES_TO_REPORT, TAGS, limit_first_fetches, load_sources,
@@ -497,6 +498,75 @@ def fetch_sources(block_names, tags, check):
         raise SystemExit(1)
 
 
+@click.command('sources_status')
+@click.option('--source-language', '-s', 'slang', default='en', show_default=True,
+              help="Source language whose last build gives the units imported.")
+@click.option('--tag', 'tags', multiple=True, type=click.Choice(TAGS),
+              help="Only blocks with this tag (may be repeated).")
+@click.option('--failing', is_flag=True, help="Only blocks whose last fetch failed.")
+@click.option('--empty', is_flag=True, help="Only blocks fetched or built with nothing to import.")
+@click.option('--never-fetched', is_flag=True, help="Only blocks not fetched yet.")
+@click.option('--json', 'as_json', is_flag=True, help="Print JSON, a list of block statuses.")
+@with_appcontext
+def sources_status(slang, tags, failing, empty, never_fetched, as_json):
+    """Show how each block is doing: its last fetch, failures and last build."""
+    cache_dir = os.path.expanduser(current_app.config.get('UPDATER_CACHE_DIR'))
+    blocks = configured_blocks(tags)
+    try:
+        imported = {row[0]: row[3] or 0 for row in current_app.tmdb.import_summary(slang)}
+    except Exception as e:
+        click.echo("Units imported not known: %s" % e, err=True)
+        imported = {}
+    statuses = [status.block_status(block, cache_dir, imported) for block in blocks]
+    if failing:
+        statuses = [s for s in statuses if s["failures"]]
+    if empty:
+        statuses = [s for s in statuses if status.is_empty(s)]
+    if never_fetched:
+        statuses = [s for s in statuses if s["fetched"] is None]
+    if as_json:
+        click.echo(json.dumps(statuses, indent=1))
+        return
+    for one in statuses:
+        for line in status.describe(one):
+            click.echo(line)
+    click.echo("%d blocks." % len(statuses), err=True)
+
+
+@click.command('check_sources')
+@click.option('--remote', is_flag=True,
+              help="Also check that each git block's repository has its ref and files.")
+@click.option('--block', 'block_names', multiple=True,
+              help="Only this block (may be repeated), with --remote.")
+@click.option('--tag', 'tags', multiple=True, type=click.Choice(TAGS),
+              help="Only blocks with this tag (may be repeated), with --remote.")
+@with_appcontext
+def check_sources(remote, block_names, tags):
+    """Check the sources file, and with --remote what its git blocks read."""
+    try:
+        every = load_sources(current_app.config.get('UPDATER_SOURCES'), disabled=True)
+    except (OSError, ValueError) as e:
+        print(e)
+        raise SystemExit(1)
+    print("%d blocks, %d disabled." % (len(every), sum(1 for b in every if not b.enabled)))
+    if not remote:
+        return
+    blocks = configured_blocks(tags)
+    if block_names:
+        unknown = set(block_names) - {block.name for block in blocks}
+        if unknown:
+            raise click.UsageError("No block named %s." % ", ".join(sorted(unknown)))
+        blocks = [block for block in blocks if block.name in block_names]
+    problems = status.check_remote(blocks)
+    for name, found in problems.items():
+        for problem in found:
+            print("%s: %s" % (name, problem))
+    print("%d git blocks checked, %d with problems." % (
+        sum(1 for block in blocks if block.source == "git"), len(problems)))
+    if problems:
+        raise SystemExit(1)
+
+
 @click.command('sources_pot')
 @click.option('--check', is_flag=True,
               help="Exit 1 if amagama/po/sources/sources.pot isn't current; write nothing.")
@@ -768,5 +838,7 @@ cli_commands = (
     weblate_sources,
     transifex_sources,
     discover_sources,
+    sources_status,
+    check_sources,
     sources_pot,
 )
