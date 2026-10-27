@@ -49,6 +49,10 @@ UPDATER_CACHE_DIR = "~/.cache/amagama-updater"
 UPDATER_WORKERS = 4
 # Blocks fetched for the first time in one run (None: no limit).
 UPDATER_FIRST_FETCHES = 100
+# The blocks this server builds: those with any of UPDATER_TAGS (None: all)
+# and none of UPDATER_EXCLUDE_TAGS.
+UPDATER_TAGS = None
+UPDATER_EXCLUDE_TAGS = []
 
 
 # Levenshtein config

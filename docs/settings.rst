@@ -173,6 +173,15 @@ Settings for fetching translations to import, see :ref:`sources`.
   ``.repos`` holds the git repositories the blocks fetch from.
 
 
+.. setting:: UPDATER_EXCLUDE_TAGS
+
+``UPDATER_EXCLUDE_TAGS``
+  Default: ``[]``
+
+  Blocks with any of these :ref:`tags <sources>` are left out of fetching and
+  building, such as ``["trial"]``.
+
+
 .. setting:: UPDATER_FIRST_FETCHES
 
 ``UPDATER_FIRST_FETCHES``
@@ -191,6 +200,16 @@ Settings for fetching translations to import, see :ref:`sources`.
   Default: ``None``
 
   The sources file to use instead of :file:`amagama/updater/sources.toml`.
+
+
+.. setting:: UPDATER_TAGS
+
+``UPDATER_TAGS``
+  Default: ``None``
+
+  The :ref:`tags <sources>` of the blocks this server fetches and builds:
+  blocks with any of them, such as ``["core", "platform"]``. ``None`` is every
+  block.
 
 
 .. setting:: UPDATER_WORKERS

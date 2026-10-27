@@ -214,6 +214,25 @@ files it includes); a block's own settings take precedence. ``name`` and
   of higher weight takes that weight. Set it in a file's ``[defaults]`` to
   weight all of an included file's blocks.
 
+``tags``
+  Optional list grouping blocks apart from the file they're in, so a server
+  can :ref:`build a set of them <managing#update>`. A file's ``[defaults]``
+  tags add to each block's own. A block has at most one tier, how it was
+  chosen:
+
+  - ``core``: by hand (:file:`sources.toml`)
+  - ``platform``: from a translation platform's listing (``weblate_sources``)
+  - ``discovered``: by a search of repositories (``discover_sources``,
+    ``transifex_sources``)
+
+  and a content tag, ``ui``, ``docs`` or ``terminology``; without one it is
+  ``docs`` if ``segment`` is set, else ``ui``. ``trial`` marks blocks being
+  tried out:
+
+  .. code-block:: toml
+
+      tags = ["terminology", "trial"]
+
 ``disabled``
   Optional reason to leave the block out: it isn't fetched, imported or
   listed, but keeps its name. The commands that write blocks keep it when

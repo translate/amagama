@@ -116,6 +116,10 @@ An empty cache fills over several runs: each run fetches at most
 so each upstream sees a little of its share each run rather than all of it at
 once. ``--block`` fetches the named blocks whatever the limit.
 
+Only the blocks :setting:`UPDATER_TAGS` and :setting:`UPDATER_EXCLUDE_TAGS`
+select are fetched; ``--tag`` (repeatable) narrows them to those with one of
+its :ref:`tags <sources>`.
+
 
 .. _managing#initdb:
 
@@ -297,6 +301,10 @@ Like ``fetch_sources``, an update fetches at most
 :setting:`UPDATER_FIRST_FETCHES` blocks for the first time; the others are left
 out until a later update has fetched them.
 
+The build holds the blocks :setting:`UPDATER_TAGS` and
+:setting:`UPDATER_EXCLUDE_TAGS` select, so a server or a test instance can
+build a set of them, such as only ``core``.
+
 With ``--no-fetch`` it fetches nothing and rebuilds from the cache as it is,
 if the cache has changed since the last rebuild (each rebuild records what it
 read): for a scheduled update when ``fetch_sources`` runs on its own schedule.
@@ -346,8 +354,10 @@ glossaries, components whose source isn't English, formats amaGama doesn't
 read, no-derivatives licences, repositories another block already imports,
 repositories on archived hosts (pagure.io), and blocks that wouldn't load. The
 file's ``[defaults]`` give every block ``source = "git"``, ``min_age_days``
-from ``--min-age-days`` (default 60), and a :ref:`weight <sources>` from
-``--weight`` (default 1).
+from ``--min-age-days`` (default 60), a :ref:`weight <sources>` from
+``--weight`` (default 1) and :ref:`tags <sources>` from ``--tag`` (repeatable,
+default ``platform``; ``discovered`` for ``transifex_sources`` and
+``discover_sources``).
 
 Weblate's data can be out of date, so each block is then checked against its
 repository, from a clone of its file list without the files: a branch that's
@@ -389,8 +399,8 @@ resource has its own, for its template. A source file its own filter matches
 block already imports, or without a :file:`.tx/config` (vendored copies,
 under :file:`vendor/`, :file:`node_modules/` and the like, don't count); resources whose
 source isn't English, of a type amaGama doesn't read, or whose files aren't
-in the repository. ``--prefix``, ``--output``, ``--min-age-days`` and
-``--weight`` are as for :ref:`weblate_sources <managing#weblate-sources>`.
+in the repository. ``--prefix``, ``--output``, ``--min-age-days``,
+``--weight`` and ``--tag`` are as for :ref:`weblate_sources <managing#weblate-sources>`.
 Transifex doesn't give a licence: add each block's before including it.
 
 
@@ -437,4 +447,4 @@ one with the same POT (else the same :file:`.po` files) as a repository read
 before it, a copy. A repository's second :file:`po` directory is named by its
 path. Repositories another block already imports are left out, as for
 :ref:`weblate_sources <managing#weblate-sources>`, and so are ``--prefix``,
-``--output``, ``--min-age-days`` and ``--weight``.
+``--output``, ``--min-age-days``, ``--weight`` and ``--tag``.

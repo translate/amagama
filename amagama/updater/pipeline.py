@@ -23,7 +23,7 @@ from amagama.updater.formats import CHROMIUM, open_pieces, open_store
 from amagama.updater.pairing import paired_store, without_ids
 from amagama.updater.segment import segmented
 from amagama.updater.fetchers import FetchError
-from amagama.updater.sources import FAILURES_TO_REPORT, limit_first_fetches, load_sources
+from amagama.updater.sources import FAILURES_TO_REPORT, limit_first_fetches, load_sources, select
 
 
 @functools.lru_cache(maxsize=16)
@@ -199,8 +199,11 @@ def built_from(blocks, cache_dir):
 
 
 def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=print,
-           first_fetches=None, fetch=True):
+           first_fetches=None, fetch=True, tags=None, exclude_tags=()):
     """Fetch changed blocks, rebuild slang from every block and swap it in.
+
+    The blocks are those with any of tags (None: all) and none of
+    exclude_tags.
 
     Without fetch, the cache is used as it is (fetch_sources keeps it
     current), and slang is rebuilt if it differs from what the last rebuild
@@ -213,7 +216,7 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
     """
     slang = lang_to_table(slang)
     tmdb = current_app.tmdb
-    blocks = load_sources(sources_path)
+    blocks = select(load_sources(sources_path), tags, exclude_tags)
     # Without its snapshot, a rebuild would drop data that only the live
     # schema still has.
     cursor = tmdb.get_cursor()
