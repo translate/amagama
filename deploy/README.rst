@@ -95,6 +95,64 @@ update refuses to replace data it can't rebuild. Then::
 Each update imports what has been fetched so far.
 
 
+Switching from the old deployment
+---------------------------------
+
+The old web app runs from /var/www/sites/amagama_fw, with its own checkout,
+virtualenv and settings, and reads the database's old tables
+(``public.sources_en`` and ``public.targets_en``). Once ``migrate_db``,
+``deploy_db``, the ``legacy`` snapshot and a first update have built ``en``,
+switching replaces only the uWSGI unit and the nginx site; the old checkout and
+tables stay until the new app has run for a while.
+
+Try the new app first without serving it, on a local port::
+
+    sudo systemd-run --unit=amagama-trial -p User=www-data -p Group=www-data \
+        -p KillSignal=SIGQUIT /usr/bin/uwsgi --plugins python3 \
+        --chdir /srv/amagama/amagama --home /srv/amagama/venv \
+        --env AMAGAMA_CONFIG=/srv/amagama/local_settings.py \
+        --module wsgi:application --master --lazy-apps --processes 1 --threads 4 \
+        --http-socket 127.0.0.1:8081 \
+        --static-map /static=/srv/amagama/amagama/amagama/static
+    curl -s http://127.0.0.1:8081/api/v1/en/af/unit/file
+    sudo systemctl stop amagama-trial
+
+``local_settings.py`` needs ``ENABLE_WEB_UI = True`` for the page at ``/``.
+
+Switch, keeping the old unit and site outside the directories that load them::
+
+    sudo install -d -m 700 /root/amagama-switch
+    sudo cp /etc/systemd/system/amagama.uwsgi.service /etc/nginx/sites-enabled/amagama \
+        /root/amagama-switch/
+    sudo install -d /srv/amagama/logs
+    sudo install -m 644 /srv/amagama/amagama/deploy/uwsgi.ini /srv/amagama/
+    sudo cp /srv/amagama/amagama/deploy/amagama.uwsgi.service \
+        /srv/amagama/amagama/deploy/amagama-update.service /etc/systemd/system/
+    sudo cp /srv/amagama/amagama/deploy/nginx-amagama.conf /etc/nginx/sites-enabled/amagama
+    sudo systemctl daemon-reload && sudo systemctl restart amagama.uwsgi
+    sudo nginx -t && sudo systemctl reload nginx
+
+Check it from outside: each line should start with 200, and the first should
+show the ``Strict-Transport-Security`` header::
+
+    curl -sI https://amagama-live.translatehouse.org/ | grep -iE '^HTTP|^strict'
+    for p in /static/css/amagama.css /tmserver/languages/ /tmserver/en/af/unit/file \
+            /api/v1/en/af/unit/file /api/v1/sources/; do
+        curl -s -o /dev/null -w "%{http_code} $p\n" https://amagama-live.translatehouse.org$p
+    done
+
+To go back, put the old unit and site back::
+
+    sudo cp /root/amagama-switch/amagama.uwsgi.service /etc/systemd/system/
+    sudo cp /root/amagama-switch/amagama /etc/nginx/sites-enabled/amagama
+    sudo systemctl daemon-reload && sudo systemctl restart amagama.uwsgi
+    sudo nginx -t && sudo systemctl reload nginx
+
+After a quiet week the old tables (``DROP TABLE public.sources_en,
+public.targets_en`` as the read-write user) and /var/www/sites/amagama_fw can
+go.
+
+
 Scheduled updates
 -----------------
 
