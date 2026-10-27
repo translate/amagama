@@ -7,6 +7,7 @@
 
 
 import functools
+import datetime
 import hashlib
 import itertools
 import json
@@ -778,11 +779,14 @@ def transifex_sources(repositories, from_file, prefix, output, min_age_days, wei
               "of last year.")
 @click.option('--min-units', type=click.IntRange(min=0), default=100, show_default=True,
               help="Fewest translated units, not fuzzy, a block needs (linguas).")
+@click.option('--bot-prs-days', type=click.IntRange(min=0), default=0, show_default=True,
+              help="Also read repositories with a translation bot's pull request merged in "
+              "the last days (crowdin).")
 @generator_options(("discovered",))
 @with_appcontext
 @with_shared_repositories
-def discover_sources(signal, min_stars, pushed_since, min_units, prefix, output, min_age_days,
-                     weight, tags):
+def discover_sources(signal, min_stars, pushed_since, min_units, bot_prs_days, prefix, output,
+                     min_age_days, weight, tags):
     """Write sources-file blocks for repositories that commit a signal's
     localisation configuration, for review.
 
@@ -797,12 +801,24 @@ def discover_sources(signal, min_stars, pushed_since, min_units, prefix, output,
     token = os.environ.get("GITHUB_TOKEN")
     if not token:
         raise click.UsageError("GitHub's code search needs a token: set GITHUB_TOKEN.")
+    bot_prs = discovery.SIGNALS[signal].get("bot_prs", [])
+    if bot_prs_days and not bot_prs:
+        raise click.UsageError("%s has no translation bot's pull requests." % signal)
     pushed_since = pushed_since.date() if pushed_since else discovery.default_pushed_since()
     try:
         names, incomplete = set(), False
         for query in discovery.SIGNALS[signal]["queries"]:
             found, missing = discovery.search(query, token)
             names, incomplete = names | set(found), incomplete or missing
+        if bot_prs_days:
+            since = datetime.date.today() - datetime.timedelta(days=bot_prs_days)
+            merged = set()
+            for query in bot_prs:
+                found, missing = discovery.search_prs(query, token, since)
+                merged, incomplete = merged | set(found), incomplete or missing
+            click.echo("%d repositories with a bot's pull request, %d of them not found by "
+                       "code search." % (len(merged), len(merged - names)), err=True)
+            names |= merged
         # Code search's results differ from run to run: the blocks being
         # regenerated are read again whether it found them or not.
         previous = generated_repositories(prefix) - names
@@ -832,8 +848,9 @@ def discover_sources(signal, min_stars, pushed_since, min_units, prefix, output,
         min_units=min_units, mirrors=mirrors)
     found = generate.add_mirrors(found)
     skipped.update(resolved)
-    command = "discover_sources %s --prefix %s --min-stars %d --pushed-since %s --min-units %d" % (
-        signal, prefix, min_stars, pushed_since.isoformat(), min_units)
+    command = "discover_sources %s --prefix %s --min-stars %d --pushed-since %s --min-units %d%s" % (
+        signal, prefix, min_stars, pushed_since.isoformat(), min_units,
+        " --bot-prs-days %d" % bot_prs_days if bot_prs_days else "")
     write_generated(found, skipped, command, min_age_days, weight, tags, output, disabled)
 
 @click.command('update')

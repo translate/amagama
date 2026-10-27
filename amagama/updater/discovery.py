@@ -29,6 +29,7 @@ from amagama.updater import crowdin, linguas
 from amagama.updater.fetchers import TIMEOUT, USER_AGENT, FetchError
 
 SEARCH = "https://api.github.com/search/code"
+ISSUES = "https://api.github.com/search/issues"
 GRAPHQL = "https://api.github.com/graphql"
 # Code search's most results a query, and per page.
 CAP = 1000
@@ -43,6 +44,8 @@ SIGNALS = {
     "linguas": {"queries": ["filename:LINGUAS path:po"], "blocks": linguas.blocks},
     "crowdin": {"queries": ["filename:crowdin.yml -path:.github", "filename:crowdin.yaml -path:.github",
                             "filename:.crowdin.yml -path:.github"],
+                # Opened by the account that set up Crowdin's GitHub integration.
+                "bot_prs": ['"New Crowdin updates" in:title'],
                 "blocks": crowdin.blocks},
 }
 
@@ -86,37 +89,68 @@ def github(url, token, data=None, retries=3, wait=60):
             raise FetchError("%s: %s" % (url, e))
 
 
-def search(query, token, pause=6, get=github):
-    """(sorted "owner/name" of the repositories with a file query matches,
-    whether any part gave only some of its results)."""
-    found, incomplete, requests = set(), False, 0
+def _search(url, token, parts, text, split, pause, get):
+    """(items, whether any part gave only some of its results) of a GitHub
+    search over parts: text(part) is a part's query, and split(part) its
+    halves when it has more than 1,000 results, or None if it can't split."""
+    items, incomplete, requests = [], False, 0
 
-    def page(text, number):
+    def page(query, number):
         nonlocal requests
         if requests:
             time.sleep(pause)
         requests += 1
-        return get("%s?%s" % (SEARCH, urllib.parse.urlencode(
-            {"q": text, "per_page": PAGE, "page": number})), token)
+        return get("%s?%s" % (url, urllib.parse.urlencode(
+            {"q": query, "per_page": PAGE, "page": number})), token)
 
-    parts = [(0, MAX_SIZE)]
+    parts = list(parts)
     while parts:
-        low, high = parts.pop(0)
-        text = "%s size:%d..%d" % (query, low, high)
-        data = page(text, 1)
+        part = parts.pop(0)
+        query = text(part)
+        data = page(query, 1)
         total = data.get("total_count", 0)
-        if total > CAP and high > low:
-            middle = (low + high) // 2
-            parts[:0] = [(low, middle), (middle + 1, high)]
+        halves = split(part) if total > CAP else None
+        if halves:
+            parts[:0] = halves
             continue
         incomplete = incomplete or bool(data.get("incomplete_results")) or total > CAP
-        items, number = list(data.get("items", [])), 1
+        found, number = list(data.get("items", [])), 1
         while data.get("items") and number * PAGE < min(total, CAP):
             number += 1
-            data = page(text, number)
-            items += data.get("items", [])
-        found |= {item["repository"]["full_name"] for item in items}
-    return sorted(found), incomplete
+            data = page(query, number)
+            found += data.get("items", [])
+        items += found
+    return items, incomplete
+
+
+def search(query, token, pause=6, get=github):
+    """(sorted "owner/name" of the repositories with a file query matches,
+    whether any part gave only some of its results)."""
+    def split(part):
+        low, high = part
+        return [(low, (low + high) // 2), ((low + high) // 2 + 1, high)] if high > low else None
+    items, incomplete = _search(SEARCH, token, [(0, MAX_SIZE)],
+                                lambda part: "%s size:%d..%d" % ((query,) + part), split, pause, get)
+    return sorted({item["repository"]["full_name"] for item in items}), incomplete
+
+
+def search_prs(query, token, since, until=None, pause=2, get=github):
+    """(sorted "owner/name" of the repositories with a pull request matching
+    query merged from since to until (default today), whether any part gave
+    only some of its results). A merge pushes, so the stats' last push is at
+    least as recent as the merge."""
+    def split(part):
+        low, high = part
+        if high <= low:
+            return None
+        middle = low + (high - low) // 2
+        return [(low, middle), (middle + datetime.timedelta(days=1), high)]
+    items, incomplete = _search(
+        ISSUES, token, [(since, until or datetime.date.today())],
+        lambda part: "%s is:pr is:merged merged:%s..%s" % (query, part[0].isoformat(),
+                                                         part[1].isoformat()),
+        split, pause, get)
+    return sorted({item["repository_url"].split("/repos/", 1)[-1] for item in items}), incomplete
 
 
 def github_name(url):

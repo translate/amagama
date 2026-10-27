@@ -69,6 +69,36 @@ def test_search_incomplete(monkeypatch):
     assert len(asked) == 10
 
 
+def test_search_prs_splits_by_date(monkeypatch):
+    slept = []
+    monkeypatch.setattr(discovery, "time", types.SimpleNamespace(sleep=slept.append))
+    asked = []
+
+    def get(url, token):
+        assert url.startswith(discovery.ISSUES)
+        text = urllib.parse.parse_qs(urllib.parse.urlsplit(url).query)["q"][0]
+        dates = text.rsplit("merged:", 1)[1]
+        asked.append(dates)
+        total = {"2026-10-01..2026-10-11": 1200}.get(dates, 2)
+        return {"total_count": total, "items": [
+            {"repository_url": "https://api.github.com/repos/o/%s-%d" % (dates[:10], n)}
+            for n in range(min(total, 2))]}
+    names, incomplete = discovery.search_prs('"New Crowdin updates" in:title', "t",
+                                             datetime.date(2026, 10, 1),
+                                             datetime.date(2026, 10, 11), pause=2, get=get)
+    assert asked == ["2026-10-01..2026-10-11", "2026-10-01..2026-10-06", "2026-10-07..2026-10-11"]
+    assert names == ["o/2026-10-01-0", "o/2026-10-01-1", "o/2026-10-07-0", "o/2026-10-07-1"]
+    assert not incomplete and slept == [2, 2]
+
+
+def test_search_prs_one_day_over_the_cap(monkeypatch):
+    monkeypatch.setattr(discovery, "time", types.SimpleNamespace(sleep=lambda seconds: None))
+    day = datetime.date(2026, 10, 1)
+    names, incomplete = discovery.search_prs("q", "t", day, day, get=lambda url, token: {
+        "total_count": 1500, "items": []})
+    assert (names, incomplete) == ([], True)
+
+
 def stats_get(repositories):
     queries = []
 
@@ -355,6 +385,38 @@ def test_command_rereads_regenerated(amagama_config, tmp_path, monkeypatch):
     assert "1 repositories found, and 2 more from the blocks being regenerated." in result.output
     # Another prefix's blocks aren't read again.
     assert asked == [["GNOME/meld", "org/gone", "org/repo"]]
+
+
+def test_command_bot_prs(amagama_config, tmp_path, monkeypatch):
+    amagama_config(UPDATER_SOURCES=str(tmp_path / "missing.toml"))
+    monkeypatch.setenv("GITHUB_TOKEN", "t")
+    monkeypatch.setattr(discovery, "search", lambda query, token: (["org/a"], False))
+    since = []
+
+    def search_prs(query, token, start):
+        since.append((query, start))
+        return ["org/a", "org/b"], False
+
+    monkeypatch.setattr(discovery, "search_prs", search_prs)
+    asked = []
+    monkeypatch.setattr(discovery, "stats", lambda names, token: asked.append(names) or {})
+    result = CliRunner().invoke(manage, ("discover_sources", "crowdin", "--prefix", "crowdin",
+                                         "--bot-prs-days", "30"))
+    assert result.exit_code == 0, result.output
+    assert "2 repositories with a bot's pull request, 1 of them not found by code search." \
+        in result.output
+    assert since == [(q, datetime.date.today() - datetime.timedelta(days=30))
+                     for q in discovery.SIGNALS["crowdin"]["bot_prs"]]
+    assert asked == [["org/a", "org/b"]]
+
+
+def test_command_bot_prs_signal(amagama_config, tmp_path, monkeypatch):
+    amagama_config(UPDATER_SOURCES=str(tmp_path / "missing.toml"))
+    monkeypatch.setenv("GITHUB_TOKEN", "t")
+    result = CliRunner().invoke(manage, ("discover_sources", "linguas", "--prefix", "linguas",
+                                         "--bot-prs-days", "30"))
+    assert result.exit_code == 2
+    assert "linguas has no translation bot's pull requests." in result.output
 
 
 def test_command_needs_token(amagama_config, tmp_path, monkeypatch):
