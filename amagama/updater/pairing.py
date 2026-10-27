@@ -15,6 +15,7 @@ id in the template file.
 """
 
 import fnmatch
+import re
 
 from translate.storage.base import TranslationStore, TranslationUnit
 
@@ -41,18 +42,45 @@ def without_ids(store, patterns):
     return store
 
 
-def paired_store(translation, template, exclude_ids=()):
+def language_segment(ids):
+    """The position of the "."-separated id segment that is the same English
+    language code in every one of a template's ids, or None."""
+    split = [uid.split(".") for uid in ids]
+    if not split:
+        return None
+    for position in range(min(len(segments) for segments in split)):
+        values = {segments[position] for segments in split}
+        if len(values) == 1 and re.fullmatch(r"en(?:[-_][A-Za-z0-9]+)*", values.pop()):
+            return position
+    return None
+
+
+def without_segment(uid, position):
+    segments = uid.split(".")
+    return ".".join(segments[:position] + segments[position + 1:])
+
+
+def paired_store(translation, template, exclude_ids=(), language_in_ids=False):
     """A store of English source and translated target units.
 
     Leaves out messages with no English or no text, plurals, and ids matching
-    exclude_ids.
+    exclude_ids. With language_in_ids, ids name their file's language (CLDR's
+    main.de...., Rails' de....): the segment where the template's ids name
+    English is left out of every id before they are matched.
     """
-    english = {unit.getid(): unit for unit in template.units}
+    def key(uid):
+        return uid
+    if language_in_ids:
+        position = language_segment([unit.getid() or "" for unit in template.units])
+        if position is not None:
+            def key(uid):
+                return without_segment(uid or "", position)
+    english = {key(unit.getid()): unit for unit in template.units}
     store = TranslationStore()
     for unit in translation.units:
         if excluded(unit, exclude_ids):
             continue
-        source = english.get(unit.getid())
+        source = english.get(key(unit.getid()))
         if source is None or is_plural(unit) or is_plural(source):
             continue
         target = text(unit)

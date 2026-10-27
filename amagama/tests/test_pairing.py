@@ -62,6 +62,28 @@ def test_json_exclude_ids():
     assert pairs(paired_store(afrikaans, english, ["@metadata*"])) == [("Save file", "Stoor lêer")]
 
 
+def test_language_in_ids():
+    english = read(jsonl10n.JsonFile, '{"main": {"en": {"identity": {"language": "en"}, '
+                   '"names": {"de": "German", "af": "Afrikaans"}}}}')
+    afrikaans = read(jsonl10n.JsonFile, '{"main": {"af": {"identity": {"language": "af"}, '
+                     '"names": {"de": "Duits", "af": "Afrikaans"}}}}')
+    # Without it, no id matches.
+    assert pairs(paired_store(afrikaans, english)) == []
+    assert pairs(paired_store(afrikaans, english, ["main.*.identity.*"], True)) == [
+        ("German", "Duits"), ("Afrikaans", "Afrikaans")]
+
+
+def test_language_in_ids_rails_and_none():
+    english = read(jsonl10n.JsonFile, '{"en-GB": {"save": "Save"}}')
+    afrikaans = read(jsonl10n.JsonFile, '{"af": {"save": "Stoor"}}')
+    assert pairs(paired_store(afrikaans, english, (), True)) == [("Save", "Stoor")]
+    # No segment names English in every id: ids are matched as they are.
+    english = read(jsonl10n.JsonFile, '{"save": "Save", "open": "Open"}')
+    afrikaans = read(jsonl10n.JsonFile, '{"save": "Stoor"}')
+    assert pairs(paired_store(afrikaans, english, (), True)) == [("Save", "Stoor")]
+    assert pairs(paired_store(afrikaans, read(jsonl10n.JsonFile, '{}'), (), True)) == []
+
+
 def test_signal_descriptions():
     english = read(jsonl10n.JsonFile,
                    '{"save": {"messageformat": "Save file", "description": "Button"}}')
@@ -158,6 +180,17 @@ def test_update_json_template_among_files(update, tmp_path):
     # en.json is the template, not an import of its own.
     assert "Imported 1 files: 1 units (0 skipped)." in result.output
     assert lookup("af", "Save file") == ["Stoor lêer"]
+
+
+def test_update_language_in_ids(update, tmp_path):
+    url = git_repo(tmp_path / "repo", {
+        "main/en/names.json": '{"main": {"en": {"names": {"de": "German"}}}}',
+        "main/af/names.json": '{"main": {"af": {"names": {"de": "Duits"}}}}',
+    })
+    result = update(block("cldr", "git", url=url, format="json", files=["main/{lang}/names.json"],
+                          template="main/en/names.json", language_in_ids=True))
+    assert result.exit_code == 0, result.output
+    assert lookup("af", "German") == ["Duits"]
 
 
 def test_update_missing_template(update, tmp_path):

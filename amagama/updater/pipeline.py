@@ -39,14 +39,15 @@ def template_store(path, format):
 
 
 def import_file(path, slang, tlang, block, licence, format=None, template=None, exclude_ids=(),
-                reader_options=None, segment=False):
+                reader_options=None, segment=False, language_in_ids=False):
     """Import one file into the build schema.
 
     The cache keeps the file compressed (path + compressed.SUFFIX); it is
     read from a decompressed copy under the same name. Returns (units,
     skipped), or a reason the file can't be read; database errors raise.
     """
-    args = (slang, tlang, block, licence, format, template, exclude_ids, reader_options, segment)
+    args = (slang, tlang, block, licence, format, template, exclude_ids, reader_options, segment,
+            language_in_ids)
     if os.path.exists(path) or not os.path.exists(path + compressed.SUFFIX):
         return _import_file(path, path, *args)
     with tempfile.TemporaryDirectory() as tmp:
@@ -59,7 +60,7 @@ def import_file(path, slang, tlang, block, licence, format=None, template=None, 
 
 
 def _import_file(path, recorded, slang, tlang, block, licence, format, template, exclude_ids,
-                 reader_options, segment):
+                 reader_options, segment, language_in_ids):
     """import_file() reading path, recorded as recorded."""
     tmdb = current_app.tmdb
     if not lang_to_table(tlang):
@@ -79,7 +80,8 @@ def _import_file(path, recorded, slang, tlang, block, licence, format, template,
             if stores is None:
                 store = open_store(path, format, **(reader_options or {}))
                 if template is not None:
-                    store = paired_store(store, template_store(template, format), exclude_ids)
+                    store = paired_store(store, template_store(template, format), exclude_ids,
+                                         language_in_ids)
                 stores = [store]
             if template is None and exclude_ids:
                 stores = (without_ids(store, exclude_ids) for store in stores)
@@ -317,7 +319,8 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
         directory = block.directory(cache_dir)
         block_tasks = [(os.path.join(directory, path), slang, lang, block.name, block.licence,
                         block.format, os.path.join(directory, *template) if template else None,
-                        block.exclude_ids, block.reader_options, block.segment)
+                        block.exclude_ids, block.reader_options, block.segment,
+                        block.language_in_ids)
                        for path, lang, *template in state["files"]]
         # Files sharing an English template in a row, so each worker reads it once.
         tasks += sorted(block_tasks, key=lambda task: (task[6] or "", task[0]))
