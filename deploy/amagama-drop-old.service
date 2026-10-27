@@ -1,0 +1,19 @@
+[Unit]
+Description=Drop the copy of amaGama's data that the last update replaced
+Documentation=https://docs.translatehouse.org/projects/amagama/en/latest/managing.html#dropdb
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=amagama
+Group=amagama
+Environment=AMAGAMA_CONFIG=/srv/amagama/updater_settings.py
+Environment=PYTHONUNBUFFERED=1
+SyslogIdentifier=amagama-drop-old
+# Waits for a fetch or update holding the cache lock rather than skipping:
+# a skipped run would keep the extra copy another week.
+ExecStart=/usr/bin/flock --wait 3600 /srv/amagama/cache/.lock \
+        /srv/amagama/venv/bin/amagama-manage dropdb -s en --old --yes
+Nice=10
+IOSchedulingClass=idle
