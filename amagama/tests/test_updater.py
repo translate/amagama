@@ -22,7 +22,7 @@ from click.testing import CliRunner
 from amagama.cli import manage
 from amagama.updater import compressed, fetchers
 from amagama.updater.fetchers import DamnedLies, FetchError, Git, combine
-from amagama.updater.sources import load_sources, sparse_patterns
+from amagama.updater.sources import load_sources, select, sparse_patterns
 
 
 def write_tarball(path, members):
@@ -151,6 +151,76 @@ def test_disabled_needs_reason(tmp_path, reason):
     path.write_text(block("off", "translationproject", disabled=reason))
     with pytest.raises(ValueError, match="disabled must be the reason"):
         load_sources(str(path))
+
+
+def test_tags(tmp_path):
+    path = tmp_path / "sources.toml"
+    path.write_text('[defaults]\ntags = ["core"]\n\n'
+                    + block("a", "translationproject")
+                    + block("b", "translationproject", tags=["trial"])
+                    + block("c", "translationproject", tags=["terminology"])
+                    + block("d", "git", url="https://git.example/d", files=["po/{lang}.po"],
+                            segment=True))
+    assert {b.name: b.tags for b in load_sources(str(path))} == {
+        "a": {"core", "ui"}, "b": {"core", "trial", "ui"}, "c": {"core", "terminology"},
+        "d": {"core", "docs"}}
+
+
+@pytest.mark.parametrize("tags, error", [
+    ("core", "tags must be a list of tags"),
+    (["kore"], "unknown kore"),
+    (["core", "platform"], "tags can have one of core, platform, discovered"),
+])
+def test_tags_checked(tmp_path, tags, error):
+    path = tmp_path / "sources.toml"
+    path.write_text(block("a", "translationproject", tags=tags))
+    with pytest.raises(ValueError, match=error):
+        load_sources(str(path))
+
+
+def test_select(tmp_path):
+    path = tmp_path / "sources.toml"
+    path.write_text(block("a", "translationproject", tags=["core"])
+                    + block("b", "translationproject", tags=["platform", "trial"])
+                    + block("c", "translationproject"))
+    blocks = load_sources(str(path))
+
+    def names(*args):
+        return [b.name for b in select(blocks, *args)]
+    assert names() == ["a", "b", "c"]
+    assert names(["core", "platform"]) == ["a", "b"]
+    assert names(None, ["trial"]) == ["a", "c"]
+    assert names(["ui"], ["core"]) == ["b", "c"]
+    with pytest.raises(ValueError, match="unknown kore"):
+        select(blocks, ["kore"])
+
+
+def test_fetch_sources_tags(run, amagama_config):
+    sources = (block("a", "translationproject", tags=["core"])
+               + block("b", "translationproject", tags=["platform"])
+               + block("c", "translationproject", tags=["platform", "trial"]))
+    result = run(sources, "--check")
+    assert result.output.split() == ["a", "b", "c"]
+    result = run(sources, "--check", "--tag", "platform")
+    assert result.output.split() == ["b", "c"]
+    amagama_config(UPDATER_TAGS=["platform"], UPDATER_EXCLUDE_TAGS=["trial"])
+    result = run(sources, "--check")
+    assert result.output.split() == ["b"]
+    result = run(sources, "--check", "--block", "a")
+    assert result.exit_code == 2
+    assert "No block named a." in result.output
+    result = run(sources, "--check", "--tag", "kore")
+    assert result.exit_code == 2
+
+
+def test_update_tags(amagama_config, tmp_path, monkeypatch):
+    from amagama.updater import pipeline
+    called = {}
+    monkeypatch.setattr(pipeline, "update", lambda *args, **kwargs: called.update(kwargs))
+    amagama_config(UPDATER_TAGS=["core"], UPDATER_EXCLUDE_TAGS=["trial"])
+    result = CliRunner().invoke(manage, ("update", "-s", "en"))
+    assert result.exit_code == 0, result.output
+    assert (called["tags"], called["exclude_tags"]) == (["core"], ["trial"])
 
 
 class TestSourcesFile(object):

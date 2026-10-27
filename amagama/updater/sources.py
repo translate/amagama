@@ -33,6 +33,13 @@ FAILED_SUFFIX = ".failed"
 REPOSITORIES = ".repos"
 # This many failed runs in a row and a block is called out for attention.
 FAILURES_TO_REPORT = 4
+# Tags group blocks apart from the file they're in. A tier tells how a
+# block was chosen: by hand, from a translation platform's listing, or by a
+# search of repositories. A block without a content tag is documentation if
+# it's segmented, else user interface.
+TIERS = ("core", "platform", "discovered")
+CONTENTS = ("ui", "docs", "terminology")
+TAGS = TIERS + CONTENTS + ("trial",)
 
 
 def sparse_patterns(files, template=None, keep=None):
@@ -46,7 +53,8 @@ class Block(object):
     def __init__(self, name, title, source, version=None, licence=None, files=None,
                  exclude=None, keep=None, languages=None, format=None, template=None,
                  exclude_ids=None, columns=None, header_row=None, xliff_states=None,
-                 max_age_days=30, min_age_days=0, segment=False, weight=1, **settings):
+                 max_age_days=30, min_age_days=0, segment=False, weight=1, tags=None,
+                 **settings):
         self.name = name
         self.title = title
         self.version = version
@@ -109,6 +117,11 @@ class Block(object):
         if type(weight) not in (int, float) or not 0 <= weight <= MAX_WEIGHT:
             raise ValueError("weight must be a number from 0 to %d" % MAX_WEIGHT)
         self.weight = float(weight)
+        self.tags = check_tags(tags if tags is not None else [], "tags")
+        if len(self.tags & set(TIERS)) > 1:
+            raise ValueError("tags can have one of %s" % ", ".join(TIERS))
+        if not self.tags & set(CONTENTS):
+            self.tags |= {"docs" if segment else "ui"}
 
     def template_for(self, path):
         """The English template path for a selected file, if the block pairs."""
@@ -419,6 +432,33 @@ def _resolve_links(root):
     return sorted(dropped)
 
 
+def check_tags(tags, what):
+    """tags as a set, if they're a list of known tags; else ValueError."""
+    if not isinstance(tags, (list, tuple)) or not all(isinstance(tag, str) for tag in tags):
+        raise ValueError("%s must be a list of tags" % what)
+    unknown = sorted(set(tags) - set(TAGS))
+    if unknown:
+        raise ValueError("%s: unknown %s; tags are %s" % (what, ", ".join(unknown), ", ".join(TAGS)))
+    return set(tags)
+
+
+def select(blocks, tags=None, exclude_tags=()):
+    """The blocks with any of tags (None: every block) and none of exclude_tags."""
+    tags = None if tags is None else check_tags(tags, "tags")
+    exclude_tags = check_tags(exclude_tags, "exclude_tags")
+    return [block for block in blocks
+            if (tags is None or block.tags & tags) and not block.tags & exclude_tags]
+
+
+def _with_defaults(defaults, entry):
+    """entry's settings over defaults; tags add to the defaults' own."""
+    merged = dict(defaults, **entry)
+    if isinstance(defaults.get("tags"), list) and isinstance(entry.get("tags"), list):
+        merged["tags"] = defaults["tags"] + [tag for tag in entry["tags"]
+                                             if tag not in defaults["tags"]]
+    return merged
+
+
 def _fill(value, version):
     """value with {version} replaced in every string, also inside lists and tables."""
     if isinstance(value, str):
@@ -470,7 +510,7 @@ def _entries(path, seen):
     entries = []
     for i, entry in enumerate(data.get("block", []), 1):
         entries += [(path, expanded) for expanded in _expand(
-            dict(defaults, **entry), "%s: block %s" % (path, entry.get("name") or i))]
+            _with_defaults(defaults, entry), "%s: block %s" % (path, entry.get("name") or i))]
     include = data.get("include", [])
     if not isinstance(include, list) or not all(isinstance(name, str) for name in include):
         raise ValueError("%s: include must be a list of files" % path)

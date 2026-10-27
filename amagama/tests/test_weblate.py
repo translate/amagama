@@ -256,7 +256,8 @@ def test_command_weight(amagama_config, instance, tmp_path):
                                          "--weight", "0.8"))
     assert result.exit_code == 0, result.output
     text = output.read_text()
-    assert "--min-age-days 60 --weight 0.8\n" in text
+    assert "--min-age-days 60 --weight 0.8 --tag platform\n" in text
+    assert 'tags = ["platform"]\n' in text
     assert "[defaults]\nsource = \"git\"\nmin_age_days = 60\nweight = 0.8\n" in text
     assert {b.weight for b in load_sources(str(output))} == {0.8}
 
