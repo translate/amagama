@@ -470,8 +470,9 @@ localisation configuration they commit, and writes :ref:`sources file
 <sources>` blocks for them, to review before including them. Its argument is
 the signal: ``linguas`` is gettext's :file:`po/LINGUAS`, ``crowdin`` is
 Crowdin's :file:`crowdin.yml`, ``l10n-toml`` Mozilla's :file:`l10n.toml`,
-``lingui`` Lingui's configuration and ``inlang`` inlang's
-:file:`project.inlang/settings.json`. GitHub's code search
+``lingui`` Lingui's configuration, ``inlang`` inlang's
+:file:`project.inlang/settings.json` and ``weblate`` the wlc client's
+:file:`.weblate`. GitHub's code search
 finds the files; it needs a token, in ``GITHUB_TOKEN``:
 
 .. code-block:: console
@@ -542,6 +543,14 @@ patterns, never run, so one whose catalog paths aren't plain strings is
 counted and left out. For ``inlang``, each plugin's ``pathPattern`` (with
 ``{languageTag}`` or ``{locale}``), relative to the directory holding
 :file:`project.inlang`, gives JSON files, the source language's the template.
+For ``weblate``, :file:`.weblate` names an instance and a project (and
+component), not paths. On an instance ``weblate_sources`` generates blocks
+for (Hosted Weblate, Fedora), the project's components in this repository
+(or in the repository of the component it names, renamed since) are looked
+up and written as ``weblate_sources`` would, each on its own branch, named
+and versioned by branch when there are several. Any other instance is
+counted, with its number of components, as a candidate for its own
+``weblate_sources`` run.
 As for ``crowdin``, units aren't counted; and for every signal a
 configuration in a test directory (:file:`tests/`, :file:`fixtures/` and the
 like) is left out.
