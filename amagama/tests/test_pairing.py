@@ -41,7 +41,10 @@ def test_android():
                      '<plurals name="files"><item quantity="one">%d lêer</item>'
                      '<item quantity="other">%d lêers</item></plurals></resources>')
     # Untranslated "open" isn't in the translation; "gone" has no English; plurals are left out.
-    assert pairs(paired_store(afrikaans, english)) == [("Save file", "Stoor lêer")]
+    store = paired_store(afrikaans, english)
+    assert pairs(store) == [("Save file", "Stoor lêer")]
+    # ...and counted, to be reported as skipped.
+    assert store.plurals == 1
 
 
 def test_php():
@@ -165,6 +168,20 @@ def test_update_android(update, tmp_path):
     assert lookup("af", "Save file") == ["Stoor lêer"]
     assert lookup("pt_BR", "Save file") == ["Salvar arquivo"]
     assert lookup("en_XC", "Save file") == []
+
+
+def test_update_android_plurals_skipped(update, tmp_path):
+    plurals = ('<resources><plurals name="files"><item quantity="one">%s</item>'
+               '<item quantity="other">%s</item></plurals></resources>')
+    url = git_repo(tmp_path / "repo", {
+        "res/values/plurals.xml": plurals % ("%d file", "%d files"),
+        "res/values-af/plurals.xml": plurals % ("%d lêer", "%d lêers"),
+    })
+    result = update(block("android", "git", url=url, format="android",
+                          files=["res/values-{lang}/plurals.xml"],
+                          template="res/values/plurals.xml"))
+    assert result.exit_code == 0, result.output
+    assert "Imported 1 files: 0 units (1 skipped)." in result.output
 
 
 def test_update_json_template_among_files(update, tmp_path):
