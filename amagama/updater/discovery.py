@@ -119,6 +119,14 @@ def search(query, token, pause=6, get=github):
     return sorted(found), incomplete
 
 
+def github_name(url):
+    """A GitHub repository's "owner/name", from its URL, or None."""
+    parts = urllib.parse.urlsplit(url or "")
+    path = parts.path.strip("/").removesuffix(".git").split("/")
+    return "/".join(path) if parts.hostname == "github.com" and len(path) == 2 and all(path) \
+        else None
+
+
 def stats(names, token, batch=50, pause=1, get=github):
     """{"owner/name": stats} of GitHub repositories, a GraphQL query per
     batch; one that isn't there is left out."""
