@@ -155,6 +155,14 @@ def test_upstream(url, description, homepage, issues, expected):
     assert discovery.upstream(found) == expected
 
 
+@pytest.mark.parametrize("url, expected", [
+    ("https://github.com/o/app", "o/app"), ("https://github.com/o/app.git/", "o/app"),
+    ("https://gitlab.gnome.org/GNOME/meld", None), ("https://github.com/o", None),
+    ("https://github.com/o/app/tree/main", None), (None, None)])
+def test_github_name(url, expected):
+    assert discovery.github_name(url) == expected
+
+
 def test_default_pushed_since():
     assert discovery.default_pushed_since(datetime.date(2026, 10, 26)) == datetime.date(2025, 1, 1)
 
@@ -323,6 +331,30 @@ def test_command_mirrors_first(amagama_config, tmp_path, monkeypatch):
     # The original before a copy with more stars.
     assert given == [(["https://git.example/o/b", "https://github.com/o/a"],
                       {"https://git.example/o/b": "https://github.com/o/b"})]
+
+
+def test_command_rereads_regenerated(amagama_config, tmp_path, monkeypatch):
+    sources = tmp_path / "sources.toml"
+    sources.write_text(
+        block("linguas-gone", "git", url="https://github.com/org/gone", files=["po/{lang}.po"])
+        + block("linguas-meld", "git", url="https://gitlab.gnome.org/GNOME/meld",
+                mirror="https://github.com/GNOME/meld", files=["po/{lang}.po"])
+        + block("other-tool", "git", url="https://github.com/org/tool", files=["po/{lang}.po"]))
+    amagama_config(UPDATER_SOURCES=str(sources))
+    monkeypatch.setenv("GITHUB_TOKEN", "t")
+    monkeypatch.setattr(discovery, "search", lambda query, token: (["org/repo"], False))
+    asked = []
+
+    def stats(names, token):
+        asked.append(names)
+        return {}
+
+    monkeypatch.setattr(discovery, "stats", stats)
+    result = CliRunner().invoke(manage, ("discover_sources", "linguas", "--prefix", "linguas"))
+    assert result.exit_code == 0, result.output
+    assert "1 repositories found, and 2 more from the blocks being regenerated." in result.output
+    # Another prefix's blocks aren't read again.
+    assert asked == [["GNOME/meld", "org/gone", "org/repo"]]
 
 
 def test_command_needs_token(amagama_config, tmp_path, monkeypatch):

@@ -479,7 +479,10 @@ finds the files; it needs a token, in ``GITHUB_TOKEN``:
 
 Code search allows 10 requests a minute and gives at most 1,000 results a
 query, so the query is split by file size until each part is under that; a
-part that can't be split further is reported as incomplete. Each
+part that can't be split further is reported as incomplete. Code search
+gives a different set of results each run, so the repositories of the blocks
+being regenerated (a block's own GitHub repository, or its mirror) are read
+as well. Each
 repository's stats then select it: not archived or a fork, at least
 ``--min-stars`` stars (default 100), pushed since ``--pushed-since`` (default
 1 January of last year), and a licence GitHub detected, which becomes the

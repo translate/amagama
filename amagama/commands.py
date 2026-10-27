@@ -655,6 +655,24 @@ def generated_context(prefix):
     return generate.context(existing, prefix)
 
 
+def generated_repositories(prefix):
+    """The GitHub repositories ("owner/name") of the blocks whose names start
+    with prefix: each block's own, or its mirror's."""
+    try:
+        existing = load_sources(current_app.config.get('UPDATER_SOURCES'), disabled=True)
+    except (OSError, ValueError):
+        return set()
+    found = set()
+    for block in existing:
+        if block.name.startswith(prefix + "-") and block.source == "git":
+            settings = block.fetcher.settings
+            name = discovery.github_name(settings.get("url")) or \
+                discovery.github_name(settings.get("mirror"))
+            if name:
+                found.add(name)
+    return found
+
+
 def write_generated(found, skipped, command, min_age_days, weight, tags, output, disabled=None):
     """Write found blocks for review, then report them and skipped:
     {(what, reason): count}. A block named in disabled stays disabled, with
@@ -771,9 +789,10 @@ def discover_sources(signal, min_stars, pushed_since, min_units, prefix, output,
     GitHub's code search finds them, with the token in GITHUB_TOKEN. Those not
     archived or forks, with enough stars, pushed recently and with a licence,
     are cloned without their files, mirrors then most stars first, and read.
-    A mirror's block is of the repository it copies. Repositories
-    that blocks in the sources file already import are left out, but for
-    blocks with the same prefix, which this regenerates.
+    A mirror's block is of the repository it copies. The repositories of the
+    blocks being regenerated are read too, as code search misses some each
+    run. Repositories that blocks in the sources file already import are left
+    out, but for blocks with the same prefix, which this regenerates.
     """
     token = os.environ.get("GITHUB_TOKEN")
     if not token:
@@ -784,9 +803,14 @@ def discover_sources(signal, min_stars, pushed_since, min_units, prefix, output,
         for query in discovery.SIGNALS[signal]["queries"]:
             found, missing = discovery.search(query, token)
             names, incomplete = names | set(found), incomplete or missing
-        names = sorted(names)
-        click.echo("%d repositories found%s." % (
-            len(names), ", some of the search's results missing" if incomplete else ""), err=True)
+        # Code search's results differ from run to run: the blocks being
+        # regenerated are read again whether it found them or not.
+        previous = generated_repositories(prefix) - names
+        click.echo("%d repositories found%s%s." % (
+            len(names), ", some of the search's results missing" if incomplete else "",
+            ", and %d more from the blocks being regenerated" % len(previous) if previous else ""),
+            err=True)
+        names = sorted(names | previous)
         kept, skipped = discovery.select(discovery.stats(names, token), min_stars, pushed_since)
     except FetchError as e:
         raise click.ClickException(str(e))
