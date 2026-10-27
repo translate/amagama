@@ -26,7 +26,7 @@ from translate.storage import factory
 from amagama.licences import normalise_licence
 from amagama.source_options import MAX_WEIGHT
 from amagama.updater import discovery, generate, status, transifex, weblate
-from amagama.updater.fetchers import FetchError
+from amagama.updater.fetchers import FetchError, remembered_commits
 from amagama.updater.formats import open_pieces
 from amagama.updater.sources import (FAILURES_TO_REPORT, TAGS, limit_first_fetches, load_sources,
                                      select)
@@ -446,6 +446,7 @@ def configured_blocks(tags=()):
 @click.option('--check', is_flag=True,
               help="Only list the blocks that changed since they were last fetched.")
 @with_appcontext
+@remembered_commits()
 def fetch_sources(block_names, tags, check):
     """Download the translations in the sources file."""
     cache_dir = os.path.expanduser(current_app.config.get('UPDATER_CACHE_DIR'))
@@ -782,6 +783,7 @@ def discover_sources(signal, min_stars, pushed_since, min_units, prefix, output,
               help="Rebuild from the cache as it is, if it changed since the last rebuild; "
               "for when fetch_sources keeps it current.")
 @with_appcontext
+@remembered_commits()
 def update(source_langs, force, fetch):
     """Fetch the sources, rebuild from them and swap the result in."""
     from amagama.updater.pipeline import update as update_from_sources

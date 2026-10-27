@@ -137,6 +137,8 @@ An empty cache fills over several runs: each run fetches at most
 so each upstream sees a little of its share each run rather than all of it at
 once. ``--block`` fetches the named blocks whatever the limit.
 
+A repository several blocks read is asked for its commit once a run.
+
 Only the blocks :setting:`UPDATER_TAGS` and :setting:`UPDATER_EXCLUDE_TAGS`
 select are fetched; ``--tag`` (repeatable) narrows them to those with one of
 its :ref:`tags <sources>`.
