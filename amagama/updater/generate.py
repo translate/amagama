@@ -24,6 +24,72 @@ from amagama.updater.filemask import compile_mask
 from amagama.updater.sources import Block, sparse_patterns
 
 
+# Hosts run by and for a community project, whose load a mirror takes off:
+# a block from one fetches from its mirror (see Block.fingerprint).
+COMMUNITY_HOSTS = {
+    "codeberg.org", "git.savannah.gnu.org", "git.savannah.nongnu.org", "git.sv.gnu.org",
+    "gitlab.freedesktop.org", "gitlab.gnome.org", "gitlab.xfce.org", "invent.kde.org",
+    "salsa.debian.org",
+}
+# Projects' own mirrors of their repositories: (pattern of the repository,
+# the mirror with the pattern's group).
+KNOWN_MIRRORS = [
+    (r"https://gitlab\.gnome\.org/GNOME/([\w.-]+?)(?:\.git)?/?", "https://github.com/GNOME/{0}"),
+    (r"https://invent\.kde\.org/[\w.-]+/([\w.-]+?)(?:\.git)?/?", "https://github.com/KDE/{0}"),
+    (r"https://gitlab\.xfce\.org/[\w.-]+/([\w.-]+?)(?:\.git)?/?",
+     "https://github.com/xfce-mirror/{0}"),
+]
+
+
+def exists(url):
+    """Whether url is a git repository that can be read."""
+    try:
+        run_tool("git", "ls-remote", url, "HEAD")
+    except FetchError:
+        return False
+    return True
+
+
+def mirror(url, copy=None, exists=exists):
+    """The mirror a block of url fetches from, or None: copy (one a search
+    found) or a known mirror that exists, if url is on a community host."""
+    if urllib.parse.urlsplit(url).hostname not in COMMUNITY_HOSTS:
+        return None
+    if copy:
+        return copy
+    for pattern, template in KNOWN_MIRRORS:
+        match = re.fullmatch(pattern, url)
+        if match and exists(template.format(*match.groups())):
+            return template.format(*match.groups())
+    return None
+
+
+def with_mirror(block, copy=None, exists=exists):
+    """block with its mirror() after its url, if it has one."""
+    found = block.get("mirror") or mirror(block["url"], copy, exists)
+    if not found:
+        return block
+    settings = {}
+    for key, value in block.items():
+        if key != "mirror":
+            settings[key] = value
+        if key == "url":
+            settings["mirror"] = found
+    return settings
+
+
+def add_mirrors(blocks, pause=1, exists=exists):
+    """blocks with mirrors where they have one; each repository is looked up once."""
+    known = {}
+
+    def cached(url):
+        if url not in known:
+            known[url] = exists(url)
+            time.sleep(pause)
+        return known[url]
+    return [with_mirror(block, exists=cached) for block in blocks]
+
+
 def normal_url(repo):
     """A repository URL without scheme, credentials, trailing .git or /."""
     parts = urllib.parse.urlsplit(repo)

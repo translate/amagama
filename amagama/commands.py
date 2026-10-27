@@ -613,6 +613,7 @@ def weblate_sources(url, projects, docs, no_verify, prefix, output, min_age_days
     if not no_verify:
         found, problems = generate.verify(found)
         skipped.update(problems)
+        found = generate.add_mirrors(found)
     command = "weblate_sources %s --prefix %s%s%s" % (
         url, prefix, "".join(" --project %s" % p for p in projects if p != "*"),
         "".join(" --docs %s" % d for d in docs))
@@ -644,6 +645,7 @@ def transifex_sources(repositories, from_file, prefix, output, min_age_days, wei
         raise click.UsageError("Give repositories, or --from-file.")
     names, covered, disabled = generated_context(prefix)
     found, skipped = transifex.blocks(repositories, prefix, covered, names)
+    found = generate.add_mirrors(found)
     write_generated(found, skipped, command, min_age_days, weight, tags, output, disabled)
 
 
@@ -697,6 +699,7 @@ def discover_sources(signal, min_stars, pushed_since, min_units, prefix, output,
         licences={generate.normal_url(url): discovery.licence(repository)
                   for url, repository in zip(urls, kept)},
         min_units=min_units, mirrors=mirrors)
+    found = generate.add_mirrors(found)
     skipped.update(resolved)
     command = "discover_sources %s --prefix %s --min-stars %d --pushed-since %s --min-units %d" % (
         signal, prefix, min_stars, pushed_since.isoformat(), min_units)

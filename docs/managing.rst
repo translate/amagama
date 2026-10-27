@@ -359,6 +359,11 @@ from ``--min-age-days`` (default 60), a :ref:`weight <sources>` from
 default ``platform``; ``discovered`` for ``transifex_sources`` and
 ``discover_sources``).
 
+A block whose repository is on a community project's host (gitlab.gnome.org,
+invent.kde.org, salsa.debian.org, Codeberg and the like) gets the project's
+own GitHub :ref:`mirror <sources>` if it has one (GNOME, KDE, Xfce) or one
+``discover_sources`` read it from.
+
 Weblate's data can be out of date, so each block is then checked against its
 repository, from a clone of its file list without the files: a branch that's
 gone falls back to the default branch, masks that match nothing are dropped,
