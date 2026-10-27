@@ -53,9 +53,14 @@ DEAD_HOSTS = {"pagure.io": "archived"}
 COLLAPSE = 10
 
 
-def components(url, pause=1):
-    """All of a Weblate instance's components, from its API."""
-    page = "%s/api/components/?page_size=1000" % url.rstrip("/")
+# Instances weblate_sources has generated blocks for.
+GENERATED = {"hosted.weblate.org", "translate.fedoraproject.org"}
+
+
+def components(url, pause=1, project=None):
+    """All of a Weblate instance's components, or a project's, from its API."""
+    listing = "projects/%s/components" % urllib.parse.quote(project) if project else "components"
+    page = "%s/api/%s/?page_size=1000" % (url.rstrip("/"), listing)
     found = []
     while page:
         try:
@@ -117,6 +122,33 @@ def _collapsed(masks):
     return ["%s{lang}/**/*%s" % (prefix, extension)]
 
 
+def readable(component):
+    """Why amaGama can't import a component, or None if it can."""
+    weblate_format = _with_encoding(component)
+    licence = (component.get("license") or "").strip()
+    if component.get("is_glossary") or weblate_format == "tbx":
+        return "glossary (terminology)"
+    if (component.get("source_language") or {}).get("code") != "en":
+        return "source not English"
+    if weblate_format not in FORMATS:
+        return "format %s" % weblate_format
+    if "-ND-" in licence.upper():
+        return "no-derivatives licence"
+    if weblate_format in MONOLINGUAL and not component.get("template"):
+        return "monolingual without a template"
+    return None
+
+
+def entry(component):
+    """A readable component as the file dict repositories.candidates() takes."""
+    weblate_format = _with_encoding(component)
+    # A bilingual file's template is only its source file.
+    template = (component.get("template") or None) if weblate_format in MONOLINGUAL else None
+    return {"name": component["slug"], "mask": _mask(component["filemask"]),
+            "format": FORMATS[weblate_format] or "po", "template": template, "source": None,
+            "languages": {}}
+
+
 def blocks(components, prefix, projects=("*",), docs=(), covered=(), names=None):
     """(blocks, skipped) for the components of projects matching the globs.
 
@@ -140,16 +172,8 @@ def blocks(components, prefix, projects=("*",), docs=(), covered=(), names=None)
             continue
         weblate_format = _with_encoding(component)
         licence = (component.get("license") or "").strip()
-        if component.get("is_glossary") or weblate_format == "tbx":
-            skip("glossary (terminology)")
-        elif (component.get("source_language") or {}).get("code") != "en":
-            skip("source not English")
-        elif weblate_format not in FORMATS:
-            skip("format %s" % weblate_format)
-        elif "-ND-" in licence.upper():
-            skip("no-derivatives licence")
-        elif weblate_format in MONOLINGUAL and not component.get("template"):
-            skip("monolingual without a template")
+        if readable(component):
+            skip(readable(component))
         else:
             repo, branch = _repository(component, by_url)
             if not repo:

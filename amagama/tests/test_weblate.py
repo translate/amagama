@@ -381,3 +381,16 @@ def test_command_verifies(amagama_config, instance, tmp_path, monkeypatch):
     assert result.exit_code == 0, result.output
     assert "1 blocks." in result.output
     assert "Skipped 1 components: filemask matches nothing." in result.output
+
+
+def test_project_components(monkeypatch):
+    pages = []
+
+    def http_text(url):
+        pages.append(url)
+        return json.dumps({"results": [component("app", "ui", "https://git.example/app", "po/*.po")],
+                           "next": None})
+    monkeypatch.setattr(weblate, "http_text", http_text)
+    found = weblate.components("https://w.example", project="a b")
+    assert [c["slug"] for c in found] == ["ui"]
+    assert pages == ["https://w.example/api/projects/a%20b/components/?page_size=1000"]
