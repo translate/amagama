@@ -13,7 +13,7 @@ from click.testing import CliRunner
 
 from amagama.cli import manage
 from amagama.tests.test_updater import block
-from amagama.updater import generate, transifex
+from amagama.updater import generate, repositories, transifex
 from amagama.updater.fetchers import FetchError
 from amagama.updater.sources import load_sources
 
@@ -210,7 +210,7 @@ def test_repository(repository, tmp_path):
 def test_repository_unreadable_config(repository, monkeypatch):
     def unreadable(directory, path):
         raise FetchError("git show failed")
-    monkeypatch.setattr(transifex, "_read", unreadable)
+    monkeypatch.setattr(repositories, "_read", unreadable)
     assert transifex.repository(repository)[1] == {".tx/config": None, "web/.tx/config": None}
 
 

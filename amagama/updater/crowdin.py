@@ -20,13 +20,11 @@ import re
 
 import yaml
 
-from amagama.updater.fetchers import FetchError, run_tool
+from amagama.updater import repositories
 from amagama.updater.formats import is_monolingual
-from amagama.updater.generate import clone, matches, matching
 from amagama.updater.languages import normalise_language
-from amagama.updater.repositories import VENDORED
 from amagama.updater.repositories import blocks as repository_blocks
-from amagama.updater.sources import sparse_patterns
+from amagama.updater.repositories import candidates as repository_candidates
 
 CONFIG = re.compile(r"(?:^|/)\.?crowdin\.ya?ml\Z")
 
@@ -176,27 +174,12 @@ def files(text, directory=""):
 
 def configs(paths):
     """The Crowdin configurations among a repository's paths, but vendored copies."""
-    return [path for path in paths if CONFIG.search(path) and not VENDORED.search(path)]
-
-
-def _read(directory, path):
-    return run_tool("git", "-C", directory, "show", "HEAD:" + path, trusted=directory)
+    return repositories.configs(paths, CONFIG)
 
 
 def repository(url):
-    """(paths, {crowdin.yml path: text, or None if unreadable}) of url's
-    default branch, or None if the repository isn't there."""
-    with clone(url, None) as cloned:
-        if cloned is None:
-            return None
-        directory, paths = cloned
-        texts = {}
-        for path in configs(paths):
-            try:
-                texts[path] = _read(directory, path)
-            except FetchError:
-                texts[path] = None
-        return paths, texts
+    """repositories.read() of url's Crowdin configurations."""
+    return repositories.read(url, CONFIG)
 
 
 def blocks(repositories, prefix, covered=(), names=None, pause=1, read=None, licences=None,
@@ -218,44 +201,17 @@ def blocks(repositories, prefix, covered=(), names=None, pause=1, read=None, lic
         if not texts:
             return [], {("repositories", "no crowdin.yml"): 1}
         skipped = collections.Counter()
-        groups = {}
+        entries = []
         for config, text in sorted(texts.items()):
             if text is None:
                 skipped["files", "unreadable crowdin.yml"] += 1
                 continue
             found_files, reasons = files(text, posixpath.dirname(config))
             skipped.update({("files", reason): count for reason, count in reasons.items()})
-            for found in found_files:
-                key = (found["format"], found["template"] or "",
-                       tuple(sorted(found["languages"].items())))
-                group = groups.setdefault(key, dict(found, masks=set(), sources=set()))
-                group["masks"].add(found["mask"])
-                if found["source"]:
-                    group["sources"].add(found["source"])
-        candidates = []
-        # The repository's shared block first, then a block per template.
-        for (file_format, template, languages), group in sorted(
-                groups.items(), key=lambda item: (bool(item[0][1]), item[0])):
-            template = template or None
-            found_masks = matching(group["masks"], paths, template)
-            if not found_masks:
-                skipped["files", "translation matches nothing"] += 1
-                continue
-            candidate = {"suffix": group["name"] if template else None, "files": found_masks}
-            # A source file the pattern also matches isn't a translation.
-            exclude = sorted(source for source in group["sources"]
-                             if any(matches(filemask, source) for filemask in found_masks))
-            if exclude:
-                candidate["exclude"] = exclude
-            candidate["sparse"] = sparse_patterns(found_masks, template)
-            if file_format != "po":
-                candidate["format"] = file_format
-            if template:
-                candidate["template"] = template
-            if languages:
-                candidate["languages"] = dict(languages)
-            candidates.append(candidate)
-        return candidates, skipped
+            entries += found_files
+        found, reasons = repository_candidates(entries, paths, "files",
+                                               "translation matches nothing")
+        return found, skipped + reasons
 
     return repository_blocks(repositories, prefix, resolve, "files", covered, names, pause,
                              licences, mirrors)
