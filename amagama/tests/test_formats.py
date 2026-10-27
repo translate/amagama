@@ -98,6 +98,10 @@ def test_update_with_format(amagama_config, tmp_path):
     # Source in column 3, target in column 5; the rest ignored.
     ("id,area,English,note,Afrikaans,extra\n7,ui,Save file,button,Stoor lêer,x\n",
      ["", "", "source", "", "target"], True),
+    # Rows before the header row (a notice, with commas) are skipped.
+    ("NOTICE\n1. No part may be reproduced, adapted, or distributed.\n"
+     '"Source Term",,"Translation"\n"Save file",,"Stoor lêer"\n', ["source", "", "target"],
+     "Source Term"),
 ])
 def test_csv_columns(tmp_path, text, columns, header_row):
     path = tmp_path / "af.csv"
