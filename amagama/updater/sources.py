@@ -483,9 +483,13 @@ def _entries(path, seen):
     return entries
 
 
-def load_sources(path=None):
+def load_sources(path=None, disabled=False):
     """Read and check the sources file and those it includes; return their
-    blocks, each file's in order before those of the files it includes."""
+    blocks, each file's in order before those of the files it includes.
+
+    A block with disabled (the reason) is checked and keeps its name, but is
+    left out unless disabled.
+    """
     path = path or DEFAULT_SOURCES
     blocks = []
     names = set()
@@ -510,12 +514,18 @@ def load_sources(path=None):
         if source not in FETCHERS:
             raise ValueError("%s: source must be one of %s" % (where, ", ".join(sorted(FETCHERS))))
         licence = entry.pop("licence", None)
+        reason = entry.pop("disabled", None)
+        if reason is not None and (not isinstance(reason, str) or not reason.strip()):
+            raise ValueError("%s: disabled must be the reason the block is left out" % where)
         try:
             if licence is not None:
                 licence = normalise_licence(licence)
-            blocks.append(Block(name, title, source, version, licence, **entry))
+            block = Block(name, title, source, version, licence, **entry)
         except ValueError as e:
             raise ValueError("%s: %s" % (where, e))
+        block.disabled, block.enabled, block.path = reason, reason is None, path
+        if block.enabled or disabled:
+            blocks.append(block)
     return blocks
 
 
