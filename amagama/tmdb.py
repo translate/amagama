@@ -480,17 +480,29 @@ ORDER BY rank DESC{order};
             cursor.execute("""SELECT setval(pg_get_serial_sequence('sources', 'sid'),
                 COALESCE(MAX(sid), 0) + 1, false) FROM sources""")
 
-            cursor.execute(sql.SQL("""INSERT INTO targets (sid, text, lang)
-                SELECT t.sid, t.text, t.lang FROM {} t JOIN sources s ON s.sid = t.sid
+            # Keeping tids keeps the import order that equal matches are
+            # returned in; the snapshot's physical order is deploy_db's.
+            cursor.execute("""SELECT COUNT(*) = 2 FROM information_schema.columns
+                WHERE table_name = 'targets' AND column_name = 'tid'
+                AND table_schema IN (current_schema(), %s)""", (snapshot,))
+            keep_tid = cursor.fetchone()[0]
+            columns = "tid, sid, text, lang" if keep_tid else "sid, text, lang"
+            picked = "t.tid, t.sid, t.text, t.lang" if keep_tid else "t.sid, t.text, t.lang"
+            cursor.execute(sql.SQL("""INSERT INTO targets (%s)
+                SELECT %s FROM {} t JOIN sources s ON s.sid = t.sid
                 WHERE length(t.text) < 1000
-                ON CONFLICT DO NOTHING""").format(snap_targets))
-            cursor.execute(sql.SQL("""SELECT t.sid, t.text, t.lang FROM {} t
+                ON CONFLICT DO NOTHING""" % (columns, picked)).format(snap_targets))
+            cursor.execute(sql.SQL("""SELECT %s FROM {} t
                 JOIN sources s ON s.sid = t.sid
-                WHERE length(t.text) >= 1000""").format(snap_targets))
+                WHERE length(t.text) >= 1000""" % picked).format(snap_targets))
+            insert = "INSERT INTO targets (%s) VALUES (%s) ON CONFLICT DO NOTHING" % (
+                columns, ", ".join(["%s"] * len(columns.split(", "))))
             for row in cursor.fetchall():
                 if self._indexable_string(row['text']):
-                    _insert_indexable(cursor, """INSERT INTO targets (sid, text, lang)
-                        VALUES (%s, %s, %s) ON CONFLICT DO NOTHING""", tuple(row), row['text'])
+                    _insert_indexable(cursor, insert, tuple(row), row['text'])
+            if keep_tid:
+                cursor.execute("""SELECT setval(pg_get_serial_sequence('targets', 'tid'),
+                    COALESCE(MAX(tid), 0) + 1, false) FROM targets""")
 
             cursor.execute(sql.SQL("""SELECT
                 (SELECT COUNT(*) FROM sources), (SELECT COUNT(*) FROM {})""").format(

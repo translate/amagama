@@ -121,6 +121,25 @@ class TestLoadSnapshot(object):
             assert lookup(client, 'zu', 'Open file') == ['Vula ifayela']
             assert lookup(client, 'af', 'Save file') == ['Stoor lêer']
 
+    def test_rebuild_keeps_import_order(self, run, load):
+        # Imported longest first; deploy_db clusters the live schema, and so
+        # the snapshot, shortest first.
+        targets = ['Löschen', 'Entfernen', 'Ausradieren', 'Tilgen', 'Lösche', 'Slet', 'Del']
+        run('initdb', '-s', 'en')
+        for target in targets:
+            load('de', 'Delete', target)
+        run('deploy_db', input='y\n')
+        run('snapshot_db', '-s', 'en', '--name', 'legacy')
+        run('initdb', '-s', 'en', '--build')
+        result = run('load_snapshot', '-s', 'en', '--name', 'legacy', '--block', 'legacy-2019')
+        assert result.exit_code == 0, result.output
+        load('de', 'Delete', 'Entferne', '--build')
+        run('deploy_db', '--build', input='y\n')
+        run('swap_db', '-s', 'en')
+        app = amagama_server_factory()
+        with app.test_client() as client:
+            assert lookup(client, 'de', 'Delete') == targets[:5]
+
     def test_skips_text_imports_refuse(self, run, live, pg_connection):
         # Random text can't compress into an index entry.
         def random_text(length):
