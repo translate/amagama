@@ -25,7 +25,7 @@ import urllib.request
 
 import spdx_license_list
 
-from amagama.updater import crowdin, linguas
+from amagama.updater import crowdin, inlang, l10ntoml, lingui, linguas
 from amagama.updater.fetchers import TIMEOUT, USER_AGENT, FetchError
 
 SEARCH = "https://api.github.com/search/code"
@@ -47,6 +47,11 @@ SIGNALS = {
                 # Opened by the account that set up Crowdin's GitHub integration.
                 "bot_prs": ['"New Crowdin updates" in:title'],
                 "blocks": crowdin.blocks},
+    "l10n-toml": {"queries": ["filename:l10n.toml paths"], "blocks": l10ntoml.blocks},
+    "lingui": {"queries": ["filename:lingui.config.js", "filename:lingui.config.ts",
+                           "filename:.linguirc"],
+               "blocks": lingui.blocks},
+    "inlang": {"queries": ["filename:settings.json path:project.inlang"], "blocks": inlang.blocks},
 }
 
 FIELDS = ("url stargazerCount pushedAt isArchived isFork licenseInfo { spdxId } description "
