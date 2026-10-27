@@ -17,6 +17,9 @@ ExecStart=/usr/bin/flock --nonblock --conflict-exit-code 75 \
         /srv/amagama/cache/.lock \
         /srv/amagama/venv/bin/amagama-manage update -s en --no-fetch
 SuccessExitStatus=75
+# The web app caches block weights, licences and the source list per worker:
+# reload it so a swapped-in rebuild is served whole. "+" runs it as root.
+ExecStartPost=+/usr/bin/systemctl try-reload-or-restart amagama.uwsgi.service
 Nice=10
 IOSchedulingClass=idle
 # Reclaim its own page cache, then slow down, before squeezing the web app.

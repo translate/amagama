@@ -1,5 +1,5 @@
 [Unit]
-Description=Old amagama API (no web UI)
+Description=amaGama web app and API
 
 [Service]
 ExecStart=/usr/bin/uwsgi \
@@ -10,6 +10,8 @@ User=www-data
 Group=www-data
 Restart=on-failure
 KillSignal=SIGQUIT
+# SIGHUP reloads the workers gracefully.
+ExecReload=/bin/kill -HUP $MAINPID
 Type=notify
 StandardError=append:/srv/amagama/logs/uwsgi.log
 NotifyAccess=all
