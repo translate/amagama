@@ -255,6 +255,34 @@ def test_command(amagama_config, repository, tmp_path, monkeypatch):  # noqa: F8
     assert found.selection.mask_texts == ["po/{lang}.po"]
 
 
+def test_command_keeps_disabled(amagama_config, repository, tmp_path, monkeypatch):  # noqa: F811
+    sources = tmp_path / "sources.toml"
+    sources.write_text('include = ["linguas.toml"]\n')
+    output = tmp_path / "linguas.toml"
+    output.write_text('[[block]]\nname = "linguas-mine"\ndisabled = "duplicates tool"\n'
+                      'title = "repo"\nsource = "git"\nurl = "%s"\nfiles = ["po/{lang}.po"]\n'
+                      'licence = "MIT"\n\n'
+                      '[[block]]\nname = "linguas-gone"\ndisabled = "duplicates other"\n'
+                      'title = "gone"\nsource = "git"\nurl = "https://git.example/o/gone"\n'
+                      'files = ["po/{lang}.po"]\n' % repository.as_uri())
+    amagama_config(UPDATER_SOURCES=str(sources))
+    monkeypatch.setenv("GITHUB_TOKEN", "t")
+    monkeypatch.setattr(discovery, "search", lambda query, token: (["org/repo"], False))
+    monkeypatch.setattr(discovery, "stats", lambda names, token: {
+        "org/repo": dict(repo("org/repo"), url=repository.as_uri())})
+    result = CliRunner().invoke(manage, ("discover_sources", "linguas", "--prefix", "linguas",
+                                         "--min-units", "2", "--output", str(output)))
+    assert result.exit_code == 0, result.output
+    assert "2 blocks, 2 disabled (1 not found again)." in result.output
+    # Regenerated, the block keeps its name, and stays disabled with its reason;
+    # one the search didn't find again is kept as it was.
+    text = output.read_text()
+    assert 'name = "linguas-mine"\ndisabled = "duplicates tool"\n' in text
+    assert ('name = "linguas-gone"\ndisabled = "duplicates other"\ntitle = "gone"\n'
+            'url = "https://git.example/o/gone"\n') in text
+    assert load_sources(str(sources)) == []
+
+
 def test_command_mirror(amagama_config, repository, tmp_path, monkeypatch):  # noqa: F811
     amagama_config(UPDATER_SOURCES=str(tmp_path / "missing.toml"))
     monkeypatch.setenv("GITHUB_TOKEN", "t")
