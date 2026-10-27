@@ -214,6 +214,15 @@ files it includes); a block's own settings take precedence. ``name`` and
   of higher weight takes that weight. Set it in a file's ``[defaults]`` to
   weight all of an included file's blocks.
 
+``disabled``
+  Optional reason to leave the block out: it isn't fetched, imported or
+  listed, but keeps its name. The commands that write blocks keep it when
+  they regenerate the file:
+
+  .. code-block:: toml
+
+      disabled = "duplicates Damned Lies module meld"
+
 ``min_age_days`` and ``max_age_days``
   Both count days since the block was last fetched; ``min_age_days`` is a
   floor and ``max_age_days`` a ceiling.

@@ -131,6 +131,28 @@ max_age_days = 0
 '''
 
 
+def test_disabled_blocks(tmp_path):
+    path = tmp_path / "sources.toml"
+    path.write_text(block("on", "translationproject")
+                    + block("off", "translationproject", disabled="duplicates on"))
+    assert [b.name for b in load_sources(str(path))] == ["on"]
+    assert [(b.name, b.enabled, b.disabled) for b in load_sources(str(path), disabled=True)] == [
+        ("on", True, None), ("off", False, "duplicates on")]
+    # A disabled block keeps its name.
+    path.write_text(block("off", "translationproject", disabled="duplicates on")
+                    + block("off", "translationproject"))
+    with pytest.raises(ValueError, match="block off: duplicate name"):
+        load_sources(str(path))
+
+
+@pytest.mark.parametrize("reason", ["", " ", True])
+def test_disabled_needs_reason(tmp_path, reason):
+    path = tmp_path / "sources.toml"
+    path.write_text(block("off", "translationproject", disabled=reason))
+    with pytest.raises(ValueError, match="disabled must be the reason"):
+        load_sources(str(path))
+
+
 class TestSourcesFile(object):
 
     def test_shipped_sources(self):
