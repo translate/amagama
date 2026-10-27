@@ -44,6 +44,10 @@ msgid "Translation Project"
 msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "Ubuntu"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
 msgid "LibreOffice"
 msgstr ""
 

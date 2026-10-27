@@ -77,6 +77,48 @@ title = "Translation Project"
 source = "translationproject"
 
 [[block]]
+name = "ubuntu-{version}"
+title = "Ubuntu"
+source = "ubuntu-langpacks"
+# A language pack holds every package's translations from Launchpad, upstream
+# projects' with Launchpad's edits among them, unmarked. Only the domains of
+# Ubuntu's own packages, which neither Debian nor the other blocks import.
+files = [
+  "*/usr/share/locale-langpack/{lang}/LC_MESSAGES/adsys.mo",
+  "*/usr/share/locale-langpack/{lang}/LC_MESSAGES/apport.mo",
+  "*/usr/share/locale-langpack/{lang}/LC_MESSAGES/apturl.mo",
+  "*/usr/share/locale-langpack/{lang}/LC_MESSAGES/example-content.mo",
+  "*/usr/share/locale-langpack/{lang}/LC_MESSAGES/indicator-datetime.mo",
+  "*/usr/share/locale-langpack/{lang}/LC_MESSAGES/landscape-client.mo",
+  "*/usr/share/locale-langpack/{lang}/LC_MESSAGES/language-selector.mo",
+  "*/usr/share/locale-langpack/{lang}/LC_MESSAGES/screen-resolution-extra.mo",
+  "*/usr/share/locale-langpack/{lang}/LC_MESSAGES/ubuntu-advantage.mo",
+  "*/usr/share/locale-langpack/{lang}/LC_MESSAGES/ubuntu-advantage-desktop-daemon.mo",
+  "*/usr/share/locale-langpack/{lang}/LC_MESSAGES/ubuntu-pro.mo",
+  "*/usr/share/locale-langpack/{lang}/LC_MESSAGES/update-motd.mo",
+  "*/usr/share/locale-langpack/{lang}/LC_MESSAGES/usbcreator.mo",
+  "*/usr/share/locale-langpack/{lang}/LC_MESSAGES/whoopsie-preferences.mo",
+  "*/usr/share/locale-langpack/{lang}/LC_MESSAGES/slideshow-*.mo",
+  "*/usr/share/locale-langpack/{lang}/LC_MESSAGES/ubiquity-slideshow-*.mo",
+  "*/usr/share/locale-langpack/{lang}/LC_MESSAGES/desktop_kde-config-whoopsie.mo",
+  "*/usr/share/locale-langpack/{lang}/LC_MESSAGES/desktop_kubuntu-driver-manager.mo",
+  "*/usr/share/locale-langpack/{lang}/LC_MESSAGES/desktop_kubuntu-notification-helper.mo",
+  "*/usr/share/locale-langpack/{lang}/LC_MESSAGES/desktop_kubuntu-web-shortcuts.mo",
+  "*/usr/share/locale-langpack/{lang}/LC_MESSAGES/kcm-driver-manager.mo",
+  "*/usr/share/locale-langpack/{lang}/LC_MESSAGES/kcm-whoopsie.mo",
+  "*/usr/share/locale-langpack/{lang}/LC_MESSAGES/kcm_notificationhelper.mo",
+  "*/usr/share/locale-langpack/{lang}/LC_MESSAGES/kubuntu-debug-installer.mo",
+  "*/usr/share/locale-langpack/{lang}/LC_MESSAGES/notificationhelper.mo",
+]
+# Launchpad's licence for translations made there.
+licence = "BSD-3-Clause"
+versions = [
+  { version = "24.04", series = "noble", max_age_days = 365 },
+  { version = "26.04", series = "resolute" },
+  { version = "26.10", series = "stonking" },
+]
+
+[[block]]
 name = "libreoffice-{version}"
 title = "LibreOffice"
 source = "git"
