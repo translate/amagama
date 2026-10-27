@@ -12,6 +12,8 @@ Each fetcher downloads one block's files into a directory and reports their
 target languages, and computes a fingerprint cheaply enough to check weekly.
 """
 
+import contextlib
+import contextvars
 import fnmatch
 import gzip
 import hashlib
@@ -404,6 +406,19 @@ class Pontoon(Fetcher):
 # Gitiles hosts give a ref's commit as JSON; ls-remote on chromium/src
 # lists millions of refs, whatever the pattern.
 GITILES_HOSTS = (".googlesource.com",)
+# (url, ref): commit, while remembered_commits() is in effect.
+_COMMITS = contextvars.ContextVar("commits", default=None)
+
+
+@contextlib.contextmanager
+def remembered_commits():
+    """Ask a repository for a ref's commit once, though several blocks read
+    it: for one run of fetching."""
+    token = _COMMITS.set({})
+    try:
+        yield
+    finally:
+        _COMMITS.reset(token)
 
 
 class Git(Fetcher):
@@ -446,13 +461,20 @@ class Git(Fetcher):
     def commit(self, url):
         """The commit of the block's ref at url."""
         ref = self.settings.get("ref", "HEAD")
+        known = _COMMITS.get()
+        if known is not None and (url, ref) in known:
+            return known[url, ref]
         host = urllib.parse.urlsplit(url).hostname or ""
         if host.endswith(GITILES_HOSTS):
-            return self._gitiles_commit(url, ref)
-        lines = self._git("ls-remote", url, ref).split()
-        if not lines:
-            raise FetchError("%s: no ref %s" % (url, ref))
-        return lines[0]
+            commit = self._gitiles_commit(url, ref)
+        else:
+            lines = self._git("ls-remote", url, ref).split()
+            if not lines:
+                raise FetchError("%s: no ref %s" % (url, ref))
+            commit = lines[0]
+        if known is not None:
+            known[url, ref] = commit
+        return commit
 
     def _gitiles_commit(self, url, ref):
         url = "%s/+/%s?format=JSON" % (url.rstrip("/"), urllib.parse.quote(ref))
