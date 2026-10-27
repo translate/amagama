@@ -585,3 +585,20 @@ languages.en-001 = ""
 languages.en-150 = ""
 licence = "Unicode-3.0"
 versions = ["49"]
+
+[[block]]
+name = "microsoft-ui-strings"
+title = "Microsoft UI strings"
+disabled = "Microsoft's notice in each file forbids entering the glossaries into a storage or retrieval system without its consent"
+source = "git"
+min_age_days = 30
+# Microsoft's 2020 Translation and UI Strings Glossaries as termic commits
+# them, for 12 languages; Microsoft's own download needs a login. About 2% of
+# rows misquote a field (""text"" for """text"""), so a comma in it splits the
+# row and its translation comes in misaligned: fix before enabling.
+url = "https://github.com/Spidersouris/termic-data"
+files = ["csv_to_merge/{lang}/*.csv"]
+format = "csv"
+columns = ["source", "", "target"]
+header_row = "Source Term"
+languages.es-LATAM = "es_419"
