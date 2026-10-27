@@ -10,16 +10,18 @@
 blocks against their repositories, and writing them for review."""
 
 import contextlib
+import contextvars
 import json
 import os
 import re
+import shutil
 import tempfile
 import time
 import tomllib
 import urllib.parse
 
 from amagama.licences import normalise_licence
-from amagama.updater.fetchers import FetchError, run_tool
+from amagama.updater.fetchers import FetchError, Git, run_tool
 from amagama.updater.filemask import compile_mask
 from amagama.updater.sources import Block, sparse_patterns
 
@@ -211,24 +213,56 @@ def with_disabled(found, disabled):
             if block["name"] in disabled else block for block in found] + missing, len(missing)
 
 
+# The shared repositories clone() fetches into, while shared_repositories()
+# is in effect.
+_STORE = contextvars.ContextVar("store", default=None)
+
+
+@contextlib.contextmanager
+def shared_repositories(store):
+    """Let clone() use the blocks' shared repositories in store (None:
+    throwaway clones), so a repository a block fetches isn't downloaded again."""
+    token = _STORE.set(store)
+    try:
+        yield
+    finally:
+        _STORE.reset(token)
+
+
+def _paths(directory, trusted):
+    return run_tool("git", "-C", directory, "ls-tree", "-r", "--name-only", "HEAD",
+                    trusted=trusted).splitlines()
+
+
 @contextlib.contextmanager
 def clone(url, ref):
     """(directory, file paths) of a clone of url at ref (None: its default
     branch), or None if the repository or ref isn't there. Only the trees
-    are downloaded; a file's contents come when it's read."""
-    with tempfile.TemporaryDirectory() as tmp:
+    are downloaded; a file's contents come when it's read. In a shared
+    repository if shared_repositories() gives a store; a throwaway clone if
+    not, or if that fails."""
+    with tempfile.TemporaryDirectory() as tmp, contextlib.ExitStack() as stack:
         directory = os.path.join(tmp, "repo")
-        args = ["clone", "--quiet", "--depth", "1", "--filter=blob:none", "--no-checkout"]
-        if ref:
-            args += ["--branch", ref]
-        try:
-            run_tool("git", *(args + [url, directory]))
-            paths = run_tool("git", "-C", directory, "ls-tree", "-r", "--name-only", "HEAD",
-                             trusted=directory).splitlines()
-        except FetchError:
-            yield None
-        else:
-            yield directory, paths
+        paths = None
+        if _STORE.get():
+            git = Git(dict({"url": url}, **({"ref": ref} if ref else {})))
+            git.store = _STORE.get()
+            try:
+                paths = _paths(directory, stack.enter_context(git.worktree(directory)))
+            except FetchError:
+                stack.close()
+                shutil.rmtree(directory, ignore_errors=True)
+        if paths is None:
+            args = ["clone", "--quiet", "--depth", "1", "--filter=blob:none", "--no-checkout"]
+            if ref:
+                args += ["--branch", ref]
+            try:
+                run_tool("git", *(args + [url, directory]))
+                paths = _paths(directory, directory)
+            except FetchError:
+                yield None
+                return
+        yield directory, paths
 
 
 def tree(url, ref):

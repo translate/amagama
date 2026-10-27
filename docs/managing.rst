@@ -408,6 +408,10 @@ invent.kde.org, salsa.debian.org, Codeberg and the like) gets the project's
 own GitHub :ref:`mirror <sources>` if it has one (GNOME, KDE, Xfce) or one
 ``discover_sources`` read it from.
 
+When :setting:`UPDATER_CACHE_DIR` exists, the repositories are read through
+its shared git repositories, so a repository a block already fetches isn't
+downloaded again.
+
 Weblate's data can be out of date, so each block is then checked against its
 repository, from a clone of its file list without the files: a branch that's
 gone falls back to the default branch, masks that match nothing are dropped,

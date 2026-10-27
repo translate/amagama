@@ -170,7 +170,8 @@ Settings for fetching translations to import, see :ref:`sources`.
   Where fetched translations are kept, one directory per block. Each
   translation file is kept zstd-compressed (``.zst``, about a fifth of its size)
   and decompressed only while it is imported; templates are kept as they are.
-  ``.repos`` holds the git repositories the blocks fetch from.
+  ``.repos`` holds the git repositories the blocks fetch from, which the
+  commands writing blocks also read when the cache exists.
 
 
 .. setting:: UPDATER_EXCLUDE_TAGS

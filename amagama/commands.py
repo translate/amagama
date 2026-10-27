@@ -6,6 +6,7 @@
 # the AUTHORS.md file for copyright and authorship information.
 
 
+import functools
 import hashlib
 import itertools
 import json
@@ -28,8 +29,8 @@ from amagama.source_options import MAX_WEIGHT
 from amagama.updater import discovery, generate, status, transifex, weblate
 from amagama.updater.fetchers import FetchError, remembered_commits
 from amagama.updater.formats import open_pieces
-from amagama.updater.sources import (FAILURES_TO_REPORT, TAGS, limit_first_fetches, load_sources,
-                                     select)
+from amagama.updater.sources import (FAILURES_TO_REPORT, REPOSITORIES, TAGS, limit_first_fetches,
+                                     load_sources, select)
 from amagama.tmdb import BUILD_PREFIX, OLD_PREFIX
 
 def ensure_source_exists():
@@ -616,6 +617,22 @@ def _generator_options(command, tags):
     return command
 
 
+def shared_repositories():
+    """generate.shared_repositories() of the cache's, if there is a cache."""
+    cache_dir = os.path.expanduser(current_app.config.get('UPDATER_CACHE_DIR'))
+    return generate.shared_repositories(
+        os.path.join(cache_dir, REPOSITORIES) if os.path.isdir(cache_dir) else None)
+
+
+def with_shared_repositories(command):
+    """command, run with shared_repositories()."""
+    @functools.wraps(command)
+    def wrapped(*args, **kwargs):
+        with shared_repositories():
+            return command(*args, **kwargs)
+    return wrapped
+
+
 def generated_context(prefix):
     """generate.context() of the sources file, for writing blocks whose
     names start with prefix."""
@@ -667,6 +684,7 @@ def write_generated(found, skipped, command, min_age_days, weight, tags, output,
               "repositories.")
 @generator_options(("platform",))
 @with_appcontext
+@with_shared_repositories
 def weblate_sources(url, projects, docs, no_verify, prefix, output, min_age_days, weight, tags):
     """Write sources-file blocks for a Weblate instance's projects, for review.
 
@@ -698,6 +716,7 @@ def weblate_sources(url, projects, docs, no_verify, prefix, output, min_age_days
               help="File of repository URLs, one per line.")
 @generator_options(("discovered",))
 @with_appcontext
+@with_shared_repositories
 def transifex_sources(repositories, from_file, prefix, output, min_age_days, weight, tags):
     """Write sources-file blocks for repositories translated on Transifex, for review.
 
@@ -731,6 +750,7 @@ def transifex_sources(repositories, from_file, prefix, output, min_age_days, wei
               help="Fewest translated units, not fuzzy, a block needs.")
 @generator_options(("discovered",))
 @with_appcontext
+@with_shared_repositories
 def discover_sources(signal, min_stars, pushed_since, min_units, prefix, output, min_age_days,
                      weight, tags):
     """Write sources-file blocks for repositories that commit a signal's

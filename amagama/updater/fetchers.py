@@ -484,17 +484,30 @@ class Git(Fetcher):
         except (IndexError, ValueError, KeyError, TypeError) as e:
             raise FetchError("%s: %s" % (url, e))
 
-    def repository(self):
+    def repository(self, store=None):
         """The shared repository for the URL: store/host/path.git."""
         parts = urllib.parse.urlsplit(self.settings["url"])
         names = [parts.hostname or "local"] + [name for name in parts.path.split("/") if name]
         names = [re.sub(r"[^A-Za-z0-9._-]", "_", name).lstrip(".") or "_" for name in names]
-        path = os.path.join(self.store, *names)
+        path = os.path.join(store or self.store, *names)
         return path if path.endswith(".git") else path + ".git"
 
     def fetch(self, dest):
         if self.store is None:
             return self._clone(dest)
+        with self.worktree(dest) as trusted:
+            sparse = self.settings.get("sparse")
+            if sparse:
+                self._git("-C", dest, "sparse-checkout", "set", "--no-cone", *sparse,
+                          clone=trusted)
+            self._git("-C", dest, "checkout", "--quiet", clone=trusted)
+        return [(path, None) for path in files_under(dest)]
+
+    @contextlib.contextmanager
+    def worktree(self, dest):
+        """dest as a worktree of the shared repository at the ref, nothing
+        checked out; afterwards a plain directory. Gives the repositories
+        git must trust."""
         repo = self.repository()
         url = self.source or self.settings["url"]
         ref = self.settings.get("ref", "HEAD")
@@ -517,18 +530,13 @@ class Git(Fetcher):
         self._git("-C", repo, "worktree", "add", "--quiet", "--no-checkout", "--detach",
                   dest, local, clone=trusted)
         try:
-            sparse = self.settings.get("sparse")
-            if sparse:
-                self._git("-C", dest, "sparse-checkout", "set", "--no-cone", *sparse,
-                          clone=trusted)
-            self._git("-C", dest, "checkout", "--quiet", clone=trusted)
+            yield trusted
         finally:
             # A plain directory again; the repository forgets the worktree.
             if os.path.exists(os.path.join(dest, ".git")):
                 os.remove(os.path.join(dest, ".git"))
             self._git("-C", repo, "worktree", "prune", clone=trusted)
         self._git("-C", repo, "gc", "--auto", "--quiet", clone=trusted)
-        return [(path, None) for path in files_under(dest)]
 
     def _clone(self, dest):
         args = ["clone", "--quiet", "--depth", "1"]

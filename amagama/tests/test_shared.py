@@ -6,9 +6,15 @@
 # the AUTHORS.md file for copyright and authorship information.
 
 
+import os
+
+from click.testing import CliRunner
+
+from amagama.cli import manage
+from amagama.tests.test_transifex import repository  # noqa: F401 - fixture
 from amagama.tests.test_updater import block, git_repo, run  # noqa: F401 - fixtures
-from amagama.updater import fetchers
-from amagama.updater.fetchers import Git
+from amagama.updater import fetchers, generate
+from amagama.updater.fetchers import FetchError, Git
 
 
 def counted(monkeypatch):
@@ -46,3 +52,35 @@ def test_fetch_sources_asks_once(run, git_repo, monkeypatch):  # noqa: F811 - fi
     assert result.exit_code == 0, result.output
     # Each block checks the commit when it fetches; the repository is asked once.
     assert calls == [repo.as_uri()]
+
+
+def test_clone_shared(git_repo, tmp_path, monkeypatch):  # noqa: F811 - fixture
+    repo, git = git_repo
+    store = str(tmp_path / "repos")
+    with generate.shared_repositories(store):
+        with generate.clone(repo.as_uri(), None) as (directory, paths):
+            assert sorted(paths) == ["po/af.po", "po/zu.po"]
+            # A worktree of the shared repository while it's in use.
+            assert os.path.isfile(os.path.join(directory, ".git"))
+        shared = Git({"url": repo.as_uri()}).repository(store)
+        assert os.path.isfile(os.path.join(shared, "HEAD"))
+        with generate.clone((tmp_path / "gone").as_uri(), None) as cloned:
+            assert cloned is None
+
+        # The shared repository failing, a throwaway clone is made.
+        def failing(self, dest):
+            raise FetchError("locked")
+        monkeypatch.setattr(Git, "worktree", failing)
+        with generate.clone(repo.as_uri(), "main") as (directory, paths):
+            assert sorted(paths) == ["po/af.po", "po/zu.po"]
+            assert os.path.isdir(os.path.join(directory, ".git"))
+
+
+def test_generator_uses_cache(amagama_config, repository, tmp_path):  # noqa: F811 - fixture
+    cache = tmp_path / "cache"
+    cache.mkdir()
+    amagama_config(UPDATER_SOURCES=str(tmp_path / "missing.toml"), UPDATER_CACHE_DIR=str(cache))
+    result = CliRunner().invoke(manage, ("transifex_sources", repository, "--prefix", "tx"))
+    assert result.exit_code == 0, result.output
+    assert os.path.isfile(os.path.join(Git({"url": repository}).repository(str(cache / ".repos")),
+                                       "HEAD"))
