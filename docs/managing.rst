@@ -108,7 +108,8 @@ from the amaGama database:
     Successfully dropped the database for 'fr', 'de'.
 
 With ``--build`` it drops the build schemas instead, and with ``--old`` the
-copies that :ref:`swap_db <managing#swap-db>` replaced.
+copies that :ref:`swap_db <managing#swap-db>` replaced; a source language
+with no replaced copy is skipped, not an error. ``--yes`` doesn't ask first.
 
 
 .. _managing#fetch-sources:
