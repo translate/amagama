@@ -23,6 +23,8 @@ import urllib.parse
 from amagama.licences import normalise_licence
 from amagama.updater.fetchers import FetchError, Git, run_tool
 from amagama.updater.filemask import compile_mask
+from amagama.updater.formats import is_monolingual, open_store
+from amagama.updater.pairing import text
 from amagama.updater.sources import Block, sparse_patterns
 
 
@@ -337,3 +339,62 @@ def verify(blocks, pause=1, tree=tree):
             block.pop("version", None)
         kept.append(block)
     return kept, problems
+
+
+def _store(directory, path, format):
+    """The store of path in a clone made without a checkout, or None if it
+    can't be read; only that file is checked out."""
+    run_tool("git", "-C", directory, "checkout", "--quiet", "HEAD", "--", path, trusted=directory)
+    try:
+        return open_store(os.path.join(directory, path), format)
+    except Exception:
+        return None
+
+
+def _has_translations(store, monolingual):
+    if store is None:
+        return False
+    if monolingual:
+        return any(text(unit) for unit in store.units)
+    return any(not unit.isheader() and unit.istranslated() for unit in store.units)
+
+
+def _empty(block, directory, paths):
+    """Why block would import nothing, or None."""
+    format = block.get("format")
+    template = block.get("template")
+    if template and not _has_translations(_store(directory, template, format), True):
+        return "template has no units"
+    monolingual = is_monolingual(format)
+    for path in paths:
+        if path != template and any(matches(mask, path) for mask in block["files"]) \
+                and _has_translations(_store(directory, path, format), monolingual):
+            return None
+    return "no translations"
+
+
+def importable(blocks, pause=1, clone=clone):
+    """(blocks, problems): blocks that would import something.
+
+    Reads a block's template and its files until one has a translation;
+    one clone per repository and ref. A block whose files can't be fetched
+    is kept. problems counts by reason.
+    """
+    groups = {}
+    for position, block in enumerate(blocks):
+        groups.setdefault((block["url"], block.get("ref")), []).append(position)
+    dropped, problems = set(), {}
+    for (url, ref), positions in groups.items():
+        with clone(url, ref) as cloned:
+            if cloned is not None:
+                directory, paths = cloned
+                for position in positions:
+                    try:
+                        reason = _empty(blocks[position], directory, paths)
+                    except FetchError:
+                        continue
+                    if reason:
+                        dropped.add(position)
+                        problems[reason] = problems.get(reason, 0) + 1
+        time.sleep(pause)
+    return [block for position, block in enumerate(blocks) if position not in dropped], problems

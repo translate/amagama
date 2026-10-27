@@ -721,8 +721,8 @@ def weblate_sources(url, projects, docs, no_verify, prefix, output, min_age_days
 
     Repositories that blocks in the sources file already import are left out,
     but for blocks with the same prefix, which this regenerates. Each block is
-    checked against its repository (a clone of its trees, no files), unless
-    --no-verify.
+    checked against its repository, and left out if it would import nothing,
+    unless --no-verify.
     """
     names, covered, disabled = generated_context(prefix)
     try:
@@ -732,6 +732,8 @@ def weblate_sources(url, projects, docs, no_verify, prefix, output, min_age_days
         raise click.ClickException(str(e))
     if not no_verify:
         found, problems = generate.verify(found)
+        skipped.update(problems)
+        found, problems = generate.importable(found)
         skipped.update(problems)
         found = generate.add_mirrors(found)
     command = "weblate_sources %s --prefix %s%s%s" % (
