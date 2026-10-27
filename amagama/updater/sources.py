@@ -645,6 +645,20 @@ def load_sources(path=None, disabled=False):
     return blocks
 
 
+def unused_repositories(blocks, cache_dir):
+    """The shared git repositories in the cache that none of blocks fetches
+    from; give every block of the sources file, disabled ones too."""
+    store = os.path.join(cache_dir, REPOSITORIES)
+    used = {block.fetcher.repository(store) for block in blocks if block.source == "git"}
+    unused = []
+    for dirpath, dirnames, filenames in os.walk(store):
+        if dirpath.endswith(".git") and "HEAD" in filenames:
+            dirnames[:] = []
+            if dirpath not in used:
+                unused.append(dirpath)
+    return sorted(unused)
+
+
 def limit_first_fetches(blocks, cache_dir, limit):
     """The blocks to run, with at most limit of them fetched for the first time.
 
