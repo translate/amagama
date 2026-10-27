@@ -355,6 +355,11 @@ gone falls back to the default branch, masks that match nothing are dropped,
 and a block left with none, or whose template is missing, is left out.
 ``--no-verify`` skips the check.
 
+A block of the file being regenerated that is ``disabled`` (see
+:ref:`sources file <sources>`) stays disabled with its reason, and one not
+found again is kept as it was, so a block left out for a reason doesn't come
+back. This holds for every command that writes blocks.
+
 
 .. _managing#transifex-sources:
 
