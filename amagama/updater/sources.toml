@@ -340,6 +340,34 @@ files = ["po/{lang}.po"]
 licence = "GPL-2.0-only"
 
 [[block]]
+name = "tuxpaint"
+title = "Tux Paint"
+source = "git"
+min_age_days = 7
+url = "https://git.code.sf.net/p/tuxpaint/tuxpaint"
+files = ["src/po/{lang}.po", "brushes-po/tuxpaint-brushes-{lang}.po"]
+licence = "GPL-2.0-or-later"
+
+[[block]]
+name = "tuxpaint-config"
+title = "Tux Paint Config"
+source = "git"
+min_age_days = 7
+url = "https://git.code.sf.net/p/tuxpaint/tuxpaint-config"
+files = ["src/po/{lang}.po"]
+licence = "GPL-2.0-or-later"
+
+[[block]]
+name = "tuxpaint-stamps"
+title = "Tux Paint Stamps"
+source = "git"
+min_age_days = 7
+url = "https://git.code.sf.net/p/tuxpaint/tuxpaint-stamps"
+files = ["po/tuxpaint-stamps-{lang}.po"]
+# Ships the GPLv2 text without "or later".
+licence = "GPL-2.0-only"
+
+[[block]]
 name = "android-{version}"
 title = "Android"
 source = "git"
