@@ -10,7 +10,7 @@ import subprocess
 
 import pytest
 
-from amagama.updater import linguas, weblate
+from amagama.updater import generate, linguas
 from amagama.updater.sources import load_sources
 
 TREE = [("po/LINGUAS", "l1"), ("po/app.pot", "pot1"), ("po/af.po", "af1"), ("po/de.po", "de1"),
@@ -39,7 +39,8 @@ def test_candidates_left_out():
 def generated(repositories, **kwargs):
     trees = {"https://github.com/org/app": {"po": (["po/af.po"], ("pot1",), 500)}}
     trees.update(kwargs.pop("trees", {}))
-    return linguas.blocks(repositories, "linguas", pause=0,
+    names = generate.Names(kwargs.pop("taken", ()), kwargs.pop("previous", None))
+    return linguas.blocks(repositories, "linguas", names=names, pause=0,
                           read=lambda url, seen: trees.get(url), **kwargs)
 
 
@@ -55,7 +56,7 @@ def test_blocks():
 def test_blocks_round_trip(tmp_path):
     found, _ = generated(["https://github.com/org/app"], licences={"github.com/org/app": "MIT"})
     path = tmp_path / "t.toml"
-    path.write_text(weblate.toml(found, "Generated", {"source": "git"}), encoding="utf-8")
+    path.write_text(generate.toml(found, "Generated", {"source": "git"}), encoding="utf-8")
     [loaded] = load_sources(str(path))
     assert (loaded.name, loaded.licence) == ("linguas-app", "MIT")
 
@@ -122,7 +123,7 @@ def test_blocks_not_valid():
 
 
 def test_blocks_names_kept():
-    previous = {weblate.identity("https://github.com/org/app", None, None, False, None): "linguas-mine"}
+    previous = {generate.identity("https://github.com/org/app", None, None, False, None): "linguas-mine"}
     found, _ = generated(["https://github.com/org/app"], previous=previous)
     assert [b["name"] for b in found] == ["linguas-mine"]
     # Not when another block has it now.

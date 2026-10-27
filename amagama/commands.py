@@ -12,7 +12,6 @@ import logging
 import os
 import re
 import sys
-import tomllib
 
 import click
 from flask import current_app
@@ -25,7 +24,7 @@ from translate.storage import factory
 
 from amagama.licences import normalise_licence
 from amagama.source_options import MAX_WEIGHT
-from amagama.updater import discovery, transifex, weblate
+from amagama.updater import discovery, generate, transifex, weblate
 from amagama.updater.fetchers import FetchError
 from amagama.updater.formats import open_pieces
 from amagama.updater.sources import FAILURES_TO_REPORT, limit_first_fetches, load_sources
@@ -524,27 +523,13 @@ def generator_options(command):
 
 
 def generated_context(prefix):
-    """(previous names, covered repositories, taken names, disabled) for
-    writing blocks whose names start with prefix; disabled maps the names of
-    those disabled to their settings as written."""
+    """generate.context() of the sources file, for writing blocks whose
+    names start with prefix."""
     try:
         existing = load_sources(current_app.config.get('UPDATER_SOURCES'), disabled=True)
     except (OSError, ValueError):
         existing = []
-    # Blocks with this prefix are the ones being regenerated: they keep their
-    # names, and don't count as imported elsewhere.
-    own = [block for block in existing if block.name.startswith(prefix + "-")]
-    previous = weblate.previous_names(own)
-    disabled = {}
-    for path in sorted({block.path for block in own if not block.enabled}):
-        with open(path, "rb") as f:
-            written = {entry.get("name"): entry for entry in tomllib.load(f).get("block", [])}
-        disabled.update((block.name, dict(written[block.name], disabled=block.disabled))
-                        for block in own if not block.enabled and block.path == path)
-    existing = [block for block in existing if not block.name.startswith(prefix + "-")]
-    covered = [block.fetcher.settings["url"] for block in existing
-               if block.enabled and block.source in ("git", "svn")]
-    return previous, covered, {block.name for block in existing}, disabled
+    return generate.context(existing, prefix)
 
 
 def write_generated(found, skipped, command, min_age_days, weight, output, disabled=None):
@@ -561,11 +546,8 @@ def write_generated(found, skipped, command, min_age_days, weight, output, disab
     if weight != 1:
         defaults["weight"] = weight
     disabled = disabled or {}
-    names = {block["name"] for block in found}
-    missing = [settings for name, settings in sorted(disabled.items()) if name not in names]
-    found = [dict({"name": block["name"], "disabled": disabled[block["name"]]["disabled"]}, **block)
-             if block["name"] in disabled else block for block in found] + missing
-    text = weblate.toml(found, header, defaults)
+    found, missing = generate.with_disabled(found, disabled)
+    text = generate.toml(found, header, defaults)
     if output:
         with open(output, "w", encoding="utf-8") as f:
             f.write(text)
@@ -573,7 +555,7 @@ def write_generated(found, skipped, command, min_age_days, weight, output, disab
         click.echo(text, nl=False)
     click.echo("%d blocks%s%s." % (
         len(found), ", %d disabled" % len(disabled) if disabled else "",
-        " (%d not found again)" % len(missing) if missing else ""), err=True)
+        " (%d not found again)" % missing if missing else ""), err=True)
     for (what, reason), count in sorted(skipped.items()):
         click.echo("Skipped %d %s: %s." % (count, what, reason), err=True)
 
@@ -596,14 +578,14 @@ def weblate_sources(url, projects, docs, no_verify, prefix, output, min_age_days
     checked against its repository (a clone of its trees, no files), unless
     --no-verify.
     """
-    previous, covered, taken, disabled = generated_context(prefix)
+    names, covered, disabled = generated_context(prefix)
     try:
         found, skipped = weblate.blocks(weblate.components(url), prefix, projects, docs, covered,
-                                        taken, previous)
+                                        names)
     except FetchError as e:
         raise click.ClickException(str(e))
     if not no_verify:
-        found, problems = weblate.verify(found)
+        found, problems = generate.verify(found)
         skipped.update(problems)
     command = "weblate_sources %s --prefix %s%s%s" % (
         url, prefix, "".join(" --project %s" % p for p in projects if p != "*"),
@@ -634,10 +616,9 @@ def transifex_sources(repositories, from_file, prefix, output, min_age_days, wei
                          if line.strip() and not line.startswith("#")]
     if not repositories:
         raise click.UsageError("Give repositories, or --from-file.")
-    previous, covered, taken, disabled = generated_context(prefix)
-    found, skipped = transifex.blocks(repositories, prefix, covered, taken, previous)
+    names, covered, disabled = generated_context(prefix)
+    found, skipped = transifex.blocks(repositories, prefix, covered, names)
     write_generated(found, skipped, command, min_age_days, weight, output, disabled)
-
 
 
 @click.command('discover_sources')
@@ -684,10 +665,10 @@ def discover_sources(signal, min_stars, pushed_since, min_units, prefix, output,
     if mirrors:
         click.echo("%d mirrors: their blocks use the repositories they copy." % len(mirrors),
                    err=True)
-    previous, covered, taken, disabled = generated_context(prefix)
+    names, covered, disabled = generated_context(prefix)
     found, resolved = discovery.SIGNALS[signal]["blocks"](
-        urls, prefix, covered, taken, previous,
-        licences={weblate.normal_url(url): discovery.licence(repository)
+        urls, prefix, covered, names,
+        licences={generate.normal_url(url): discovery.licence(repository)
                   for url, repository in zip(urls, kept)},
         min_units=min_units, mirrors=mirrors)
     skipped.update(resolved)

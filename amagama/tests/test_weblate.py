@@ -18,7 +18,7 @@ from click.testing import CliRunner
 
 from amagama.cli import manage
 from amagama.tests.test_updater import QuietHandler, block
-from amagama.updater import weblate
+from amagama.updater import generate, weblate
 from amagama.updater.formats import check_format
 from amagama.updater.fetchers import FetchError
 from amagama.updater.sources import load_sources
@@ -34,7 +34,8 @@ def component(project, slug, repo, filemask, branch="main", file_format="po", te
 
 
 def generated(components, **kwargs):
-    found, skipped = weblate.blocks(components, "test", **kwargs)
+    found, skipped = weblate.blocks(components, "test", names=generate.Names(
+        kwargs.pop("taken", ()), kwargs.pop("previous", None)), **kwargs)
     return {b["name"]: b for b in found}, skipped
 
 
@@ -168,14 +169,14 @@ def test_names_counted_last():
 
 
 def test_identity_keeps_unknown_licence():
-    assert weblate.identity("https://git.example/app.git", None, None, False, "proprietary") == (
+    assert generate.identity("https://git.example/app.git", None, None, False, "proprietary") == (
         "git.example/app", None, None, False, "proprietary")
 
 
 def test_names_kept():
     first, skipped = generated([component("app", "ui", "https://git.example/app", "po/*.po")])
     assert list(first) == ["test-app"]
-    previous = {weblate.identity(b["url"], b.get("ref"), b.get("template"), b.get("segment"),
+    previous = {generate.identity(b["url"], b.get("ref"), b.get("template"), b.get("segment"),
                                  b.get("licence")): name
                 for name, b in first.items()}
     # The project gains a component in another format: the first block keeps its name.
@@ -190,7 +191,7 @@ def test_names_kept():
 
 def test_toml_defaults(tmp_path):
     found, skipped = generated([component("app", "ui", "https://git.example/app", "po/*.po")])
-    text = weblate.toml(list(found.values()), "Generated", {"source": "git", "min_age_days": 60})
+    text = generate.toml(list(found.values()), "Generated", {"source": "git", "min_age_days": 60})
     assert "[defaults]\nsource = \"git\"\nmin_age_days = 60\n" in text
     assert text.count('source = "git"') == 1
     path = tmp_path / "w.toml"
@@ -201,7 +202,7 @@ def test_toml_defaults(tmp_path):
 def test_toml_round_trip(tmp_path):
     found, skipped = generated([component("app", "ui", "https://git.example/äpp", "po/*.po")])
     path = tmp_path / "w.toml"
-    path.write_text(weblate.toml(list(found.values()), "Generated\nReview"), encoding="utf-8")
+    path.write_text(generate.toml(list(found.values()), "Generated\nReview"), encoding="utf-8")
     assert path.read_text(encoding="utf-8").startswith("# Generated\n# Review\n")
     assert [b.name for b in load_sources(str(path))] == ["test-app"]
 
@@ -325,7 +326,7 @@ def test_dead_host():
 
 
 def verified(blocks, trees):
-    return weblate.verify(blocks, pause=0, tree=lambda url, ref: trees.get((url, ref)))
+    return generate.verify(blocks, pause=0, tree=lambda url, ref: trees.get((url, ref)))
 
 
 def test_verify():
@@ -366,15 +367,15 @@ def test_tree(tmp_path):
     subprocess.run(["sh", "-c", "git init -q -b main && git add . && git -c user.name=t "
                     "-c user.email=t@example.org commit -q -m po && git branch stable"],
                    cwd=repo, check=True)
-    assert weblate._tree(repo.as_uri(), "stable") == ["po/af.po"]
-    assert weblate._tree(repo.as_uri(), None) == ["po/af.po"]
-    assert weblate._tree(repo.as_uri(), "gone") is None
-    assert weblate._tree((tmp_path / "nothing").as_uri(), None) is None
+    assert generate.tree(repo.as_uri(), "stable") == ["po/af.po"]
+    assert generate.tree(repo.as_uri(), None) == ["po/af.po"]
+    assert generate.tree(repo.as_uri(), "gone") is None
+    assert generate.tree((tmp_path / "nothing").as_uri(), None) is None
 
 
 def test_command_verifies(amagama_config, instance, tmp_path, monkeypatch):
     amagama_config(UPDATER_SOURCES=str(tmp_path / "missing.toml"))
-    monkeypatch.setattr(weblate, "verify", lambda blocks: (blocks[:1], {"filemask matches nothing": 1}))
+    monkeypatch.setattr(generate, "verify", lambda blocks: (blocks[:1], {"filemask matches nothing": 1}))
     result = CliRunner().invoke(manage, ("weblate_sources", instance, "--prefix", "test"))
     assert result.exit_code == 0, result.output
     assert "1 blocks." in result.output

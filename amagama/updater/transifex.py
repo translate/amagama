@@ -21,13 +21,13 @@ import posixpath
 import re
 
 from amagama.updater.fetchers import FetchError, run_tool
-from amagama.updater.filemask import compile_mask
 from amagama.updater.formats import is_monolingual
+from amagama.updater.generate import clone, matches, matching
 from amagama.updater.languages import normalise_language
 from amagama.updater.repositories import VENDORED
 from amagama.updater.repositories import blocks as repository_blocks
 from amagama.updater.sources import sparse_patterns
-from amagama.updater.weblate import FORMATS, clone
+from amagama.updater.weblate import FORMATS
 
 # Transifex file types amaGama reads, as the Weblate format each one is.
 TYPES = {
@@ -156,8 +156,8 @@ def repository(url):
         return paths, texts
 
 
-def blocks(repositories, prefix, covered=(), taken=(), previous=None, pause=1, read=None,
-           licences=None, mirrors=None):
+def blocks(repositories, prefix, covered=(), names=None, pause=1, read=None, licences=None,
+           mirrors=None):
     """(blocks, skipped) for repositories' Transifex resources; see
     repositories.blocks() for the arguments and what skipped counts.
 
@@ -191,16 +191,15 @@ def blocks(repositories, prefix, covered=(), taken=(), previous=None, pause=1, r
         # The repository's shared block first, then a block per template.
         for key, group in sorted(groups.items(), key=lambda item: (item[0][1] or "", item[0][0],
                                                                   item[0][2])):
-            files = sorted(mask for mask in group["masks"]
-                           if any(_matches(mask, path) for path in paths))
             template = group["template"]
-            if not files or (template and template not in paths):
+            files = matching(group["masks"], paths, template)
+            if not files:
                 skipped["resources", "file_filter matches nothing"] += 1
                 continue
             candidate = {"suffix": group["resource"] if template else None, "files": files}
             # A source file the filter also matches isn't a translation.
             exclude = sorted(source for source in group["sources"]
-                             if any(_matches(mask, source) for mask in files))
+                             if any(matches(mask, source) for mask in files))
             if exclude:
                 candidate["exclude"] = exclude
             candidate["sparse"] = sparse_patterns(files, template)
@@ -213,12 +212,5 @@ def blocks(repositories, prefix, covered=(), taken=(), previous=None, pause=1, r
             candidates.append(candidate)
         return candidates, skipped
 
-    return repository_blocks(repositories, prefix, resolve, "resources", covered, taken, previous,
-                             pause, licences, mirrors)
-
-
-def _matches(mask, path):
-    try:
-        return bool(compile_mask(mask).match(path))
-    except ValueError:
-        return False
+    return repository_blocks(repositories, prefix, resolve, "resources", covered, names, pause,
+                             licences, mirrors)

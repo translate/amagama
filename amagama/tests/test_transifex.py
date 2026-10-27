@@ -13,7 +13,7 @@ from click.testing import CliRunner
 
 from amagama.cli import manage
 from amagama.tests.test_updater import block
-from amagama.updater import transifex
+from amagama.updater import generate, transifex
 from amagama.updater.fetchers import FetchError
 from amagama.updater.sources import load_sources
 
@@ -87,7 +87,8 @@ def test_resources_unreadable():
 def generated(repositories, **kwargs):
     trees = {"https://github.com/org/app": (TREE, {".tx/config": CONFIG})}
     trees.update(kwargs.pop("trees", {}))
-    return transifex.blocks(repositories, "tx", pause=0, read=trees.get, **kwargs)
+    names = generate.Names(kwargs.pop("taken", ()), kwargs.pop("previous", None))
+    return transifex.blocks(repositories, "tx", names=names, pause=0, read=trees.get, **kwargs)
 
 
 def test_blocks():
@@ -104,10 +105,9 @@ def test_blocks():
 
 
 def test_blocks_round_trip(tmp_path):
-    from amagama.updater import weblate
     found, _ = generated(["https://github.com/org/app"])
     path = tmp_path / "t.toml"
-    path.write_text(weblate.toml(found, "Generated"), encoding="utf-8")
+    path.write_text(generate.toml(found, "Generated"), encoding="utf-8")
     assert [b.name for b in load_sources(str(path))] == ["tx-app", "tx-app-android"]
 
 
@@ -165,7 +165,7 @@ def test_blocks_names():
 
 
 def test_blocks_names_kept():
-    from amagama.updater.weblate import identity
+    from amagama.updater.generate import identity
     previous = {identity("https://github.com/org/app", None, "res/values/strings.xml", False, None):
                 "tx-mine"}
     found, _ = generated(["https://github.com/org/app"], previous=previous)
