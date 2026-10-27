@@ -17,8 +17,10 @@ import contextvars
 import fnmatch
 import gzip
 import hashlib
+import io
 import json
 import logging
+import lzma
 import os
 import posixpath
 import re
@@ -36,6 +38,7 @@ import zipfile
 from translate.storage import po
 
 from amagama import __version__
+from amagama.updater import compressed
 
 USER_AGENT = "amaGama-updater/%s (+https://github.com/translate/amagama)" % __version__
 TIMEOUT = 120
@@ -1165,10 +1168,112 @@ class Snapshot(Fetcher):
         return []
 
 
+def deb_data(path):
+    """(name, contents) of a .deb's data.tar.* member; a .deb is an ar archive."""
+    with open(path, "rb") as f:
+        if f.read(8) != b"!<arch>\n":
+            raise FetchError("%s: not a .deb" % path)
+        while len(header := f.read(60)) == 60:
+            name = header[:16].decode("ascii", "replace").strip().rstrip("/")
+            size = int(header[48:58])
+            data = f.read(size)
+            f.read(size % 2)
+            if name.startswith("data.tar"):
+                return name, data
+    raise FetchError("%s: no data.tar" % path)
+
+
+class UbuntuLanguagePacks(Fetcher):
+    """Ubuntu's language packs of a series: language-pack-<lang>-base, the
+    translations Launchpad exports for the release, as .mo files under
+    usr/share/locale-langpack/<locale>/.
+
+    The archive's package index of the series, then of its -updates pocket,
+    gives each pack's newest .deb and its SHA512.
+    """
+
+    required = ("series",)
+    optional = ("base_url", "pause")
+    rotates = True
+    PACKAGE = re.compile(r"language-pack-(?!gnome-|kde-)(.+)-base")
+    LOCALES = "usr/share/locale-langpack/"
+
+    @property
+    def base_url(self):
+        return self.settings.get("base_url", "https://archive.ubuntu.com/ubuntu").rstrip("/")
+
+    def packs(self):
+        """{pack's language: (path in the archive, SHA512)}."""
+        if not hasattr(self, "_packs"):
+            self._packs = {}
+            for suite in (self.settings["series"], self.settings["series"] + "-updates"):
+                url = "%s/dists/%s/main/binary-amd64/Packages.xz" % (self.base_url, suite)
+                with tempfile.TemporaryDirectory() as tmp:
+                    path = os.path.join(tmp, "Packages.xz")
+                    try:
+                        download(url, path)
+                        with lzma.open(path, "rt", encoding="utf-8") as f:
+                            index = f.read()
+                    except FetchError as e:
+                        # A pocket with nothing in it yet has no index.
+                        if e.status == 404 and suite.endswith("-updates"):
+                            continue
+                        raise
+                    except (lzma.LZMAError, OSError) as e:
+                        raise FetchError("%s: %s" % (url, e))
+                for stanza in index.split("\n\n"):
+                    fields = dict(line.split(": ", 1) for line in stanza.splitlines()
+                                  if ": " in line and not line.startswith(" "))
+                    match = self.PACKAGE.fullmatch(fields.get("Package", ""))
+                    if match and "Filename" in fields and "SHA512" in fields:
+                        self._packs[match.group(1)] = (fields["Filename"], fields["SHA512"])
+        return self._packs
+
+    def languages(self):
+        return sorted(self.packs())
+
+    def fingerprint(self):
+        return combine([(lang, sha512) for lang, (_, sha512) in self.packs().items()])
+
+    def fetch(self, dest, languages=None):
+        files = []
+        with tempfile.TemporaryDirectory() as tmp:
+            for lang, (filename, sha512) in sorted(self.packs().items()):
+                if languages is not None and lang not in languages:
+                    continue
+                url = "%s/%s" % (self.base_url, filename)
+                deb = os.path.join(tmp, "pack.deb")
+                download(url, deb)
+                with open(deb, "rb") as f:
+                    if hashlib.sha512(f.read()).hexdigest() != sha512:
+                        raise FetchError("%s: SHA512 doesn't match the index" % url)
+                name, data = deb_data(deb)
+                if name.endswith(".zst"):
+                    packed = os.path.join(tmp, "data.tar" + compressed.SUFFIX)
+                    with open(packed, "wb") as f:
+                        f.write(data)
+                    compressed.decompress(packed, os.path.join(tmp, "data.tar"))
+                    with open(os.path.join(tmp, "data.tar"), "rb") as f:
+                        data = f.read()
+                try:
+                    with tarfile.open(fileobj=io.BytesIO(data)) as tar:
+                        members = [member for member in tar.getmembers() if member.isfile()
+                                   and member.name.lstrip("./").startswith(self.LOCALES)]
+                        tar.extractall(os.path.join(dest, lang), members, filter="data")
+                except tarfile.TarError as e:
+                    raise FetchError("%s: %s" % (url, e))
+                lang_dir = os.path.join(dest, lang)
+                if os.path.isdir(lang_dir):
+                    files.extend((os.path.join(lang, f), lang) for f in files_under(lang_dir))
+                time.sleep(self.settings.get("pause", 1))
+        return files
+
+
 FETCHERS = {
     "damned-lies": DamnedLies,
     "drupal": Drupal,
     "translationproject": TranslationProject,
+    "ubuntu-langpacks": UbuntuLanguagePacks,
     "vscode": VSCode,
     "git": Git,
     "glotpress": GlotPress,

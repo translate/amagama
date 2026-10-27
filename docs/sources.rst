@@ -255,9 +255,9 @@ files it includes); a block's own settings take precedence. ``name`` and
 
   ``max_age_days`` (default 30): a copy this old is fetched again, though
   nothing says it changed. For a source with one download per language
-  (``damned-lies``, ``translationproject``, ``http``, ``pontoon``,
-  ``wordpress``, ``drupal``, ``moodle``, ``joomla``, ``svn``) it applies to
-  each language, and the downloads are spread out: a run takes its share of
+  (``damned-lies``, ``translationproject``, ``ubuntu-langpacks``, ``http``,
+  ``pontoon``, ``wordpress``, ``drupal``, ``moodle``, ``joomla``, ``svn``) it
+  applies to each language, and the downloads are spread out: a run takes its share of
   the languages for the days since the last fetch (rounded up; a day's share
   the first time), languages never fetched first, then those fetched longest
   ago. With 57 languages a daily run fetches 2, so the first fetch takes
@@ -324,6 +324,24 @@ Source types
 ``translationproject``
   The `Translation Project <https://translationproject.org>`_'s monthly backup
   of every package, one tarball per language.
+
+``ubuntu-langpacks``
+  Ubuntu's language packs of a ``series`` (required, such as ``"noble"``):
+  ``language-pack-<lang>-base``, the translations Launchpad exports for the
+  release, one :file:`.deb` per language. The archive's package index of the
+  series, then of its ``-updates`` pocket, gives each pack's newest
+  :file:`.deb`, checked against the index's SHA512; only its
+  :file:`usr/share/locale-langpack/` is kept, under the pack's language, so
+  ``files`` picks the domains and gives the locale:
+
+  .. code-block:: toml
+
+      files = ["*/usr/share/locale-langpack/{lang}/LC_MESSAGES/apport.mo"]
+
+  A pack mixes upstream projects' translations with Launchpad's edits of
+  them, unmarked, so the shipped block takes only Ubuntu's own packages'
+  domains. ``base_url`` (default ``https://archive.ubuntu.com/ubuntu``) names
+  a mirror; ``pause`` (default 1) is the seconds between downloads.
 
 ``git``
   A shallow clone of ``url`` at ``ref`` (default: the default branch). A
@@ -458,7 +476,8 @@ release's translation statistics (one request; a reworded translation alone
 doesn't change them), for ``wordpress`` every pack's version and update time, for ``glotpress`` the
 project page's translated count per locale (one request; like Damned Lies,
 a rewording alone doesn't change it),
-for ``moodle`` the pack index with its MD5s, for ``joomla`` the packs'
+for ``moodle`` the pack index with its MD5s, for ``ubuntu-langpacks`` the
+packs' SHA512s in the package indexes, for ``joomla`` the packs'
 versions and the English ref's commit, for ``drupal`` the projects' releases
 (the files are rebuilt daily), for ``pontoon`` none (its files are generated
 on request), for ``translationproject`` the ETag or Last-Modified header of
