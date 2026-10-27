@@ -179,6 +179,20 @@ versions = [
 ]
 
 [[block]]
+name = "signal-desktop"
+title = "Signal Desktop"
+source = "git"
+min_age_days = 7
+url = "https://github.com/signalapp/Signal-Desktop"
+files = ["_locales/{lang}/messages.json"]
+format = "json"
+template = "_locales/en/messages.json"
+# Smartling's layout: each message's text is its messageformat; Signal's files
+# misspell one key.
+exclude_ids = ["smartling.*", "*.description", "*.descrption", "*.ignoreUnused", "*.limit"]  # codespell:ignore descrption
+licence = "AGPL-3.0-only"
+
+[[block]]
 name = "gnome-circle"
 title = "GNOME Circle"
 source = "damned-lies"
