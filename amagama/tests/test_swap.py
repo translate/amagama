@@ -143,6 +143,22 @@ class TestSwap(object):
         with app.test_client() as client:
             assert lookup(client) == ['Open lêer']
 
+    def test_drop_old_without_asking(self, run, live_and_build):
+        run('swap_db', '-s', 'en')
+        result = run('dropdb', '-s', 'en', '--old', '--yes')
+        assert result.exit_code == 0, result.output
+        assert "Successfully dropped the database for 'en'." in result.output
+        assert run('swap_db', '-s', 'en', '--rollback').exit_code == 1
+
+    def test_drop_old_when_there_is_none(self, run, live_and_build):
+        # Nothing was swapped in this week: nothing to drop is no failure.
+        result = run('dropdb', '-s', 'en', '--old', '--yes')
+        assert result.exit_code == 0, result.output
+        assert "No replaced copy of 'en' to drop." in result.output
+        app = amagama_server_factory()
+        with app.test_client() as client:
+            assert lookup(client) == ['Maak lêer oop']
+
     def test_drop_build_and_old_together(self, run):
         result = run('dropdb', '-s', 'en', '--build', '--old')
         assert result.exit_code == 2

@@ -33,7 +33,7 @@ from amagama.updater.fetchers import FetchError, remembered_commits
 from amagama.updater.formats import open_pieces
 from amagama.updater.sources import (FAILURES_TO_REPORT, REPOSITORIES, TAGS, limit_first_fetches,
                                      load_sources, select, unused_repositories)
-from amagama.tmdb import BUILD_PREFIX, OLD_PREFIX
+from amagama.tmdb import BUILD_PREFIX, OLD_PREFIX, lang_to_table
 
 def ensure_source_exists():
     db_name = current_app.config.get("DB_NAME")
@@ -74,18 +74,27 @@ def initdb(source_langs, build):
 @source_language_option
 @build_option
 @click.option('--old', is_flag=True,
-              help="Drop the copies (%s<lang>) that swap_db replaced." % OLD_PREFIX)
+              help="Drop the copies (%s<lang>) that swap_db replaced; none is fine." % OLD_PREFIX)
+@click.option('--yes', is_flag=True, help="Don't ask for confirmation.")
 @with_appcontext
-def dropdb(source_langs, build, old):
+def dropdb(source_langs, build, old, yes):
     """Drop the database."""
     if build and old:
         raise click.UsageError("Use only one of --build and --old.")
     use_build_schemas(build)
     if old:
         current_app.tmdb.use_schemas(OLD_PREFIX)
+        # A week whose update changed nothing leaves no replaced copy.
+        missing = [lang for lang in source_langs
+                   if lang_to_table(lang) not in current_app.tmdb.source_langs]
+        for lang in missing:
+            print("No replaced copy of '%s' to drop." % lang)
+        source_langs = [lang for lang in source_langs if lang not in missing]
+        if not source_langs:
+            return
     ensure_source_exists()
-    if click.confirm("This will permanently destroy all data in the "
-                     "configured database. Continue?"):
+    if yes or click.confirm("This will permanently destroy all data in the "
+                            "configured database. Continue?"):
         current_app.tmdb.drop_db(source_langs)
         langs = "', '".join(source_langs)
         print("Successfully dropped the database for '%s'." % langs)
