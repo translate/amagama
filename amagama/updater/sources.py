@@ -30,6 +30,8 @@ DEFAULT_SOURCES = os.path.join(os.path.dirname(__file__), "sources.toml")
 STATE_FILE = "fetched.json"
 # Beside a block's directory: its failed runs in a row.
 FAILED_SUFFIX = ".failed"
+# Beside a block's directory: since when its mirror has been behind.
+MIRROR_SUFFIX = ".mirror"
 REPOSITORIES = ".repos"
 # This many failed runs in a row and a block is called out for attention.
 FAILURES_TO_REPORT = 4
@@ -54,7 +56,7 @@ class Block(object):
                  exclude=None, keep=None, languages=None, format=None, template=None,
                  exclude_ids=None, columns=None, header_row=None, xliff_states=None,
                  max_age_days=30, min_age_days=0, segment=False, weight=1, tags=None,
-                 **settings):
+                 mirror_lag_days=14, **settings):
         self.name = name
         self.title = title
         self.version = version
@@ -111,6 +113,9 @@ class Block(object):
         if type(min_age_days) is not int or min_age_days < 0:
             raise ValueError("min_age_days must be a whole number of days")
         self.min_age_days = min_age_days
+        if type(mirror_lag_days) is not int or mirror_lag_days < 0:
+            raise ValueError("mirror_lag_days must be a whole number of days")
+        self.mirror_lag_days = mirror_lag_days
         if not isinstance(segment, bool):
             raise ValueError("segment must be true or false")
         self.segment = segment
@@ -172,6 +177,77 @@ class Block(object):
         except FileNotFoundError:
             pass
 
+    @property
+    def mirror(self):
+        return self.fetcher.settings.get("mirror") if self.source == "git" else None
+
+    def mirror_state(self, cache_dir):
+        """Since when the mirror has been behind without moving: {"since",
+        "commit", "error"?}, or None."""
+        try:
+            with open(self.directory(cache_dir) + MIRROR_SUFFIX, encoding="utf-8") as f:
+                return json.load(f)
+        except FileNotFoundError:
+            return None
+
+    def fingerprint(self, cache_dir):
+        """The fetcher's fingerprint, choosing where a block with a mirror
+        fetches from.
+
+        The mirror takes load off the upstream's servers. It's used while it
+        has the upstream's commit, or is behind but moved less than
+        mirror_lag_days ago (a mirror syncing now and then is seldom level
+        with a busy upstream); after that, or when it can't be reached, the
+        upstream is.
+        """
+        if not self.mirror:
+            return self.fetcher.fingerprint()
+        url = self.fetcher.settings["url"]
+        upstream = self.fetcher.commit(url)
+        try:
+            copy, error = self.fetcher.commit(self.mirror), None
+        except FetchError as e:
+            copy, error = None, str(e)
+        path = self.directory(cache_dir) + MIRROR_SUFFIX
+        if copy == upstream:
+            if os.path.exists(path):
+                os.remove(path)
+            self.fetcher.source = self.mirror
+            return copy
+        now = datetime.datetime.now(datetime.timezone.utc)
+        state = self.mirror_state(cache_dir) or {}
+        if copy and state.get("commit") != copy or "since" not in state:
+            state = {"since": now.isoformat(), "commit": copy}
+        state.pop("error", None)
+        if error:
+            state["error"] = error
+        os.makedirs(cache_dir, exist_ok=True)
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(state, f, indent=1)
+        behind = now - datetime.datetime.fromisoformat(state["since"])
+        if copy and behind < datetime.timedelta(days=self.mirror_lag_days):
+            self.fetcher.source = self.mirror
+            return copy
+        self.fetcher.source = url
+        return upstream
+
+    def mirror_note(self, cache_dir):
+        """Why the block was fetched from its upstream, not its mirror, or None."""
+        state = self.mirror_state(cache_dir) if self.mirror else None
+        if state is None:
+            return None
+        if state.get("error"):
+            return "mirror unreachable, fetched from upstream: %s" % state["error"]
+        since = datetime.datetime.fromisoformat(state["since"])
+        behind = datetime.datetime.now(datetime.timezone.utc) - since
+        if behind < datetime.timedelta(days=self.mirror_lag_days):
+            return None
+        note = "mirror %s behind and unchanged since %s, fetched from upstream" % (
+            self.mirror, since.date())
+        if behind >= datetime.timedelta(days=2 * max(self.mirror_lag_days, 1)):
+            note += "; is it kept current?"
+        return note
+
     def changed(self, cache_dir):
         """Whether the source may differ from the last fetch.
 
@@ -192,7 +268,7 @@ class Block(object):
             dates = state.get("language_fetched")
             return dates is None or age >= datetime.timedelta(
                 days=self.max_age_days / max(state.get("language_count", len(dates)), 1))
-        fingerprint = self.fetcher.fingerprint()
+        fingerprint = self.fingerprint(cache_dir)
         if fingerprint is None:
             return age >= datetime.timedelta(days=self.max_age_days)
         return state["fingerprint"] != fingerprint
@@ -249,7 +325,7 @@ class Block(object):
         """
         previous = self.state(cache_dir)
         # A rotating block's change is found by fetching its due languages.
-        fingerprint = None if self.rotates else self.fetcher.fingerprint()
+        fingerprint = None if self.rotates else self.fingerprint(cache_dir)
         available = self.fetcher.languages() if self.rotates else None
         due = self.due(previous, available) if self.rotates else None
         final = self.directory(cache_dir)

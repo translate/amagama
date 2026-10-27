@@ -412,14 +412,18 @@ class Git(Fetcher):
     With sparse, a list of gitignore-style patterns, only matching files
     are downloaded and checked out. With store set (by the block), the clone
     is one partial repository per URL kept there and shared by the blocks
-    that fetch from it: a refetch downloads only what changed since.
+    that fetch from it: a refetch downloads only what changed since. A
+    mirror is a copy of url the block may fetch from instead (see
+    Block.mirror_lag_days); the repository is still url's.
     """
 
     # Where the shared repositories are kept; None makes a throwaway clone.
     store = None
+    # The URL to fetch from: url, or the mirror (set by the block).
+    source = None
 
     required = ("url",)
-    optional = ("ref", "sparse")
+    optional = ("ref", "sparse", "mirror")
     gives_language = False
 
     def __init__(self, settings):
@@ -428,22 +432,30 @@ class Git(Fetcher):
         if sparse is not None and (not isinstance(sparse, list) or not sparse or not all(
                 isinstance(pattern, str) for pattern in sparse)):
             raise ValueError("sparse must be a list of patterns")
+        mirror = settings.get("mirror")
+        if mirror is not None and (not isinstance(mirror, str) or "://" not in mirror
+                                   or mirror == settings["url"]):
+            raise ValueError("mirror must be the URL of a copy of url")
 
     def _git(self, *args, clone=None):
         return run_tool("git", *args, trusted=clone)
 
     def fingerprint(self):
+        return self.commit(self.settings["url"])
+
+    def commit(self, url):
+        """The commit of the block's ref at url."""
         ref = self.settings.get("ref", "HEAD")
-        host = urllib.parse.urlsplit(self.settings["url"]).hostname or ""
+        host = urllib.parse.urlsplit(url).hostname or ""
         if host.endswith(GITILES_HOSTS):
-            return self._gitiles_commit(ref)
-        lines = self._git("ls-remote", self.settings["url"], ref).split()
+            return self._gitiles_commit(url, ref)
+        lines = self._git("ls-remote", url, ref).split()
         if not lines:
-            raise FetchError("%s: no ref %s" % (self.settings["url"], ref))
+            raise FetchError("%s: no ref %s" % (url, ref))
         return lines[0]
 
-    def _gitiles_commit(self, ref):
-        url = "%s/+/%s?format=JSON" % (self.settings["url"].rstrip("/"), urllib.parse.quote(ref))
+    def _gitiles_commit(self, url, ref):
+        url = "%s/+/%s?format=JSON" % (url.rstrip("/"), urllib.parse.quote(ref))
         try:
             # Gitiles prefixes its JSON with )]}' to stop it being run as script.
             return json.loads(http_text(url).split("\n", 1)[1])["commit"]
@@ -462,7 +474,7 @@ class Git(Fetcher):
         if self.store is None:
             return self._clone(dest)
         repo = self.repository()
-        url = self.settings["url"]
+        url = self.source or self.settings["url"]
         ref = self.settings.get("ref", "HEAD")
         trusted = (repo, dest)
         if not os.path.isfile(os.path.join(repo, "HEAD")):
@@ -503,7 +515,7 @@ class Git(Fetcher):
         sparse = self.settings.get("sparse")
         if sparse:
             args += ["--filter=blob:none", "--sparse", "--no-checkout"]
-        self._git(*(args + [self.settings["url"], dest]), clone=dest)
+        self._git(*(args + [self.source or self.settings["url"], dest]), clone=dest)
         if sparse:
             self._git("-C", dest, "sparse-checkout", "set", "--no-cone", *sparse, clone=dest)
             self._git("-C", dest, "checkout", "--quiet", clone=dest)
