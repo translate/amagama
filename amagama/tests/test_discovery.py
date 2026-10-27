@@ -18,6 +18,7 @@ import pytest
 from click.testing import CliRunner
 
 from amagama.cli import manage
+from amagama.tests.test_crowdin import crowdin_repository  # noqa: F401 (fixture)
 from amagama.tests.test_linguas import repository  # noqa: F401 (fixture)
 from amagama.tests.test_updater import block
 from amagama.updater import discovery
@@ -343,3 +344,27 @@ def test_command_fetch_error(amagama_config, tmp_path, monkeypatch):
     result = CliRunner().invoke(manage, ("discover_sources", "linguas", "--prefix", "linguas"))
     assert result.exit_code == 1
     assert "HTTP Error 401" in result.output
+
+
+def test_command_crowdin(amagama_config, crowdin_repository, tmp_path, monkeypatch):  # noqa: F811
+    amagama_config(UPDATER_SOURCES=str(tmp_path / "missing.toml"))
+    monkeypatch.setenv("GITHUB_TOKEN", "t")
+    queries = []
+
+    def search(query, token):
+        queries.append(query)
+        return ["org/repo"], False
+
+    monkeypatch.setattr(discovery, "search", search)
+    monkeypatch.setattr(discovery, "stats", lambda names, token: {"org/repo": {
+        "url": crowdin_repository, "stargazerCount": 500, "pushedAt": "2026-01-01T00:00:00Z",
+        "isArchived": False, "isFork": False, "licenseInfo": {"spdxId": "MIT"}}})
+    output = tmp_path / "crowdin.toml"
+    result = CliRunner().invoke(manage, ("discover_sources", "crowdin", "--prefix", "crowdin",
+                                         "--output", str(output)))
+    assert result.exit_code == 0, result.output
+    assert queries == discovery.SIGNALS["crowdin"]["queries"]
+    assert "1 repositories found." in result.output
+    [found] = load_sources(str(output))
+    assert (found.name, found.licence, found.selection.mask_texts) == (
+        "crowdin-repo", "MIT", ["po/{lang}.po"])

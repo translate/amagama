@@ -25,7 +25,7 @@ import urllib.request
 
 import spdx_license_list
 
-from amagama.updater import linguas
+from amagama.updater import crowdin, linguas
 from amagama.updater.fetchers import TIMEOUT, USER_AGENT, FetchError
 
 SEARCH = "https://api.github.com/search/code"
@@ -40,7 +40,10 @@ MAX_WAIT = 900
 
 # Each signal: its code search query and the resolver writing its blocks.
 SIGNALS = {
-    "linguas": {"query": "filename:LINGUAS path:po", "blocks": linguas.blocks},
+    "linguas": {"queries": ["filename:LINGUAS path:po"], "blocks": linguas.blocks},
+    "crowdin": {"queries": ["filename:crowdin.yml -path:.github", "filename:crowdin.yaml -path:.github",
+                            "filename:.crowdin.yml -path:.github"],
+                "blocks": crowdin.blocks},
 }
 
 FIELDS = ("url stargazerCount pushedAt isArchived isFork licenseInfo { spdxId } description "

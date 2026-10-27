@@ -759,7 +759,7 @@ def transifex_sources(repositories, from_file, prefix, output, min_age_days, wei
               help="Leave out repositories not pushed since this date; else 1 January "
               "of last year.")
 @click.option('--min-units', type=click.IntRange(min=0), default=100, show_default=True,
-              help="Fewest translated units, not fuzzy, a block needs.")
+              help="Fewest translated units, not fuzzy, a block needs (linguas).")
 @generator_options(("discovered",))
 @with_appcontext
 @with_shared_repositories
@@ -780,7 +780,11 @@ def discover_sources(signal, min_stars, pushed_since, min_units, prefix, output,
         raise click.UsageError("GitHub's code search needs a token: set GITHUB_TOKEN.")
     pushed_since = pushed_since.date() if pushed_since else discovery.default_pushed_since()
     try:
-        names, incomplete = discovery.search(discovery.SIGNALS[signal]["query"], token)
+        names, incomplete = set(), False
+        for query in discovery.SIGNALS[signal]["queries"]:
+            found, missing = discovery.search(query, token)
+            names, incomplete = names | set(found), incomplete or missing
+        names = sorted(names)
         click.echo("%d repositories found%s." % (
             len(names), ", some of the search's results missing" if incomplete else ""), err=True)
         kept, skipped = discovery.select(discovery.stats(names, token), min_stars, pushed_since)
