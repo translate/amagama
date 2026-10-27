@@ -45,6 +45,11 @@ The checkout and its virtualenv::
     sudo python3 -m venv /srv/amagama/venv
     sudo /srv/amagama/venv/bin/pip install -r /srv/amagama/amagama/deploy/requirements.txt
     sudo /srv/amagama/venv/bin/pip install --no-deps -e /srv/amagama/amagama
+    sudo /srv/amagama/venv/bin/python -c "from phply import phpparse; phpparse.make_parser()"
+
+The last line writes the PHP reader's parser tables into the virtualenv, which
+the updater can't write to; without them it builds them on every run and warns
+"Couldn't create 'phply.parsetab'".
 
 The web app's files::
 
@@ -117,4 +122,5 @@ Upgrading
 
     sudo git -C /srv/amagama/amagama pull --ff-only
     sudo /srv/amagama/venv/bin/pip install -r /srv/amagama/amagama/deploy/requirements.txt
+    sudo /srv/amagama/venv/bin/python -c "from phply import phpparse; phpparse.make_parser()"
     sudo systemctl restart amagama.uwsgi
