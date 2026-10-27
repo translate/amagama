@@ -15,6 +15,8 @@ from amagama.updater.filemask import Selection, compile_mask, fill, wildcards
     (["po/{lang}.po"], "po/af.po", "af"),
     (["po/{lang}.po"], "po/pt_BR.po", "pt_BR"),
     (["po/{lang}.po"], "po/sr@latin.po", "sr@latin"),
+    (["po/{lang}.po"], "po/mni@meiteimayek.po", "mni@meiteimayek"),
+    (["po/{lang}.po"], "po/sr@ijekavianlatin.po", "sr@ijekavianlatin"),
     (["{lang}/*.po"], "ca@valencia/app.po", "ca@valencia"),
     # Qt: the language follows the last underscore that starts a code.
     (["translations/*_{lang}.ts"], "translations/qtbase_af.ts", "af"),

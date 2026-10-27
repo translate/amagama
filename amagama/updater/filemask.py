@@ -17,7 +17,8 @@ b+sr+Latn).
 import re
 
 TOKENS = re.compile(r"(\*\*/|\*\*|\*|\{lang\})")
-LANG_PATTERN = r"[a-z]{1,3}(?:[_@+-][A-Za-z0-9]{1,8})*"
+# BCP 47 subtags are at most 8 characters; a POSIX @modifier has no limit.
+LANG_PATTERN = r"[a-z]{1,3}(?:[_+-][A-Za-z0-9]{1,8}|@[A-Za-z0-9]+)*"
 
 
 def compile_mask(mask, allow_lang=True):
