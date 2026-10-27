@@ -19,7 +19,10 @@ import re
 import time
 import urllib.parse
 
-from amagama.updater.generate import Names, check_block, identity, normal_url, with_mirror
+from amagama.updater.fetchers import FetchError, run_tool
+from amagama.updater.generate import (Names, check_block, clone, identity, matches, matching,
+                                      normal_url, with_mirror)
+from amagama.updater.sources import sparse_patterns
 
 # Copies of other projects' trees.
 VENDORED = re.compile(r"(?:^|/)(?:vendor|node_modules|wp-content|subprojects|third_party)/")
@@ -93,3 +96,73 @@ def blocks(repositories, prefix, resolve, what, covered=(), names=None, pause=1,
             names.take(unique)
             found.append(block)
     return found, dict(skipped)
+
+
+def _read(directory, path):
+    return run_tool("git", "-C", directory, "show", "HEAD:" + path, trusted=directory)
+
+
+def configs(paths, configuration):
+    """The paths configuration (a compiled pattern) matches, but vendored copies."""
+    return [path for path in paths if configuration.search(path) and not VENDORED.search(path)]
+
+
+def read(url, configuration):
+    """(paths, {configs() path: text, or None if unreadable}) of url's
+    default branch, or None if the repository isn't there."""
+    with clone(url, None) as cloned:
+        if cloned is None:
+            return None
+        directory, paths = cloned
+        texts = {}
+        for path in configs(paths, configuration):
+            try:
+                texts[path] = _read(directory, path)
+            except FetchError:
+                texts[path] = None
+        return paths, texts
+
+
+def candidates(files, paths, what, nothing):
+    """(candidates, skipped) for repositories.blocks() from the files a
+    repository's configurations give, and its paths.
+
+    Each file is a dict: its translations (mask), amaGama format ("po" for
+    none), template (a monolingual source), source (a bilingual one, which
+    the mask mustn't take for a translation), language overrides and name.
+    Files of one format and language overrides share a block, but a
+    monolingual file has its own, for its template, named by the file. A
+    mask matching no file is dropped; skipped counts the groups left, as
+    (what, nothing).
+    """
+    groups, skipped = {}, collections.Counter()
+    for found in files:
+        key = (found["format"], found["template"] or "", tuple(sorted(found["languages"].items())))
+        group = groups.setdefault(key, dict(found, masks=set(), sources=set()))
+        group["masks"].add(found["mask"])
+        if found["source"]:
+            group["sources"].add(found["source"])
+    found_candidates = []
+    # The repository's shared block first, then a block per template.
+    for (file_format, template, languages), group in sorted(
+            groups.items(), key=lambda item: (bool(item[0][1]), item[0])):
+        template = template or None
+        found_masks = matching(group["masks"], paths, template)
+        if not found_masks:
+            skipped[what, nothing] += 1
+            continue
+        candidate = {"suffix": group["name"] if template else None, "files": found_masks}
+        # A source file a mask also matches isn't a translation.
+        exclude = sorted(source for source in group["sources"]
+                         if any(matches(mask, source) for mask in found_masks))
+        if exclude:
+            candidate["exclude"] = exclude
+        candidate["sparse"] = sparse_patterns(found_masks, template)
+        if file_format != "po":
+            candidate["format"] = file_format
+        if template:
+            candidate["template"] = template
+        if languages:
+            candidate["languages"] = dict(languages)
+        found_candidates.append(candidate)
+    return found_candidates, skipped

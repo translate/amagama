@@ -20,13 +20,11 @@ import configparser
 import posixpath
 import re
 
-from amagama.updater.fetchers import FetchError, run_tool
+from amagama.updater import repositories
 from amagama.updater.formats import is_monolingual
-from amagama.updater.generate import clone, matches, matching
 from amagama.updater.languages import normalise_language
-from amagama.updater.repositories import VENDORED
 from amagama.updater.repositories import blocks as repository_blocks
-from amagama.updater.sources import sparse_patterns
+from amagama.updater.repositories import candidates as repository_candidates
 from amagama.updater.weblate import FORMATS
 
 # Transifex file types amaGama reads, as the Weblate format each one is.
@@ -133,27 +131,12 @@ def resources(text, directory=""):
 
 def configs(paths):
     """The .tx/config files among a repository's paths, but vendored copies."""
-    return [path for path in paths if CONFIG.search(path) and not VENDORED.search(path)]
-
-
-def _read(directory, path):
-    return run_tool("git", "-C", directory, "show", "HEAD:" + path, trusted=directory)
+    return repositories.configs(paths, CONFIG)
 
 
 def repository(url):
-    """(paths, {.tx/config path: text, or None if unreadable}) of url's
-    default branch, or None if the repository isn't there."""
-    with clone(url, None) as cloned:
-        if cloned is None:
-            return None
-        directory, paths = cloned
-        texts = {}
-        for path in configs(paths):
-            try:
-                texts[path] = _read(directory, path)
-            except FetchError:
-                texts[path] = None
-        return paths, texts
+    """repositories.read() of url's .tx/config files."""
+    return repositories.read(url, CONFIG)
 
 
 def blocks(repositories, prefix, covered=(), names=None, pause=1, read=None, licences=None,
@@ -173,44 +156,19 @@ def blocks(repositories, prefix, covered=(), names=None, pause=1, read=None, lic
         if not texts:
             return [], {("repositories", "no .tx/config"): 1}
         skipped = collections.Counter()
-        groups = {}
+        entries = []
         for config, text in sorted(texts.items()):
             if text is None:
                 skipped["resources", "unreadable .tx/config"] += 1
                 continue
             found_resources, reasons = resources(text, posixpath.dirname(posixpath.dirname(config)))
             skipped.update({("resources", reason): count for reason, count in reasons.items()})
-            for resource in found_resources:
-                key = (resource["format"], resource["template"] and resource["resource"],
-                       tuple(sorted(resource["languages"].items())))
-                group = groups.setdefault(key, dict(resource, masks=set(), sources=set()))
-                group["masks"].add(resource["mask"])
-                if resource["source"]:
-                    group["sources"].add(resource["source"])
-        candidates = []
-        # The repository's shared block first, then a block per template.
-        for key, group in sorted(groups.items(), key=lambda item: (item[0][1] or "", item[0][0],
-                                                                  item[0][2])):
-            template = group["template"]
-            files = matching(group["masks"], paths, template)
-            if not files:
-                skipped["resources", "file_filter matches nothing"] += 1
-                continue
-            candidate = {"suffix": group["resource"] if template else None, "files": files}
-            # A source file the filter also matches isn't a translation.
-            exclude = sorted(source for source in group["sources"]
-                             if any(matches(mask, source) for mask in files))
-            if exclude:
-                candidate["exclude"] = exclude
-            candidate["sparse"] = sparse_patterns(files, template)
-            if FORMATS[group["format"]]:
-                candidate["format"] = FORMATS[group["format"]]
-            if template:
-                candidate["template"] = template
-            if group["languages"]:
-                candidate["languages"] = dict(sorted(group["languages"].items()))
-            candidates.append(candidate)
-        return candidates, skipped
+            entries += [dict(resource, name=resource["resource"],
+                           format=FORMATS[resource["format"]] or "po")
+                      for resource in found_resources]
+        found, reasons = repository_candidates(entries, paths, "resources",
+                                               "file_filter matches nothing")
+        return found, skipped + reasons
 
     return repository_blocks(repositories, prefix, resolve, "resources", covered, names, pause,
                              licences, mirrors)
