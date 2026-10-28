@@ -13,11 +13,47 @@
     });
   }
 
+  var displayNames;
+
+  MGM.language = {
+
+    // Intl's language names in the page's language, or null without them.
+    displayNames: function () {
+      if (displayNames === undefined) {
+        try {
+          displayNames = new Intl.DisplayNames([MGM.lang], {type: 'language', fallback: 'none'});
+        } catch (e) {
+          displayNames = null;
+        }
+      }
+      return displayNames;
+    },
+
+    // The browser's name for a language in the page's language, else the
+    // server's from ISO 639, else its code.
+    name: function (code) {
+      var described = MGM.languages.described[code] || {},
+          names = MGM.language.displayNames(),
+          name;
+      try {
+        name = names && names.of(described.tag || code);
+      } catch (e) {
+        // A tag Intl can't parse.
+      }
+      return name || described.name || code;
+    },
+
+    label: function (code) {
+      var name = MGM.language.name(code);
+      return name === code ? code : format('languageOption', {name: name, code: code});
+    }
+  };
+
   MGM.search = {
 
     init: function () {
       $(document).on('submit', '#js-amagama-form', MGM.search.doSearch);
-      $.getJSON('/tmserver/languages/', MGM.search.displayLanguages);
+      MGM.search.displayLanguages(MGM.languages);
       $('#js-search-box').trigger('focus');
     },
 
@@ -35,7 +71,9 @@
             targetLanguage = $('#js-target-language').val();
 
         MGM.search.searchTitle = format('searchTitle', {
-          text: searchTerms, source: sourceLanguage, target: targetLanguage
+          text: searchTerms,
+          source: MGM.language.name(sourceLanguage),
+          target: MGM.language.name(targetLanguage)
         });
 
         var URLParams = $.param({
@@ -103,14 +141,17 @@
     },
 
     populateDropdown: function (languages, $dropdown) {
-      var langsHTML = [];
+      var options = $.map(languages, function (code) {
+            return {code: code, label: MGM.language.label(code)};
+          }),
+          langsHTML = [];
 
-      for (var i = 0; i < languages.length; i++) {
-        langsHTML.push('<option value="');
-        langsHTML.push(escapeHTML(languages[i]));
-        langsHTML.push('">');
-        langsHTML.push(escapeHTML(languages[i]));
-        langsHTML.push('</option>');
+      options.sort(function (a, b) {
+        return a.label.localeCompare(b.label, MGM.lang);
+      });
+      for (var i = 0; i < options.length; i++) {
+        langsHTML.push('<option value="', escapeHTML(options[i].code), '">',
+                       escapeHTML(options[i].label), '</option>');
       }
 
       $dropdown.html(langsHTML.join(''));
@@ -121,8 +162,8 @@
           $targetLanguage = $('#js-target-language'),
           browserLang = navigator.language || navigator.userLanguage;
 
-      MGM.search.populateDropdown(data.sourceLanguages, $sourceLanguage);
-      MGM.search.populateDropdown(data.targetLanguages, $targetLanguage);
+      MGM.search.populateDropdown(data.source, $sourceLanguage);
+      MGM.search.populateDropdown(data.target, $targetLanguage);
 
       $sourceLanguage.find('option[value="en"]').prop('selected', true);
       $targetLanguage.find('option[value="' + browserLang + '"]')

@@ -173,12 +173,18 @@
     <script src="{{ url_for('web_ui.static', filename='js/amagama.js') }}"></script>
     <script>
 {# Translators: Heading of the results: the text searched for, then its language and the translations' language. #}
-{% set messages = {"searchTitle": gettext("{text} ({source} → {target})"),
+{% set searchTitle = gettext("{text} ({source} → {target})") %}
+{# Translators: A language in the lists of languages: its name, then the code amaGama has for it, such as pt_br. #}
+{% set languageOption = gettext("{name} — {code}") %}
+{% set messages = {
+  "searchTitle": searchTitle,
   "suggestions": gettext("Suggestions: {count}"),
   "projects": gettext("Projects and releases: {count}"),
+  "languageOption": languageOption,
 } %}
 MGM.lang = {{ _.tag|tojson }};
 MGM.messages = {{ messages|tojson }};
+MGM.languages = {{ languages|tojson }};
 $(function() {
   MGM.search.init();
   MGM.sources.init();
