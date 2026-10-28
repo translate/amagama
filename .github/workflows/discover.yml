@@ -1,0 +1,86 @@
+name: Discover sources
+
+# Monthly, regenerate the generated sources files and propose what changed
+# for review: new candidates, blocks gone, and the disabled ones.
+
+on:
+  schedule:
+    # The 3rd of each month, 04:17 UTC.
+    - cron: "17 4 3 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    permissions:
+      # Push the branch, open the pull request, and start its tests.
+      contents: write
+      pull-requests: write
+      actions: write
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: amagama
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+          cache: pip
+      - run: pip install -e ".[recommended]"
+      - name: Settings
+        # The commands connect to a database, though generating needs none.
+        run: printf 'DB_HOST = "localhost"\nSECRET_KEY = "%s"\n' "$(openssl rand -hex 24)" > "$RUNNER_TEMP/settings.py"
+      - name: Regenerate
+        id: regenerate
+        continue-on-error: true
+        env:
+          AMAGAMA_CONFIG: ${{ runner.temp }}/settings.py
+          # Code search, issue search and GraphQL work with the workflow's token.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Its code search allows about one request a minute.
+          AMAGAMA_SEARCH_PAUSE: "61"
+        run: >-
+          devsupport/regenerate-sources.sh "$RUNNER_TEMP/reports"
+          amagama/updater/weblate-fedora.toml
+          amagama/updater/linguas-github.toml
+      - name: Open a pull request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if git diff --quiet; then
+            echo "Nothing changed."
+            exit 0
+          fi
+          branch="discovered-sources-$(date -u +%Y-%m-%d)"
+          for report in "$RUNNER_TEMP"/reports/*.md; do
+            printf '### %s\n\n' "$(basename "$report" .md)"
+            cat "$report"
+            echo
+          done > "$RUNNER_TEMP/body.md"
+          git switch -c "$branch"
+          git -c user.name="github-actions[bot]" \
+              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              commit -qam "Regenerate the discovered sources files"
+          git push origin "$branch"
+          gh pr create --base "$GITHUB_REF_NAME" --head "$branch" --body-file "$RUNNER_TEMP/body.md" \
+            --title "Discovered sources, $(date -u +%Y-%m-%d)"
+          # A pull request the workflow's token opens starts no workflows: start the tests.
+          gh workflow run test.yml --ref "$branch"
+      - name: Fail if a file couldn't be regenerated
+        if: steps.regenerate.outcome == 'failure'
+        run: exit 1

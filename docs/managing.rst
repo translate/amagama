@@ -472,7 +472,10 @@ To review a rerun, every command that writes blocks takes ``--report``, a
 Markdown file of the blocks new since the file was last written, those gone,
 and those disabled with their reasons; it also prints how many are new and
 gone. Rerun a command with ``--output`` on its committed file and propose the
-diff in a pull request with the report as its description: keep a new
+diff in a pull request with the report as its description (the monthly
+:file:`.github/workflows/discover.yml` does this for each file it lists,
+rerunning the command in the file's header with
+:file:`devsupport/regenerate-sources.sh`): keep a new
 candidate, or reject it with ``disabled = "<reason>"``, which keeps it out of
 every later run. Changes to blocks already imported are the updater's to
 find (see :ref:`update <managing#update>`), not this.
@@ -531,9 +534,12 @@ finds the files; it needs a token, in ``GITHUB_TOKEN``:
     $ GITHUB_TOKEN=$(gh auth token) amagama-manage discover_sources linguas \
           --prefix linguas --weight 0.8 --output amagama/updater/linguas-github.toml
 
-Code search allows 10 requests a minute and gives at most 1,000 results a
-query, so the query is split by file size until each part is under that; a
-part that can't be split further is reported as incomplete. Code search
+Code search allows a token 10 requests a minute (``--search-pause``, default
+6 seconds; a GitHub Actions workflow's token gets about one a minute, so
+:file:`.github/workflows/discover.yml` sets ``AMAGAMA_SEARCH_PAUSE`` to 61)
+and gives at most 1,000 results a query, so the query is split by file size
+until each part is under that; a part that can't be split further is reported
+as incomplete. Code search
 gives a different set of results each run, so the repositories of the blocks
 being regenerated (a block's own GitHub repository, or its mirror) are read
 as well. ``--bot-prs-days`` adds the repositories where a translation bot's pull
