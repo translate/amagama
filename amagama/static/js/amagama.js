@@ -54,6 +54,13 @@
     },
 
     displayResults: function (data) {
+      // Titled sources if the list loads; else their names.
+      MGM.sources.load().always(function () {
+        MGM.search.showResults(data);
+      });
+    },
+
+    showResults: function (data) {
       $('#js-similar-title').text(MGM.search.searchTitle);
       $('#js-similar-count').text(format('suggestions', {
         count: data.length.toLocaleString(MGM.lang)
@@ -82,6 +89,8 @@
           else {
             resultsHTML.push(resultQuality);
           }
+          resultsHTML.push('</td><td>');
+          resultsHTML.push(MGM.sources.titlesHTML(currentResult.sources || []));
           resultsHTML.push('</td></tr>');
         }
 
@@ -123,9 +132,41 @@
 
   MGM.sources = {
 
+    // Each source's displayTitle, lang and dir, by name.
+    titles: {},
+
+    // The sources list, requested once.
+    load: function () {
+      if (!MGM.sources.request) {
+        MGM.sources.request = $.getJSON('/api/v1/sources/', {lang: MGM.lang})
+          .done(function (data) {
+            var tag = data.lang.replace(/_/g, '-');
+            for (var i = 0; i < data.sources.length; i++) {
+              MGM.sources.titles[data.sources[i].name] = {
+                title: data.sources[i].displayTitle, lang: tag, dir: data.dir
+              };
+            }
+          });
+      }
+      return MGM.sources.request;
+    },
+
+    titleHTML: function (name) {
+      var title = MGM.sources.titles[name];
+      if (!title) {
+        return escapeHTML(name);
+      }
+      return ['<span lang="', escapeHTML(title.lang), '" dir="', escapeHTML(title.dir), '">',
+              escapeHTML(title.title), '</span>'].join('');
+    },
+
+    titlesHTML: function (names) {
+      return $.map(names, MGM.sources.titleHTML).join(', ');
+    },
+
     init: function () {
       $('#dataSourcesModal').one('show.bs.modal', function () {
-        $.getJSON('/api/v1/sources/', {lang: MGM.lang}, MGM.sources.display);
+        MGM.sources.load().done(MGM.sources.display);
       });
       $(document).on('input', '#js-sources-filter', MGM.sources.filter);
     },
@@ -143,9 +184,8 @@
       });
       for (var i = 0; i < sources.length; i++) {
         var source = sources[i];
-        rowsHTML.push('<tr data-name="', escapeHTML(source.name), '"><td><span lang="',
-                      escapeHTML(data.lang), '" dir="', escapeHTML(data.dir), '">',
-                      escapeHTML(source.displayTitle), '</span></td><td>',
+        rowsHTML.push('<tr data-name="', escapeHTML(source.name), '"><td>',
+                      MGM.sources.titleHTML(source.name), '</td><td>',
                       escapeHTML(source.licence || ''), '</td><td title="',
                       escapeHTML(source.targetLanguages.join(' ')), '">',
                       source.targetLanguages.length, '</td><td>',

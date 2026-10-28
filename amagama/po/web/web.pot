@@ -121,6 +121,10 @@ msgstr ""
 msgid "Quality"
 msgstr ""
 
+#. Column of the projects a suggestion's translation comes from.
+msgid "Sources"
+msgstr ""
+
 msgid "About"
 msgstr ""
 
