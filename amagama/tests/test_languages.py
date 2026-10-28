@@ -8,6 +8,8 @@
 
 import pytest
 
+from amagama.tests import test_pairing
+from amagama.tests.test_updater import block
 from amagama.updater.languages import is_android_locale, map_language, normalise_language
 
 
@@ -57,6 +59,12 @@ from amagama.updater.languages import is_android_locale, map_language, normalise
     ("iw", "he"),
     ("in", "id"),
     ("iw_IL", "he_IL"),
+    # A country's code for its language.
+    ("cn", "zh_CN"),
+    ("ua", "uk"),
+    ("GR", "el"),
+    # Not a country's code alone: a language with a region.
+    ("uk_UA", "uk_UA"),
     ("ast", "ast"),
     ("fil", "fil"),
     # Not languages.
@@ -107,3 +115,16 @@ def test_overrides():
 ])
 def test_android_locale(qualifier, expected):
     assert is_android_locale(qualifier) == expected
+
+
+update = test_pairing.update
+
+
+def test_update_country_codes(update, tmp_path):
+    po = 'msgid ""\nmsgstr "Content-Type: text/plain; charset=UTF-8\\n"\n\nmsgid "Save"\nmsgstr "%s"\n'
+    url = test_pairing.git_repo(tmp_path / "repo", {
+        "po/cn.po": po % "保存", "po/ua.po": po % "Зберегти"})
+    result = update(block("game", "git", url=url, files=["po/{lang}.po"]))
+    assert result.exit_code == 0, result.output
+    assert test_pairing.lookup("zh_CN", "Save") == ["保存"]
+    assert test_pairing.lookup("uk", "Save") == ["Зберегти"]
