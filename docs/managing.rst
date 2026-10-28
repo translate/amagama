@@ -428,6 +428,15 @@ A block of the file being regenerated that is ``disabled`` (see
 found again is kept as it was, so a block left out for a reason doesn't come
 back. This holds for every command that writes blocks.
 
+To review a rerun, every command that writes blocks takes ``--report``, a
+Markdown file of the blocks new since the file was last written, those gone,
+and those disabled with their reasons; it also prints how many are new and
+gone. Rerun a command with ``--output`` on its committed file and propose the
+diff in a pull request with the report as its description: keep a new
+candidate, or reject it with ``disabled = "<reason>"``, which keeps it out of
+every later run. Changes to blocks already imported are the updater's to
+find (see :ref:`update <managing#update>`), not this.
+
 
 .. _managing#transifex-sources:
 

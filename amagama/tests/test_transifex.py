@@ -234,6 +234,27 @@ def test_command(amagama_config, repository, tmp_path):
     assert found.selection.mask_texts == ["po/{lang}.po", "web/po/{lang}.po"]
 
 
+def test_command_report(amagama_config, repository, tmp_path):
+    sources = tmp_path / "sources.toml"
+    sources.write_text('include = ["transifex.toml"]\n')
+    output = tmp_path / "transifex.toml"
+    # The last run's file: a block gone since, and one rejected.
+    output.write_text(block("tx-gone", "git", url="https://git.example/gone", files=["po/{lang}.po"])
+                      + block("tx-off", "git", url="https://git.example/off", files=["po/{lang}.po"],
+                              disabled="duplicates tool"))
+    amagama_config(UPDATER_SOURCES=str(sources))
+    report = tmp_path / "report.md"
+    result = CliRunner().invoke(manage, ("transifex_sources", repository, "--prefix", "tx",
+                                         "--output", str(output), "--report", str(report)))
+    assert result.exit_code == 0, result.output
+    assert "1 new and 1 gone since the last run." in result.output
+    text = report.read_text()
+    assert ": 1 new, 1 gone, 1 disabled." in text.splitlines()[0]
+    assert "- `tx-repo`: repo, %s (po/{lang}.po, web/po/{lang}.po)" % repository in text
+    assert "## Gone (1)\n\n- `tx-gone`" in text
+    assert "- `tx-off`: duplicates tool" in text
+
+
 def test_command_needs_repositories(amagama_config, tmp_path):
     amagama_config(UPDATER_SOURCES=str(tmp_path / "missing.toml"))
     result = CliRunner().invoke(manage, ("transifex_sources", "--prefix", "tx"))
