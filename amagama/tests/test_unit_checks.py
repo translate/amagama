@@ -13,7 +13,9 @@ from click.testing import CliRunner
 
 from amagama import unit_checks
 from amagama.cli import manage
-from amagama.unit_checks import Report, failed_checks, length_step, script
+from amagama.tests import test_pairing
+from amagama.tests.test_updater import block
+from amagama.unit_checks import Report, failed_checks, length_step, script, target_script
 
 
 @pytest.mark.parametrize("source, target, lang, failed", [
@@ -21,8 +23,27 @@ from amagama.unit_checks import Report, failed_checks, length_step, script
     ("Open %s file", "Maak lêer oop", "af", ["printf"]),
     ("Open %(name)s", "Maak %(naam)s oop", "af", ["printf"]),
     ("Open %1$s and %2$s", "%2$s en %1$s", "af", []),
-    ("{count} files", "{count} lêers", "af", []),
-    ("{count} files", "{aantal} lêers", "af", ["braces"]),
+    # Placeholders may change places; numbered ones are KDE's and Qt's.
+    ("This item costs %1 %2.", "Isto custa %2 %1.", "gl", []),
+    ("In %1, a mount point for %2", "În %s, un punct de montare pentru %s", "ro", ["printf"]),
+    ("1 minute in the future", "%d menit yang akan datang", "id", ["printf"]),
+    ("Products", "%PRODUCTNAME ", "sq", ["printf"]),
+    # A date format's fields follow the language.
+    ("Today %I:%M %p", "Vandaag %H:%M", "nl", []),
+    # Percentages: Basque writes %95, and "100% line" has no placeholder.
+    ("Error margin (95%)", "Errore-tartea (%95)", "eu", []),
+    ("to 50% maximum brightness", "distira maximoaren %50era", "eu", []),
+    ("a single 100% line", "einer einzigen 100-%-Zeile", "de", []),
+    ("%d%%", "%Id%%", "ar", []),
+    ("Tickets to watch: {$a}", "Kaartjies wat gevolg word", "af", ["braces"]),
+    ("{$a->name} has {$a->count}", "{$a->name} het {$ a-> count}", "af", ["braces"]),
+    ("Save the {0} image", "Stoor die prent", "af", ["braces"]),
+    ("Invalid \"{}\" in \"{}\"", "Ongeldige \"{}\"", "af", ["braces"]),
+    ("Click <b>%{change_url}</b>", "Klik <b>%{change..._url}</b>", "af", ["braces"]),
+    # Other braces are often text to translate.
+    ("{count} files", "{aantal} lêers", "af", []),
+    ("-o {filename}", "-o {lêernaam}", "af", []),
+    ("\\textsc{small caps}", "\\textsc{klein hoofletters}", "af", []),
     # ICU message format translates the text inside its braces.
     ("{count, plural, one {# file} other {# files}}",
      "{count, plural, one {# lêer} other {# lêers}}", "af", []),
@@ -53,6 +74,20 @@ def test_checks(source, target, lang, failed):
 ])
 def test_script(text, expected):
     assert script(text) == expected
+
+
+@pytest.mark.parametrize("source, target, expected", [
+    ("Rotate this clip", "이 클립 회전", "HANGUL"),
+    ("Open the file", "Ava fail", "LATIN"),
+    ("Atmosphere", "වායුගෝලය", "SINHALA"),
+    # Kept as they are: a symbol or a name in its own script.
+    ("μ", "μ", None),
+    ("Ελληνικά", "Ελληνικά", None),
+    ("а, б, .., аа, бб (Serbian)", "а, б, .., аа, бб (Serbo)", None),
+    ("%s 123", "%s 123", None),
+])
+def test_target_script(source, target, expected):
+    assert target_script(source, target, "LATIN") == expected
 
 
 def test_length_step():
@@ -102,6 +137,7 @@ def check(*args):
 def test_command(imported, monkeypatch):
     # Three targets can't show a share under 1%.
     monkeypatch.setattr(unit_checks, "SCRIPT_MIN_SHARE", 0.5)
+    monkeypatch.setattr(unit_checks, "SCRIPT_MIN_TARGETS", 0)
     imported('gnome', 'et',
              ('Open the %s file now', 'Ava %s fail kohe'),
              ('Delete the selected file', 'Kustuta valitud fail'),
@@ -160,3 +196,52 @@ def test_deployed(imported):
     output = check()
     assert "Checked 'en': 2 targets in 1 languages." in output
     assert "  [af] 'Open the %s file now' -> 'Maak lêer oop' (gnome)" in output
+
+
+def test_script_judged_in_larger_languages(imported, monkeypatch):
+    monkeypatch.setattr(unit_checks, "SCRIPT_MIN_SHARE", 0.5)
+    imported('gnome', 'et', ('Open the file', 'Ava fail'), ('Close the file', 'Sulge fail'))
+    imported('odd', 'et', ('Atmosphere', 'වායුගෝලය'))
+    assert "script: 0 (0.00%)" in check()
+    monkeypatch.setattr(unit_checks, "SCRIPT_MIN_TARGETS", 3)
+    assert "script: 1 (33.33%)" in check()
+
+
+def test_reject(imported, pg_connection, monkeypatch):
+    monkeypatch.setattr(unit_checks, "SCRIPT_MIN_TARGETS", 0)
+    monkeypatch.setattr(unit_checks, "SCRIPT_MIN_SHARE", 0.5)
+    imported('gnome', 'et',
+             ('Open the %s file now', 'Ava %s fail kohe'),
+             ('Delete the selected file', 'Kustuta valitud fail'),
+             ('Save all of the open files', 'Salvesta kõik avatud failid'))
+    imported('odd', 'et',
+             ('Delete everything', 'මකන්න'),
+             ('Close the %s window now', 'Sulge aken'),
+             ('Do you want to save?', 'Do you want to save?'))
+    report = unit_checks.reject(pg_connection, 'en')
+    assert {name: report.failures(name) for name in unit_checks.FILTER} == {
+        'printf': 1, 'braces': 0, 'script': 1}
+    with pg_connection.cursor() as cursor:
+        cursor.execute("SELECT text FROM en.targets ORDER BY text")
+        kept = [text for text, in cursor.fetchall()]
+        cursor.execute("""SELECT COUNT(*) FROM en.target_imports l
+            LEFT JOIN en.targets t ON t.tid = l.tid WHERE t.tid IS NULL""")
+        orphans = cursor.fetchone()[0]
+    # Left in English is only reported.
+    assert kept == ['Ava %s fail kohe', 'Do you want to save?', 'Kustuta valitud fail',
+                    'Salvesta kõik avatud failid']
+    assert orphans == 0
+
+
+update = test_pairing.update
+
+
+def test_update_leaves_out(update, tmp_path):
+    url = test_pairing.git_repo(tmp_path / "repo", {"po/af.po": po(
+        ('Open the %s file now', 'Maak die lêer oop'), ('Save the file', 'Stoor die lêer'))})
+    result = update(block("x", "git", url=url, files=["po/{lang}.po"]))
+    assert result.exit_code == 0, result.output
+    assert "Left out 1 targets that look broken." in result.output
+    assert "  printf: 1 (50.00%)" in result.output
+    assert test_pairing.lookup("af", "Open the %s file now") == []
+    assert test_pairing.lookup("af", "Save the file") == ["Stoor die lêer"]

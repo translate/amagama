@@ -422,20 +422,8 @@ def check_units(source_langs, target_langs, examples, top, build):
                        [lang_to_table(lang) for lang in target_langs], examples)
         print("Checked '%s': %d targets in %d languages." % (
             slang, report.targets, len(report.languages)))
-        for name in list(CHECKS) + list(MEASURES):
-            failures = report.failures(name)
-            print("%s: %d (%.2f%%)" % (name, failures, 100 * failures / (report.targets or 1)))
-            if not failures:
-                continue
-            print("  Languages: " + ", ".join(
-                "%s %d (%.1f%%)" % (lang, n, 100 * n / report.languages[lang])
-                for lang, n in report.by_language[name].most_common(top)))
-            if report.by_block[name]:
-                print("  Blocks: " + ", ".join(
-                    "%s %d" % item for item in report.by_block[name].most_common(top)))
-            for lang, source, target, blocks in report.examples[name]:
-                print("  [%s] %r -> %r%s" % (
-                    lang, source, target, " (%s)" % ", ".join(blocks) if blocks else ""))
+        for line in report.lines(list(CHECKS) + list(MEASURES), top):
+            print(line)
 
 
 @click.command('snapshot_db')
