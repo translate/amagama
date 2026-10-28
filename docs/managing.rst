@@ -458,7 +458,7 @@ its shared git repositories, so a repository a block already fetches isn't
 downloaded again.
 
 Weblate's data can be out of date, so each block is then checked against its
-repository, from a clone of its file list without the files: a branch that's
+repository, from one clone of its file list without the files: a branch that's
 gone falls back to the default branch, masks that match nothing are dropped,
 and a block left with none, or whose template is missing, is left out. So is
 a block that would import nothing: its template has no units, or none of its

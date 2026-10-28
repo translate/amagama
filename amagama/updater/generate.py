@@ -355,51 +355,6 @@ def matching(masks, paths, template=None):
     return sorted(mask for mask in masks if any(matches(mask, path) for path in paths))
 
 
-def verify(blocks, pause=1, tree=tree):
-    """(blocks, problems): blocks as their repositories have them now.
-
-    A generator's data can be out of date. A missing branch falls back to
-    the default branch; masks matching nothing are dropped; a block left
-    with none, or whose template is missing, is left out. problems counts by
-    reason.
-    """
-    trees, kept, seen, problems = {}, [], set(), {}
-
-    def paths(url, ref):
-        if (url, ref) not in trees:
-            trees[url, ref] = tree(url, ref)
-            time.sleep(pause)
-        return trees[url, ref]
-
-    def problem(reason):
-        problems[reason] = problems.get(reason, 0) + 1
-
-    for block in blocks:
-        ref = block.get("ref")
-        found = paths(block["url"], ref)
-        if found is None and ref:
-            ref, found = None, paths(block["url"], None)
-        if found is None:
-            problem("repository or branch not found")
-            continue
-        template = block.get("template")
-        present = set(matching(block["files"], found, template))
-        masks = [mask for mask in block["files"] if mask in present]
-        key = (block["url"], ref, tuple(masks), template)
-        if not masks or key in seen:
-            problem("duplicate after branch fallback" if masks else "filemask matches nothing")
-            continue
-        seen.add(key)
-        block = dict(block, files=masks)
-        block["sparse"] = sparse_patterns(masks, template)
-        if ref != block.get("ref"):
-            problem("branch gone, default branch used")
-            block.pop("ref", None)
-            block.pop("version", None)
-        kept.append(block)
-    return kept, problems
-
-
 def _store(directory, path, format):
     """The store of path in a clone made without a checkout, or None if it
     can't be read; only that file is checked out."""
@@ -432,28 +387,69 @@ def _empty(block, directory, paths):
     return "no translations"
 
 
-def importable(blocks, pause=1, clone=clone):
-    """(blocks, problems): blocks that would import something.
+def check(blocks, pause=None, clone=clone):
+    """(blocks, problems): blocks as their repositories have them now, that
+    would import something; problems counts the rest by reason.
 
-    Reads a block's template and its files until one has a translation;
-    one clone per repository and ref. A block whose files can't be fetched
-    is kept. problems counts by reason.
+    A generator's data can be out of date. A missing branch falls back to
+    the default branch; masks matching nothing are dropped; a block left
+    with none, or whose template is missing, is left out. Then a block's
+    template and files are read until one has a translation; one whose files
+    can't be read is kept. One clone per repository and ref, spaced as
+    Pacer.of(pause).
     """
-    groups = {}
+    pacer = Pacer.of(pause)
+    groups, problems, seen, kept = {}, {}, set(), {}
     for position, block in enumerate(blocks):
         groups.setdefault((block["url"], block.get("ref")), []).append(position)
-    dropped, problems = set(), {}
-    for (url, ref), positions in groups.items():
-        with clone(url, ref) as cloned:
-            if cloned is not None:
+
+    def problem(reason):
+        problems[reason] = problems.get(reason, 0) + 1
+
+    with contextlib.ExitStack() as defaults:
+        # Default branches stay open: refs that are gone share one.
+        default = {}
+
+        def default_branch(url):
+            if url not in default:
+                pacer.wait(url)
+                default[url] = defaults.enter_context(clone(url, None))
+            return default[url]
+
+        for (url, ref), positions in groups.items():
+            if ref:
+                pacer.wait(url)
+            with (clone(url, ref) if ref else contextlib.nullcontext(None)) as cloned:
+                used = ref
+                if cloned is None:
+                    used, cloned = None, default_branch(url)
+                if cloned is None:
+                    for _ in positions:
+                        problem("repository or branch not found")
+                    continue
                 directory, paths = cloned
                 for position in positions:
-                    try:
-                        reason = _empty(blocks[position], directory, paths)
-                    except FetchError:
+                    block = blocks[position]
+                    template = block.get("template")
+                    present = set(matching(block["files"], paths, template))
+                    masks = [mask for mask in block["files"] if mask in present]
+                    key = (url, used, tuple(masks), template)
+                    if not masks or key in seen:
+                        problem("duplicate after branch fallback" if masks else "filemask matches nothing")
                         continue
+                    seen.add(key)
+                    block = dict(block, files=masks)
+                    block["sparse"] = sparse_patterns(masks, template)
+                    if used != block.get("ref"):
+                        problem("branch gone, default branch used")
+                        block.pop("ref", None)
+                        block.pop("version", None)
+                    try:
+                        reason = _empty(block, directory, paths)
+                    except FetchError:
+                        reason = None
                     if reason:
-                        dropped.add(position)
-                        problems[reason] = problems.get(reason, 0) + 1
-        time.sleep(pause)
-    return [block for position, block in enumerate(blocks) if position not in dropped], problems
+                        problem(reason)
+                        continue
+                    kept[position] = block
+    return [kept[position] for position in sorted(kept)], problems

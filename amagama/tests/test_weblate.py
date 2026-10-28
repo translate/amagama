@@ -6,6 +6,7 @@
 # the AUTHORS.md file for copyright and authorship information.
 
 
+import contextlib
 import functools
 import http.server
 import json
@@ -328,10 +329,14 @@ def test_dead_host():
 
 
 def verified(blocks, trees):
-    return generate.verify(blocks, pause=0, tree=lambda url, ref: trees.get((url, ref)))
+    @contextlib.contextmanager
+    def clone(url, ref):
+        # Files can't be read from a clone that isn't there: kept, as unknown.
+        yield trees[url, ref] and ("/nonexistent", trees[url, ref]) if (url, ref) in trees else None
+    return generate.check(blocks, pause=0, clone=clone)
 
 
-def test_verify():
+def test_check():
     blocks = [
         {"name": "ok", "url": "u1", "ref": "main", "files": ["po/{lang}.po", "old/{lang}.po"],
          "sparse": ["old/*.po", "po/*.po"]},
@@ -354,12 +359,21 @@ def test_verify():
                         "repository or branch not found": 1}
 
 
-def test_verify_duplicate_after_fallback():
+def test_check_duplicate_after_fallback():
     blocks = [{"name": "a-1.x", "url": "u", "ref": "1.x", "files": ["po/{lang}.po"]},
               {"name": "a-2.x", "url": "u", "ref": "2.x", "files": ["po/{lang}.po"]}]
-    kept, problems = verified(blocks, {("u", None): ["po/af.po"]})
+    cloned = []
+    trees = {("u", None): ["po/af.po"]}
+
+    @contextlib.contextmanager
+    def clone(url, ref):
+        cloned.append((url, ref))
+        yield ("/nonexistent", trees[url, ref]) if (url, ref) in trees else None
+    kept, problems = generate.check(blocks, pause=0, clone=clone)
     assert [b["name"] for b in kept] == ["a-1.x"]
     assert problems == {"branch gone, default branch used": 1, "duplicate after branch fallback": 1}
+    # Both refs fall back to one clone of the default branch.
+    assert cloned == [("u", "1.x"), ("u", None), ("u", "2.x")]
 
 
 def test_tree(tmp_path):
@@ -375,19 +389,17 @@ def test_tree(tmp_path):
     assert generate.tree((tmp_path / "nothing").as_uri(), None) is None
 
 
-def test_command_verifies(amagama_config, instance, tmp_path, monkeypatch):
+def test_command_checks(amagama_config, instance, tmp_path, monkeypatch):
     amagama_config(UPDATER_SOURCES=str(tmp_path / "missing.toml"))
-    monkeypatch.setattr(generate, "verify", lambda blocks: (blocks[:2], {"filemask matches nothing": 1}))
-    monkeypatch.setattr(generate, "importable",
-                        lambda blocks: (blocks[:1], {"template has no units": 1}))
+    monkeypatch.setattr(generate, "check", lambda blocks: (blocks[:1], {"filemask matches nothing": 1}))
+    monkeypatch.setattr(generate, "add_mirrors", lambda blocks: blocks)
     result = CliRunner().invoke(manage, ("weblate_sources", instance, "--prefix", "test"))
     assert result.exit_code == 0, result.output
     assert "1 blocks." in result.output
     assert "Skipped 1 components: filemask matches nothing." in result.output
-    assert "Skipped 1 components: template has no units." in result.output
 
 
-def test_importable(tmp_path):
+def test_check_importable(tmp_path):
     repo = tmp_path / "repo"
     files = {
         # Strings moved elsewhere: an empty template.
@@ -429,12 +441,14 @@ def test_importable(tmp_path):
          "format": "android", "template": "broken/values/strings.xml"},
         {"name": "no template", "url": url, "files": ["po/{lang}.po"], "format": "android",
          "template": "missing/strings.xml"},
-        # Can't be read, so can't be shown to be empty.
         {"name": "gone", "url": (tmp_path / "gone").as_uri(), "files": ["po/{lang}.po"]},
     ]
-    kept, problems = generate.importable(blocks, pause=0)
-    assert [b["name"] for b in kept] == ["props", "po", "mixed", "no template", "gone"]
-    assert problems == {"template has no units": 1, "no translations": 3}
+    kept, problems = generate.check(blocks, pause=0)
+    assert [b["name"] for b in kept] == ["props", "po", "mixed"]
+    # One clone reads all of a repository's blocks; a missing template is
+    # a block left out before its files are read.
+    assert problems == {"template has no units": 1, "no translations": 3,
+                        "filemask matches nothing": 1, "repository or branch not found": 1}
 
 
 def test_project_components(monkeypatch):
