@@ -71,6 +71,21 @@ def test_monolingual_block_per_component():
     assert skipped == {"monolingual without a template": 1}
 
 
+def test_xliff_with_template_is_monolingual():
+    found, skipped = generated([
+        # Symfony's: each <source> an id, the English in messages.en.xlf.
+        component("kimai", "messages", "https://git.example/kimai", "translations/messages.*.xlf",
+                  file_format="xliff", template="translations/messages.en.xlf"),
+        component("other", "app", "https://git.example/other", "locale/*.xlf",
+                  file_format="xliff"),
+    ])
+    assert found["test-kimai"]["format"] == "xliff-monolingual"
+    assert found["test-kimai"]["template"] == "translations/messages.en.xlf"
+    assert found["test-other"]["format"] == "xliff"
+    assert "template" not in found["test-other"]
+    assert skipped == {}
+
+
 def test_bilingual_template_ignored():
     # Weblate's template for a bilingual format is its source file.
     found, skipped = generated([component("qt", "ui", "https://git.example/qt", "ts/app_*.ts",

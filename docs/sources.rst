@@ -130,7 +130,8 @@ files it includes); a block's own settings take precedence. ``name`` and
   ``template``: ``android`` (:file:`strings.xml`), ``php``, ``properties``
   (Java's ISO-8859-1; ``properties-utf8`` and ``properties-utf16`` for files in
   those encodings), ``joomla-ini``, ``json`` (key to message), ``fluent`` and
-  ``dtd``.
+  ``dtd``; and ``xliff-monolingual``, XLIFF whose ``<source>`` is the
+  message's id and whose template's ``<target>`` is the English (Symfony's).
 
   For ``android``, ``{lang}`` must be a locale qualifier alone (``af``,
   ``pt-rBR``, ``b+sr+Latn``): directories that add another qualifier, such

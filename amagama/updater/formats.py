@@ -49,6 +49,9 @@ MONOLINGUAL = {
     "json": ("translate.storage.jsonl10n", "JsonFile", {}),
     "fluent": ("translate.storage.fluent", "FluentFile", {}),
     "dtd": ("translate.storage.dtd", "dtdfile", {}),
+    # Symfony's: each <source> is the message's id, the English is the
+    # template's <target>.
+    "xliff-monolingual": ("translate.storage.xliff", "xlifffile", {}),
 }
 
 

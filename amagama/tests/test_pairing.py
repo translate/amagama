@@ -11,7 +11,7 @@ import subprocess
 
 import pytest
 from click.testing import CliRunner
-from translate.storage import aresource, jsonl10n, php, properties, tmx
+from translate.storage import aresource, jsonl10n, php, properties, tmx, xliff
 
 from amagama.application import amagama_server_factory
 from amagama.cli import manage
@@ -45,6 +45,20 @@ def test_android():
     assert pairs(store) == [("Save file", "Stoor lêer")]
     # ...and counted, to be reported as skipped.
     assert store.plurals == 1
+
+
+def symfony_xliff(lang, units):
+    return ('<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">'
+            '<file source-language="en" target-language="%s" original="messages.en.xlf"><body>%s'
+            '</body></file></xliff>') % (lang, "".join(
+                '<trans-unit id="%s" resname="%s"><source>%s</source><target>%s</target>'
+                '</trans-unit>' % (uid, uid, uid, text) for uid, text in units))
+
+
+def test_symfony_xliff():
+    english = read(xliff.xlifffile, symfony_xliff("en", [("save", "Save file")]))
+    bulgarian = read(xliff.xlifffile, symfony_xliff("bg", [("save", "Запиши файла")]))
+    assert pairs(paired_store(bulgarian, english)) == [("Save file", "Запиши файла")]
 
 
 def test_php():
@@ -182,6 +196,19 @@ def test_update_android_plurals_skipped(update, tmp_path):
                           template="res/values/plurals.xml"))
     assert result.exit_code == 0, result.output
     assert "Imported 1 files: 0 units (1 skipped)." in result.output
+
+
+def test_update_symfony_xliff(update, tmp_path):
+    url = git_repo(tmp_path / "repo", {
+        "translations/messages.en.xlf": symfony_xliff("en", [("save", "Save file")]),
+        "translations/messages.bg.xlf": symfony_xliff("bg", [("save", "Запиши файла")]),
+    })
+    result = update(block("kimai", "git", url=url, format="xliff-monolingual",
+                          files=["translations/messages.{lang}.xlf"],
+                          template="translations/messages.en.xlf"))
+    assert result.exit_code == 0, result.output
+    assert lookup("bg", "Save file") == ["Запиши файла"]
+    assert lookup("bg", "save") == []
 
 
 def test_update_json_template_among_files(update, tmp_path):
