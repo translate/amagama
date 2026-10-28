@@ -1181,17 +1181,11 @@ ORDER BY rank DESC{order};
                 result = dict(row)
                 result['quality'] = quality
                 results.append(result)
-        results.sort(key=lambda match: match['quality'], reverse=True)
-        weights = self.block_weights(slang)
-        if not source_options and not weights:
-            results = results[:max_candidates]
-            self._add_sources(cursor, tlang, results)
-            return results
-        # Choosing by source needs the sources of every match, not just the best.
+        # Choosing needs the sources of every match, not just the best.
         self._add_sources(cursor, tlang, results)
         source_options = source_options or SourceOptions()
         licences = self.block_licences(slang) if source_options.licences else None
-        return source_options.choose(results, max_candidates, weights, licences)
+        return source_options.choose(results, max_candidates, self.block_weights(slang), licences)
 
     def _add_sources(self, cursor, tlang, results):
         """Give each result the names of the blocks it was imported from."""
