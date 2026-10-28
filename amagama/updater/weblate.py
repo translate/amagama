@@ -40,9 +40,10 @@ FORMATS = {
     "php": "php",
     "i18next": "json",
     "i18nextv4": "json",
+    "xliff-template": "xliff-monolingual",
 }
 MONOLINGUAL = {"aresource", "json", "json-nested", "fluent", "properties", "properties-utf8",
-               "properties-utf16", "joomla", "php", "i18next", "i18nextv4"}
+               "properties-utf16", "joomla", "php", "i18next", "i18nextv4", "xliff-template"}
 
 # Hosts that no longer serve their repositories, though Weblate still lists them.
 DEAD_HOSTS = {"pagure.io": "archived"}
@@ -75,11 +76,16 @@ def components(url, pause=None, project=None):
 
 
 def _with_encoding(component):
-    """The component's Weblate format, naming a properties file's encoding.
+    """The component's Weblate format, naming a properties file's encoding,
+    and xliff-template for XLIFF with a template, which Weblate reads as
+    monolingual (each <source> an id).
 
-    Newer Weblate keeps it in file_format_params, not in the format's name.
+    Newer Weblate keeps the encoding in file_format_params, not in the
+    format's name.
     """
     weblate_format = component.get("file_format")
+    if weblate_format == "xliff" and component.get("template"):
+        return "xliff-template"
     if weblate_format == "properties":
         encoding = ((component.get("file_format_params") or {}).get("properties_encoding")
                     or "").lower().replace("_", "-")
