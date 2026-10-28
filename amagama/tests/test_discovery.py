@@ -435,6 +435,26 @@ def test_command_search_pause(amagama_config, tmp_path, monkeypatch):
     assert pauses == [61]
 
 
+def test_command_writes_by_name(amagama_config, tmp_path, monkeypatch):
+    amagama_config(UPDATER_SOURCES=str(tmp_path / "missing.toml"))
+    monkeypatch.setenv("GITHUB_TOKEN", "t")
+    monkeypatch.setattr(discovery, "search", lambda query, token, pause=6: ([], False))
+    monkeypatch.setattr(discovery, "stats", lambda names, token: {})
+
+    def blocks(urls, *args, **kwargs):
+        # Read most stars first.
+        return [{"name": "linguas-%s" % name, "title": name, "source": "git",
+                 "url": "https://git.example/%s" % name, "files": ["po/{lang}.po"]}
+                for name in ("zeta", "Alpha", "beta")], {}
+
+    monkeypatch.setitem(discovery.SIGNALS, "linguas", dict(discovery.SIGNALS["linguas"], blocks=blocks))
+    output = tmp_path / "linguas.toml"
+    result = CliRunner().invoke(manage, ("discover_sources", "linguas", "--prefix", "linguas",
+                                         "--output", str(output)))
+    assert result.exit_code == 0, result.output
+    assert [b.name for b in load_sources(str(output))] == ["linguas-Alpha", "linguas-beta", "linguas-zeta"]
+
+
 def test_command_needs_token(amagama_config, tmp_path, monkeypatch):
     amagama_config(UPDATER_SOURCES=str(tmp_path / "missing.toml"))
     monkeypatch.delenv("GITHUB_TOKEN", raising=False)

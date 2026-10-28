@@ -8,29 +8,97 @@ weight = 0.8
 tags = ["discovered"]
 
 [[block]]
-name = "linguas-vlc"
-title = "vlc"
-url = "https://code.videolan.org/videolan/vlc"
+name = "linguas-Akira"
+title = "Akira"
+url = "https://github.com/akiraux/Akira"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-Alpaca"
+title = "Alpaca"
+url = "https://github.com/Jeffser/Alpaca"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-Annotator"
+title = "Annotator"
+url = "https://github.com/phase1geo/Annotator"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-AppManager"
+title = "AppManager"
+url = "https://github.com/kem-a/AppManager"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-Atoms"
+title = "Atoms"
+url = "https://github.com/AtomsDevs/Atoms"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-Avvie"
+title = "Avvie"
+url = "https://github.com/Taiko2k/Avvie"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-Backup-Manager"
+title = "Backup-Manager"
+url = "https://github.com/sukria/Backup-Manager"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "GPL-2.0-only"
 
 [[block]]
-name = "linguas-meld"
-disabled = "duplicates Damned Lies module meld"
-title = "meld"
-url = "https://gitlab.gnome.org/GNOME/meld"
-mirror = "https://github.com/GNOME/meld"
+name = "linguas-Bavarder"
+title = "Bavarder"
+url = "https://github.com/Bavarder/Bavarder"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
+licence = "GPL-3.0-only"
 
 [[block]]
-name = "linguas-gnome-shell"
-disabled = "duplicates Damned Lies module gnome-shell"
-title = "gnome-shell"
-url = "https://gitlab.gnome.org/GNOME/gnome-shell"
-mirror = "https://github.com/GNOME/gnome-shell"
+name = "linguas-Bottles"
+title = "Bottles"
+url = "https://github.com/bottlesdevs/Bottles"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-CoBang"
+title = "CoBang"
+url = "https://github.com/hongquan/CoBang"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-Collision"
+title = "Collision"
+url = "https://codeberg.org/GeopJr/Collision"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "BSD-2-Clause"
+
+[[block]]
+name = "linguas-ConsoleKit2"
+title = "ConsoleKit2"
+url = "https://github.com/ConsoleKit2/ConsoleKit2"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "GPL-2.0-only"
@@ -45,13 +113,166 @@ sparse = ["po/*.po"]
 licence = "GPL-3.0-only"
 
 [[block]]
-name = "linguas-pika-backup"
-disabled = "duplicates Damned Lies module pika-backup"
-title = "pika-backup"
-url = "https://gitlab.gnome.org/World/pika-backup"
+name = "linguas-Curtail"
+disabled = "duplicates Damned Lies module Curtail"
+title = "Curtail"
+url = "https://github.com/Huluti/Curtail"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-DAR"
+title = "DAR"
+url = "https://github.com/Edrusb/DAR"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-Design"
+title = "Design"
+url = "https://github.com/dubstar-04/Design"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-DistroShelf"
+title = "DistroShelf"
+url = "https://github.com/ranfdev/DistroShelf"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-Errands"
+title = "Errands"
+url = "https://github.com/mrvladus/Errands"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "MIT"
+
+[[block]]
+name = "linguas-Exhibit"
+title = "Exhibit"
+url = "https://github.com/Nokse22/Exhibit"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-Flatseal"
+title = "Flatseal"
+url = "https://github.com/tchx84/Flatseal"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-Flowtime"
+title = "Flowtime"
+url = "https://github.com/Diego-Ivan/Flowtime"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-FocusTimer"
+title = "FocusTimer"
+url = "https://github.com/focustimerhq/FocusTimer"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-Folio"
+title = "Folio"
+url = "https://github.com/toolstack/Folio"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-Font-Downloader"
+title = "Font-Downloader"
+url = "https://github.com/GustavoPeredo/Font-Downloader"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-Frog"
+title = "Frog"
+url = "https://github.com/TenderOwl/Frog"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "MIT"
+
+[[block]]
+name = "linguas-Gameeky"
+title = "Gameeky"
+url = "https://github.com/tchx84/Gameeky"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-Geopard"
+title = "Geopard"
+url = "https://github.com/ranfdev/Geopard"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-Gradia"
+title = "Gradia"
+url = "https://github.com/AlexanderVanhee/Gradia"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-Halftone"
+title = "Halftone"
+url = "https://github.com/tfuxu/Halftone"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-MAC-Telnet"
+title = "MAC-Telnet"
+url = "https://github.com/haakonnessjoen/MAC-Telnet"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-Marker"
+title = "Marker"
+url = "https://github.com/fabiocolacio/Marker"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-Minder"
+title = "Minder"
+url = "https://github.com/phase1geo/Minder"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-ModemManager"
+disabled = "duplicates Damned Lies module ModemManager"
+title = "ModemManager"
+url = "https://gitlab.freedesktop.org/mobile-broadband/ModemManager"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
 
 [[block]]
 name = "linguas-NetworkManager"
@@ -63,173 +284,244 @@ sparse = ["po/*.po"]
 licence = "GPL-2.0-only"
 
 [[block]]
-name = "linguas-vala-panel-appmenu"
-title = "vala-panel-appmenu"
-url = "https://gitlab.com/vala-panel-project/vala-panel-appmenu"
+name = "linguas-NetworkManager-l2tp"
+title = "NetworkManager-l2tp"
+url = "https://github.com/nm-l2tp/NetworkManager-l2tp"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
-licence = "LGPL-3.0-only"
+licence = "GPL-2.0-only"
 
 [[block]]
-name = "linguas-nautilus"
-disabled = "duplicates Damned Lies module nautilus"
-title = "nautilus"
-url = "https://gitlab.gnome.org/GNOME/nautilus"
-mirror = "https://github.com/GNOME/nautilus"
+name = "linguas-Newelle"
+title = "Newelle"
+url = "https://github.com/qwersyk/Newelle"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "GPL-3.0-only"
 
 [[block]]
-name = "linguas-dia"
-disabled = "duplicates Damned Lies module dia"
-title = "dia"
-url = "https://gitlab.gnome.org/GNOME/dia"
-mirror = "https://github.com/GNOME/dia"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-epiphany"
-disabled = "duplicates Damned Lies module epiphany"
-title = "epiphany"
-url = "https://gitlab.gnome.org/GNOME/epiphany"
-mirror = "https://github.com/GNOME/epiphany"
+name = "linguas-Nocturne"
+title = "Nocturne"
+url = "https://github.com/Jeffser/Nocturne"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "GPL-3.0-only"
 
 [[block]]
-name = "linguas-gparted"
-disabled = "duplicates Damned Lies module gparted"
-title = "gparted"
-url = "https://gitlab.gnome.org/GNOME/gparted"
-mirror = "https://github.com/GNOME/gparted"
+name = "linguas-Norka"
+title = "Norka"
+url = "https://github.com/TenderOwl/Norka"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
+licence = "MIT"
 
 [[block]]
-name = "linguas-evince"
-disabled = "duplicates Damned Lies module evince"
-title = "evince"
-url = "https://gitlab.gnome.org/GNOME/evince"
-mirror = "https://github.com/GNOME/evince"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-gnome-terminal"
-disabled = "duplicates Damned Lies module gnome-terminal"
-title = "gnome-terminal"
-url = "https://gitlab.gnome.org/GNOME/gnome-terminal"
-mirror = "https://github.com/GNOME/gnome-terminal"
+name = "linguas-OpenXMB"
+title = "OpenXMB"
+url = "https://github.com/phenom64/OpenXMB"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "GPL-3.0-only"
 
 [[block]]
-name = "linguas-thunar"
-title = "thunar"
-url = "https://gitlab.xfce.org/xfce/thunar"
-mirror = "https://github.com/xfce-mirror/thunar"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-gnome-builder"
-disabled = "duplicates Damned Lies module gnome-builder"
-title = "gnome-builder"
-url = "https://gitlab.gnome.org/GNOME/gnome-builder"
-mirror = "https://github.com/GNOME/gnome-builder"
+name = "linguas-Pins"
+title = "Pins"
+url = "https://github.com/fabrialberio/Pins"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "GPL-3.0-only"
 
 [[block]]
-name = "linguas-mutter"
-disabled = "duplicates Damned Lies module mutter"
-title = "mutter"
-url = "https://gitlab.gnome.org/GNOME/mutter"
-mirror = "https://github.com/GNOME/mutter"
+name = "linguas-Portfolio"
+title = "Portfolio"
+url = "https://github.com/tchx84/Portfolio"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-ProtonPlus"
+title = "ProtonPlus"
+url = "https://github.com/Vysp3r/ProtonPlus"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-Resource_Monitor"
+title = "Resource_Monitor"
+url = "https://github.com/0ry0n/Resource_Monitor"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-Rewaita"
+title = "Rewaita"
+url = "https://github.com/SwordPuffin/Rewaita"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-RustConn"
+title = "RustConn"
+url = "https://github.com/totoshko88/RustConn"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-ThiefMD"
+title = "ThiefMD"
+url = "https://github.com/kmwallio/ThiefMD"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-Whisp"
+disabled = "duplicates Damned Lies module whisp"
+title = "Whisp"
+url = "https://github.com/tanaybhomia/Whisp"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-Wike"
+title = "Wike"
+url = "https://github.com/hugolabe/Wike"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-Wordbook"
+title = "Wordbook"
+url = "https://github.com/mufeedali/Wordbook"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-abrt"
+title = "abrt"
+url = "https://github.com/abrt/abrt"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "GPL-2.0-only"
 
 [[block]]
-name = "linguas-gitg"
-disabled = "duplicates Damned Lies module gitg"
-title = "gitg"
-url = "https://gitlab.gnome.org/GNOME/gitg"
-mirror = "https://github.com/GNOME/gitg"
+name = "linguas-addwater"
+disabled = "duplicates Damned Lies module addwater"
+title = "addwater"
+url = "https://github.com/largestgithubuseronearth/addwater"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-agenda"
+title = "agenda"
+url = "https://github.com/dahenson/agenda"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-alarm-clock"
+title = "alarm-clock"
+url = "https://github.com/alarm-clock-applet/alarm-clock"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "GPL-2.0-only"
 
 [[block]]
-name = "linguas-zenity"
-disabled = "duplicates Damned Lies module zenity"
-title = "zenity"
-url = "https://gitlab.gnome.org/GNOME/zenity"
-mirror = "https://github.com/GNOME/zenity"
+name = "linguas-alternative-toolbar"
+title = "alternative-toolbar"
+url = "https://github.com/fossfreedom/alternative-toolbar"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-amsynth"
+title = "amsynth"
+url = "https://github.com/amsynth/amsynth"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-amule"
+title = "amule"
+url = "https://github.com/amule-project/amule"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-appcenter"
+title = "appcenter"
+url = "https://github.com/elementary/appcenter"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-applications-menu"
+title = "applications-menu"
+url = "https://github.com/elementary/applications-menu"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-apt-dater"
+title = "apt-dater"
+url = "https://github.com/DE-IBH/apt-dater"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-aravis"
+title = "aravis"
+url = "https://github.com/AravisProject/aravis"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "LGPL-2.1-only"
 
 [[block]]
-name = "linguas-vte"
-disabled = "duplicates Damned Lies module vte"
-title = "vte"
-url = "https://gitlab.gnome.org/GNOME/vte"
-mirror = "https://github.com/GNOME/vte"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "CC-BY-4.0"
-
-[[block]]
-name = "linguas-gthumb"
-disabled = "duplicates Damned Lies module gthumb"
-title = "gthumb"
-url = "https://gitlab.gnome.org/GNOME/gthumb"
-mirror = "https://github.com/GNOME/gthumb"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-Collision"
-title = "Collision"
-url = "https://codeberg.org/GeopJr/Collision"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "BSD-2-Clause"
-
-[[block]]
-name = "linguas-xfce4-terminal"
-title = "xfce4-terminal"
-url = "https://gitlab.xfce.org/apps/xfce4-terminal"
-mirror = "https://github.com/xfce-mirror/xfce4-terminal"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-nano"
-disabled = "duplicates Translation Project domain nano"
-title = "nano"
-url = "git://git.sv.gnu.org/nano.git"
+name = "linguas-ascii-draw"
+title = "ascii-draw"
+url = "https://github.com/Nokse22/ascii-draw"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "GPL-3.0-only"
 
 [[block]]
-name = "linguas-cryptsetup"
-disabled = "duplicates Translation Project domain cryptsetup"
-title = "cryptsetup"
-url = "https://gitlab.com/cryptsetup/cryptsetup"
+name = "linguas-aspell"
+disabled = "duplicates Translation Project domain aspell"
+title = "aspell"
+url = "https://github.com/GNUAspell/aspell"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "LGPL-2.1-only"
+
+[[block]]
+name = "linguas-aviator"
+title = "aviator"
+url = "https://github.com/gianni-rosato/aviator"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-axel"
+title = "axel"
+url = "https://github.com/axel-download-accelerator/axel"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "GPL-2.0-only"
@@ -245,114 +537,149 @@ sparse = ["po/*.po"]
 licence = "GPL-2.0-only"
 
 [[block]]
-name = "linguas-phosh"
-disabled = "duplicates Damned Lies module phosh"
-title = "phosh"
-url = "https://gitlab.gnome.org/World/Phosh/phosh"
+name = "linguas-blackbox-terminal"
+title = "blackbox-terminal"
+url = "https://github.com/yonasBSD/blackbox-terminal"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "GPL-3.0-only"
 
 [[block]]
-name = "linguas-orca"
-disabled = "duplicates Damned Lies module orca"
-title = "orca"
-url = "https://gitlab.gnome.org/GNOME/orca"
-mirror = "https://github.com/GNOME/orca"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "LGPL-2.1-only"
-
-[[block]]
-name = "linguas-gnome-desktop"
-disabled = "duplicates Damned Lies module gnome-desktop"
-title = "gnome-desktop"
-url = "https://gitlab.gnome.org/GNOME/gnome-desktop"
-mirror = "https://github.com/GNOME/gnome-desktop"
+name = "linguas-budgie-desktop"
+title = "budgie-desktop"
+url = "https://github.com/BuddiesOfBudgie/budgie-desktop"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "GPL-2.0-only"
 
 [[block]]
-name = "linguas-ModemManager"
-disabled = "duplicates Damned Lies module ModemManager"
-title = "ModemManager"
-url = "https://gitlab.freedesktop.org/mobile-broadband/ModemManager"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-libadwaita"
-disabled = "duplicates Damned Lies module libadwaita"
-title = "libadwaita"
-url = "https://gitlab.gnome.org/GNOME/libadwaita"
-mirror = "https://github.com/GNOME/libadwaita"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "LGPL-2.1-only"
-
-[[block]]
-name = "linguas-gnome-calendar"
-disabled = "duplicates Damned Lies module gnome-calendar"
-title = "gnome-calendar"
-url = "https://gitlab.gnome.org/GNOME/gnome-calendar"
-mirror = "https://github.com/GNOME/gnome-calendar"
+name = "linguas-budgie-extras"
+title = "budgie-extras"
+url = "https://github.com/UbuntuBudgie/budgie-extras"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "GPL-3.0-only"
 
 [[block]]
-name = "linguas-gdm"
-disabled = "duplicates Damned Lies module gdm"
-title = "gdm"
-url = "https://gitlab.gnome.org/GNOME/gdm"
-mirror = "https://github.com/GNOME/gdm"
+name = "linguas-butter"
+title = "butter"
+url = "https://github.com/zhangyuannie/butter"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-byte"
+title = "byte"
+url = "https://github.com/ellie-commons/byte"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-cadaver"
+title = "cadaver"
+url = "https://github.com/notroj/cadaver"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "GPL-2.0-only"
 
 [[block]]
-name = "linguas-xfwm4"
-title = "xfwm4"
-url = "https://gitlab.xfce.org/xfce/xfwm4"
-mirror = "https://github.com/xfce-mirror/xfwm4"
+name = "linguas-calaos_base"
+title = "calaos_base"
+url = "https://github.com/calaos/calaos_base"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-calcurse"
+title = "calcurse"
+url = "https://github.com/lfos/calcurse"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "BSD-2-Clause"
+
+[[block]]
+name = "linguas-calendar"
+title = "calendar"
+url = "https://github.com/elementary/calendar"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-ciano"
+title = "ciano"
+url = "https://github.com/robertsanseries/ciano"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-cinnamon-desktop"
+title = "cinnamon-desktop"
+url = "https://github.com/linuxmint/cinnamon-desktop"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "GPL-2.0-only"
 
 [[block]]
-name = "linguas-wireplumber"
-disabled = "duplicates Damned Lies module WirePlumber"
-title = "wireplumber"
-url = "https://gitlab.freedesktop.org/pipewire/wireplumber"
+name = "linguas-clamui"
+title = "clamui"
+url = "https://github.com/linx-systems/clamui"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "MIT"
 
 [[block]]
-name = "linguas-vala-panel"
-title = "vala-panel"
-url = "https://gitlab.com/vala-panel-project/vala-panel"
+name = "linguas-code"
+title = "code"
+url = "https://github.com/elementary/code"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
-licence = "LGPL-3.0-only"
-
-[[block]]
-name = "linguas-goaccess"
-title = "goaccess"
-url = "https://github.com/allinurl/goaccess"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "MIT"
-
-[[block]]
-name = "linguas-darktable-doc-man"
-title = "darktable"
-url = "https://github.com/darktable-org/darktable"
-files = ["doc/man/po/{lang}.po"]
-sparse = ["doc/man/po/*.po"]
 licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-color-picker"
+title = "color-picker"
+url = "https://github.com/tuberry/color-picker"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-cozy"
+title = "cozy"
+url = "https://github.com/geigi/cozy"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-cpupower-gui"
+title = "cpupower-gui"
+url = "https://github.com/vagnum08/cpupower-gui"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-cryptsetup"
+disabled = "duplicates Translation Project domain cryptsetup"
+title = "cryptsetup"
+url = "https://gitlab.com/cryptsetup/cryptsetup"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-csound"
+title = "csound"
+url = "https://github.com/csound/csound"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "LGPL-2.1-only"
 
 [[block]]
 name = "linguas-darktable"
@@ -363,66 +690,185 @@ sparse = ["po/*.po"]
 licence = "GPL-3.0-only"
 
 [[block]]
-name = "linguas-libvips"
-title = "libvips"
-url = "https://github.com/libvips/libvips"
+name = "linguas-darktable-doc-man"
+title = "darktable"
+url = "https://github.com/darktable-org/darktable"
+files = ["doc/man/po/{lang}.po"]
+sparse = ["doc/man/po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-ddccontrol"
+title = "ddccontrol"
+url = "https://github.com/ddccontrol/ddccontrol"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-ddccontrol-db"
+title = "ddccontrol-db"
+url = "https://github.com/ddccontrol/ddccontrol-db"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-dfc"
+title = "dfc"
+url = "https://github.com/rolinh/dfc"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "BSD-3-Clause"
+
+[[block]]
+name = "linguas-dia"
+disabled = "duplicates Damned Lies module dia"
+title = "dia"
+url = "https://gitlab.gnome.org/GNOME/dia"
+mirror = "https://github.com/GNOME/dia"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-diffuse"
+title = "diffuse"
+url = "https://github.com/MightyCreak/diffuse"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-diodon"
+title = "diodon"
+url = "https://github.com/diodon-dev/diodon"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-dnfdragora"
+title = "dnfdragora"
+url = "https://github.com/manatools/dnfdragora"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-dock"
+title = "dock"
+url = "https://github.com/elementary/dock"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-drawing"
+title = "drawing"
+url = "https://github.com/maoschanz/drawing"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-drum-machine"
+disabled = "duplicates Damned Lies module drum-machine"
+title = "drum-machine"
+url = "https://github.com/Revisto/drum-machine"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-eix"
+title = "eix"
+url = "https://github.com/vaeth/eix"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-elektroid"
+title = "elektroid"
+url = "https://github.com/dagargo/elektroid"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-epiphany"
+disabled = "duplicates Damned Lies module epiphany"
+title = "epiphany"
+url = "https://gitlab.gnome.org/GNOME/epiphany"
+mirror = "https://github.com/GNOME/epiphany"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-evince"
+disabled = "duplicates Damned Lies module evince"
+title = "evince"
+url = "https://gitlab.gnome.org/GNOME/evince"
+mirror = "https://github.com/GNOME/evince"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-eyedropper"
+disabled = "duplicates Damned Lies module eyedropper"
+title = "eyedropper"
+url = "https://github.com/FineFindus/eyedropper"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-fcitx5-chinese-addons"
+title = "fcitx5-chinese-addons"
+url = "https://github.com/fcitx/fcitx5-chinese-addons"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "LGPL-2.1-only"
 
 [[block]]
-name = "linguas-lutris"
-title = "lutris"
-url = "https://github.com/lutris/lutris"
+name = "linguas-fcitx5-lotus"
+title = "fcitx5-lotus"
+url = "https://github.com/LotusInputMethod/fcitx5-lotus"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "GPL-3.0-only"
 
 [[block]]
-name = "linguas-Bottles"
-title = "Bottles"
-url = "https://github.com/bottlesdevs/Bottles"
+name = "linguas-fcitx5-macos"
+title = "fcitx5-macos"
+url = "https://github.com/fcitx/fcitx5-macos"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "GPL-3.0-only"
 
 [[block]]
-name = "linguas-foliate"
-title = "foliate"
-url = "https://github.com/johnfactotum/foliate"
+name = "linguas-fcitx5-mcbopomofo"
+title = "fcitx5-mcbopomofo"
+url = "https://github.com/openvanilla/fcitx5-mcbopomofo"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "MIT"
+
+[[block]]
+name = "linguas-files"
+title = "files"
+url = "https://github.com/elementary/files"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "GPL-3.0-only"
 
 [[block]]
-name = "linguas-tigervnc"
-disabled = "duplicates Translation Project domain tigervnc"
-title = "tigervnc"
-url = "https://github.com/TigerVNC/tigervnc"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-piper"
-title = "piper"
-url = "https://github.com/libratbag/piper"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-fswatch"
-title = "fswatch"
-url = "https://github.com/emcrisostomo/fswatch"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-Akira"
-title = "Akira"
-url = "https://github.com/akiraux/Akira"
+name = "linguas-fingwit"
+title = "fingwit"
+url = "https://github.com/xapp-project/fingwit"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "GPL-3.0-only"
@@ -437,1508 +883,6 @@ sparse = ["po/*.po"]
 licence = "LGPL-2.1-only"
 
 [[block]]
-name = "linguas-motion"
-title = "motion"
-url = "https://github.com/Motion-Project/motion"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-warzone2100"
-title = "warzone2100"
-url = "https://github.com/Warzone2100/warzone2100"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-gnome-shell-extension-gsconnect"
-title = "gnome-shell-extension-gsconnect"
-url = "https://github.com/GSConnect/gnome-shell-extension-gsconnect"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-geany"
-title = "geany"
-url = "https://github.com/geany/geany"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-axel"
-title = "axel"
-url = "https://github.com/axel-download-accelerator/axel"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-zathura"
-title = "zathura"
-url = "https://github.com/pwmt/zathura"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "Zlib"
-
-[[block]]
-name = "linguas-util-linux"
-disabled = "duplicates Translation Project domain util-linux"
-title = "util-linux"
-url = "https://github.com/util-linux/util-linux"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-labwc"
-title = "labwc"
-url = "https://github.com/labwc/labwc"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-libqalculate"
-title = "libqalculate"
-url = "https://github.com/Qalculate/libqalculate"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-netease-cloud-music-gtk"
-title = "netease-cloud-music-gtk"
-url = "https://github.com/gmg137/netease-cloud-music-gtk"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-spot"
-title = "spot"
-url = "https://github.com/xou816/spot"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "MIT"
-
-[[block]]
-name = "linguas-gearlever"
-title = "gearlever"
-url = "https://github.com/mijorus/gearlever"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-FocusTimer"
-title = "FocusTimer"
-url = "https://github.com/focustimerhq/FocusTimer"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-scanmem"
-title = "scanmem"
-url = "https://github.com/scanmem/scanmem"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-ProtonPlus"
-title = "ProtonPlus"
-url = "https://github.com/Vysp3r/ProtonPlus"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-workrave"
-title = "workrave"
-url = "https://github.com/rcaelers/workrave"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-Flatseal"
-title = "Flatseal"
-url = "https://github.com/tchx84/Flatseal"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-zapzap"
-title = "zapzap"
-url = "https://github.com/rafatosta/zapzap"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-Alpaca"
-title = "Alpaca"
-url = "https://github.com/Jeffser/Alpaca"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-warpinator"
-title = "warpinator"
-url = "https://github.com/linuxmint/warpinator"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-AppManager"
-title = "AppManager"
-url = "https://github.com/kem-a/AppManager"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-csound"
-title = "csound"
-url = "https://github.com/csound/csound"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "LGPL-2.1-only"
-
-[[block]]
-name = "linguas-Newelle"
-title = "Newelle"
-url = "https://github.com/qwersyk/Newelle"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-tether"
-title = "tether"
-url = "https://github.com/zackb/tether"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "MIT"
-
-[[block]]
-name = "linguas-libgphoto2-libgphoto2_port"
-disabled = "duplicates Translation Project domain libgphoto2_port"
-title = "libgphoto2"
-url = "https://github.com/gphoto/libgphoto2"
-files = ["libgphoto2_port/po/{lang}.po"]
-sparse = ["libgphoto2_port/po/*.po"]
-licence = "LGPL-2.1-only"
-
-[[block]]
-name = "linguas-libgphoto2"
-disabled = "duplicates Translation Project domain libgphoto2"
-title = "libgphoto2"
-url = "https://github.com/gphoto/libgphoto2"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "LGPL-2.1-only"
-
-[[block]]
-name = "linguas-amule"
-title = "amule"
-url = "https://github.com/amule-project/amule"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-powertop"
-title = "powertop"
-url = "https://github.com/fenrus75/powertop"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-budgie-desktop"
-title = "budgie-desktop"
-url = "https://github.com/BuddiesOfBudgie/budgie-desktop"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-tilda"
-title = "tilda"
-url = "https://github.com/lanoxx/tilda"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-calcurse"
-title = "calcurse"
-url = "https://github.com/lfos/calcurse"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "BSD-2-Clause"
-
-[[block]]
-name = "linguas-aravis"
-title = "aravis"
-url = "https://github.com/AravisProject/aravis"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "LGPL-2.1-only"
-
-[[block]]
-name = "linguas-qalculate-gtk"
-title = "qalculate-gtk"
-url = "https://github.com/Qalculate/qalculate-gtk"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-cozy"
-title = "cozy"
-url = "https://github.com/geigi/cozy"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-Minder"
-title = "Minder"
-url = "https://github.com/phase1geo/Minder"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-Gradia"
-title = "Gradia"
-url = "https://github.com/AlexanderVanhee/Gradia"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-packet"
-title = "packet"
-url = "https://github.com/nozwock/packet"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-hamster"
-title = "hamster"
-url = "https://github.com/projecthamster/hamster"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-sshpilot"
-title = "sshpilot"
-url = "https://github.com/mfat/sshpilot"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-oversteer"
-title = "oversteer"
-url = "https://github.com/berarma/oversteer"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-gnupg"
-title = "gnupg"
-url = "https://github.com/gpg/gnupg"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-system-monitoring-center"
-title = "system-monitoring-center"
-url = "https://github.com/hakandundar34coding/system-monitoring-center"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-yad"
-title = "yad"
-url = "https://github.com/v1cont/yad"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-Frog"
-title = "Frog"
-url = "https://github.com/TenderOwl/Frog"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "MIT"
-
-[[block]]
-name = "linguas-gphoto2"
-disabled = "duplicates Translation Project domain gphoto2"
-title = "gphoto2"
-url = "https://github.com/gphoto/gphoto2"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-drawing"
-title = "drawing"
-url = "https://github.com/maoschanz/drawing"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-Marker"
-title = "Marker"
-url = "https://github.com/fabiocolacio/Marker"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-openbox"
-title = "openbox"
-url = "https://github.com/danakj/openbox"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-ddccontrol"
-title = "ddccontrol"
-url = "https://github.com/ddccontrol/ddccontrol"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-pwvucontrol"
-title = "pwvucontrol"
-url = "https://github.com/saivert/pwvucontrol"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-touche"
-title = "touche"
-url = "https://github.com/JoseExposito/touche"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-RustConn"
-title = "RustConn"
-url = "https://github.com/totoshko88/RustConn"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-warehouse"
-title = "warehouse"
-url = "https://github.com/flattool/warehouse"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-jwm"
-title = "jwm"
-url = "https://github.com/joewing/jwm"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "MIT"
-
-[[block]]
-name = "linguas-geeqie"
-title = "geeqie"
-url = "https://github.com/BestImageViewer/geeqie"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-gtg"
-title = "gtg"
-url = "https://github.com/getting-things-gnome/gtg"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-icons"
-title = "icons"
-url = "https://github.com/elementary/icons"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-cpupower-gui"
-title = "cpupower-gui"
-url = "https://github.com/vagnum08/cpupower-gui"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-gobby"
-title = "gobby"
-url = "https://github.com/gobby/gobby"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "ISC"
-
-[[block]]
-name = "linguas-xed"
-title = "xed"
-url = "https://github.com/linuxmint/xed"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-appcenter"
-title = "appcenter"
-url = "https://github.com/elementary/appcenter"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-ascii-draw"
-title = "ascii-draw"
-url = "https://github.com/Nokse22/ascii-draw"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-fcitx5-macos"
-title = "fcitx5-macos"
-url = "https://github.com/fcitx/fcitx5-macos"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-waybox"
-title = "waybox"
-url = "https://github.com/wizbright/waybox"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "MIT"
-
-[[block]]
-name = "linguas-code"
-title = "code"
-url = "https://github.com/elementary/code"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-libconfuse"
-title = "libconfuse"
-url = "https://github.com/libconfuse/libconfuse"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "ISC"
-
-[[block]]
-name = "linguas-Errands"
-title = "Errands"
-url = "https://github.com/mrvladus/Errands"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "MIT"
-
-[[block]]
-name = "linguas-fcitx5-lotus"
-title = "fcitx5-lotus"
-url = "https://github.com/LotusInputMethod/fcitx5-lotus"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-NetworkManager-l2tp"
-title = "NetworkManager-l2tp"
-url = "https://github.com/nm-l2tp/NetworkManager-l2tp"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-Curtail"
-disabled = "duplicates Damned Lies module Curtail"
-title = "Curtail"
-url = "https://github.com/Huluti/Curtail"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-amsynth"
-title = "amsynth"
-url = "https://github.com/amsynth/amsynth"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-penguin-mail"
-title = "penguin-mail"
-url = "https://github.com/c9dev/penguin-mail"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-mousam"
-title = "mousam"
-url = "https://github.com/amit9838/mousam"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-MAC-Telnet"
-title = "MAC-Telnet"
-url = "https://github.com/haakonnessjoen/MAC-Telnet"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-waydroid-helper"
-title = "waydroid-helper"
-url = "https://github.com/waydroid-helper/waydroid-helper"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-smile"
-title = "smile"
-url = "https://github.com/mijorus/smile"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-Nocturne"
-title = "Nocturne"
-url = "https://github.com/Jeffser/Nocturne"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-g4music"
-disabled = "duplicates Damned Lies module g4music"
-title = "g4music"
-url = "https://github.com/neithern/g4music"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-Atoms"
-title = "Atoms"
-url = "https://github.com/AtomsDevs/Atoms"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-slick-greeter"
-title = "slick-greeter"
-url = "https://github.com/linuxmint/slick-greeter"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-partclone"
-title = "partclone"
-url = "https://github.com/Thomas-Tsai/partclone"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-sfwbar"
-title = "sfwbar"
-url = "https://github.com/LBCrion/sfwbar"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-elektroid"
-title = "elektroid"
-url = "https://github.com/dagargo/elektroid"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-terminal"
-title = "terminal"
-url = "https://github.com/elementary/terminal"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "LGPL-3.0-only"
-
-[[block]]
-name = "linguas-himmelblau"
-title = "himmelblau"
-url = "https://github.com/himmelblau-idm/himmelblau"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-steam-online-fix-launcher"
-title = "steam-online-fix-launcher"
-url = "https://github.com/BadKiko/steam-online-fix-launcher"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-nagios-plugins"
-title = "nagios-plugins"
-url = "https://github.com/nagios-plugins/nagios-plugins"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-Rewaita"
-title = "Rewaita"
-url = "https://github.com/SwordPuffin/Rewaita"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-mangojuice"
-title = "mangojuice"
-url = "https://github.com/radiolamp/mangojuice"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-kupfer"
-title = "kupfer"
-url = "https://github.com/kupferlauncher/kupfer"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-nudoku"
-title = "nudoku"
-url = "https://github.com/jubalh/nudoku"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-multi-delogo"
-title = "multi-delogo"
-url = "https://github.com/wernerturing/multi-delogo"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-files"
-title = "files"
-url = "https://github.com/elementary/files"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-diodon"
-title = "diodon"
-url = "https://github.com/diodon-dev/diodon"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-monitor"
-title = "monitor"
-url = "https://github.com/elementary/monitor"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-clamui"
-title = "clamui"
-url = "https://github.com/linx-systems/clamui"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "MIT"
-
-[[block]]
-name = "linguas-CoBang"
-title = "CoBang"
-url = "https://github.com/hongquan/CoBang"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-riff"
-title = "riff"
-url = "https://github.com/Diegovsky/riff"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "MIT"
-
-[[block]]
-name = "linguas-eyedropper"
-disabled = "duplicates Damned Lies module eyedropper"
-title = "eyedropper"
-url = "https://github.com/FineFindus/eyedropper"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-vertical-workspaces"
-title = "vertical-workspaces"
-url = "https://github.com/G-dH/vertical-workspaces"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-diffuse"
-title = "diffuse"
-url = "https://github.com/MightyCreak/diffuse"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-granite"
-title = "granite"
-url = "https://github.com/elementary/granite"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "LGPL-3.0-only"
-
-[[block]]
-name = "linguas-DistroShelf"
-title = "DistroShelf"
-url = "https://github.com/ranfdev/DistroShelf"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-Wike"
-title = "Wike"
-url = "https://github.com/hugolabe/Wike"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-viking"
-title = "viking"
-url = "https://github.com/viking-gps/viking"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-stylesheet"
-title = "stylesheet"
-url = "https://github.com/elementary/stylesheet"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-sugar"
-title = "sugar"
-url = "https://github.com/sugarlabs/sugar"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-fcitx5-chinese-addons"
-title = "fcitx5-chinese-addons"
-url = "https://github.com/fcitx/fcitx5-chinese-addons"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "LGPL-2.1-only"
-
-[[block]]
-name = "linguas-hylki"
-title = "hylki"
-url = "https://github.com/hyprlab/hylki"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "AGPL-3.0-only"
-
-[[block]]
-name = "linguas-virtaal"
-title = "virtaal"
-url = "https://github.com/translate/virtaal"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-gala"
-title = "gala"
-url = "https://github.com/elementary/gala"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-sticky"
-title = "sticky"
-url = "https://github.com/vixalien/sticky"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "MIT"
-
-[[block]]
-name = "linguas-pantheon-tweaks"
-title = "pantheon-tweaks"
-url = "https://github.com/pantheon-tweaks/pantheon-tweaks"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-msmtp"
-disabled = "duplicates Translation Project domain msmtp"
-title = "msmtp"
-url = "https://github.com/marlam/msmtp"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-Folio"
-title = "Folio"
-url = "https://github.com/toolstack/Folio"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-keypunch"
-disabled = "duplicates Damned Lies module Keypunch"
-title = "keypunch"
-url = "https://github.com/bragefuglseth/keypunch"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-xreader"
-title = "xreader"
-url = "https://github.com/linuxmint/xreader"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-Backup-Manager"
-title = "Backup-Manager"
-url = "https://github.com/sukria/Backup-Manager"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-Annotator"
-title = "Annotator"
-url = "https://github.com/phase1geo/Annotator"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-Whisp"
-disabled = "duplicates Damned Lies module whisp"
-title = "Whisp"
-url = "https://github.com/tanaybhomia/Whisp"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-aspell"
-disabled = "duplicates Translation Project domain aspell"
-title = "aspell"
-url = "https://github.com/GNUAspell/aspell"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "LGPL-2.1-only"
-
-[[block]]
-name = "linguas-linuxmint-sticky"
-title = "sticky"
-url = "https://github.com/linuxmint/sticky"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-pix"
-title = "pix"
-url = "https://github.com/linuxmint/pix"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-Bavarder"
-title = "Bavarder"
-url = "https://github.com/Bavarder/Bavarder"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-xiphos"
-title = "xiphos"
-url = "https://github.com/crosswire/xiphos"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-soundconverter"
-title = "soundconverter"
-url = "https://github.com/kassoulet/soundconverter"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-petitboot"
-title = "petitboot"
-url = "https://github.com/open-power/petitboot"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-aviator"
-title = "aviator"
-url = "https://github.com/gianni-rosato/aviator"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-plattenalbum"
-title = "plattenalbum"
-url = "https://github.com/SoongNoonien/plattenalbum"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-synaptic"
-title = "synaptic"
-url = "https://github.com/mvo5/synaptic"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-abrt"
-title = "abrt"
-url = "https://github.com/abrt/abrt"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-cinnamon-desktop"
-title = "cinnamon-desktop"
-url = "https://github.com/linuxmint/cinnamon-desktop"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-fcitx5-mcbopomofo"
-title = "fcitx5-mcbopomofo"
-url = "https://github.com/openvanilla/fcitx5-mcbopomofo"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "MIT"
-
-[[block]]
-name = "linguas-gpg4win"
-title = "gpg4win"
-url = "https://github.com/gpg/gpg4win"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-Resource_Monitor"
-title = "Resource_Monitor"
-url = "https://github.com/0ry0n/Resource_Monitor"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-karere"
-title = "karere"
-url = "https://github.com/tobagin/karere"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-linyaps"
-title = "linyaps"
-url = "https://github.com/OpenAtom-Linyaps/linyaps"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "LGPL-3.0-only"
-
-[[block]]
-name = "linguas-mail"
-title = "mail"
-url = "https://github.com/elementary/mail"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-color-picker"
-title = "color-picker"
-url = "https://github.com/tuberry/color-picker"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-DAR"
-title = "DAR"
-url = "https://github.com/Edrusb/DAR"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-Geopard"
-title = "Geopard"
-url = "https://github.com/ranfdev/Geopard"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-lenspect"
-title = "lenspect"
-url = "https://github.com/vmkspv/lenspect"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-xarchiver"
-title = "xarchiver"
-url = "https://github.com/ib/xarchiver"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-dnfdragora"
-title = "dnfdragora"
-url = "https://github.com/manatools/dnfdragora"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-rapid-photo-downloader"
-title = "rapid-photo-downloader"
-url = "https://github.com/damonlynch/rapid-photo-downloader"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-Design"
-title = "Design"
-url = "https://github.com/dubstar-04/Design"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-budgie-extras"
-title = "budgie-extras"
-url = "https://github.com/UbuntuBudgie/budgie-extras"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-ThiefMD"
-title = "ThiefMD"
-url = "https://github.com/kmwallio/ThiefMD"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-eix"
-title = "eix"
-url = "https://github.com/vaeth/eix"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-lightdm-gtk-greeter"
-title = "lightdm-gtk-greeter"
-url = "https://github.com/Xubuntu/lightdm-gtk-greeter"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-installer"
-title = "installer"
-url = "https://github.com/elementary/installer"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-xfce4-whiskermenu-plugin"
-title = "xfce4-whiskermenu-plugin"
-url = "https://github.com/gottcode/xfce4-whiskermenu-plugin"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-addwater"
-disabled = "duplicates Damned Lies module addwater"
-title = "addwater"
-url = "https://github.com/largestgithubuseronearth/addwater"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-sawfish"
-title = "sawfish"
-url = "https://github.com/SawfishWM/sawfish"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-libadapta"
-title = "libadapta"
-url = "https://github.com/xapp-project/libadapta"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "LGPL-2.1-only"
-
-[[block]]
-name = "linguas-Font-Downloader"
-title = "Font-Downloader"
-url = "https://github.com/GustavoPeredo/Font-Downloader"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-nimf"
-title = "nimf"
-url = "https://github.com/hamonikr/nimf"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "LGPL-3.0-only"
-
-[[block]]
-name = "linguas-transmission-remote-gtk"
-title = "transmission-remote-gtk"
-url = "https://github.com/transmission-remote-gtk/transmission-remote-gtk"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-greeter"
-title = "greeter"
-url = "https://github.com/elementary/greeter"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-Avvie"
-title = "Avvie"
-url = "https://github.com/Taiko2k/Avvie"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-xdg-desktop-portal-gtk"
-disabled = "duplicates Damned Lies module xdg-desktop-portal-gtk"
-title = "xdg-desktop-portal-gtk"
-url = "https://github.com/flatpak/xdg-desktop-portal-gtk"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "LGPL-2.1-only"
-
-[[block]]
-name = "linguas-xapp"
-title = "xapp"
-url = "https://github.com/linuxmint/xapp"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "LGPL-3.0-only"
-
-[[block]]
-name = "linguas-Exhibit"
-title = "Exhibit"
-url = "https://github.com/Nokse22/Exhibit"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-Wordbook"
-title = "Wordbook"
-url = "https://github.com/mufeedali/Wordbook"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-alternative-toolbar"
-title = "alternative-toolbar"
-url = "https://github.com/fossfreedom/alternative-toolbar"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-ciano"
-title = "ciano"
-url = "https://github.com/robertsanseries/ciano"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-gtk-gnutella"
-title = "gtk-gnutella"
-url = "https://github.com/gtk-gnutella/gtk-gnutella"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-byte"
-title = "byte"
-url = "https://github.com/ellie-commons/byte"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-grisbi"
-title = "grisbi"
-url = "https://github.com/grisbi/grisbi"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-calaos_base"
-title = "calaos_base"
-url = "https://github.com/calaos/calaos_base"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-xCHM"
-title = "xCHM"
-url = "https://github.com/rzvncj/xCHM"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-butter"
-title = "butter"
-url = "https://github.com/zhangyuannie/butter"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-freetuxtv"
-title = "freetuxtv"
-url = "https://github.com/freetuxtv/freetuxtv"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-vuurmuur"
-title = "vuurmuur"
-url = "https://github.com/inliniac/vuurmuur"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-gftp"
-title = "gftp"
-url = "https://github.com/masneyb/gftp"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "MIT"
-
-[[block]]
-name = "linguas-cadaver"
-title = "cadaver"
-url = "https://github.com/notroj/cadaver"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-drum-machine"
-disabled = "duplicates Damned Lies module drum-machine"
-title = "drum-machine"
-url = "https://github.com/Revisto/drum-machine"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-xnec2c"
-title = "xnec2c"
-url = "https://github.com/KJ7LNW/xnec2c"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-music"
-title = "music"
-url = "https://github.com/elementary/music"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-systemd-stable"
-title = "systemd-stable"
-url = "https://github.com/systemd/systemd-stable"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-simple-taskbar"
-title = "simple-taskbar"
-url = "https://github.com/Sultech/simple-taskbar"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-pavucontrol"
-title = "pavucontrol"
-url = "https://github.com/pulseaudio/pavucontrol"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-Halftone"
-title = "Halftone"
-url = "https://github.com/tfuxu/Halftone"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-OpenXMB"
-title = "OpenXMB"
-url = "https://github.com/phenom64/OpenXMB"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-Gameeky"
-title = "Gameeky"
-url = "https://github.com/tchx84/Gameeky"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-alarm-clock"
-title = "alarm-clock"
-url = "https://github.com/alarm-clock-applet/alarm-clock"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
 name = "linguas-flatsweep"
 title = "flatsweep"
 url = "https://github.com/giantpinkrobots/flatsweep"
@@ -1947,154 +891,17 @@ sparse = ["po/*.po"]
 licence = "MPL-2.0"
 
 [[block]]
-name = "linguas-gtkterm"
-title = "gtkterm"
-url = "https://github.com/wvdakker/gtkterm"
+name = "linguas-foliate"
+title = "foliate"
+url = "https://github.com/johnfactotum/foliate"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "GPL-3.0-only"
 
 [[block]]
-name = "linguas-calendar"
-title = "calendar"
-url = "https://github.com/elementary/calendar"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-Pins"
-title = "Pins"
-url = "https://github.com/fabrialberio/Pins"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-ddccontrol-db"
-title = "ddccontrol-db"
-url = "https://github.com/ddccontrol/ddccontrol-db"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-Flowtime"
-title = "Flowtime"
-url = "https://github.com/Diego-Ivan/Flowtime"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-ignition"
-title = "ignition"
-url = "https://github.com/flattool/ignition"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-libx52"
-title = "libx52"
-url = "https://github.com/nirenjan/libx52"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-ConsoleKit2"
-title = "ConsoleKit2"
-url = "https://github.com/ConsoleKit2/ConsoleKit2"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-whaler"
-title = "whaler"
-url = "https://github.com/sdv43/whaler"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-inform7-ide"
-title = "inform7-ide"
-url = "https://github.com/ptomato/inform7-ide"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-mate-dock-applet"
-title = "mate-dock-applet"
-url = "https://github.com/ubuntu-mate/mate-dock-applet"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-vaults"
-title = "vaults"
-url = "https://github.com/mpobaschnig/vaults"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-web-archives"
-title = "web-archives"
-url = "https://github.com/birros/web-archives"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-gcolor3"
-disabled = "duplicates Damned Lies module gcolor3"
-title = "gcolor3"
-url = "https://github.com/Hjdskes/gcolor3"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-subtitleeditor"
-title = "subtitleeditor"
-url = "https://github.com/subtitleeditor/subtitleeditor"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-dfc"
-title = "dfc"
-url = "https://github.com/rolinh/dfc"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "BSD-3-Clause"
-
-[[block]]
-name = "linguas-Norka"
-title = "Norka"
-url = "https://github.com/TenderOwl/Norka"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "MIT"
-
-[[block]]
-name = "linguas-fingwit"
-title = "fingwit"
-url = "https://github.com/xapp-project/fingwit"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-dock"
-title = "dock"
-url = "https://github.com/elementary/dock"
+name = "linguas-freetuxtv"
+title = "freetuxtv"
+url = "https://github.com/freetuxtv/freetuxtv"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "GPL-3.0-only"
@@ -2109,9 +916,653 @@ sparse = ["po/*.po"]
 licence = "GPL-3.0-only"
 
 [[block]]
-name = "linguas-apt-dater"
-title = "apt-dater"
-url = "https://github.com/DE-IBH/apt-dater"
+name = "linguas-fswatch"
+title = "fswatch"
+url = "https://github.com/emcrisostomo/fswatch"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-g4music"
+disabled = "duplicates Damned Lies module g4music"
+title = "g4music"
+url = "https://github.com/neithern/g4music"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-gala"
+title = "gala"
+url = "https://github.com/elementary/gala"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-gcolor3"
+disabled = "duplicates Damned Lies module gcolor3"
+title = "gcolor3"
+url = "https://github.com/Hjdskes/gcolor3"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-gdm"
+disabled = "duplicates Damned Lies module gdm"
+title = "gdm"
+url = "https://gitlab.gnome.org/GNOME/gdm"
+mirror = "https://github.com/GNOME/gdm"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-geany"
+title = "geany"
+url = "https://github.com/geany/geany"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-gearlever"
+title = "gearlever"
+url = "https://github.com/mijorus/gearlever"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-geeqie"
+title = "geeqie"
+url = "https://github.com/BestImageViewer/geeqie"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-gftp"
+title = "gftp"
+url = "https://github.com/masneyb/gftp"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "MIT"
+
+[[block]]
+name = "linguas-gitg"
+disabled = "duplicates Damned Lies module gitg"
+title = "gitg"
+url = "https://gitlab.gnome.org/GNOME/gitg"
+mirror = "https://github.com/GNOME/gitg"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-gnome-builder"
+disabled = "duplicates Damned Lies module gnome-builder"
+title = "gnome-builder"
+url = "https://gitlab.gnome.org/GNOME/gnome-builder"
+mirror = "https://github.com/GNOME/gnome-builder"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-gnome-calendar"
+disabled = "duplicates Damned Lies module gnome-calendar"
+title = "gnome-calendar"
+url = "https://gitlab.gnome.org/GNOME/gnome-calendar"
+mirror = "https://github.com/GNOME/gnome-calendar"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-gnome-desktop"
+disabled = "duplicates Damned Lies module gnome-desktop"
+title = "gnome-desktop"
+url = "https://gitlab.gnome.org/GNOME/gnome-desktop"
+mirror = "https://github.com/GNOME/gnome-desktop"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-gnome-shell"
+disabled = "duplicates Damned Lies module gnome-shell"
+title = "gnome-shell"
+url = "https://gitlab.gnome.org/GNOME/gnome-shell"
+mirror = "https://github.com/GNOME/gnome-shell"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-gnome-shell-extension-gsconnect"
+title = "gnome-shell-extension-gsconnect"
+url = "https://github.com/GSConnect/gnome-shell-extension-gsconnect"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-gnome-terminal"
+disabled = "duplicates Damned Lies module gnome-terminal"
+title = "gnome-terminal"
+url = "https://gitlab.gnome.org/GNOME/gnome-terminal"
+mirror = "https://github.com/GNOME/gnome-terminal"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-gnupg"
+title = "gnupg"
+url = "https://github.com/gpg/gnupg"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-goaccess"
+title = "goaccess"
+url = "https://github.com/allinurl/goaccess"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "MIT"
+
+[[block]]
+name = "linguas-gobby"
+title = "gobby"
+url = "https://github.com/gobby/gobby"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "ISC"
+
+[[block]]
+name = "linguas-gparted"
+disabled = "duplicates Damned Lies module gparted"
+title = "gparted"
+url = "https://gitlab.gnome.org/GNOME/gparted"
+mirror = "https://github.com/GNOME/gparted"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-gpg4win"
+title = "gpg4win"
+url = "https://github.com/gpg/gpg4win"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-gphoto2"
+disabled = "duplicates Translation Project domain gphoto2"
+title = "gphoto2"
+url = "https://github.com/gphoto/gphoto2"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-granite"
+title = "granite"
+url = "https://github.com/elementary/granite"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "LGPL-3.0-only"
+
+[[block]]
+name = "linguas-greeter"
+title = "greeter"
+url = "https://github.com/elementary/greeter"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-grisbi"
+title = "grisbi"
+url = "https://github.com/grisbi/grisbi"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-gtg"
+title = "gtg"
+url = "https://github.com/getting-things-gnome/gtg"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-gthumb"
+disabled = "duplicates Damned Lies module gthumb"
+title = "gthumb"
+url = "https://gitlab.gnome.org/GNOME/gthumb"
+mirror = "https://github.com/GNOME/gthumb"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-gtk-gnutella"
+title = "gtk-gnutella"
+url = "https://github.com/gtk-gnutella/gtk-gnutella"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-gtkterm"
+title = "gtkterm"
+url = "https://github.com/wvdakker/gtkterm"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-hamster"
+title = "hamster"
+url = "https://github.com/projecthamster/hamster"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-himmelblau"
+title = "himmelblau"
+url = "https://github.com/himmelblau-idm/himmelblau"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-hylki"
+title = "hylki"
+url = "https://github.com/hyprlab/hylki"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "AGPL-3.0-only"
+
+[[block]]
+name = "linguas-icons"
+title = "icons"
+url = "https://github.com/elementary/icons"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-ignition"
+title = "ignition"
+url = "https://github.com/flattool/ignition"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-inform7-ide"
+title = "inform7-ide"
+url = "https://github.com/ptomato/inform7-ide"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-installer"
+title = "installer"
+url = "https://github.com/elementary/installer"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-jwm"
+title = "jwm"
+url = "https://github.com/joewing/jwm"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "MIT"
+
+[[block]]
+name = "linguas-karere"
+title = "karere"
+url = "https://github.com/tobagin/karere"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-keypunch"
+disabled = "duplicates Damned Lies module Keypunch"
+title = "keypunch"
+url = "https://github.com/bragefuglseth/keypunch"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-kupfer"
+title = "kupfer"
+url = "https://github.com/kupferlauncher/kupfer"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-labwc"
+title = "labwc"
+url = "https://github.com/labwc/labwc"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-lenspect"
+title = "lenspect"
+url = "https://github.com/vmkspv/lenspect"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-libadapta"
+title = "libadapta"
+url = "https://github.com/xapp-project/libadapta"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "LGPL-2.1-only"
+
+[[block]]
+name = "linguas-libadwaita"
+disabled = "duplicates Damned Lies module libadwaita"
+title = "libadwaita"
+url = "https://gitlab.gnome.org/GNOME/libadwaita"
+mirror = "https://github.com/GNOME/libadwaita"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "LGPL-2.1-only"
+
+[[block]]
+name = "linguas-libconfuse"
+title = "libconfuse"
+url = "https://github.com/libconfuse/libconfuse"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "ISC"
+
+[[block]]
+name = "linguas-libgphoto2"
+disabled = "duplicates Translation Project domain libgphoto2"
+title = "libgphoto2"
+url = "https://github.com/gphoto/libgphoto2"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "LGPL-2.1-only"
+
+[[block]]
+name = "linguas-libgphoto2-libgphoto2_port"
+disabled = "duplicates Translation Project domain libgphoto2_port"
+title = "libgphoto2"
+url = "https://github.com/gphoto/libgphoto2"
+files = ["libgphoto2_port/po/{lang}.po"]
+sparse = ["libgphoto2_port/po/*.po"]
+licence = "LGPL-2.1-only"
+
+[[block]]
+name = "linguas-libqalculate"
+title = "libqalculate"
+url = "https://github.com/Qalculate/libqalculate"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-libvips"
+title = "libvips"
+url = "https://github.com/libvips/libvips"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "LGPL-2.1-only"
+
+[[block]]
+name = "linguas-libx52"
+title = "libx52"
+url = "https://github.com/nirenjan/libx52"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-lightdm-gtk-greeter"
+title = "lightdm-gtk-greeter"
+url = "https://github.com/Xubuntu/lightdm-gtk-greeter"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-linuxmint-sticky"
+title = "sticky"
+url = "https://github.com/linuxmint/sticky"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-linyaps"
+title = "linyaps"
+url = "https://github.com/OpenAtom-Linyaps/linyaps"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "LGPL-3.0-only"
+
+[[block]]
+name = "linguas-lutris"
+title = "lutris"
+url = "https://github.com/lutris/lutris"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-mail"
+title = "mail"
+url = "https://github.com/elementary/mail"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-mangojuice"
+title = "mangojuice"
+url = "https://github.com/radiolamp/mangojuice"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-mate-dock-applet"
+title = "mate-dock-applet"
+url = "https://github.com/ubuntu-mate/mate-dock-applet"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-meld"
+disabled = "duplicates Damned Lies module meld"
+title = "meld"
+url = "https://gitlab.gnome.org/GNOME/meld"
+mirror = "https://github.com/GNOME/meld"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-monitor"
+title = "monitor"
+url = "https://github.com/elementary/monitor"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-motion"
+title = "motion"
+url = "https://github.com/Motion-Project/motion"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-mousam"
+title = "mousam"
+url = "https://github.com/amit9838/mousam"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-msmtp"
+disabled = "duplicates Translation Project domain msmtp"
+title = "msmtp"
+url = "https://github.com/marlam/msmtp"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-multi-delogo"
+title = "multi-delogo"
+url = "https://github.com/wernerturing/multi-delogo"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-music"
+title = "music"
+url = "https://github.com/elementary/music"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-mutter"
+disabled = "duplicates Damned Lies module mutter"
+title = "mutter"
+url = "https://gitlab.gnome.org/GNOME/mutter"
+mirror = "https://github.com/GNOME/mutter"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-nagios-plugins"
+title = "nagios-plugins"
+url = "https://github.com/nagios-plugins/nagios-plugins"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-nano"
+disabled = "duplicates Translation Project domain nano"
+title = "nano"
+url = "git://git.sv.gnu.org/nano.git"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-nautilus"
+disabled = "duplicates Damned Lies module nautilus"
+title = "nautilus"
+url = "https://gitlab.gnome.org/GNOME/nautilus"
+mirror = "https://github.com/GNOME/nautilus"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-netease-cloud-music-gtk"
+title = "netease-cloud-music-gtk"
+url = "https://github.com/gmg137/netease-cloud-music-gtk"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-nimf"
+title = "nimf"
+url = "https://github.com/hamonikr/nimf"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "LGPL-3.0-only"
+
+[[block]]
+name = "linguas-nudoku"
+title = "nudoku"
+url = "https://github.com/jubalh/nudoku"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-openbox"
+title = "openbox"
+url = "https://github.com/danakj/openbox"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-orca"
+disabled = "duplicates Damned Lies module orca"
+title = "orca"
+url = "https://gitlab.gnome.org/GNOME/orca"
+mirror = "https://github.com/GNOME/orca"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "LGPL-2.1-only"
+
+[[block]]
+name = "linguas-oversteer"
+title = "oversteer"
+url = "https://github.com/berarma/oversteer"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-packet"
+title = "packet"
+url = "https://github.com/nozwock/packet"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-pantheon-tweaks"
+title = "pantheon-tweaks"
+url = "https://github.com/pantheon-tweaks/pantheon-tweaks"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-partclone"
+title = "partclone"
+url = "https://github.com/Thomas-Tsai/partclone"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "GPL-2.0-only"
@@ -2125,17 +1576,34 @@ sparse = ["po/*.po"]
 licence = "GPL-3.0-only"
 
 [[block]]
-name = "linguas-taxi"
-title = "taxi"
-url = "https://github.com/ellie-commons/taxi"
+name = "linguas-pavucontrol"
+title = "pavucontrol"
+url = "https://github.com/pulseaudio/pavucontrol"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
-licence = "LGPL-3.0-only"
+licence = "GPL-2.0-only"
 
 [[block]]
-name = "linguas-agenda"
-title = "agenda"
-url = "https://github.com/dahenson/agenda"
+name = "linguas-penguin-mail"
+title = "penguin-mail"
+url = "https://github.com/c9dev/penguin-mail"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-petitboot"
+title = "petitboot"
+url = "https://github.com/open-power/petitboot"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-phosh"
+disabled = "duplicates Damned Lies module phosh"
+title = "phosh"
+url = "https://gitlab.gnome.org/World/Phosh/phosh"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "GPL-3.0-only"
@@ -2149,12 +1617,77 @@ sparse = ["po/*.po"]
 licence = "LGPL-2.1-only"
 
 [[block]]
-name = "linguas-Portfolio"
-title = "Portfolio"
-url = "https://github.com/tchx84/Portfolio"
+name = "linguas-pika-backup"
+disabled = "duplicates Damned Lies module pika-backup"
+title = "pika-backup"
+url = "https://gitlab.gnome.org/World/pika-backup"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-piper"
+title = "piper"
+url = "https://github.com/libratbag/piper"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-pix"
+title = "pix"
+url = "https://github.com/linuxmint/pix"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-plattenalbum"
+title = "plattenalbum"
+url = "https://github.com/SoongNoonien/plattenalbum"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-powertop"
+title = "powertop"
+url = "https://github.com/fenrus75/powertop"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-pwvucontrol"
+title = "pwvucontrol"
+url = "https://github.com/saivert/pwvucontrol"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-qalculate-gtk"
+title = "qalculate-gtk"
+url = "https://github.com/Qalculate/qalculate-gtk"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-rapid-photo-downloader"
+title = "rapid-photo-downloader"
+url = "https://github.com/damonlynch/rapid-photo-downloader"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-riff"
+title = "riff"
+url = "https://github.com/Diegovsky/riff"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "MIT"
 
 [[block]]
 name = "linguas-rmw"
@@ -2165,9 +1698,458 @@ sparse = ["po/*.po"]
 licence = "GPL-3.0-only"
 
 [[block]]
-name = "linguas-blackbox-terminal"
-title = "blackbox-terminal"
-url = "https://github.com/yonasBSD/blackbox-terminal"
+name = "linguas-sawfish"
+title = "sawfish"
+url = "https://github.com/SawfishWM/sawfish"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-scanmem"
+title = "scanmem"
+url = "https://github.com/scanmem/scanmem"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-sfwbar"
+title = "sfwbar"
+url = "https://github.com/LBCrion/sfwbar"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-simple-taskbar"
+title = "simple-taskbar"
+url = "https://github.com/Sultech/simple-taskbar"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-slick-greeter"
+title = "slick-greeter"
+url = "https://github.com/linuxmint/slick-greeter"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-smile"
+title = "smile"
+url = "https://github.com/mijorus/smile"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-soundconverter"
+title = "soundconverter"
+url = "https://github.com/kassoulet/soundconverter"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-spot"
+title = "spot"
+url = "https://github.com/xou816/spot"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "MIT"
+
+[[block]]
+name = "linguas-sshpilot"
+title = "sshpilot"
+url = "https://github.com/mfat/sshpilot"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-steam-online-fix-launcher"
+title = "steam-online-fix-launcher"
+url = "https://github.com/BadKiko/steam-online-fix-launcher"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-sticky"
+title = "sticky"
+url = "https://github.com/vixalien/sticky"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "MIT"
+
+[[block]]
+name = "linguas-stylesheet"
+title = "stylesheet"
+url = "https://github.com/elementary/stylesheet"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-subtitleeditor"
+title = "subtitleeditor"
+url = "https://github.com/subtitleeditor/subtitleeditor"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-sugar"
+title = "sugar"
+url = "https://github.com/sugarlabs/sugar"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-synaptic"
+title = "synaptic"
+url = "https://github.com/mvo5/synaptic"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-system-monitoring-center"
+title = "system-monitoring-center"
+url = "https://github.com/hakandundar34coding/system-monitoring-center"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-systemd-stable"
+title = "systemd-stable"
+url = "https://github.com/systemd/systemd-stable"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-taxi"
+title = "taxi"
+url = "https://github.com/ellie-commons/taxi"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "LGPL-3.0-only"
+
+[[block]]
+name = "linguas-terminal"
+title = "terminal"
+url = "https://github.com/elementary/terminal"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "LGPL-3.0-only"
+
+[[block]]
+name = "linguas-tether"
+title = "tether"
+url = "https://github.com/zackb/tether"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "MIT"
+
+[[block]]
+name = "linguas-thunar"
+title = "thunar"
+url = "https://gitlab.xfce.org/xfce/thunar"
+mirror = "https://github.com/xfce-mirror/thunar"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-tigervnc"
+disabled = "duplicates Translation Project domain tigervnc"
+title = "tigervnc"
+url = "https://github.com/TigerVNC/tigervnc"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-tilda"
+title = "tilda"
+url = "https://github.com/lanoxx/tilda"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-touche"
+title = "touche"
+url = "https://github.com/JoseExposito/touche"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-transmission-remote-gtk"
+title = "transmission-remote-gtk"
+url = "https://github.com/transmission-remote-gtk/transmission-remote-gtk"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-util-linux"
+disabled = "duplicates Translation Project domain util-linux"
+title = "util-linux"
+url = "https://github.com/util-linux/util-linux"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-vala-panel"
+title = "vala-panel"
+url = "https://gitlab.com/vala-panel-project/vala-panel"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "LGPL-3.0-only"
+
+[[block]]
+name = "linguas-vala-panel-appmenu"
+title = "vala-panel-appmenu"
+url = "https://gitlab.com/vala-panel-project/vala-panel-appmenu"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "LGPL-3.0-only"
+
+[[block]]
+name = "linguas-vaults"
+title = "vaults"
+url = "https://github.com/mpobaschnig/vaults"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-vertical-workspaces"
+title = "vertical-workspaces"
+url = "https://github.com/G-dH/vertical-workspaces"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-viking"
+title = "viking"
+url = "https://github.com/viking-gps/viking"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-virtaal"
+title = "virtaal"
+url = "https://github.com/translate/virtaal"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-vlc"
+title = "vlc"
+url = "https://code.videolan.org/videolan/vlc"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-vte"
+disabled = "duplicates Damned Lies module vte"
+title = "vte"
+url = "https://gitlab.gnome.org/GNOME/vte"
+mirror = "https://github.com/GNOME/vte"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "CC-BY-4.0"
+
+[[block]]
+name = "linguas-vuurmuur"
+title = "vuurmuur"
+url = "https://github.com/inliniac/vuurmuur"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-warehouse"
+title = "warehouse"
+url = "https://github.com/flattool/warehouse"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-warpinator"
+title = "warpinator"
+url = "https://github.com/linuxmint/warpinator"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-warzone2100"
+title = "warzone2100"
+url = "https://github.com/Warzone2100/warzone2100"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-waybox"
+title = "waybox"
+url = "https://github.com/wizbright/waybox"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "MIT"
+
+[[block]]
+name = "linguas-waydroid-helper"
+title = "waydroid-helper"
+url = "https://github.com/waydroid-helper/waydroid-helper"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-web-archives"
+title = "web-archives"
+url = "https://github.com/birros/web-archives"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-whaler"
+title = "whaler"
+url = "https://github.com/sdv43/whaler"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-wireplumber"
+disabled = "duplicates Damned Lies module WirePlumber"
+title = "wireplumber"
+url = "https://gitlab.freedesktop.org/pipewire/wireplumber"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "MIT"
+
+[[block]]
+name = "linguas-workrave"
+title = "workrave"
+url = "https://github.com/rcaelers/workrave"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-xCHM"
+title = "xCHM"
+url = "https://github.com/rzvncj/xCHM"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-xapp"
+title = "xapp"
+url = "https://github.com/linuxmint/xapp"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "LGPL-3.0-only"
+
+[[block]]
+name = "linguas-xarchiver"
+title = "xarchiver"
+url = "https://github.com/ib/xarchiver"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-xdg-desktop-portal-gtk"
+disabled = "duplicates Damned Lies module xdg-desktop-portal-gtk"
+title = "xdg-desktop-portal-gtk"
+url = "https://github.com/flatpak/xdg-desktop-portal-gtk"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "LGPL-2.1-only"
+
+[[block]]
+name = "linguas-xed"
+title = "xed"
+url = "https://github.com/linuxmint/xed"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-xfce4-terminal"
+title = "xfce4-terminal"
+url = "https://gitlab.xfce.org/apps/xfce4-terminal"
+mirror = "https://github.com/xfce-mirror/xfce4-terminal"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-xfce4-whiskermenu-plugin"
+title = "xfce4-whiskermenu-plugin"
+url = "https://github.com/gottcode/xfce4-whiskermenu-plugin"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-xfwm4"
+title = "xfwm4"
+url = "https://gitlab.xfce.org/xfce/xfwm4"
+mirror = "https://github.com/xfce-mirror/xfwm4"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-xiphos"
+title = "xiphos"
+url = "https://github.com/crosswire/xiphos"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-xnec2c"
+title = "xnec2c"
+url = "https://github.com/KJ7LNW/xnec2c"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-xreader"
+title = "xreader"
+url = "https://github.com/linuxmint/xreader"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-yad"
+title = "yad"
+url = "https://github.com/v1cont/yad"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "GPL-3.0-only"
@@ -2181,9 +2163,27 @@ sparse = ["po/*.po"]
 licence = "GPL-3.0-only"
 
 [[block]]
-name = "linguas-applications-menu"
-title = "applications-menu"
-url = "https://github.com/elementary/applications-menu"
+name = "linguas-zapzap"
+title = "zapzap"
+url = "https://github.com/rafatosta/zapzap"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-zathura"
+title = "zathura"
+url = "https://github.com/pwmt/zathura"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "Zlib"
+
+[[block]]
+name = "linguas-zenity"
+disabled = "duplicates Damned Lies module zenity"
+title = "zenity"
+url = "https://gitlab.gnome.org/GNOME/zenity"
+mirror = "https://github.com/GNOME/zenity"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "LGPL-2.1-only"
