@@ -138,6 +138,10 @@ msgstr ""
 msgid "{text} ({source} → {target})"
 msgstr ""
 
+#. A language in the lists of languages: its name, then the code amaGama has for it, such as pt_br.
+msgid "{name} — {code}"
+msgstr ""
+
 msgid "Suggestions: {count}"
 msgstr ""
 
@@ -147,4 +151,9 @@ msgstr ""
 #. Translate as "rtl" if your language is written right to left.
 msgctxt "direction"
 msgid "ltr"
+msgstr ""
+
+#. A language and its country or script, such as Portuguese (Brazil) or Serbian (Latin). Keep {language} and {detail}.
+msgctxt "language with detail"
+msgid "{language} ({detail})"
 msgstr ""

@@ -32,6 +32,10 @@ msgstr "Stuur <b>e-pos</b> na {address}."
 
 msgid "{year} © Translate House"
 msgstr "© {jaar} Translate House"
+
+msgctxt "language with detail"
+msgid "{language} ({detail})"
+msgstr "{language} in {detail}"
 '''
 
 AR = '''msgid ""
@@ -97,6 +101,16 @@ class TestPage(object):
         assert '</span> Soek\n' in page
         assert '"suggestions": "Voorstelle: {count}"' in page
         assert 'MGM.lang = "af";' in page
+
+    def test_languages(self, client):
+        client.application.tmdb._available_langs = {
+            'sourceLanguages': ['en'], 'targetLanguages': ['af', 'pt_br']}
+        page = client.get('/', headers={'Accept-Language': 'af'}).get_data(as_text=True)
+        assert 'MGM.languages = {"described": {' \
+            '"af": {"name": "Afrikaans", "tag": "af"}, ' \
+            '"en": {"name": "Engels", "tag": "en"}, ' \
+            '"pt_br": {"name": "Portugees in Brasili\\u00eb", "tag": "pt-BR"}}, ' \
+            '"source": ["en"], "target": ["af", "pt_br"]};' in page
 
     def test_lang_argument(self, client):
         page = client.get('/?lang=ar', headers={'Accept-Language': 'af'}).get_data(as_text=True)

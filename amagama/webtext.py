@@ -19,7 +19,7 @@ import re
 import jinja2.ext
 from markupsafe import escape
 
-from amagama import titles
+from amagama import languagenames, titles
 
 CATALOG_DIR = os.path.join(os.path.dirname(__file__), "po", "web")
 TEMPLATE = os.path.join(CATALOG_DIR, "web.pot")
@@ -33,6 +33,7 @@ PLACEHOLDER = re.compile(r"\{\w+\}")
 # Messages the templates don't have: ((context, msgid), note).
 MESSAGES = [
     (titles.DIRECTION, titles.DIRECTION_NOTE),
+    (languagenames.PATTERN, languagenames.PATTERN_NOTE),
 ]
 
 
