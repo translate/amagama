@@ -7309,23 +7309,168 @@ sparse = ["translation/pofiles/*.po"]
 licence = "GPL-3.0-only"
 
 [[block]]
-name = "hosted-kimai"
+name = "hosted-kimai-theme"
 title = "Kimai - Time tracking"
 url = "https://github.com/kevinpapst/TablerBundle"
 ref = "main"
 files = ["translations/TablerBundle.{lang}.xlf"]
-sparse = ["translations/TablerBundle.*.xlf"]
-format = "xliff"
+sparse = ["translations/TablerBundle.*.xlf", "translations/TablerBundle.en.xlf"]
+format = "xliff-monolingual"
+template = "translations/TablerBundle.en.xlf"
 licence = "MIT"
 
 [[block]]
-name = "hosted-kimai-2"
+name = "hosted-kimai-daterangepicker"
 title = "Kimai - Time tracking"
 url = "https://github.com/kimai/kimai/"
 ref = "main"
-files = ["translations/daterangepicker.{lang}.xlf", "translations/email.{lang}.xlf", "translations/flashmessages.{lang}.xlf", "translations/invoice-calculator.{lang}.xlf", "translations/invoice-renderer.{lang}.xlf", "translations/kiosk.{lang}.xlf", "translations/messages.{lang}.xlf", "translations/plugins.{lang}.xlf", "translations/reporting.{lang}.xlf", "translations/system-configuration.{lang}.xlf", "translations/tasks.{lang}.xlf", "translations/teams.{lang}.xlf", "translations/validators.{lang}.xlf", "translations/wizard.{lang}.xlf"]
-sparse = ["translations/daterangepicker.*.xlf", "translations/email.*.xlf", "translations/flashmessages.*.xlf", "translations/invoice-calculator.*.xlf", "translations/invoice-renderer.*.xlf", "translations/kiosk.*.xlf", "translations/messages.*.xlf", "translations/plugins.*.xlf", "translations/reporting.*.xlf", "translations/system-configuration.*.xlf", "translations/tasks.*.xlf", "translations/teams.*.xlf", "translations/validators.*.xlf", "translations/wizard.*.xlf"]
-format = "xliff"
+files = ["translations/daterangepicker.{lang}.xlf"]
+sparse = ["translations/daterangepicker.*.xlf", "translations/daterangepicker.en.xlf"]
+format = "xliff-monolingual"
+template = "translations/daterangepicker.en.xlf"
+licence = "AGPL-3.0-or-later"
+
+[[block]]
+name = "hosted-kimai-emails"
+title = "Kimai - Time tracking"
+url = "https://github.com/kimai/kimai/"
+ref = "main"
+files = ["translations/email.{lang}.xlf"]
+sparse = ["translations/email.*.xlf", "translations/email.en.xlf"]
+format = "xliff-monolingual"
+template = "translations/email.en.xlf"
+licence = "AGPL-3.0-or-later"
+
+[[block]]
+name = "hosted-kimai-flashmessages"
+title = "Kimai - Time tracking"
+url = "https://github.com/kimai/kimai/"
+ref = "main"
+files = ["translations/flashmessages.{lang}.xlf"]
+sparse = ["translations/flashmessages.*.xlf", "translations/flashmessages.en.xlf"]
+format = "xliff-monolingual"
+template = "translations/flashmessages.en.xlf"
+licence = "AGPL-3.0-or-later"
+
+[[block]]
+name = "hosted-kimai-invoice-calculator"
+title = "Kimai - Time tracking"
+url = "https://github.com/kimai/kimai/"
+ref = "main"
+files = ["translations/invoice-calculator.{lang}.xlf"]
+sparse = ["translations/invoice-calculator.*.xlf", "translations/invoice-calculator.en.xlf"]
+format = "xliff-monolingual"
+template = "translations/invoice-calculator.en.xlf"
+licence = "AGPL-3.0-or-later"
+
+[[block]]
+name = "hosted-kimai-invoice-templates"
+title = "Kimai - Time tracking"
+url = "https://github.com/kimai/kimai/"
+ref = "main"
+files = ["translations/invoice-renderer.{lang}.xlf"]
+sparse = ["translations/invoice-renderer.*.xlf", "translations/invoice-renderer.en.xlf"]
+format = "xliff-monolingual"
+template = "translations/invoice-renderer.en.xlf"
+licence = "AGPL-3.0-or-later"
+
+[[block]]
+name = "hosted-kimai-kiosk"
+title = "Kimai - Time tracking"
+url = "https://github.com/kimai/kimai/"
+ref = "main"
+files = ["translations/kiosk.{lang}.xlf"]
+sparse = ["translations/kiosk.*.xlf", "translations/kiosk.en.xlf"]
+format = "xliff-monolingual"
+template = "translations/kiosk.en.xlf"
+licence = "AGPL-3.0-or-later"
+
+[[block]]
+name = "hosted-kimai-messages"
+title = "Kimai - Time tracking"
+url = "https://github.com/kimai/kimai/"
+ref = "main"
+files = ["translations/messages.{lang}.xlf"]
+sparse = ["translations/messages.*.xlf", "translations/messages.en.xlf"]
+format = "xliff-monolingual"
+template = "translations/messages.en.xlf"
+licence = "AGPL-3.0-or-later"
+
+[[block]]
+name = "hosted-kimai-plugins"
+title = "Kimai - Time tracking"
+url = "https://github.com/kimai/kimai/"
+ref = "main"
+files = ["translations/plugins.{lang}.xlf"]
+sparse = ["translations/plugins.*.xlf", "translations/plugins.en.xlf"]
+format = "xliff-monolingual"
+template = "translations/plugins.en.xlf"
+licence = "AGPL-3.0-or-later"
+
+[[block]]
+name = "hosted-kimai-reporting"
+title = "Kimai - Time tracking"
+url = "https://github.com/kimai/kimai/"
+ref = "main"
+files = ["translations/reporting.{lang}.xlf"]
+sparse = ["translations/reporting.*.xlf", "translations/reporting.en.xlf"]
+format = "xliff-monolingual"
+template = "translations/reporting.en.xlf"
+licence = "AGPL-3.0-or-later"
+
+[[block]]
+name = "hosted-kimai-system-configuration"
+title = "Kimai - Time tracking"
+url = "https://github.com/kimai/kimai/"
+ref = "main"
+files = ["translations/system-configuration.{lang}.xlf"]
+sparse = ["translations/system-configuration.*.xlf", "translations/system-configuration.en.xlf"]
+format = "xliff-monolingual"
+template = "translations/system-configuration.en.xlf"
+licence = "AGPL-3.0-or-later"
+
+[[block]]
+name = "hosted-kimai-tasks"
+title = "Kimai - Time tracking"
+url = "https://github.com/kimai/kimai/"
+ref = "main"
+files = ["translations/tasks.{lang}.xlf"]
+sparse = ["translations/tasks.*.xlf", "translations/tasks.en.xlf"]
+format = "xliff-monolingual"
+template = "translations/tasks.en.xlf"
+licence = "AGPL-3.0-or-later"
+
+[[block]]
+name = "hosted-kimai-teams"
+title = "Kimai - Time tracking"
+url = "https://github.com/kimai/kimai/"
+ref = "main"
+files = ["translations/teams.{lang}.xlf"]
+sparse = ["translations/teams.*.xlf", "translations/teams.en.xlf"]
+format = "xliff-monolingual"
+template = "translations/teams.en.xlf"
+licence = "AGPL-3.0-or-later"
+
+[[block]]
+name = "hosted-kimai-validations"
+title = "Kimai - Time tracking"
+url = "https://github.com/kimai/kimai/"
+ref = "main"
+files = ["translations/validators.{lang}.xlf"]
+sparse = ["translations/validators.*.xlf", "translations/validators.en.xlf"]
+format = "xliff-monolingual"
+template = "translations/validators.en.xlf"
+licence = "AGPL-3.0-or-later"
+
+[[block]]
+name = "hosted-kimai-wizard"
+title = "Kimai - Time tracking"
+url = "https://github.com/kimai/kimai/"
+ref = "main"
+files = ["translations/wizard.{lang}.xlf"]
+sparse = ["translations/wizard.*.xlf", "translations/wizard.en.xlf"]
+format = "xliff-monolingual"
+template = "translations/wizard.en.xlf"
 licence = "AGPL-3.0-or-later"
 
 [[block]]
