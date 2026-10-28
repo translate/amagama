@@ -402,6 +402,42 @@ snapshot_option = click.option(
 )
 
 
+@click.command('check_units')
+@source_language_option
+@click.option('--target-language', '-t', 'target_langs', multiple=True,
+              help="Target language to check (may be repeated). Default: all.")
+@click.option('--examples', default=3, show_default=True, help="Examples to show per check.")
+@click.option('--top', default=10, show_default=True,
+              help="Languages and blocks to list per check.")
+@build_option
+@with_appcontext
+def check_units(source_langs, target_langs, examples, top, build):
+    """Report stored translations that look broken. Nothing is changed."""
+    from amagama.unit_checks import CHECKS, MEASURES, check_units as check
+    use_build_schemas(build)
+    ensure_source_exists()
+    tmdb = current_app.tmdb
+    for slang in source_langs:
+        report = check(tmdb.get_cursor().connection, tmdb.schema(lang_to_table(slang)),
+                       [lang_to_table(lang) for lang in target_langs], examples)
+        print("Checked '%s': %d targets in %d languages." % (
+            slang, report.targets, len(report.languages)))
+        for name in list(CHECKS) + list(MEASURES):
+            failures = report.failures(name)
+            print("%s: %d (%.2f%%)" % (name, failures, 100 * failures / (report.targets or 1)))
+            if not failures:
+                continue
+            print("  Languages: " + ", ".join(
+                "%s %d (%.1f%%)" % (lang, n, 100 * n / report.languages[lang])
+                for lang, n in report.by_language[name].most_common(top)))
+            if report.by_block[name]:
+                print("  Blocks: " + ", ".join(
+                    "%s %d" % item for item in report.by_block[name].most_common(top)))
+            for lang, source, target, blocks in report.examples[name]:
+                print("  [%s] %r -> %r%s" % (
+                    lang, source, target, " (%s)" % ", ".join(blocks) if blocks else ""))
+
+
 @click.command('snapshot_db')
 @source_language_option
 @snapshot_option
@@ -918,6 +954,7 @@ cli_commands = (
     deploy_db,
     migrate_db,
     repair_mojibake,
+    check_units,
     tmdb_stats,
     build_tmdb,
     snapshot_db,
