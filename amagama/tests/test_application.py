@@ -6,6 +6,7 @@
 # the AUTHORS.md file for copyright and authorship information.
 
 
+import datetime
 import logging
 
 from amagama.application import amagama_server_factory
@@ -41,6 +42,16 @@ def test_web_ui(amagama_config):
     assert 'MGM.sources.init();' in page
     assert 'id="js-sources-results"' in page
     assert 'id="js-sources-fallback"' in page
+
+
+def test_web_ui_address_and_year(amagama_config):
+    amagama_config(ENABLE_WEB_UI=True)
+    client = amagama_server_factory().test_client()
+    page = client.get('/', base_url='https://amagama.example.org').get_data(as_text=True)
+    assert '<title>amagama.example.org - Translation memory lookup</title>' in page
+    assert '</span> amagama.example.org</h1>' in page
+    assert '<li>%d © Translate House</li>' % datetime.date.today().year in page
+    assert 'locamotion' not in page
 
 
 def test_web_ui_favicon(amagama_config):

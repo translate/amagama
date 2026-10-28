@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>amaGama.locamotion.org - Translate memory lookup</title>
+    <title>{{ request.host }} - Translation memory lookup</title>
 
     <link rel="icon" href="{{ url_for('web_ui.static', filename='favicon.ico') }}">
     <link rel="stylesheet" href="{{ url_for('web_ui.static', filename='css/bootstrap.min.css') }}">
@@ -67,7 +67,7 @@
         <!-- LOGO AND MOTTO -->
         <div class="text-center">
           <div class="amagama-logo-and-motto">
-            <h1><span class="amagama-logo"></span> amaGama.locamotion.org</h1>
+            <h1><span class="amagama-logo"></span> {{ request.host }}</h1>
             <p class="amagama-motto">FOSS translations gathered together in
               just one place
             </p>
@@ -167,7 +167,7 @@
           <li>&middot;</li>
           <li><a href="" data-toggle="modal" data-target="#contactModal">Contact</a></li>
           <li>&middot;</li>
-          <li>2019 © Translate House</li>
+          <li>{{ year }} © Translate House</li>
         </ul>
       </div>
     </div>
