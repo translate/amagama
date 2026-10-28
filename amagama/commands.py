@@ -534,6 +534,9 @@ def fetch_sources(block_names, tags, check):
                 if state.get('outside_links'):
                     print("%s: symlinks leading outside the block, skipped: %s" % (
                         block.name, ", ".join(state['outside_links'])))
+                if state.get('no_template'):
+                    print("%s: no English template, skipped: %s" % (
+                        block.name, ", ".join(state['no_template'])))
                 if block.mirror_note(cache_dir):
                     print("%s: %s" % (block.name, block.mirror_note(cache_dir)))
         except FetchError as e:

@@ -219,8 +219,9 @@ def test_update_missing_template(update, tmp_path):
     result = update(block("moodle", "git", url=url, format="php", files=["{lang}/*.php"],
                           template="en/*.php"))
     assert result.exit_code == 0, result.output
-    assert "Couldn't read 1 files:" in result.output
-    assert "moodle/af/extra.php: no English template extra.php" in result.output
+    # Left out when fetched, rather than failing to read later.
+    assert "No English template in moodle, skipped: af/extra.php" in result.output
+    assert "Couldn't read" not in result.output
     assert lookup("af", "Save file") == ["Stoor lêer"]
 
 

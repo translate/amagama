@@ -37,7 +37,9 @@ def moodle(tmp_path):
     release.mkdir(parents=True)
     packs = {
         "af": {"moodle.php": strings(save="Stoor veranderinge", course="Kursus"),
-               "langconfig.php": strings(thislanguage="Afrikaans")},
+               "langconfig.php": strings(thislanguage="Afrikaans"),
+               # A plugin only moodle.org runs: no English for it.
+               "local_moodleorg.php": strings(donate="Skenk")},
         # Overrides for Moodle Workplace, German like de.
         "de_wp": {"moodle.php": strings(course="Kurs")},
         # Listed alphabetically, as Moodle does.
@@ -167,3 +169,37 @@ def test_missing_carried_file_fails_the_block(run, moodle):
     result = run(text)
     assert result.exit_code == 1
     assert "moodle: failed: af/moodle.php.zst is missing from the last fetch" in result.output
+
+
+def test_file_without_template_is_skipped(run, moodle):
+    root, url = moodle
+    result = run(moodle_block(url, max_age_days=0))
+    assert result.exit_code == 0, result.output
+    assert "moodle: no English template, skipped: af/local_moodleorg.php" in result.output
+    assert not os.path.exists(run.cache / "moodle/af/local_moodleorg.php.zst")
+
+
+def test_carried_entry_without_template_is_dropped(run, moodle):
+    # A cache from before files without templates were skipped.
+    root, url = moodle
+    text = moodle_block(url, max_age_days=3)
+    assert run(text).exit_code == 0
+    state_path = run.cache / "moodle/fetched.json"
+    state = json.loads(state_path.read_text())
+    entry = ["af/local_moodleorg.php", "af", "en/local_moodleorg.php"]
+    state["by_language"].setdefault("af", []).append(entry)
+    state["files"].append(entry)
+    state["hashes"][entry[0]] = "0" * 64
+    (run.cache / "moodle/af").mkdir(exist_ok=True)
+    (run.cache / "moodle/af/local_moodleorg.php.zst").write_bytes(b"")
+    # Fetched a day ago, af most recently: af isn't due, so it's carried.
+    state["fetched"] = (datetime.datetime.now(datetime.timezone.utc)
+                        - datetime.timedelta(days=1)).isoformat()
+    state["language_fetched"] = {lang: "2000-01-02T00:00:00+00:00"
+                                 for lang in state["language_fetched"]}
+    state["language_fetched"]["af"] = "2030-01-01T00:00:00+00:00"
+    state_path.write_text(json.dumps(state))
+    result = run(text)
+    assert result.exit_code == 0, result.output
+    assert "no English template, skipped: af/local_moodleorg.php" in result.output
+    assert "af/local_moodleorg.php" not in [path for path, *rest in fetched(run.cache, "moodle")]
