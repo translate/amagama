@@ -840,14 +840,18 @@ def transifex_sources(repositories, from_file, prefix, output, min_age_days, wei
               "of last year.")
 @click.option('--min-units', type=click.IntRange(min=0), default=100, show_default=True,
               help="Fewest translated units, not fuzzy, a block needs (linguas).")
+@click.option('--search-pause', type=click.FloatRange(min=0), default=6, show_default=True,
+              envvar='AMAGAMA_SEARCH_PAUSE',
+              help="Seconds between code searches: GitHub allows a token 10 a minute, but "
+              "a workflow's token about one.")
 @click.option('--bot-prs-days', type=click.IntRange(min=0), default=0, show_default=True,
               help="Also read repositories with a translation bot's pull request merged in "
               "the last days (crowdin).")
 @generator_options(("discovered",))
 @with_appcontext
 @with_shared_repositories
-def discover_sources(signal, min_stars, pushed_since, min_units, bot_prs_days, prefix, output,
-                     min_age_days, weight, tags, report):
+def discover_sources(signal, min_stars, pushed_since, min_units, search_pause, bot_prs_days, prefix,
+                     output, min_age_days, weight, tags, report):
     """Write sources-file blocks for repositories that commit a signal's
     localisation configuration, for review.
 
@@ -869,7 +873,7 @@ def discover_sources(signal, min_stars, pushed_since, min_units, bot_prs_days, p
     try:
         names, incomplete = set(), False
         for query in discovery.SIGNALS[signal]["queries"]:
-            found, missing = discovery.search(query, token)
+            found, missing = discovery.search(query, token, pause=search_pause)
             names, incomplete = names | set(found), incomplete or missing
         if bot_prs_days:
             since = datetime.date.today() - datetime.timedelta(days=bot_prs_days)

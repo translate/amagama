@@ -228,7 +228,7 @@ def test_github_waits_out_rate_limits(monkeypatch):
     monkeypatch.setattr(discovery.urllib.request, "urlopen", urlopen)
     monkeypatch.setattr(discovery, "time", types.SimpleNamespace(sleep=slept.append, time=lambda: 0))
     assert discovery.github("https://api.github.com/x", "tok", {"q": 1}) == {"ok": 1}
-    assert slept == [7, 60, 60]
+    assert slept == [8, 60, 60]
     assert requests[0].get_header("Authorization") == "Bearer tok"
     assert json.loads(requests[0].data) == {"q": 1}
 
@@ -266,6 +266,8 @@ def test_wait():
     assert discovery._wait({"X-RateLimit-Remaining": "0", "X-RateLimit-Reset": "1000000100"}, 60) \
         <= discovery.MAX_WAIT
     assert discovery._wait({}, 60) == 60
+    # GitHub rounds Retry-After down.
+    assert discovery._wait({"Retry-After": "1"}, 60) == 2
 
 
 def test_command(amagama_config, repository, tmp_path, monkeypatch):  # noqa: F811
@@ -273,7 +275,7 @@ def test_command(amagama_config, repository, tmp_path, monkeypatch):  # noqa: F8
     sources.write_text(block("tool", "git", url="https://github.com/org/tool", files=["po/{lang}.po"]))
     amagama_config(UPDATER_SOURCES=str(sources))
     monkeypatch.setenv("GITHUB_TOKEN", "t")
-    monkeypatch.setattr(discovery, "search", lambda query, token: (["org/repo", "org/tool"], False))
+    monkeypatch.setattr(discovery, "search", lambda query, token, pause=6: (["org/repo", "org/tool"], False))
     monkeypatch.setattr(discovery, "stats", lambda names, token: {
         "org/repo": dict(repo("org/repo", spdx="GPL-2.0"), url=repository.as_uri()),
         "org/tool": repo("org/tool"), "org/old": repo("org/old", archived=True)})
@@ -306,7 +308,7 @@ def test_command_keeps_disabled(amagama_config, repository, tmp_path, monkeypatc
                       'files = ["po/{lang}.po"]\n' % repository.as_uri())
     amagama_config(UPDATER_SOURCES=str(sources))
     monkeypatch.setenv("GITHUB_TOKEN", "t")
-    monkeypatch.setattr(discovery, "search", lambda query, token: (["org/repo"], False))
+    monkeypatch.setattr(discovery, "search", lambda query, token, pause=6: (["org/repo"], False))
     monkeypatch.setattr(discovery, "stats", lambda names, token: {
         "org/repo": dict(repo("org/repo"), url=repository.as_uri())})
     result = CliRunner().invoke(manage, ("discover_sources", "linguas", "--prefix", "linguas",
@@ -325,7 +327,7 @@ def test_command_keeps_disabled(amagama_config, repository, tmp_path, monkeypatc
 def test_command_mirror(amagama_config, repository, tmp_path, monkeypatch):  # noqa: F811
     amagama_config(UPDATER_SOURCES=str(tmp_path / "missing.toml"))
     monkeypatch.setenv("GITHUB_TOKEN", "t")
-    monkeypatch.setattr(discovery, "search", lambda query, token: (["org/repo"], False))
+    monkeypatch.setattr(discovery, "search", lambda query, token, pause=6: (["org/repo"], False))
     monkeypatch.setattr(discovery, "stats", lambda names, token: {"org/repo": dict(
         repo("org/repo"), url=repository.as_uri(), description="Read-only mirror",
         homepageUrl="https://gitlab.example/org/repo", hasIssuesEnabled=False)})
@@ -344,7 +346,7 @@ def test_command_mirror(amagama_config, repository, tmp_path, monkeypatch):  # n
 def test_command_mirrors_first(amagama_config, tmp_path, monkeypatch):
     amagama_config(UPDATER_SOURCES=str(tmp_path / "missing.toml"))
     monkeypatch.setenv("GITHUB_TOKEN", "t")
-    monkeypatch.setattr(discovery, "search", lambda query, token: (["o/a", "o/b"], False))
+    monkeypatch.setattr(discovery, "search", lambda query, token, pause=6: (["o/a", "o/b"], False))
     monkeypatch.setattr(discovery, "stats", lambda names, token: {
         "o/a": repo("o/a", stars=900),
         "o/b": dict(repo("o/b"), description="Mirror of https://git.example/o/b")})
@@ -372,7 +374,7 @@ def test_command_rereads_regenerated(amagama_config, tmp_path, monkeypatch):
         + block("other-tool", "git", url="https://github.com/org/tool", files=["po/{lang}.po"]))
     amagama_config(UPDATER_SOURCES=str(sources))
     monkeypatch.setenv("GITHUB_TOKEN", "t")
-    monkeypatch.setattr(discovery, "search", lambda query, token: (["org/repo"], False))
+    monkeypatch.setattr(discovery, "search", lambda query, token, pause=6: (["org/repo"], False))
     asked = []
 
     def stats(names, token):
@@ -390,7 +392,7 @@ def test_command_rereads_regenerated(amagama_config, tmp_path, monkeypatch):
 def test_command_bot_prs(amagama_config, tmp_path, monkeypatch):
     amagama_config(UPDATER_SOURCES=str(tmp_path / "missing.toml"))
     monkeypatch.setenv("GITHUB_TOKEN", "t")
-    monkeypatch.setattr(discovery, "search", lambda query, token: (["org/a"], False))
+    monkeypatch.setattr(discovery, "search", lambda query, token, pause=6: (["org/a"], False))
     since = []
 
     def search_prs(query, token, start):
@@ -419,6 +421,20 @@ def test_command_bot_prs_signal(amagama_config, tmp_path, monkeypatch):
     assert "linguas has no translation bot's pull requests." in result.output
 
 
+def test_command_search_pause(amagama_config, tmp_path, monkeypatch):
+    amagama_config(UPDATER_SOURCES=str(tmp_path / "missing.toml"))
+    monkeypatch.setenv("GITHUB_TOKEN", "t")
+    # A workflow's token gets about one code search a minute.
+    monkeypatch.setenv("AMAGAMA_SEARCH_PAUSE", "61")
+    pauses = []
+    monkeypatch.setattr(discovery, "search",
+                        lambda query, token, pause=6: pauses.append(pause) or ([], False))
+    monkeypatch.setattr(discovery, "stats", lambda names, token: {})
+    result = CliRunner().invoke(manage, ("discover_sources", "linguas", "--prefix", "linguas"))
+    assert result.exit_code == 0, result.output
+    assert pauses == [61]
+
+
 def test_command_needs_token(amagama_config, tmp_path, monkeypatch):
     amagama_config(UPDATER_SOURCES=str(tmp_path / "missing.toml"))
     monkeypatch.delenv("GITHUB_TOKEN", raising=False)
@@ -431,7 +447,7 @@ def test_command_fetch_error(amagama_config, tmp_path, monkeypatch):
     amagama_config(UPDATER_SOURCES=str(tmp_path / "missing.toml"))
     monkeypatch.setenv("GITHUB_TOKEN", "t")
 
-    def search(query, token):
+    def search(query, token, pause=6):
         raise FetchError("https://api.github.com/search/code: HTTP Error 401")
 
     monkeypatch.setattr(discovery, "search", search)
@@ -445,7 +461,7 @@ def test_command_crowdin(amagama_config, crowdin_repository, tmp_path, monkeypat
     monkeypatch.setenv("GITHUB_TOKEN", "t")
     queries = []
 
-    def search(query, token):
+    def search(query, token, pause=6):
         queries.append(query)
         return ["org/repo"], False
 

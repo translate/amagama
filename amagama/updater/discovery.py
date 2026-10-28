@@ -62,13 +62,14 @@ FIELDS = ("url stargazerCount pushedAt isArchived isFork licenseInfo { spdxId } 
 def _wait(headers, default):
     """Seconds until a rate limit resets, from the response's headers."""
     if headers.get("Retry-After", "").isdigit():
-        return min(int(headers["Retry-After"]), MAX_WAIT)
+        # Rounded down: "1" for 1.8 seconds.
+        return min(int(headers["Retry-After"]) + 1, MAX_WAIT)
     if headers.get("X-RateLimit-Remaining") == "0" and headers.get("X-RateLimit-Reset", "").isdigit():
         return min(max(int(headers["X-RateLimit-Reset"]) - time.time(), 0) + 1, MAX_WAIT)
     return default
 
 
-def github(url, token, data=None, retries=3, wait=60):
+def github(url, token, data=None, retries=6, wait=60):
     """A GitHub API request's JSON, POSTing data if given; waits out rate
     limits, and retries server errors and timeouts."""
     headers = {"User-Agent": USER_AGENT, "Authorization": "Bearer " + token,
