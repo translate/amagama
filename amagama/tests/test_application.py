@@ -7,7 +7,11 @@
 
 
 import datetime
+import hashlib
 import logging
+import os
+
+from flask import url_for
 
 from amagama.application import amagama_server_factory
 
@@ -63,7 +67,22 @@ def test_web_ui_favicon(amagama_config):
     amagama_config(ENABLE_WEB_UI=True)
     client = amagama_server_factory().test_client()
     page = client.get('/').get_data(as_text=True)
-    assert '<link rel="icon" href="/static/favicon.ico">' in page
+    assert '<link rel="icon" href="/static/favicon.ico?v=' in page
     response = client.get('/static/favicon.ico')
     assert response.status_code == 200
     assert response.data[:4] == b"\x00\x00\x01\x00"
+
+
+def test_web_ui_static_versions(amagama_config):
+    amagama_config(ENABLE_WEB_UI=True)
+    app = amagama_server_factory()
+    client = app.test_client()
+    page = client.get('/').get_data(as_text=True)
+    with open(os.path.join(app.static_folder, 'js', 'amagama.js'), 'rb') as f:
+        version = hashlib.sha256(f.read()).hexdigest()[:12]
+    # A changed file gets a new address, so browsers don't keep the old one.
+    assert '<script src="/static/js/amagama.js?v=%s"></script>' % version in page
+    assert client.get('/static/js/amagama.js?v=%s' % version).status_code == 200
+    with app.test_request_context():
+        assert url_for('web_ui.static', filename='missing.js') == '/static/missing.js'
+        assert url_for('web_ui.translate') == '/'
