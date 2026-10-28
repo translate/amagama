@@ -5,30 +5,20 @@
           <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal"
               aria-hidden="true">&times;</button>
-            <h4 class="modal-title" id="aboutModalLabel">About amaGama</h4>
+            <h4 class="modal-title" id="aboutModalLabel">{{ _("About amaGama") }}</h4>
           </div>
           <div class="modal-body">
-            <p>amaGama is a web service written in Python implementing a
-              large-scale translation memory on top of the PostgreSQL database
-              server. A translation memory is a database of previous
-              translations which can be searched to find good matches to new
-              strings.
-            </p>
-            <p>amaGama can be used in conjunction with the
-              <a href="http://virtaal.translatehouse.org" target="_blank">Virtaal</a>
-              and
-              <a href="http://pootle.translatehouse.org" target="_blank">Pootle</a>
-              translation tools.
-            </p>
-            <p>amaGama is released under the GNU General Public License,
-              version 3 or later. See the
-              <a href="https://github.com/translate/amagama/blob/main/LICENSE"
-                target="_blank">LICENSE</a>
-              file for details.
-            </p>
+            <p>{{ _("amaGama is a web service written in Python implementing a large-scale translation memory on top of the PostgreSQL database server. A translation memory is a database of previous translations which can be searched to find good matches to new strings.") }}</p>
+            {# Translators: {virtaal} and {pootle} are links to the tools, named Virtaal and Pootle. #}
+            <p>{{ _("amaGama can be used in conjunction with the {virtaal} and {pootle} translation tools.",
+                    virtaal='<a href="http://virtaal.translatehouse.org" target="_blank">Virtaal</a>'|safe,
+                    pootle='<a href="http://pootle.translatehouse.org" target="_blank">Pootle</a>'|safe) }}</p>
+            {# Translators: {licence} is a link to the licence file, named LICENSE. #}
+            <p>{{ _("amaGama is released under the GNU General Public License, version 3 or later. See the {licence} file for details.",
+                    licence='<a href="https://github.com/translate/amagama/blob/main/LICENSE" target="_blank">LICENSE</a>'|safe) }}</p>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal">{{ _("Close") }}</button>
           </div>
         </div>
       </div>

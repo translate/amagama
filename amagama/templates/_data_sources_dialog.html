@@ -5,27 +5,27 @@
           <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal"
               aria-hidden="true">&times;</button>
-            <h4 class="modal-title" id="dataSourcesModalLabel">Sources of the data used in amaGama</h4>
+            <h4 class="modal-title" id="dataSourcesModalLabel">{{ _("Sources of the data used in amaGama") }}</h4>
           </div>
           <div class="modal-body">
-            <p id="js-sources-fallback">
-              amaGama data come from the most important free software projects,
-              like LibreOffice, KDE, GNOME...
-            </p>
+            <p id="js-sources-fallback">{{ _("amaGama data come from the most important free software projects, like LibreOffice, KDE, GNOME...") }}</p>
             <div id="js-sources" style="display: none">
-              <p>amaGama's translations come from these projects.
+              <p>{{ _("amaGama's translations come from these projects.") }}
                 <span id="js-sources-count"></span></p>
               <input type="search" class="form-control" id="js-sources-filter"
-                placeholder="Filter" aria-label="Filter the projects">
+                placeholder="{{ _("Filter") }}" aria-label="{{ _("Filter the projects") }}">
               <div class="sources-table">
                 <table class="table table-condensed table-striped">
                   <thead>
                     <tr>
-                      <th>Project</th>
-                      <th>Licence</th>
-                      <th>Languages</th>
-                      <th>Translations</th>
-                      <th>Imported</th>
+                      <th>{{ _("Project") }}</th>
+                      <th>{{ _("Licence") }}</th>
+                      {# Translators: Column of how many languages a project has translations in. #}
+                      <th>{{ _("Languages") }}</th>
+                      {# Translators: Column of how many translations amaGama has from a project. #}
+                      <th>{{ _("Translations") }}</th>
+                      {# Translators: Column of the date a project's translations were imported. #}
+                      <th>{{ _("Imported") }}</th>
                     </tr>
                   </thead>
                   <tbody id="js-sources-results"></tbody>
@@ -34,7 +34,7 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal">{{ _("Close") }}</button>
           </div>
         </div>
       </div>

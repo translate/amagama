@@ -10,7 +10,9 @@
 
 import datetime
 
-from flask import Blueprint, render_template
+from flask import Blueprint, make_response, render_template, request
+
+from amagama import webtext
 
 
 web_ui = Blueprint('web_ui', __name__, static_folder='static')
@@ -18,5 +20,9 @@ web_ui = Blueprint('web_ui', __name__, static_folder='static')
 
 @web_ui.route('/', methods=('GET', ))
 def translate():
-    """Serve the query web page."""
-    return render_template("translate.html", year=datetime.date.today().year)
+    """Serve the query web page, in the language of ?lang= or Accept-Language."""
+    _ = webtext.Translator(webtext.negotiate(request.args.get('lang'), request.accept_languages))
+    response = make_response(render_template(
+        "translate.html", _=_, gettext=_.gettext, year=datetime.date.today().year))
+    response.vary.add('Accept-Language')
+    return response

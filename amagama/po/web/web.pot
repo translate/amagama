@@ -1,0 +1,146 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: amaGama web page\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "About amaGama"
+msgstr ""
+
+msgid ""
+"amaGama is a web service written in Python implementing a large-scale "
+"translation memory on top of the PostgreSQL database server. A translation "
+"memory is a database of previous translations which can be searched to find "
+"good matches to new strings."
+msgstr ""
+
+#. {virtaal} and {pootle} are links to the tools, named Virtaal and Pootle.
+msgid ""
+"amaGama can be used in conjunction with the {virtaal} and {pootle} "
+"translation tools."
+msgstr ""
+
+#. {licence} is a link to the licence file, named LICENSE.
+msgid ""
+"amaGama is released under the GNU General Public License, version 3 or "
+"later. See the {licence} file for details."
+msgstr ""
+
+msgid "Close"
+msgstr ""
+
+msgid "Contact"
+msgstr ""
+
+msgid "You can contact us by sending an email to {address}."
+msgstr ""
+
+msgid "Please write in English."
+msgstr ""
+
+msgid "Sources of the data used in amaGama"
+msgstr ""
+
+msgid ""
+"amaGama data come from the most important free software projects, like "
+"LibreOffice, KDE, GNOME..."
+msgstr ""
+
+msgid "amaGama's translations come from these projects."
+msgstr ""
+
+msgid "Filter"
+msgstr ""
+
+msgid "Filter the projects"
+msgstr ""
+
+msgid "Project"
+msgstr ""
+
+msgid "Licence"
+msgstr ""
+
+#. Column of how many languages a project has translations in.
+msgid "Languages"
+msgstr ""
+
+#. Column of how many translations amaGama has from a project.
+msgid "Translations"
+msgstr ""
+
+#. Column of the date a project's translations were imported.
+msgid "Imported"
+msgstr ""
+
+msgid "Help for amaGama web search"
+msgstr ""
+
+msgid ""
+"Type the words you want to search for in the box, choose their language and "
+"the language of the translations you want, and press Search."
+msgstr ""
+
+#. {host} is the site's address, such as amagama-live.translatehouse.org.
+msgid "{host} - Translation memory lookup"
+msgstr ""
+
+msgid "Toggle navigation"
+msgstr ""
+
+msgid "Products"
+msgstr ""
+
+msgid "Help"
+msgstr ""
+
+msgid "FOSS translations gathered together in just one place"
+msgstr ""
+
+msgid "Type word or words to search"
+msgstr ""
+
+msgid "Search"
+msgstr ""
+
+#. Between the source and target languages: from English to French.
+msgid "to"
+msgstr ""
+
+msgid "Original text"
+msgstr ""
+
+msgid "Translation"
+msgstr ""
+
+msgid "Quality"
+msgstr ""
+
+msgid "About"
+msgstr ""
+
+msgid "Data sources"
+msgstr ""
+
+msgid "{year} © Translate House"
+msgstr ""
+
+#. Heading of the results: the text searched for, then its language and the translations' language.
+msgid "{text} ({source} → {target})"
+msgstr ""
+
+msgid "Suggestions: {count}"
+msgstr ""
+
+msgid "Projects and releases: {count}"
+msgstr ""
+
+#. Translate as "rtl" if your language is written right to left.
+msgctxt "direction"
+msgid "ltr"
+msgstr ""

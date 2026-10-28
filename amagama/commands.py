@@ -638,17 +638,31 @@ def sources_pot(check):
     except (OSError, ValueError) as e:
         print(e)
         raise SystemExit(1)
+    write_pot(TEMPLATE, text, check, 'sources_pot')
+
+
+@click.command('web_pot')
+@click.option('--check', is_flag=True,
+              help="Exit 1 if amagama/po/web/web.pot isn't current; write nothing.")
+def web_pot(check):
+    """Write the template for translating the lookup page, from its templates."""
+    from amagama.webtext import TEMPLATE, template
+    write_pot(TEMPLATE, template(), check, 'web_pot')
+
+
+def write_pot(path, text, check, command):
+    """Write text to the template at path, or with check exit 1 if it differs."""
     if check:
         try:
-            with open(TEMPLATE, encoding='utf-8') as f:
+            with open(path, encoding='utf-8') as f:
                 current = f.read() == text
         except FileNotFoundError:
             current = False
         if not current:
-            print("%s is out of date: run amagama-manage sources_pot." % TEMPLATE)
+            print("%s is out of date: run amagama-manage %s." % (path, command))
             raise SystemExit(1)
         return
-    with open(TEMPLATE, 'w', encoding='utf-8') as f:
+    with open(path, 'w', encoding='utf-8') as f:
         f.write(text)
 
 
@@ -989,4 +1003,5 @@ cli_commands = (
     sources_status,
     check_sources,
     sources_pot,
+    web_pot,
 )
