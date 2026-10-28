@@ -157,6 +157,14 @@ msgstr ""
 msgid "{name} — {code}"
 msgstr ""
 
+#. Link after the first few sources of a suggestion, showing all of them; count is how many there are.
+msgid "Show all ({count})"
+msgstr ""
+
+#. Link after all of a suggestion's sources, showing only the first few again.
+msgid "Show fewer"
+msgstr ""
+
 msgid "Suggestions: {count}"
 msgstr ""
 

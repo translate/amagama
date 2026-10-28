@@ -193,11 +193,17 @@
 {% set searchTitle = gettext("{text} ({source} → {target})") %}
 {# Translators: A language in the lists of languages: its name, then the code amaGama has for it, such as pt_br. #}
 {% set languageOption = gettext("{name} — {code}") %}
+{# Translators: Link after the first few sources of a suggestion, showing all of them; count is how many there are. #}
+{% set showAll = gettext("Show all ({count})") %}
+{# Translators: Link after all of a suggestion's sources, showing only the first few again. #}
+{% set showFewer = gettext("Show fewer") %}
 {% set messages = {
   "searchTitle": searchTitle,
   "suggestions": gettext("Suggestions: {count}"),
   "projects": gettext("Projects and releases: {count}"),
   "languageOption": languageOption,
+  "showAll": showAll,
+  "showFewer": showFewer,
 } %}
 MGM.lang = {{ _.tag|tojson }};
 MGM.messages = {{ messages|tojson }};
