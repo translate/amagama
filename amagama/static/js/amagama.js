@@ -293,8 +293,40 @@
               escapeHTML(title.title), '</span>'].join('');
     },
 
+    // Sources shown before the list is opened.
+    shown: 3,
+
+    // The titles of names, each once (blocks can share one); a long list
+    // opens and closes with a link, which hides at least two.
     titlesHTML: function (names) {
-      return $.map(names, MGM.sources.titleHTML).join(', ');
+      var all = [];
+      $.each(names, function (i, name) {
+        var title = MGM.sources.titleHTML(name);
+        if ($.inArray(title, all) === -1) {
+          all.push(title);
+        }
+      });
+      if (all.length <= MGM.sources.shown + 1) {
+        return all.join(', ');
+      }
+      return ['<span class="js-sources-few">', all.slice(0, MGM.sources.shown).join(', '),
+              ' <a href="#" class="js-sources-toggle">',
+              escapeHTML(format('showAll', {count: all.length.toLocaleString(MGM.lang)})),
+              '</a></span><span class="js-sources-all" hidden>', all.join(', '),
+              ' <a href="#" class="js-sources-toggle">', escapeHTML(MGM.messages.showFewer),
+              '</a></span>'].join('');
+    },
+
+    toggle: function (event) {
+      var $lists = $(this).closest('td').find('.js-sources-few, .js-sources-all');
+
+      event.preventDefault();
+      $lists.each(function () {
+        this.hidden = !this.hidden;
+      });
+      $lists.filter(function () {
+        return !this.hidden;
+      }).find('.js-sources-toggle').trigger('focus');
     },
 
     init: function () {
@@ -302,6 +334,7 @@
         MGM.sources.load().done(MGM.sources.display);
       });
       $(document).on('input', '#js-sources-filter', MGM.sources.filter);
+      $(document).on('click', '.js-sources-toggle', MGM.sources.toggle);
     },
 
     display: function (data) {
