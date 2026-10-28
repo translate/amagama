@@ -42,6 +42,8 @@ def test_web_ui(amagama_config):
     assert 'MGM.sources.init();' in page
     assert 'id="js-sources-results"' in page
     assert 'id="js-sources-fallback"' in page
+    # Each suggestion's sources, titled from the same list.
+    assert '<th>Sources</th>' in page
 
 
 def test_web_ui_address_and_year(amagama_config):
