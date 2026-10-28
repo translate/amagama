@@ -201,6 +201,41 @@ def context(blocks, prefix):
     return Names({block.name for block in others}, previous_names(own)), covered, disabled
 
 
+# What a block reads, from its sources-file settings: unchanged, a block
+# needn't be checked against its repository again.
+READS = ("url", "ref", "version", "files", "exclude", "format", "template", "segment",
+         "languages", "licence")
+
+
+def written(blocks, prefix):
+    """{name: settings as written} of loaded enabled blocks whose names start
+    with prefix."""
+    found = {}
+    for path in sorted({block.path for block in blocks
+                        if block.enabled and block.name.startswith(prefix + "-")}):
+        with open(path, "rb") as f:
+            entries = tomllib.load(f).get("block", [])
+        found.update((entry["name"], entry) for entry in entries
+                     if str(entry.get("name", "")).startswith(prefix + "-")
+                     and "disabled" not in entry)
+    return found
+
+
+def unchanged(found, previous, skip=()):
+    """(kept, rest) of found blocks: kept are those previous (written())
+    has, reading the same, as written, but with found's title, and those
+    named in skip as found; rest are the others, to check."""
+    kept, rest = [], []
+    for block in found:
+        before = previous.get(block["name"])
+        if block["name"] in skip:
+            kept.append(block)
+        elif before and all(block.get(key) == before.get(key) for key in READS):
+            kept.append(dict(dict(before, source=block["source"]), title=block["title"]))
+        else:
+            rest.append(block)
+    return kept, rest
+
 def changes(found, previous, disabled):
     """(new, gone) since blocks were last generated: found blocks whose names
     previous (the last run's names) hasn't, and previous names neither found

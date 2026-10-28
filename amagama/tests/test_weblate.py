@@ -399,6 +399,30 @@ def test_command_checks(amagama_config, instance, tmp_path, monkeypatch):
     assert "Skipped 1 components: filemask matches nothing." in result.output
 
 
+def test_command_checks_only_changed(amagama_config, instance, tmp_path, monkeypatch):
+    sources = tmp_path / "sources.toml"
+    sources.write_text('include = ["weblate-test.toml"]\n')
+    output = tmp_path / "weblate-test.toml"
+    CliRunner().invoke(manage, ("weblate_sources", instance, "--prefix", "test", "--no-verify",
+                                "--output", str(output)))
+    amagama_config(UPDATER_SOURCES=str(sources))
+    first = load_sources(str(output))
+    checked = []
+    monkeypatch.setattr(generate, "check", lambda blocks: (checked.extend(blocks) or blocks, {}))
+    monkeypatch.setattr(generate, "add_mirrors", lambda blocks: blocks)
+    # As written last time: nothing is checked again.
+    result = CliRunner().invoke(manage, ("weblate_sources", instance, "--prefix", "test",
+                                         "--output", str(output)))
+    assert result.exit_code == 0, result.output
+    assert checked == []
+    assert [b.name for b in load_sources(str(output))] == [b.name for b in first]
+    # One that reads differently is checked.
+    text = output.read_text()
+    output.write_text(text.replace('files = ["', 'files = ["old/{lang}.po", "', 1))
+    CliRunner().invoke(manage, ("weblate_sources", instance, "--prefix", "test", "--output", str(output)))
+    assert [b["name"] for b in checked] == [first[0].name]
+
+
 def test_check_importable(tmp_path):
     repo = tmp_path / "repo"
     files = {
