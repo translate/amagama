@@ -721,6 +721,16 @@ def generated_context(prefix):
     return generate.context(existing, prefix)
 
 
+def generated_written(prefix):
+    """generate.written() of the sources file, for blocks whose names start
+    with prefix."""
+    try:
+        existing = load_sources(current_app.config.get('UPDATER_SOURCES'), disabled=True)
+    except (OSError, ValueError):
+        return {}
+    return generate.written(existing, prefix)
+
+
 def generated_repositories(prefix):
     """The GitHub repositories ("owner/name") of the blocks whose names start
     with prefix: each block's own, or its mirror's."""
@@ -794,9 +804,9 @@ def weblate_sources(url, projects, docs, no_verify, prefix, output, min_age_days
     """Write sources-file blocks for a Weblate instance's projects, for review.
 
     Repositories that blocks in the sources file already import are left out,
-    but for blocks with the same prefix, which this regenerates. Each block is
-    checked against its repository, and left out if it would import nothing,
-    unless --no-verify.
+    but for blocks with the same prefix, which this regenerates. Each block new
+    or reading differently since the last run is checked against its
+    repository, and left out if it would import nothing, unless --no-verify.
     """
     names, covered, disabled = generated_context(prefix)
     try:
@@ -805,9 +815,12 @@ def weblate_sources(url, projects, docs, no_verify, prefix, output, min_age_days
     except FetchError as e:
         raise click.ClickException(str(e))
     if not no_verify:
-        found, problems = generate.check(found)
+        # Only what's new or reads differently since the last run is checked.
+        kept, rest = generate.unchanged(found, generated_written(prefix), disabled)
+        rest, problems = generate.check(rest)
         skipped.update(problems)
-        found = generate.add_mirrors(found)
+        order = {block["name"]: number for number, block in enumerate(found)}
+        found = sorted(kept + generate.add_mirrors(rest), key=lambda block: order[block["name"]])
     command = "weblate_sources %s --prefix %s%s%s" % (
         url, prefix, "".join(" --project %s" % p for p in projects if p != "*"),
         "".join(" --docs %s" % d for d in docs))

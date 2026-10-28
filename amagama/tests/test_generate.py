@@ -133,3 +133,31 @@ def test_pacer_random(monkeypatch):
         pacer.wait("https://forge.example/")
     assert all(2 <= seconds <= 6 for seconds in clock.slept) and len(set(clock.slept)) > 1
     assert generate.Pacer.of(0).high == 0 and generate.Pacer.of(None).high == generate.PAUSE[1]
+
+
+def test_unchanged():
+    previous = {"w-app": {"name": "w-app", "title": "Old", "url": "u", "files": ["po/{lang}.po"],
+                          "sparse": ["po/*.po"], "mirror": "m"},
+                "w-tool": {"name": "w-tool", "title": "Tool", "url": "u2", "files": ["po/{lang}.po"]}}
+    found = [{"name": "w-app", "title": "App", "source": "git", "url": "u", "files": ["po/{lang}.po"],
+              "sparse": ["po/*.po"]},
+             {"name": "w-tool", "title": "Tool", "source": "git", "url": "u2", "files": ["l10n/{lang}.po"]},
+             {"name": "w-new", "title": "New", "source": "git", "url": "u3", "files": ["po/{lang}.po"]},
+             {"name": "w-off", "title": "Off", "source": "git", "url": "u4", "files": ["po/{lang}.po"]}]
+    kept, rest = generate.unchanged(found, previous, skip={"w-off"})
+    # As written (its mirror kept), with the new title; a disabled one isn't checked.
+    assert kept == [{"name": "w-app", "title": "App", "url": "u", "files": ["po/{lang}.po"],
+                     "sparse": ["po/*.po"], "mirror": "m", "source": "git"}, found[3]]
+    assert [block["name"] for block in rest] == ["w-tool", "w-new"]
+
+
+def test_written(tmp_path):
+    path = tmp_path / "w.toml"
+    path.write_text('[defaults]\nsource = "git"\n\n'
+                    + block("w-app", "git", url="https://git.example/app", files=["po/{lang}.po"])
+                    + block("w-off", "git", url="https://git.example/off", files=["po/{lang}.po"],
+                            disabled="duplicate")
+                    + block("x-other", "git", url="https://git.example/x", files=["po/{lang}.po"]))
+    found = generate.written(load_sources(str(path), disabled=True), "w")
+    assert list(found) == ["w-app"]
+    assert found["w-app"]["files"] == ["po/{lang}.po"]
