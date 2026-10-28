@@ -913,6 +913,8 @@ def discover_sources(signal, min_stars, pushed_since, min_units, search_pause, b
         min_units=min_units, mirrors=mirrors)
     found = generate.add_mirrors(found)
     skipped.update(resolved)
+    # Read most stars first, but written by name: stars change every run.
+    found.sort(key=lambda block: block["name"])
     command = "discover_sources %s --prefix %s --min-stars %d --pushed-since %s --min-units %d%s" % (
         signal, prefix, min_stars, pushed_since.isoformat(), min_units,
         " --bot-prs-days %d" % bot_prs_days if bot_prs_days else "")
