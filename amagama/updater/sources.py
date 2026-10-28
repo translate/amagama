@@ -340,6 +340,7 @@ class Block(object):
         try:
             files = []
             unknown = set()
+            no_template = []
             codes = {}
             # Git keeps one repository per URL here, shared between blocks.
             self.fetcher.store = os.path.join(cache_dir, REPOSITORIES)
@@ -379,7 +380,14 @@ class Block(object):
                     if listed is not None:
                         files.append((path, code, listed[path.replace("\\", "/")][0]))
                     elif self.template:
-                        files.append((path, code, self.template_for(path)))
+                        template = self.template_for(path)
+                        if template and not os.path.exists(os.path.join(new, template)):
+                            # A file with no English (a pack's extra plugin)
+                            # can't be imported.
+                            no_template.append(path)
+                            os.remove(os.path.join(new, path))
+                            continue
+                        files.append((path, code, template))
                     else:
                         files.append((path, code))
             for dirpath, dirnames, filenames in os.walk(new, topdown=False):
@@ -397,7 +405,9 @@ class Block(object):
                 # The languages not due keep their last fetch.
                 for lang in set(available) - set(due):
                     for entry in (previous or {}).get("by_language", {}).get(lang, []):
-                        _carry(final, new, entry, previous)
+                        if not _carry(final, new, entry, previous):
+                            no_template.append(entry[0])
+                            continue
                         files.append(tuple(entry))
                         hashes[entry[0]] = previous["hashes"][entry[0]]
                         codes.setdefault(entry[1], set()).update(
@@ -443,6 +453,7 @@ class Block(object):
             "hashes": hashes,
             "unknown_languages": sorted(unknown),
             "outside_links": outside,
+            "no_template": sorted(no_template),
             "languages": {code: sorted(sources) for code, sources in sorted(codes.items())},
             # Different codes normalised to one, not by the block's languages.
             "merged_languages": {code: sorted(sources) for code, sources in sorted(codes.items())
@@ -467,9 +478,15 @@ class Block(object):
 
 
 def _carry(final, new, entry, previous):
-    """Link a file of the last fetch (and its template) into the new one."""
+    """Link a file of the last fetch (and its template) into the new one.
+
+    Returns False, carrying nothing, if the file's template is gone: the
+    file can't be imported without it.
+    """
     names = [entry[0] + compressed.SUFFIX]
     if len(entry) > 2 and entry[2]:
+        if not any(os.path.exists(os.path.join(root, entry[2])) for root in (final, new)):
+            return False
         names.append(entry[2])
     for name in names:
         source, target = os.path.join(final, name), os.path.join(new, name)
@@ -479,6 +496,7 @@ def _carry(final, new, entry, previous):
             raise FetchError("%s is missing from the last fetch" % name)
         os.makedirs(os.path.dirname(target), exist_ok=True)
         _link(source, target)
+    return True
 
 
 def _link(source, target):
