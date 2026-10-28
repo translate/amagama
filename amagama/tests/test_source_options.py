@@ -204,3 +204,34 @@ class TestDefaultWeights(object):
             assert len(lookup(fresh)) == 3
             assert {s['weight'] for s in fresh.get('/api/v1/sources/').get_json()['sources']} \
                 == {1.0}
+
+
+class TestAgreement(object):
+
+    @pytest.fixture
+    def delete(self, amagama_config, tmp_path):
+        runner = CliRunner()
+        assert runner.invoke(manage, ('initdb', '-s', 'en')).exit_code == 0
+        # Imported first, so import order alone would prefer it.
+        for block, target in (('odd', 'Slet'), ('gnome', 'Löschen'), ('kde', 'Löschen')):
+            path = tmp_path / ('%s.po' % block)
+            path.write_text(po(('Delete', target)), encoding='utf-8')
+            result = runner.invoke(manage, ('build_tmdb', '-s', 'en', '-t', 'de', '-i', str(path),
+                                            '--block', block))
+            assert result.exit_code == 0, result.output
+        with amagama_server_factory().test_client() as client:
+            yield client
+
+    def best(self, client, query=''):
+        response = client.get('/api/v1/en/de/unit/Delete?max_candidates=1' + query)
+        assert response.status_code == 200
+        return [(c['target'], c['sources']) for c in response.get_json()]
+
+    def test_more_sources_win_ties(self, delete):
+        assert self.best(delete) == [('Löschen', ['gnome', 'kde'])]
+
+    def test_excluded_sources_dont_count(self, delete):
+        assert self.best(delete, '&exclude=kde') == [('Slet', ['odd'])]
+
+    def test_weight_comes_first(self, delete):
+        assert self.best(delete, '&weight=odd:2') == [('Slet', ['odd'])]

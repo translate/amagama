@@ -110,6 +110,8 @@ following fields.
 
 The source options are applied before ``max_candidates``, and a suggestion's
 ``sources`` lists only the sources it keeps.
+Of equally good suggestions, the one more of its kept sources supplied comes
+first.
 
 For example::
 

@@ -103,12 +103,14 @@ class SourceOptions(object):
                     for name in names), default=1.0)
 
     def choose(self, results, max_candidates, defaults=None, licences=None):
-        """The results kept, best quality times weight first, at most max_candidates."""
+        """The results kept, at most max_candidates: best quality times weight
+        first, then the one more sources supplied, then in the given order."""
         chosen = []
         for result in results:
             kept = self.kept(result['sources'], licences)
             if kept is not None:
                 chosen.append(dict(result, sources=kept))
-        chosen.sort(key=lambda result: result['quality'] * self.weight(result['sources'], defaults),
-                    reverse=True)
+        chosen.sort(key=lambda result: (
+            result['quality'] * self.weight(result['sources'], defaults), len(result['sources'])),
+            reverse=True)
         return chosen[:max_candidates]
