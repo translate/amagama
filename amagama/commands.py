@@ -788,9 +788,7 @@ def weblate_sources(url, projects, docs, no_verify, prefix, output, min_age_days
     except FetchError as e:
         raise click.ClickException(str(e))
     if not no_verify:
-        found, problems = generate.verify(found)
-        skipped.update(problems)
-        found, problems = generate.importable(found)
+        found, problems = generate.check(found)
         skipped.update(problems)
         found = generate.add_mirrors(found)
     command = "weblate_sources %s --prefix %s%s%s" % (
