@@ -47,7 +47,18 @@ Settings to define amaGama server behavior.
 ``ENABLE_WEB_UI``
   Default: ``False``
 
-  Enables the web interface.
+  Enables the web interface: a page for looking up translations, in the
+  language of its ``?lang=`` argument or else the browser's, as the
+  :ref:`sources list <api#sources>` is.
+
+  The page is translated in :file:`amagama/po/web/`: one :file:`<lang>.po`
+  per language, from the template :file:`web.pot`, as :ref:`block titles
+  <sources#titles>` are. After changing the page's text, regenerate the
+  template; the tests fail while it's out of date:
+
+  .. code-block:: bash
+
+      $ amagama-manage web_pot
 
 
 .. setting:: ENABLE_DATA_ALTERING_API

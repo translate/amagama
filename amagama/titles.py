@@ -25,24 +25,32 @@ PATTERN_NOTE = ("A project's name and release, such as GNOME 51. Keep {title} an
 DIRECTION_NOTE = 'Translate as "rtl" if your language is written right to left.'
 
 
-@functools.cache
-def catalogs():
-    """{language: {(context, msgid): msgstr}} of every translated catalog."""
+def read_catalogs(directory):
+    """{language: {(context, msgid): msgstr}} of every translated catalog in directory."""
     found = {}
-    for filename in sorted(os.listdir(CATALOG_DIR)):
+    for filename in sorted(os.listdir(directory)):
         lang, ext = os.path.splitext(filename)
         if ext != ".po":
             continue
-        store = po.pofile.parsefile(os.path.join(CATALOG_DIR, filename))
+        store = po.pofile.parsefile(os.path.join(directory, filename))
         found[lang] = {(unit.getcontext() or None, unit.source): unit.target
                        for unit in store.units
                        if not unit.isheader() and unit.istranslated()}
     return found
 
 
-def negotiate(lang, accept_languages):
-    """The catalog for ?lang=, else the best for Accept-Language, else en."""
-    available = sorted(catalogs()) + ["en"]
+@functools.cache
+def catalogs():
+    """The block-title catalogs, as read_catalogs gives them."""
+    return read_catalogs(CATALOG_DIR)
+
+
+def negotiate(lang, accept_languages, translated=None):
+    """The catalog for ?lang=, else the best for Accept-Language, else en.
+
+    translated is the catalogs to choose from; the block titles' by default.
+    """
+    available = sorted(catalogs() if translated is None else translated) + ["en"]
     if lang:
         lang = lang.replace("-", "_")
         for code in available:
@@ -71,16 +79,24 @@ def localise(sources, lang):
 
 def template(blocks):
     """The sources.pot text: the title pattern and direction, then each block title once."""
+    messages = [(PATTERN, PATTERN_NOTE), (DIRECTION, DIRECTION_NOTE)]
+    messages += [((None, title), TITLE_NOTE)
+                 for title in dict.fromkeys(block.title for block in blocks)]
+    return pot("amaGama sources", messages)
+
+
+def pot(project, messages):
+    """The text of a template of messages, a list of ((context, msgid), note)."""
     store = po.pofile()
-    store.updateheader(add=True, Project_Id_Version="amaGama sources",
+    store.updateheader(add=True, Project_Id_Version=project,
                        Content_Type="text/plain; charset=UTF-8",
                        Content_Transfer_Encoding="8bit")
-    for (context, msgid), note in ((PATTERN, PATTERN_NOTE), (DIRECTION, DIRECTION_NOTE)):
+    for (context, msgid), note in messages:
         unit = store.addsourceunit(msgid)
-        unit.setcontext(context)
-        unit.addnote(note, "developer")
-    for title in dict.fromkeys(block.title for block in blocks):
-        store.addsourceunit(title).addnote(TITLE_NOTE, "developer")
+        if context:
+            unit.setcontext(context)
+        if note:
+            unit.addnote(note, "developer")
     # Without a date or generator, the template changes only with its messages.
     return "".join(line for line in bytes(store).decode("utf-8").splitlines(True)
                    if not line.startswith(('"POT-Creation-Date:', '"X-Generator:')))

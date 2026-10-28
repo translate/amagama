@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ _.tag }}" dir="{{ _.dir }}">
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>{{ request.host }} - Translation memory lookup</title>
+    {# Translators: {host} is the site's address, such as amagama-live.translatehouse.org. #}
+    <title>{{ _("{host} - Translation memory lookup", host=request.host) }}</title>
 
     <link rel="icon" href="{{ url_for('web_ui.static', filename='favicon.ico') }}">
     <link rel="stylesheet" href="{{ url_for('web_ui.static', filename='css/bootstrap.min.css') }}">
@@ -29,7 +30,7 @@
 
           <div class="navbar-header">
             <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-              <span class="sr-only">Toggle navigation</span>
+              <span class="sr-only">{{ _("Toggle navigation") }}</span>
               <span class="icon-bar"></span>
               <span class="icon-bar"></span>
               <span class="icon-bar"></span>
@@ -40,7 +41,7 @@
           <div class="collapse navbar-collapse">
             <ul class="nav navbar-nav">
               <li class="dropdown">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Products <b class="caret"></b></a>
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{ _("Products") }} <b class="caret"></b></a>
                 <ul class="dropdown-menu">
                   <li><a href="http://pootle.translatehouse.org/">Pootle</a></li>
                   <li><a href="http://virtaal.translatehouse.org/">Virtaal</a></li>
@@ -52,7 +53,7 @@
             </ul>
             <ul class="nav navbar-nav navbar-right">
               <li class="pull-right">
-                <a href="" data-toggle="modal" data-target="#helpModal"><span class="glyphicon glyphicon-book"></span> Help</a>
+                <a href="" data-toggle="modal" data-target="#helpModal"><span class="glyphicon glyphicon-book"></span> {{ _("Help") }}</a>
               </li>
             </ul>
           </div>
@@ -68,9 +69,7 @@
         <div class="text-center">
           <div class="amagama-logo-and-motto">
             <h1><span class="amagama-logo"></span> {{ request.host }}</h1>
-            <p class="amagama-motto">FOSS translations gathered together in
-              just one place
-            </p>
+            <p class="amagama-motto">{{ _("FOSS translations gathered together in just one place") }}</p>
           </div>
         </div>
 
@@ -81,12 +80,12 @@
             <div class="form-group">
               <div class="col-sm-6 col-sm-offset-2">
                 <input id="js-search-box" type="search" class="form-control"
-                  placeholder="Type word or words to search"
+                  placeholder="{{ _("Type word or words to search") }}"
                   autofocus="autofocus" value="">
               </div>
               <div class="col-sm-1">
                 <button type="submit" class="btn btn-default">
-                  <span class="glyphicon glyphicon-search"></span> Search
+                  <span class="glyphicon glyphicon-search"></span> {{ _("Search") }}
                 </button>
               </div>
             </div>
@@ -97,7 +96,8 @@
                 </select>
               </div>
               <div class="col-sm-1">
-                <label style="padding: 0.3em;">to</label>
+                {# Translators: Between the source and target languages: from English to French. #}
+                <label style="padding: 0.3em;">{{ _("to") }}</label>
               </div>
               <div class="col-sm-3">
                 <select id="js-target-language" class="form-control">
@@ -111,44 +111,21 @@
         <!-- RESULTS -->
         <div id="results-content">
 
-          <!-- RESULTS TABS -->
-          <ul class="nav nav-tabs hide"><!-- TODO Hidden. Remove the 'hide' class when we enable multiple ways to query amaGama. -->
-            <li>
-              <a href="#tab-words" data-toggle="tab">Words (OpenTran)</a>
-            </li>
-            <li class="active">
-              <a href="#tab-similar" data-toggle="tab">Similar (amaGama classic results)</a>
-            </li>
-            <li>
-              <a href="#tab-stem" data-toggle="tab">Stem</a>
-            </li>
-          </ul>
-
-          <!-- RESULT TAB PANES -->
           <div class="tab-content">
-
-            <!-- WORDS RESULTS TAB: Open-Tran -->
-            <div id="tab-words" class="tab-pane"></div>
-
-            <!-- SIMILAR RESULTS TAB: amaGama classic results -->
             <div id="tab-similar" class="tab-pane active">
               <h1 id="js-similar-title"></h1>
               <p id="js-similar-count"></p>
               <table class="similar-table">
                 <thead id="js-similar-table-headers" style="display:none;">
                   <tr>
-                    <th>Original Text</th>
-                    <th>Translation</th>
-                    <th>Quality</th>
+                    <th>{{ _("Original text") }}</th>
+                    <th>{{ _("Translation") }}</th>
+                    <th>{{ _("Quality") }}</th>
                   </tr>
                 </thead>
                 <tbody id="js-similar-results"></tbody>
               </table>
             </div>
-
-            <!-- STEM RESULTS TAB -->
-            <div id="tab-stem" class="tab-pane"></div>
-
           </div>
         </div>
       </div>
@@ -159,15 +136,15 @@
     <div id="footer">
       <div class="container">
         <ul class="footer-links muted text-center">
-          <li><a href="" data-toggle="modal" data-target="#aboutModal">About</a></li>
+          <li><a href="" data-toggle="modal" data-target="#aboutModal">{{ _("About") }}</a></li>
           <li>&middot;</li>
-          <li><a href="" data-toggle="modal" data-target="#dataSourcesModal">Data sources</a></li>
+          <li><a href="" data-toggle="modal" data-target="#dataSourcesModal">{{ _("Data sources") }}</a></li>
           <li>&middot;</li>
-          <li><a href="" data-toggle="modal" data-target="#helpModal">Help</a></li>
+          <li><a href="" data-toggle="modal" data-target="#helpModal">{{ _("Help") }}</a></li>
           <li>&middot;</li>
-          <li><a href="" data-toggle="modal" data-target="#contactModal">Contact</a></li>
+          <li><a href="" data-toggle="modal" data-target="#contactModal">{{ _("Contact") }}</a></li>
           <li>&middot;</li>
-          <li>{{ year }} © Translate House</li>
+          <li>{{ _("{year} © Translate House", year=year) }}</li>
         </ul>
       </div>
     </div>
@@ -193,6 +170,13 @@
     <script src="{{ url_for('web_ui.static', filename='js/vendor/bootstrap.min.js') }}"></script>
     <script src="{{ url_for('web_ui.static', filename='js/amagama.js') }}"></script>
     <script>
+{# Translators: Heading of the results: the text searched for, then its language and the translations' language. #}
+{% set messages = {"searchTitle": gettext("{text} ({source} → {target})"),
+  "suggestions": gettext("Suggestions: {count}"),
+  "projects": gettext("Projects and releases: {count}"),
+} %}
+MGM.lang = {{ _.tag|tojson }};
+MGM.messages = {{ messages|tojson }};
 $(function() {
   MGM.search.init();
   MGM.sources.init();

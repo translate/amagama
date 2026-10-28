@@ -6,6 +6,13 @@
     return $('<div>').text(text).html().replace(/"/g, '&quot;');
   }
 
+  // A message from the page's catalog with each {name} replaced by values[name].
+  function format(name, values) {
+    return MGM.messages[name].replace(/\{(\w+)\}/g, function (match, key) {
+      return values.hasOwnProperty(key) ? values[key] : match;
+    });
+  }
+
   MGM.search = {
 
     init: function () {
@@ -27,9 +34,9 @@
             sourceLanguage = $('#js-source-language').val(),
             targetLanguage = $('#js-target-language').val();
 
-        MGM.search.searchTitle = [
-          searchTerms, ' (', sourceLanguage, ' → ', targetLanguage, ')'
-        ].join('');
+        MGM.search.searchTitle = format('searchTitle', {
+          text: searchTerms, source: sourceLanguage, target: targetLanguage
+        });
 
         var URLParams = $.param({
           'source': searchTerms,
@@ -48,7 +55,9 @@
 
     displayResults: function (data) {
       $('#js-similar-title').text(MGM.search.searchTitle);
-      $('#js-similar-count').text('Found ' + data.length + ' results.');
+      $('#js-similar-count').text(format('suggestions', {
+        count: data.length.toLocaleString(MGM.lang)
+      }));
 
       if (data.length) {
         var currentResult,
@@ -116,7 +125,7 @@
 
     init: function () {
       $('#dataSourcesModal').one('show.bs.modal', function () {
-        $.getJSON('/api/v1/sources/', MGM.sources.display);
+        $.getJSON('/api/v1/sources/', {lang: MGM.lang}, MGM.sources.display);
       });
       $(document).on('input', '#js-sources-filter', MGM.sources.filter);
     },
@@ -140,11 +149,13 @@
                       escapeHTML(source.licence || ''), '</td><td title="',
                       escapeHTML(source.targetLanguages.join(' ')), '">',
                       source.targetLanguages.length, '</td><td>',
-                      source.units.toLocaleString(), '</td><td>',
+                      source.units.toLocaleString(MGM.lang), '</td><td>',
                       escapeHTML(source.imported.slice(0, 10)), '</td></tr>');
       }
       $('#js-sources-results').html(rowsHTML.join(''));
-      $('#js-sources-count').text(sources.length + ' projects and releases.');
+      $('#js-sources-count').text(format('projects', {
+        count: sources.length.toLocaleString(MGM.lang)
+      }));
       $('#js-sources-fallback').hide();
       $('#js-sources').show();
     },
