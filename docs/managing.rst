@@ -265,9 +265,10 @@ A target fails:
   translation can be right, so this one is only for looking at.
 
 Each check lists the languages and blocks with the most failures (``--top``,
-default 10) and examples (``--examples``, default 3). ``-t`` checks only the
-given target languages, and ``--build`` the build schemas. The targets are read
-twice, the first time to find each language's usual scripts and length.
+default 10) and examples chosen at random (``--examples``, default 3). ``-t``
+checks only the given target languages, and ``--build`` the build schemas. The
+targets are read twice, the first time to find each language's usual scripts
+and length.
 
 
 .. _managing#snapshot-db:
