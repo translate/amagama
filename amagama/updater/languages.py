@@ -23,6 +23,10 @@ import pycountry
 # Codes ISO 639 replaced.
 RENAMED = {"iw": "he", "in": "id", "ji": "yi", "jw": "jv", "mo": "ro"}
 
+# Countries' codes that some projects name their files by (cn.po, ua.po),
+# none of them an ISO 639 language: the country's language.
+COUNTRY_CODES = {"cn": "zh_CN", "cz": "cs", "gr": "el", "ua": "uk"}
+
 
 @functools.cache
 def _two_letter_codes():
@@ -74,6 +78,8 @@ _POSIX = re.compile(r"^(?P<lang>[a-z]{2,3})(?:_(?P<region>[A-Za-z]{2}|\d{3}))?"
 def normalise_language(code):
     """The canonical form of code, or None if it isn't a language code."""
     code = code.strip()
+    if code.lower() in COUNTRY_CODES:
+        return COUNTRY_CODES[code.lower()]
     match = _POSIX.match(code)
     if match:
         lang = _short(match["lang"].lower())
