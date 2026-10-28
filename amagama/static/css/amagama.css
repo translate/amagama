@@ -33,9 +33,32 @@
     padding-bottom: 4em;
 }
 
+/* Fixed columns, so a long list of sources wraps instead of squeezing the text. */
 .similar-table
 {
-    width: 90%;
+    table-layout: fixed;
+}
+
+.similar-table th:nth-child(1),
+.similar-table th:nth-child(2)
+{
+    width: 34%;
+}
+
+.similar-table th:nth-child(3)
+{
+    width: 7em;
+}
+
+.similar-table td
+{
+    overflow-wrap: anywhere;
+}
+
+.similar-table .sources
+{
+    font-size: 0.85em;
+    color: #777;
 }
 
 .sources-table

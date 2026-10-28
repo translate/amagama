@@ -43,6 +43,12 @@
       return name || described.name || code;
     },
 
+    // lang and dir attributes for text in a language: its direction is the text's own.
+    attributes: function (code) {
+      var described = MGM.languages.described[code] || {};
+      return ' lang="' + escapeHTML(described.tag || code.replace(/_/g, '-')) + '" dir="auto"';
+    },
+
     label: function (code) {
       var name = MGM.language.name(code);
       return name === code ? code : format('languageOption', {name: name, code: code});
@@ -95,6 +101,8 @@
         }
         MGM.search.rememberLanguages();
 
+        MGM.search.sourceAttributes = MGM.language.attributes(sourceLanguage);
+        MGM.search.targetAttributes = MGM.language.attributes(targetLanguage);
         MGM.search.searchTitle = format('searchTitle', {
           text: searchTerms,
           source: MGM.language.name(sourceLanguage),
@@ -137,11 +145,13 @@
         for (var i = 0; i < data.length; i++) {
           currentResult = data[i];
 
-          resultsHTML.push('<tr><td>');
+          // On a span, not the cell, so the text keeps its direction
+          // and the column stays lined up with its heading.
+          resultsHTML.push('<tr><td><span', MGM.search.sourceAttributes, '>');
           resultsHTML.push(escapeHTML(currentResult.source));
-          resultsHTML.push('</td><td>');
+          resultsHTML.push('</span></td><td><span', MGM.search.targetAttributes, '>');
           resultsHTML.push(escapeHTML(currentResult.target));
-          resultsHTML.push('</td><td>');
+          resultsHTML.push('</span></td><td>');
 
           resultQuality = currentResult.quality.toFixed(2);
           if (currentResult.quality === 100.00) {
@@ -152,7 +162,7 @@
           else {
             resultsHTML.push(resultQuality);
           }
-          resultsHTML.push('</td><td>');
+          resultsHTML.push('</td><td class="sources">');
           resultsHTML.push(MGM.sources.titlesHTML(currentResult.sources || []));
           resultsHTML.push('</td></tr>');
         }
