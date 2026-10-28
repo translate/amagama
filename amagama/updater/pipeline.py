@@ -18,6 +18,7 @@ import tempfile
 from flask import current_app
 from amagama.commands import file_checksum
 from amagama.tmdb import BUILD_PREFIX, OLD_PREFIX, lang_to_table
+from amagama.unit_checks import FILTER, reject
 from amagama.updater import chromium, compressed
 from amagama.updater.formats import CHROMIUM, open_pieces, open_store
 from amagama.updater.pairing import paired_store, without_ids
@@ -350,6 +351,12 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
         out("Couldn't read %d files:" % len(unreadable))
         for path, reason in unreadable:
             out("  %s: %s" % (os.path.relpath(path, cache_dir), reason))
+
+    rejected = reject(tmdb.get_cursor().connection, tmdb.schema(slang))
+    out("Left out %d targets that look broken." % len({
+        tid for name in FILTER for tid in rejected.tids[name]}))
+    for line in rejected.lines(FILTER):
+        out("  " + line)
 
     tmdb.deploy(slang)
     tmdb.use_schemas(OLD_PREFIX)

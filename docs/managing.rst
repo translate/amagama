@@ -251,18 +251,27 @@ styled differently. Nothing is changed:
 
 A target fails:
 
-- ``printf`` or ``braces`` when its printf (``%s``, ``%(name)s``) or brace
-  (``{count}``) placeholders don't match the source's; ICU message format is
-  left out of ``braces``.
+- ``printf`` when its printf (``%s``, ``%1$s``, ``%(name)s``), numbered
+  (``%1``) or LibreOffice (``%PRODUCTNAME``) placeholders don't match the
+  source's, in any order. Date formats are left out, and a placeholder of a
+  kind the source doesn't use is ignored (Basque writes 95% as ``%95``).
+- ``braces`` when its brace placeholders don't: Moodle's ``{$a}``, numbered
+  ``{0}``, empty ``{}`` and ``%{name}``. Other braces, and TeX, are often text
+  to translate.
 - ``tags`` when its XML tags don't, by name; attributes may be translated.
 - ``escapes`` when its backslash escapes don't.
 - ``unchanged`` when it is a source of three words or more left in English,
   in a language that isn't a variant of English.
 - ``script`` when most of its letters are in a script under 1% of the
-  language's targets.
+  language's targets, in a language with 1000 of them or more. A script other
+  than the source language's that the source has too (``μ``, a language's own
+  name) is kept as it is, and isn't counted.
 - ``length`` when it is four or more times longer or shorter, relative to its
   source of 20 characters or more, than the language's usual. A long or short
   translation can be right, so this one is only for looking at.
+
+:ref:`update <managing#update>` leaves out the targets failing ``printf``,
+``braces`` or ``script``; the others are only for looking at.
 
 Each check lists the languages and blocks with the most failures (``--top``,
 default 10) and examples chosen at random (``--examples``, default 3). ``-t``
@@ -375,12 +384,17 @@ This subcommand refreshes a source language from the :ref:`sources file
     Fetched gnome-51: 6908 files.
     Loaded legacy-2019: 5000 targets (3 skipped).
     Imported 120 files: 9000 units (40 skipped).
+    Left out 10 targets that look broken.
+      printf: 6 (0.07%)
+    ...
     Swapped in 'en'; the replaced copy is _old_en.
 
 The build starts empty: snapshot blocks are loaded first, then every file of
 every other block, :setting:`UPDATER_WORKERS` at a time, each with its known
 target language, block name and licence. Files that can't be read are listed
-and left out. A database error stops it before the swap, leaving the live data
+and left out. Before the swap, targets failing the ``printf``, ``braces`` or
+``script`` checks of :ref:`check_units <managing#check-units>` are left out,
+and listed by check, language and block. A database error stops it before the swap, leaving the live data
 as it was. So does an import worker dying (killed for lack of memory, say):
 the error names the files being imported, and if the whole update is killed,
 the next one names them. The previous copy is kept as ``_old_<lang>`` until
