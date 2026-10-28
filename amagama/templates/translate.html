@@ -90,9 +90,25 @@
               </div>
             </div>
 
+            <div class="form-group language-filters">
+              <div class="col-sm-3 col-sm-offset-2">
+                <input id="js-source-filter" type="search" class="form-control input-sm"
+                  data-language-list="#js-source-language"
+                  placeholder="{{ _("Find a language") }}"
+                  aria-label="{{ _("Find a source language") }}">
+              </div>
+              <div class="col-sm-3 col-sm-offset-1">
+                <input id="js-target-filter" type="search" class="form-control input-sm"
+                  data-language-list="#js-target-language"
+                  placeholder="{{ _("Find a language") }}"
+                  aria-label="{{ _("Find a target language") }}">
+              </div>
+            </div>
+
             <div class="form-group">
               <div class="col-sm-3 col-sm-offset-2">
-                <select id="js-source-language" class="form-control">
+                <select id="js-source-language" class="form-control"
+                  aria-label="{{ _("Source language") }}">
                 </select>
               </div>
               <div class="col-sm-1">
@@ -100,7 +116,8 @@
                 <label style="padding: 0.3em;">{{ _("to") }}</label>
               </div>
               <div class="col-sm-3">
-                <select id="js-target-language" class="form-control">
+                <select id="js-target-language" class="form-control"
+                  aria-label="{{ _("Target language") }}">
                 </select>
               </div>
             </div>

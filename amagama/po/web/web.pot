@@ -108,8 +108,23 @@ msgstr ""
 msgid "Search"
 msgstr ""
 
+msgid "Find a language"
+msgstr ""
+
+msgid "Find a source language"
+msgstr ""
+
+msgid "Find a target language"
+msgstr ""
+
+msgid "Source language"
+msgstr ""
+
 #. Between the source and target languages: from English to French.
 msgid "to"
+msgstr ""
+
+msgid "Target language"
 msgstr ""
 
 msgid "Original text"
