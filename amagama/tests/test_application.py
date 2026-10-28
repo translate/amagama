@@ -44,6 +44,9 @@ def test_web_ui(amagama_config):
     assert 'id="js-sources-fallback"' in page
     # Each suggestion's sources, titled from the same list.
     assert '<th>Sources</th>' in page
+    # A filter for each language list.
+    assert 'data-language-list="#js-source-language"' in page
+    assert 'data-language-list="#js-target-language"' in page
 
 
 def test_web_ui_address_and_year(amagama_config):
