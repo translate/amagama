@@ -17,6 +17,7 @@ the language hardly uses, and a length far from the language's usual one.
 import array
 import collections
 import math
+import random
 import re
 import unicodedata
 
@@ -113,10 +114,11 @@ def length_step(source, target):
 
 class Report(object):
     """What check_units found, by check: counts by language and by block,
-    and examples as (lang, source, target, blocks)."""
+    and examples as (lang, source, target, blocks), chosen at random."""
 
-    def __init__(self, examples=3):
+    def __init__(self, examples=3, rng=None):
         self.max_examples = examples
+        self.rng = rng or random.Random()
         self.targets = 0
         self.languages = collections.Counter()
         self.by_language = collections.defaultdict(collections.Counter)
@@ -131,8 +133,14 @@ class Report(object):
     def add(self, name, lang, tid, source, target):
         self.by_language[name][lang] += 1
         self.tids[name].append(tid)
+        # Each failure so far is equally likely to be an example.
+        example = [lang, source, target, tid]
         if len(self.examples[name]) < self.max_examples:
-            self.examples[name].append([lang, source, target, tid])
+            self.examples[name].append(example)
+        else:
+            n = self.rng.randrange(len(self.tids[name]))
+            if n < self.max_examples:
+                self.examples[name][n] = example
 
     def count_blocks(self, cursor, schema):
         """Count each check's failures by the blocks that supplied them."""

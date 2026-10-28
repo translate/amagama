@@ -6,12 +6,14 @@
 # the AUTHORS.md file for copyright and authorship information.
 
 
+import random
+
 import pytest
 from click.testing import CliRunner
 
 from amagama import unit_checks
 from amagama.cli import manage
-from amagama.unit_checks import failed_checks, length_step, script
+from amagama.unit_checks import Report, failed_checks, length_step, script
 
 
 @pytest.mark.parametrize("source, target, lang, failed", [
@@ -59,6 +61,17 @@ def test_length_step():
     assert length_step("a" * 20, "b" * 20) == 0
     assert length_step("a" * 20, "b" * 80) == 2
     assert length_step("a" * 80, "b" * 20) == -2
+
+
+def test_examples_at_random():
+    report = Report(examples=10, rng=random.Random(1))
+    for tid in range(1000):
+        report.add("printf", "af", tid, "source", "target")
+    tids = [example[3] for example in report.examples["printf"]]
+    assert len(tids) == 10
+    # Not just the first failures.
+    assert max(tids) >= 500
+    assert report.failures("printf") == 1000
 
 
 def po(*units):
