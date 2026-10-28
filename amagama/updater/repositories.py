@@ -17,11 +17,10 @@ left out.
 import collections
 import posixpath
 import re
-import time
 import urllib.parse
 
 from amagama.updater.fetchers import FetchError, run_tool
-from amagama.updater.generate import (Names, check_block, clone, identity, matches, matching,
+from amagama.updater.generate import (Names, Pacer, check_block, clone, identity, matches, matching,
                                       normal_url, with_mirror)
 from amagama.updater.languages import normalise_language
 from amagama.updater.sources import sparse_patterns
@@ -75,7 +74,7 @@ def slug(text):
     return re.sub(r"[^\w.-]+", "-", text).strip("-")
 
 
-def blocks(repositories, prefix, resolve, what, covered=(), names=None, pause=1, licences=None,
+def blocks(repositories, prefix, resolve, what, covered=(), names=None, pause=None, licences=None,
            mirrors=None):
     """(blocks, skipped) for repositories, as resolve reads them.
 
@@ -88,18 +87,19 @@ def blocks(repositories, prefix, resolve, what, covered=(), names=None, pause=1,
     names is the generate.Names the blocks take theirs from; licences maps
     normal_url() to a repository's SPDX licence. mirrors maps a repository
     to a copy of it for resolve to read; the block is the repository's, and
-    fetches from the copy if the repository is on a community host.
+    fetches from the copy if the repository is on a community host. Reads
+    are spaced as Pacer.of(pause).
     """
     covered = {normal_url(url) for url in covered}
     licences = licences or {}
     names = names or Names()
     found, skipped = [], collections.Counter()
-    for number, url in enumerate(repositories):
-        if number:
-            time.sleep(pause)
+    pacer = Pacer.of(pause)
+    for url in repositories:
         if normal_url(url) in covered:
             skipped["repositories", "imported by another block"] += 1
             continue
+        pacer.wait((mirrors or {}).get(url, url))
         resolved = resolve((mirrors or {}).get(url, url))
         if resolved is None:
             skipped["repositories", "not found"] += 1

@@ -464,6 +464,9 @@ and a block left with none, or whose template is missing, is left out. So is
 a block that would import nothing: its template has no units, or none of its
 files has a translation. ``--no-verify`` skips the check.
 
+The commands writing blocks space their requests to each host by a random
+pause of 2 to 6 seconds, so no forge or Weblate gets a burst.
+
 A block of the file being regenerated that is ``disabled`` (see
 :ref:`sources file <sources>`) stays disabled with its reason, and one not
 found again is kept as it was, so a block left out for a reason doesn't come

@@ -17,11 +17,10 @@ so the instance isn't asked for files.
 import fnmatch
 import json
 import re
-import time
 import urllib.parse
 
 from amagama.updater.fetchers import FetchError, http_text
-from amagama.updater.generate import Names, check_block, identity, normal_url
+from amagama.updater.generate import Names, Pacer, check_block, identity, normal_url
 from amagama.updater.sources import sparse_patterns
 
 # Weblate file formats amaGama reads, and the format setting each needs.
@@ -57,20 +56,21 @@ COLLAPSE = 10
 GENERATED = {"hosted.weblate.org", "translate.fedoraproject.org"}
 
 
-def components(url, pause=1, project=None):
-    """All of a Weblate instance's components, or a project's, from its API."""
+def components(url, pause=None, project=None):
+    """All of a Weblate instance's components, or a project's, from its API;
+    pages spaced as Pacer.of(pause)."""
     listing = "projects/%s/components" % urllib.parse.quote(project) if project else "components"
     page = "%s/api/%s/?page_size=1000" % (url.rstrip("/"), listing)
     found = []
+    pacer = Pacer.of(pause)
     while page:
+        pacer.wait(page)
         try:
             data = json.loads(http_text(page))
             found += data["results"]
         except (ValueError, KeyError) as e:
             raise FetchError("%s: %s" % (page, e))
         page = data.get("next")
-        if page:
-            time.sleep(pause)
     return found
 
 
