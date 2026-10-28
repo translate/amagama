@@ -230,6 +230,46 @@ is merged into it. Text is only changed when all of it converts, and text that
 looks mangled but doesn't convert is listed and left alone.
 
 
+.. _managing#check-units:
+
+check_units
+-----------
+
+This subcommand reports stored translations that look broken rather than
+styled differently. Nothing is changed:
+
+.. code-block:: console
+
+    $ amagama-manage check_units -s en
+    Checked 'en': 6 targets in 1 languages.
+    printf: 1 (16.67%)
+      Languages: et 1 (16.7%)
+      Blocks: odd 1
+      [et] 'Close the %s window now' -> 'Sulge aken' (odd)
+    braces: 0 (0.00%)
+    ...
+
+A target fails:
+
+- ``printf`` or ``braces`` when its printf (``%s``, ``%(name)s``) or brace
+  (``{count}``) placeholders don't match the source's; ICU message format is
+  left out of ``braces``.
+- ``tags`` when its XML tags don't, by name; attributes may be translated.
+- ``escapes`` when its backslash escapes don't.
+- ``unchanged`` when it is a source of three words or more left in English,
+  in a language that isn't a variant of English.
+- ``script`` when most of its letters are in a script under 1% of the
+  language's targets.
+- ``length`` when it is four or more times longer or shorter, relative to its
+  source of 20 characters or more, than the language's usual. A long or short
+  translation can be right, so this one is only for looking at.
+
+Each check lists the languages and blocks with the most failures (``--top``,
+default 10) and examples (``--examples``, default 3). ``-t`` checks only the
+given target languages, and ``--build`` the build schemas. The targets are read
+twice, the first time to find each language's usual scripts and length.
+
+
 .. _managing#snapshot-db:
 
 snapshot_db
