@@ -13,6 +13,7 @@ import contextlib
 import contextvars
 import json
 import os
+import random
 import re
 import shutil
 import tempfile
@@ -43,6 +44,32 @@ KNOWN_MIRRORS = [
     (r"https://gitlab\.xfce\.org/[\w.-]+/([\w.-]+?)(?:\.git)?/?",
      "https://github.com/xfce-mirror/{0}"),
 ]
+
+
+# Seconds between a generator's requests to one host: a random pause between these.
+PAUSE = (2, 6)
+
+
+class Pacer(object):
+    """Spaces requests to each host by a random pause between low and high
+    seconds; a request to another host needn't wait."""
+
+    def __init__(self, low=PAUSE[0], high=PAUSE[1]):
+        self.low, self.high = low, high
+        self.due = {}
+
+    @classmethod
+    def of(cls, pause):
+        """A Pacer: pause seconds (0 doesn't wait), or None for PAUSE's."""
+        return cls() if pause is None else cls(pause, pause)
+
+    def wait(self, url):
+        host = urllib.parse.urlsplit(url).hostname or url
+        now = time.monotonic()
+        due = self.due.get(host, now)
+        if due > now:
+            time.sleep(due - now)
+        self.due[host] = max(now, due) + random.uniform(self.low, self.high)
 
 
 def exists(url):
@@ -82,14 +109,16 @@ def with_mirror(block, copy=None, exists=exists):
     return settings
 
 
-def add_mirrors(blocks, pause=1, exists=exists):
-    """blocks with mirrors where they have one; each repository is looked up once."""
+def add_mirrors(blocks, pause=None, exists=exists):
+    """blocks with mirrors where they have one; each repository is looked up
+    once, spaced as Pacer.of(pause)."""
     known = {}
+    pacer = Pacer.of(pause)
 
     def cached(url):
         if url not in known:
+            pacer.wait(url)
             known[url] = exists(url)
-            time.sleep(pause)
         return known[url]
     return [with_mirror(block, exists=cached) for block in blocks]
 

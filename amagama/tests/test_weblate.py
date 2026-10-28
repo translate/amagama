@@ -230,8 +230,9 @@ def instance(tmp_path):
 
 def test_components(instance, monkeypatch):
     slept = []
-    monkeypatch.setattr(weblate, "time", types.SimpleNamespace(sleep=slept.append))
+    monkeypatch.setattr(generate, "time", types.SimpleNamespace(sleep=slept.append, monotonic=lambda: 0))
     assert [c["project"]["slug"] for c in weblate.components(instance, pause=3)] == ["app", "tool"]
+    # The second page waits; the first doesn't.
     assert slept == [3]
 
 
