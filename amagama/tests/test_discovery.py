@@ -105,6 +105,44 @@ def test_search_deadline(monkeypatch):
     assert logged[-1] == "Out of time: 3 parts left, from q size:128..255."
 
 
+def test_search_rate_limited(monkeypatch):
+    monkeypatch.setattr(discovery, "time", Clock())
+    inner, asked = searcher({"128..255": 250, "64..127": 5})
+
+    def get(url, token):
+        if len(asked) == 6:
+            raise discovery.RateLimited("https://api.github.com/search/code: HTTP Error 429", 429)
+        return inner(url, token)
+    logged = []
+    names, incomplete = discovery.search("q", "t", get=get, log=logged.append)
+    # What was found is kept: 128..255's last page and the smaller parts are left.
+    assert len(names) == 200 and incomplete
+    assert logged[-1] == "Still rate limited: 3 parts left, from q size:128..255."
+
+
+def test_search_rate_limited_first_page(monkeypatch):
+    monkeypatch.setattr(discovery, "time", Clock())
+    inner, asked = searcher({"1024..2047": 3})
+
+    def get(url, token):
+        if len(asked) == 2:
+            raise discovery.RateLimited("https://api.github.com/search/code: HTTP Error 429", 429)
+        return inner(url, token)
+    logged = []
+    names, incomplete = discovery.search("q", "t", get=get, log=logged.append)
+    assert len(names) == 3 and incomplete
+    assert logged[-1] == "Still rate limited: 5 parts left, from q size:512..1023."
+
+
+def test_search_other_errors_fail(monkeypatch):
+    monkeypatch.setattr(discovery, "time", Clock())
+
+    def get(url, token):
+        raise FetchError("https://api.github.com/search/code: HTTP Error 401", 401)
+    with pytest.raises(FetchError):
+        discovery.search("q", "t", get=get)
+
+
 def test_search_no_deadline(monkeypatch):
     monkeypatch.setattr(discovery, "time", Clock())
     get, asked = searcher({})
@@ -284,7 +322,18 @@ def test_github_errors(monkeypatch):
     monkeypatch.setattr(discovery.urllib.request, "urlopen", urlopen)
     with pytest.raises(FetchError) as e:
         discovery.github("https://api.github.com/x", "tok")
-    assert e.value.status == 403
+    assert e.value.status == 403 and not isinstance(e.value, discovery.RateLimited)
+
+
+def test_github_still_rate_limited(monkeypatch):
+    def urlopen(request, timeout):
+        raise http_error(429, Retry_After="5")
+
+    monkeypatch.setattr(discovery.urllib.request, "urlopen", urlopen)
+    monkeypatch.setattr(discovery, "time", types.SimpleNamespace(sleep=lambda seconds: None))
+    with pytest.raises(discovery.RateLimited) as e:
+        discovery.github("https://api.github.com/x", "tok", retries=2)
+    assert e.value.status == 429
 
 
 def test_github_network_error(monkeypatch):

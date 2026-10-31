@@ -563,6 +563,7 @@ as incomplete. Each request is logged with how long it took, waits for the
 rate limit included. ``--search-minutes`` stops the search after that long and
 reads what it found, the largest files (the most languages) first; the
 workflow stops at 180 minutes, so the run ends within the job's time limit.
+A request still rate limited after its retries stops the search the same way.
 Either way, the report says new candidates may be missing. Code search
 gives a different set of results each run, so the repositories of the blocks
 being regenerated (a block's own GitHub repository, or its mirror) are read

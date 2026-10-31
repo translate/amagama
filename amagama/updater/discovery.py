@@ -63,6 +63,10 @@ FIELDS = ("url stargazerCount pushedAt isArchived isFork licenseInfo { spdxId } 
           "homepageUrl hasIssuesEnabled")
 
 
+class RateLimited(FetchError):
+    """A GitHub request still rate limited after its retries."""
+
+
 def _wait(headers, default):
     """Seconds until a rate limit resets, from the response's headers."""
     if headers.get("Retry-After", "").isdigit():
@@ -90,7 +94,7 @@ def github(url, token, data=None, retries=6, wait=60):
             if (limited or e.code >= 500) and attempt < retries:
                 time.sleep(_wait(e.headers, wait))
                 continue
-            raise FetchError("%s: %s" % (url, e), e.code)
+            raise (RateLimited if limited else FetchError)("%s: %s" % (url, e), e.code)
         except (urllib.error.URLError, OSError) as e:
             if attempt < retries:
                 time.sleep(wait)
@@ -105,32 +109,39 @@ def _search(url, token, parts, text, split, pause, get, deadline=None, log=None)
     searched) of a GitHub search over parts, in order: text(part) is a part's
     query, and split(part) its halves when it has more than 1,000 results, or
     None if it can't split. It stops before a request once deadline (a
-    time.monotonic()) has passed; log, if given, is told of each request."""
-    items, incomplete, requests = [], False, 0
+    time.monotonic()) has passed, and when one is still rate limited after
+    its retries; log, if given, is told of each request."""
+    items, incomplete, requests, stopped = [], False, 0, None
 
     def page(query, number):
-        nonlocal requests
+        """A page's results, or None once the search has stopped."""
+        nonlocal requests, stopped
+        if deadline is not None and time.monotonic() >= deadline:
+            stopped = "Out of time"
+            return None
         if requests:
             time.sleep(pause)
         requests += 1
         started = time.monotonic()
-        data = get("%s?%s" % (url, urllib.parse.urlencode(
-            {"q": query, "per_page": PAGE, "page": number})), token)
+        try:
+            data = get("%s?%s" % (url, urllib.parse.urlencode(
+                {"q": query, "per_page": PAGE, "page": number})), token)
+        except RateLimited:
+            stopped = "Still rate limited"
+            return None
         if log:
             log("%s, page %d: %d results (%.0f s)" % (
                 query, number, data.get("total_count", 0), time.monotonic() - started))
         return data
 
-    def late():
-        return deadline is not None and time.monotonic() >= deadline
-
     parts = list(parts)
-    while parts:
-        if late():
-            break
+    while parts and not stopped:
         part = parts.pop(0)
         query = text(part)
         data = page(query, 1)
+        if data is None:
+            parts.insert(0, part)
+            break
         total = data.get("total_count", 0)
         halves = split(part) if total > CAP else None
         if halves:
@@ -139,17 +150,17 @@ def _search(url, token, parts, text, split, pause, get, deadline=None, log=None)
         incomplete = incomplete or bool(data.get("incomplete_results")) or total > CAP
         found, number = list(data.get("items", [])), 1
         while data.get("items") and number * PAGE < min(total, CAP):
-            if late():
-                parts.insert(0, part)
-                break
             number += 1
             data = page(query, number)
+            if data is None:
+                parts.insert(0, part)
+                break
             found += data.get("items", [])
         items += found
     if parts:
         incomplete = True
         if log:
-            log("Out of time: %d parts left, from %s." % (len(parts), text(parts[0])))
+            log("%s: %d parts left, from %s." % (stopped, len(parts), text(parts[0])))
     return items, incomplete
 
 
