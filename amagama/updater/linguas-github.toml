@@ -88,29 +88,12 @@ sparse = ["po/*.po"]
 licence = "GPL-3.0-only"
 
 [[block]]
-name = "linguas-Collision"
-title = "Collision"
-url = "https://codeberg.org/GeopJr/Collision"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "BSD-2-Clause"
-
-[[block]]
 name = "linguas-ConsoleKit2"
 title = "ConsoleKit2"
 url = "https://github.com/ConsoleKit2/ConsoleKit2"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "GPL-2.0-only"
-
-[[block]]
-name = "linguas-Constrict"
-disabled = "duplicates Damned Lies module Constrict"
-title = "Constrict"
-url = "https://gitlab.gnome.org/World/Constrict"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
 
 [[block]]
 name = "linguas-Curtail"
@@ -151,7 +134,7 @@ title = "Errands"
 url = "https://github.com/mrvladus/Errands"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
-licence = "MIT"
+licence = "Zlib"
 
 [[block]]
 name = "linguas-Exhibit"
@@ -266,19 +249,11 @@ sparse = ["po/*.po"]
 licence = "GPL-3.0-only"
 
 [[block]]
-name = "linguas-ModemManager"
-disabled = "duplicates Damned Lies module ModemManager"
-title = "ModemManager"
-url = "https://gitlab.freedesktop.org/mobile-broadband/ModemManager"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
 name = "linguas-NetworkManager"
 disabled = "duplicates Damned Lies module NetworkManager"
 title = "NetworkManager"
 url = "https://gitlab.freedesktop.org/NetworkManager/NetworkManager"
+mirror = "https://github.com/NetworkManager/NetworkManager"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "GPL-2.0-only"
@@ -663,15 +638,6 @@ url = "https://github.com/vagnum08/cpupower-gui"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-cryptsetup"
-disabled = "duplicates Translation Project domain cryptsetup"
-title = "cryptsetup"
-url = "https://gitlab.com/cryptsetup/cryptsetup"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
 
 [[block]]
 name = "linguas-csound"
@@ -1479,6 +1445,7 @@ name = "linguas-nano"
 disabled = "duplicates Translation Project domain nano"
 title = "nano"
 url = "git://git.sv.gnu.org/nano.git"
+mirror = "https://github.com/madnight/nano"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "GPL-3.0-only"
@@ -1600,30 +1567,12 @@ sparse = ["po/*.po"]
 licence = "GPL-2.0-only"
 
 [[block]]
-name = "linguas-phosh"
-disabled = "duplicates Damned Lies module phosh"
-title = "phosh"
-url = "https://gitlab.gnome.org/World/Phosh/phosh"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
 name = "linguas-photos"
 title = "photos"
 url = "https://github.com/elementary/photos"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "LGPL-2.1-only"
-
-[[block]]
-name = "linguas-pika-backup"
-disabled = "duplicates Damned Lies module pika-backup"
-title = "pika-backup"
-url = "https://gitlab.gnome.org/World/pika-backup"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
 
 [[block]]
 name = "linguas-piper"
@@ -1957,14 +1906,6 @@ sparse = ["po/*.po"]
 licence = "GPL-2.0-only"
 
 [[block]]
-name = "linguas-vlc"
-title = "vlc"
-url = "https://code.videolan.org/videolan/vlc"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
-
-[[block]]
 name = "linguas-vte"
 disabled = "duplicates Damned Lies module vte"
 title = "vte"
@@ -2037,15 +1978,6 @@ url = "https://github.com/sdv43/whaler"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-wireplumber"
-disabled = "duplicates Damned Lies module WirePlumber"
-title = "wireplumber"
-url = "https://gitlab.freedesktop.org/pipewire/wireplumber"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "MIT"
 
 [[block]]
 name = "linguas-workrave"
@@ -2187,3 +2119,57 @@ mirror = "https://github.com/GNOME/zenity"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "LGPL-2.1-only"
+
+[[block]]
+name = "linguas-Constrict"
+disabled = "duplicates Damned Lies module Constrict"
+title = "Constrict"
+url = "https://gitlab.gnome.org/World/Constrict"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-ModemManager"
+disabled = "duplicates Damned Lies module ModemManager"
+title = "ModemManager"
+url = "https://gitlab.freedesktop.org/mobile-broadband/ModemManager"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-cryptsetup"
+disabled = "duplicates Translation Project domain cryptsetup"
+title = "cryptsetup"
+url = "https://gitlab.com/cryptsetup/cryptsetup"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-phosh"
+disabled = "duplicates Damned Lies module phosh"
+title = "phosh"
+url = "https://gitlab.gnome.org/World/Phosh/phosh"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-pika-backup"
+disabled = "duplicates Damned Lies module pika-backup"
+title = "pika-backup"
+url = "https://gitlab.gnome.org/World/pika-backup"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "linguas-wireplumber"
+disabled = "duplicates Damned Lies module WirePlumber"
+title = "wireplumber"
+url = "https://gitlab.freedesktop.org/pipewire/wireplumber"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "MIT"
