@@ -415,6 +415,8 @@ def test_command_keeps_disabled(amagama_config, repository, tmp_path, monkeypatc
     assert 'name = "linguas-mine"\ndisabled = "duplicates tool"\n' in text
     assert ('name = "linguas-gone"\ndisabled = "duplicates other"\ntitle = "gone"\n'
             'url = "https://git.example/o/gone"\n') in text
+    # In name order, as the found blocks are.
+    assert text.index('name = "linguas-gone"') < text.index('name = "linguas-mine"')
     assert load_sources(str(sources)) == []
 
 
