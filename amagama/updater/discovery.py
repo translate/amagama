@@ -36,6 +36,9 @@ CAP = 1000
 PAGE = 100
 # Code search indexes files under 384 KB.
 MAX_SIZE = 384 * 1024
+# Where code search's size parts start: configuration files are small, and
+# halving 384 KB down to them costs a request each time.
+SIZES = (0, 64, 128, 256, 512, 1024, 2048)
 # The longest wait for a rate limit to reset.
 MAX_WAIT = 900
 
@@ -132,11 +135,16 @@ def _search(url, token, parts, text, split, pause, get):
 
 def search(query, token, pause=6, get=github):
     """(sorted "owner/name" of the repositories with a file query matches,
-    whether any part gave only some of its results)."""
+    whether any part gave only some of its results). Largest files first:
+    the projects with the most languages."""
     def split(part):
         low, high = part
-        return [(low, (low + high) // 2), ((low + high) // 2 + 1, high)] if high > low else None
-    items, incomplete = _search(SEARCH, token, [(0, MAX_SIZE)],
+        if high <= low:
+            return None
+        middle = (low + high) // 2
+        return [(middle + 1, high), (low, middle)]
+    parts = list(zip(SIZES, [size - 1 for size in SIZES[1:]] + [MAX_SIZE]))[::-1]
+    items, incomplete = _search(SEARCH, token, parts,
                                 lambda part: "%s size:%d..%d" % ((query,) + part), split, pause, get)
     return sorted({item["repository"]["full_name"] for item in items}), incomplete
 

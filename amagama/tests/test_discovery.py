@@ -48,19 +48,20 @@ def searcher(counts, pages=None):
 def test_search_splits_by_size(monkeypatch):
     slept = []
     monkeypatch.setattr(discovery, "time", types.SimpleNamespace(sleep=slept.append))
-    half = discovery.MAX_SIZE // 2
-    get, asked = searcher({"0..%d" % discovery.MAX_SIZE: 1500, "0..%d" % half: 150,
-                           "%d..%d" % (half + 1, discovery.MAX_SIZE): 3})
+    get, asked = searcher({"0..63": 1500, "0..31": 150, "32..63": 3, "64..127": 1})
     names, incomplete = discovery.search("filename:LINGUAS", "t", pause=6, get=get)
-    assert asked == [("0..%d" % discovery.MAX_SIZE, 1), ("0..%d" % half, 1), ("0..%d" % half, 2),
-                     ("%d..%d" % (half + 1, discovery.MAX_SIZE), 1)]
-    assert len(names) == 153 and names == sorted(names)
+    # Largest files first, from where configuration files' sizes are.
+    assert asked == [("2048..%d" % discovery.MAX_SIZE, 1), ("1024..2047", 1), ("512..1023", 1),
+                     ("256..511", 1), ("128..255", 1), ("64..127", 1), ("0..63", 1),
+                     ("32..63", 1), ("0..31", 1), ("0..31", 2)]
+    assert len(names) == 154 and names == sorted(names)
     assert not incomplete
-    assert slept == [6, 6, 6]
+    assert slept == [6] * 9
 
 
 def test_search_incomplete(monkeypatch):
     monkeypatch.setattr(discovery, "time", types.SimpleNamespace(sleep=lambda s: None))
+    monkeypatch.setattr(discovery, "SIZES", (0,))
     monkeypatch.setattr(discovery, "MAX_SIZE", 0)
     # One size with more than the cap can't be split: its first 1,000.
     get, asked = searcher({"0..0": 1200})
