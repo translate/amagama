@@ -921,6 +921,7 @@ def discover_sources(signal, min_stars, pushed_since, min_units, search_pause, s
             ", and %d more from the blocks being regenerated" % len(previous) if previous else ""),
             err=True)
         names = sorted(names | previous)
+        read = set(names)
         kept, skipped = discovery.select(discovery.stats(names, token), min_stars, pushed_since)
     except FetchError as e:
         raise click.ClickException(str(e))
@@ -942,6 +943,17 @@ def discover_sources(signal, min_stars, pushed_since, min_units, search_pause, s
         min_units=min_units, mirrors=mirrors)
     found = generate.add_mirrors(found)
     skipped.update(resolved)
+    # A block whose repository wasn't read (code search missed it, and it has
+    # no GitHub repository to read again) is kept as it was.
+    names_found = {block["name"] for block in found}
+    unread = [settings for name, settings in sorted(generated_written(prefix).items())
+              if name not in names_found and not {
+                  discovery.github_name(settings.get("url")),
+                  discovery.github_name(settings.get("mirror"))} & read]
+    if unread:
+        click.echo("Kept %d blocks whose repositories weren't read: %s." % (
+            len(unread), ", ".join(block["name"] for block in unread)), err=True)
+    found += unread
     # Read most stars first, but written by name: stars change every run.
     found.sort(key=lambda block: block["name"])
     command = "discover_sources %s --prefix %s --min-stars %d --pushed-since %s --min-units %d%s" % (

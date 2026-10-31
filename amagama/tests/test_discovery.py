@@ -459,6 +459,28 @@ def test_command_mirrors_first(amagama_config, tmp_path, monkeypatch):
                       {"https://git.example/o/b": "https://github.com/o/b"})]
 
 
+def test_command_keeps_unread(amagama_config, tmp_path, monkeypatch):
+    sources = tmp_path / "sources.toml"
+    sources.write_text('include = ["linguas.toml"]\n')
+    output = tmp_path / "linguas.toml"
+    output.write_text('[[block]]\nname = "linguas-collision"\ntitle = "Collision"\nsource = "git"\n'
+                      'url = "https://codeberg.org/o/collision"\nfiles = ["po/{lang}.po"]\n\n'
+                      '[[block]]\nname = "linguas-gone"\ntitle = "gone"\nsource = "git"\n'
+                      'url = "https://github.com/o/gone"\nfiles = ["po/{lang}.po"]\n')
+    amagama_config(UPDATER_SOURCES=str(sources))
+    monkeypatch.setenv("GITHUB_TOKEN", "t")
+    monkeypatch.setattr(discovery, "search", lambda query, token, pause=6, **kwargs: ([], True))
+    monkeypatch.setattr(discovery, "stats", lambda names, token: {})
+    result = CliRunner().invoke(manage, ("discover_sources", "linguas", "--prefix", "linguas",
+                                         "--output", str(output)))
+    assert result.exit_code == 0, result.output
+    # Code search missed Collision, which has no GitHub repository to read
+    # again: it stays. o/gone was read, and is gone.
+    assert "Kept 1 blocks whose repositories weren't read: linguas-collision." in result.output
+    assert "0 new and 1 gone since the last run." in result.output
+    assert [b.name for b in load_sources(str(sources))] == ["linguas-collision"]
+
+
 def test_command_rereads_regenerated(amagama_config, tmp_path, monkeypatch):
     sources = tmp_path / "sources.toml"
     sources.write_text(
