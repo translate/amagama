@@ -1706,6 +1706,7 @@ licence = "GPL-3.0-or-later"
 
 [[block]]
 name = "hosted-cheatsheets"
+disabled = "only the English file is left upstream"
 title = "cheatsheets"
 url = "https://github.com/ivansaul/cheat-sheets.git"
 ref = "master"
@@ -14366,6 +14367,7 @@ licence = "Apache-2.0"
 
 [[block]]
 name = "hosted-terriajs-2"
+disabled = "only the English file is left upstream"
 title = "TerriaJS"
 url = "https://github.com/TerriaJS/terriajs.git"
 ref = "main"
