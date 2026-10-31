@@ -10,9 +10,10 @@
 configuration they commit, for review.
 
 GitHub's code search finds the configuration files. It needs a token, allows
-10 requests a minute and gives at most 1,000 results a query, so a query is
-split by file size until each part is under that. The repositories' stats
-then select which are kept, and a signal's resolver turns each into blocks.
+10 requests a minute (a workflow's token about one) and gives at most 1,000
+results a query, so a query is split by file size until each part is under
+that. The repositories' stats then select which are kept, and a signal's
+resolver turns each into blocks.
 """
 
 import datetime
@@ -99,10 +100,12 @@ def github(url, token, data=None, retries=6, wait=60):
             raise FetchError("%s: %s" % (url, e))
 
 
-def _search(url, token, parts, text, split, pause, get):
-    """(items, whether any part gave only some of its results) of a GitHub
-    search over parts: text(part) is a part's query, and split(part) its
-    halves when it has more than 1,000 results, or None if it can't split."""
+def _search(url, token, parts, text, split, pause, get, deadline=None, log=None):
+    """(items, whether any part gave only some of its results, or wasn't
+    searched) of a GitHub search over parts, in order: text(part) is a part's
+    query, and split(part) its halves when it has more than 1,000 results, or
+    None if it can't split. It stops before a request once deadline (a
+    time.monotonic()) has passed; log, if given, is told of each request."""
     items, incomplete, requests = [], False, 0
 
     def page(query, number):
@@ -110,11 +113,21 @@ def _search(url, token, parts, text, split, pause, get):
         if requests:
             time.sleep(pause)
         requests += 1
-        return get("%s?%s" % (url, urllib.parse.urlencode(
+        started = time.monotonic()
+        data = get("%s?%s" % (url, urllib.parse.urlencode(
             {"q": query, "per_page": PAGE, "page": number})), token)
+        if log:
+            log("%s, page %d: %d results (%.0f s)" % (
+                query, number, data.get("total_count", 0), time.monotonic() - started))
+        return data
+
+    def late():
+        return deadline is not None and time.monotonic() >= deadline
 
     parts = list(parts)
     while parts:
+        if late():
+            break
         part = parts.pop(0)
         query = text(part)
         data = page(query, 1)
@@ -126,17 +139,25 @@ def _search(url, token, parts, text, split, pause, get):
         incomplete = incomplete or bool(data.get("incomplete_results")) or total > CAP
         found, number = list(data.get("items", [])), 1
         while data.get("items") and number * PAGE < min(total, CAP):
+            if late():
+                parts.insert(0, part)
+                break
             number += 1
             data = page(query, number)
             found += data.get("items", [])
         items += found
+    if parts:
+        incomplete = True
+        if log:
+            log("Out of time: %d parts left, from %s." % (len(parts), text(parts[0])))
     return items, incomplete
 
 
-def search(query, token, pause=6, get=github):
+def search(query, token, pause=6, get=github, deadline=None, log=None):
     """(sorted "owner/name" of the repositories with a file query matches,
-    whether any part gave only some of its results). Largest files first:
-    the projects with the most languages."""
+    whether any part gave only some of its results, or wasn't searched).
+    Largest files first: the projects with the most languages, should the
+    search run out of time."""
     def split(part):
         low, high = part
         if high <= low:
@@ -145,15 +166,16 @@ def search(query, token, pause=6, get=github):
         return [(middle + 1, high), (low, middle)]
     parts = list(zip(SIZES, [size - 1 for size in SIZES[1:]] + [MAX_SIZE]))[::-1]
     items, incomplete = _search(SEARCH, token, parts,
-                                lambda part: "%s size:%d..%d" % ((query,) + part), split, pause, get)
+                                lambda part: "%s size:%d..%d" % ((query,) + part), split, pause, get,
+                                deadline, log)
     return sorted({item["repository"]["full_name"] for item in items}), incomplete
 
 
-def search_prs(query, token, since, until=None, pause=2, get=github):
+def search_prs(query, token, since, until=None, pause=2, get=github, deadline=None, log=None):
     """(sorted "owner/name" of the repositories with a pull request matching
     query merged from since to until (default today), whether any part gave
-    only some of its results). A merge pushes, so the stats' last push is at
-    least as recent as the merge."""
+    only some of its results, or wasn't searched). A merge pushes, so the
+    stats' last push is at least as recent as the merge."""
     def split(part):
         low, high = part
         if high <= low:
@@ -164,7 +186,7 @@ def search_prs(query, token, since, until=None, pause=2, get=github):
         ISSUES, token, [(since, until or datetime.date.today())],
         lambda part: "%s is:pr is:merged merged:%s..%s" % (query, part[0].isoformat(),
                                                          part[1].isoformat()),
-        split, pause, get)
+        split, pause, get, deadline, log)
     return sorted({item["repository_url"].split("/repos/", 1)[-1] for item in items}), incomplete
 
 

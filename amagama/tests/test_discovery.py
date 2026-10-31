@@ -10,6 +10,7 @@ import datetime
 import email.message
 import io
 import json
+import time
 import types
 import urllib.error
 import urllib.parse
@@ -45,9 +46,23 @@ def searcher(counts, pages=None):
     return get, asked
 
 
+class Clock(object):
+    """discovery's time: sleeping moves monotonic(), as does each request."""
+
+    def __init__(self, request=0):
+        self.now, self.request, self.slept = 0.0, request, []
+
+    def sleep(self, seconds):
+        self.slept.append(seconds)
+        self.now += seconds
+
+    def monotonic(self):
+        return self.now
+
+
 def test_search_splits_by_size(monkeypatch):
-    slept = []
-    monkeypatch.setattr(discovery, "time", types.SimpleNamespace(sleep=slept.append))
+    clock = Clock()
+    monkeypatch.setattr(discovery, "time", clock)
     get, asked = searcher({"0..63": 1500, "0..31": 150, "32..63": 3, "64..127": 1})
     names, incomplete = discovery.search("filename:LINGUAS", "t", pause=6, get=get)
     # Largest files first, from where configuration files' sizes are.
@@ -56,11 +71,11 @@ def test_search_splits_by_size(monkeypatch):
                      ("32..63", 1), ("0..31", 1), ("0..31", 2)]
     assert len(names) == 154 and names == sorted(names)
     assert not incomplete
-    assert slept == [6] * 9
+    assert clock.slept == [6] * 9
 
 
 def test_search_incomplete(monkeypatch):
-    monkeypatch.setattr(discovery, "time", types.SimpleNamespace(sleep=lambda s: None))
+    monkeypatch.setattr(discovery, "time", Clock())
     monkeypatch.setattr(discovery, "SIZES", (0,))
     monkeypatch.setattr(discovery, "MAX_SIZE", 0)
     # One size with more than the cap can't be split: its first 1,000.
@@ -70,9 +85,37 @@ def test_search_incomplete(monkeypatch):
     assert len(asked) == 10
 
 
+def test_search_deadline(monkeypatch):
+    # Each request takes 50 seconds, and each pause 10.
+    clock = Clock()
+
+    def get(url, token):
+        clock.now += 50
+        return inner(url, token)
+    inner, asked = searcher({"128..255": 250, "64..127": 5})
+    monkeypatch.setattr(discovery, "time", clock)
+    logged = []
+    names, incomplete = discovery.search("q", "t", pause=10, get=get, deadline=340,
+                                         log=logged.append)
+    # Past the deadline, 128..255's last page and the smaller parts wait.
+    assert asked == [("2048..%d" % discovery.MAX_SIZE, 1), ("1024..2047", 1), ("512..1023", 1),
+                     ("256..511", 1), ("128..255", 1), ("128..255", 2)]
+    assert len(names) == 200 and incomplete
+    assert logged[0] == "q size:2048..%d, page 1: 0 results (50 s)" % discovery.MAX_SIZE
+    assert logged[-1] == "Out of time: 3 parts left, from q size:128..255."
+
+
+def test_search_no_deadline(monkeypatch):
+    monkeypatch.setattr(discovery, "time", Clock())
+    get, asked = searcher({})
+    assert discovery.search("q", "t", get=get, deadline=None) == ([], False)
+    assert len(asked) == len(discovery.SIZES)
+
+
 def test_search_prs_splits_by_date(monkeypatch):
-    slept = []
-    monkeypatch.setattr(discovery, "time", types.SimpleNamespace(sleep=slept.append))
+    clock = Clock()
+    slept = clock.slept
+    monkeypatch.setattr(discovery, "time", clock)
     asked = []
 
     def get(url, token):
@@ -93,7 +136,7 @@ def test_search_prs_splits_by_date(monkeypatch):
 
 
 def test_search_prs_one_day_over_the_cap(monkeypatch):
-    monkeypatch.setattr(discovery, "time", types.SimpleNamespace(sleep=lambda seconds: None))
+    monkeypatch.setattr(discovery, "time", Clock())
     day = datetime.date(2026, 10, 1)
     names, incomplete = discovery.search_prs("q", "t", day, day, get=lambda url, token: {
         "total_count": 1500, "items": []})
@@ -276,7 +319,8 @@ def test_command(amagama_config, repository, tmp_path, monkeypatch):  # noqa: F8
     sources.write_text(block("tool", "git", url="https://github.com/org/tool", files=["po/{lang}.po"]))
     amagama_config(UPDATER_SOURCES=str(sources))
     monkeypatch.setenv("GITHUB_TOKEN", "t")
-    monkeypatch.setattr(discovery, "search", lambda query, token, pause=6: (["org/repo", "org/tool"], False))
+    monkeypatch.setattr(discovery, "search",
+                        lambda query, token, pause=6, **kwargs: (["org/repo", "org/tool"], False))
     monkeypatch.setattr(discovery, "stats", lambda names, token: {
         "org/repo": dict(repo("org/repo", spdx="GPL-2.0"), url=repository.as_uri()),
         "org/tool": repo("org/tool"), "org/old": repo("org/old", archived=True)})
@@ -309,7 +353,7 @@ def test_command_keeps_disabled(amagama_config, repository, tmp_path, monkeypatc
                       'files = ["po/{lang}.po"]\n' % repository.as_uri())
     amagama_config(UPDATER_SOURCES=str(sources))
     monkeypatch.setenv("GITHUB_TOKEN", "t")
-    monkeypatch.setattr(discovery, "search", lambda query, token, pause=6: (["org/repo"], False))
+    monkeypatch.setattr(discovery, "search", lambda query, token, pause=6, **kwargs: (["org/repo"], False))
     monkeypatch.setattr(discovery, "stats", lambda names, token: {
         "org/repo": dict(repo("org/repo"), url=repository.as_uri())})
     result = CliRunner().invoke(manage, ("discover_sources", "linguas", "--prefix", "linguas",
@@ -328,7 +372,7 @@ def test_command_keeps_disabled(amagama_config, repository, tmp_path, monkeypatc
 def test_command_mirror(amagama_config, repository, tmp_path, monkeypatch):  # noqa: F811
     amagama_config(UPDATER_SOURCES=str(tmp_path / "missing.toml"))
     monkeypatch.setenv("GITHUB_TOKEN", "t")
-    monkeypatch.setattr(discovery, "search", lambda query, token, pause=6: (["org/repo"], False))
+    monkeypatch.setattr(discovery, "search", lambda query, token, pause=6, **kwargs: (["org/repo"], False))
     monkeypatch.setattr(discovery, "stats", lambda names, token: {"org/repo": dict(
         repo("org/repo"), url=repository.as_uri(), description="Read-only mirror",
         homepageUrl="https://gitlab.example/org/repo", hasIssuesEnabled=False)})
@@ -347,7 +391,7 @@ def test_command_mirror(amagama_config, repository, tmp_path, monkeypatch):  # n
 def test_command_mirrors_first(amagama_config, tmp_path, monkeypatch):
     amagama_config(UPDATER_SOURCES=str(tmp_path / "missing.toml"))
     monkeypatch.setenv("GITHUB_TOKEN", "t")
-    monkeypatch.setattr(discovery, "search", lambda query, token, pause=6: (["o/a", "o/b"], False))
+    monkeypatch.setattr(discovery, "search", lambda query, token, pause=6, **kwargs: (["o/a", "o/b"], False))
     monkeypatch.setattr(discovery, "stats", lambda names, token: {
         "o/a": repo("o/a", stars=900),
         "o/b": dict(repo("o/b"), description="Mirror of https://git.example/o/b")})
@@ -375,7 +419,7 @@ def test_command_rereads_regenerated(amagama_config, tmp_path, monkeypatch):
         + block("other-tool", "git", url="https://github.com/org/tool", files=["po/{lang}.po"]))
     amagama_config(UPDATER_SOURCES=str(sources))
     monkeypatch.setenv("GITHUB_TOKEN", "t")
-    monkeypatch.setattr(discovery, "search", lambda query, token, pause=6: (["org/repo"], False))
+    monkeypatch.setattr(discovery, "search", lambda query, token, pause=6, **kwargs: (["org/repo"], False))
     asked = []
 
     def stats(names, token):
@@ -393,10 +437,10 @@ def test_command_rereads_regenerated(amagama_config, tmp_path, monkeypatch):
 def test_command_bot_prs(amagama_config, tmp_path, monkeypatch):
     amagama_config(UPDATER_SOURCES=str(tmp_path / "missing.toml"))
     monkeypatch.setenv("GITHUB_TOKEN", "t")
-    monkeypatch.setattr(discovery, "search", lambda query, token, pause=6: (["org/a"], False))
+    monkeypatch.setattr(discovery, "search", lambda query, token, pause=6, **kwargs: (["org/a"], False))
     since = []
 
-    def search_prs(query, token, start):
+    def search_prs(query, token, start, **kwargs):
         since.append((query, start))
         return ["org/a", "org/b"], False
 
@@ -429,17 +473,58 @@ def test_command_search_pause(amagama_config, tmp_path, monkeypatch):
     monkeypatch.setenv("AMAGAMA_SEARCH_PAUSE", "61")
     pauses = []
     monkeypatch.setattr(discovery, "search",
-                        lambda query, token, pause=6: pauses.append(pause) or ([], False))
+                        lambda query, token, pause=6, **kwargs: pauses.append(pause) or ([], False))
     monkeypatch.setattr(discovery, "stats", lambda names, token: {})
     result = CliRunner().invoke(manage, ("discover_sources", "linguas", "--prefix", "linguas"))
     assert result.exit_code == 0, result.output
     assert pauses == [61]
 
 
+def test_command_search_minutes(amagama_config, tmp_path, monkeypatch):
+    amagama_config(UPDATER_SOURCES=str(tmp_path / "missing.toml"))
+    monkeypatch.setenv("GITHUB_TOKEN", "t")
+    monkeypatch.setenv("AMAGAMA_SEARCH_MINUTES", "180")
+    deadlines = []
+
+    def search(query, token, pause=6, deadline=None, log=None):
+        deadlines.append(deadline)
+        log("searched")
+        return [], True
+    monkeypatch.setattr(discovery, "search", search)
+    monkeypatch.setattr(discovery, "stats", lambda names, token: {})
+    report = tmp_path / "report.md"
+    started = time.monotonic()
+    result = CliRunner().invoke(manage, ("discover_sources", "linguas", "--prefix", "linguas",
+                                         "--output", str(tmp_path / "linguas.toml"),
+                                         "--report", str(report)))
+    assert result.exit_code == 0, result.output
+    [deadline] = deadlines
+    assert started + 180 * 60 <= deadline <= time.monotonic() + 180 * 60
+    assert "searched\n" in result.output
+    assert report.read_text().splitlines()[2] == (
+        "Code search didn't give all its results this run: new candidates may be missing.")
+
+
+def test_command_no_search_minutes(amagama_config, tmp_path, monkeypatch):
+    amagama_config(UPDATER_SOURCES=str(tmp_path / "missing.toml"))
+    monkeypatch.setenv("GITHUB_TOKEN", "t")
+    deadlines = []
+    monkeypatch.setattr(discovery, "search", lambda query, token, pause=6, deadline=None, log=None:
+                        deadlines.append(deadline) or ([], False))
+    monkeypatch.setattr(discovery, "stats", lambda names, token: {})
+    report = tmp_path / "report.md"
+    result = CliRunner().invoke(manage, ("discover_sources", "linguas", "--prefix", "linguas",
+                                         "--output", str(tmp_path / "linguas.toml"),
+                                         "--report", str(report)))
+    assert result.exit_code == 0, result.output
+    assert deadlines == [None]
+    assert "Code search" not in report.read_text()
+
+
 def test_command_writes_by_name(amagama_config, tmp_path, monkeypatch):
     amagama_config(UPDATER_SOURCES=str(tmp_path / "missing.toml"))
     monkeypatch.setenv("GITHUB_TOKEN", "t")
-    monkeypatch.setattr(discovery, "search", lambda query, token, pause=6: ([], False))
+    monkeypatch.setattr(discovery, "search", lambda query, token, pause=6, **kwargs: ([], False))
     monkeypatch.setattr(discovery, "stats", lambda names, token: {})
 
     def blocks(urls, *args, **kwargs):
@@ -468,7 +553,7 @@ def test_command_fetch_error(amagama_config, tmp_path, monkeypatch):
     amagama_config(UPDATER_SOURCES=str(tmp_path / "missing.toml"))
     monkeypatch.setenv("GITHUB_TOKEN", "t")
 
-    def search(query, token, pause=6):
+    def search(query, token, pause=6, **kwargs):
         raise FetchError("https://api.github.com/search/code: HTTP Error 401")
 
     monkeypatch.setattr(discovery, "search", search)
@@ -482,7 +567,7 @@ def test_command_crowdin(amagama_config, crowdin_repository, tmp_path, monkeypat
     monkeypatch.setenv("GITHUB_TOKEN", "t")
     queries = []
 
-    def search(query, token, pause=6):
+    def search(query, token, pause=6, **kwargs):
         queries.append(query)
         return ["org/repo"], False
 

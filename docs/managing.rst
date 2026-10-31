@@ -559,7 +559,11 @@ Code search allows a token 10 requests a minute (``--search-pause``, default
 :file:`.github/workflows/discover.yml` sets ``AMAGAMA_SEARCH_PAUSE`` to 61)
 and gives at most 1,000 results a query, so the query is split by file size
 until each part is under that; a part that can't be split further is reported
-as incomplete. Code search
+as incomplete. Each request is logged with how long it took, waits for the
+rate limit included. ``--search-minutes`` stops the search after that long and
+reads what it found, the largest files (the most languages) first; the
+workflow stops at 180 minutes, so the run ends within the job's time limit.
+Either way, the report says new candidates may be missing. Code search
 gives a different set of results each run, so the repositories of the blocks
 being regenerated (a block's own GitHub repository, or its mirror) are read
 as well. ``--bot-prs-days`` adds the repositories where a translation bot's pull

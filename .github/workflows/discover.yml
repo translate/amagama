@@ -54,6 +54,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Its code search allows about one request a minute.
           AMAGAMA_SEARCH_PAUSE: "61"
+          # Each request takes 2 minutes or more with the rate limit's waits:
+          # stop searching in time to read what was found within the job's 300.
+          AMAGAMA_SEARCH_MINUTES: "180"
         run: >-
           devsupport/regenerate-sources.sh "$RUNNER_TEMP/reports"
           amagama/updater/weblate-fedora.toml
