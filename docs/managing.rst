@@ -556,7 +556,9 @@ finds the files; it needs a token, in ``GITHUB_TOKEN``:
 
 Code search allows a token 10 requests a minute (``--search-pause``, default
 6 seconds; a GitHub Actions workflow's token gets about one a minute, so
-:file:`.github/workflows/discover.yml` sets ``AMAGAMA_SEARCH_PAUSE`` to 61)
+:file:`.github/workflows/discover.yml` searches with a token from the
+``DISCOVER_TOKEN`` secret when it's set, and otherwise with its own token and
+``AMAGAMA_SEARCH_PAUSE`` set to 61)
 and gives at most 1,000 results a query, so the query is split by file size
 until each part is under that; a part that can't be split further is reported
 as incomplete. Each request is logged with how long it took, waits for the

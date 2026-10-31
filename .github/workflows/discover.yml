@@ -50,11 +50,12 @@ jobs:
         continue-on-error: true
         env:
           AMAGAMA_CONFIG: ${{ runner.temp }}/settings.py
-          # Code search, issue search and GraphQL work with the workflow's token.
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Its code search allows about one request a minute.
-          AMAGAMA_SEARCH_PAUSE: "61"
-          # Each request takes 2 minutes or more with the rate limit's waits:
+          # Code search, issue search and GraphQL work with the workflow's token,
+          # but its code search allows about one request a minute; a token in
+          # DISCOVER_TOKEN (public read access is enough) allows 10.
+          GITHUB_TOKEN: ${{ secrets.DISCOVER_TOKEN || secrets.GITHUB_TOKEN }}
+          AMAGAMA_SEARCH_PAUSE: ${{ secrets.DISCOVER_TOKEN && '6' || '61' }}
+          # The workflow's token waits minutes at a time for the rate limit:
           # stop searching in time to read what was found within the job's 300.
           AMAGAMA_SEARCH_MINUTES: "180"
         run: >-
