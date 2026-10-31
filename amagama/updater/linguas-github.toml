@@ -862,6 +862,7 @@ licence = "MIT"
 
 [[block]]
 name = "linguas-field-monitor"
+disabled = "duplicates Damned Lies module FieldMonitor"
 title = "field-monitor"
 url = "https://github.com/theCapypara/field-monitor"
 files = ["po/{lang}.po"]
@@ -1080,6 +1081,7 @@ licence = "GPL-3.0-only"
 
 [[block]]
 name = "linguas-gnutls"
+disabled = "duplicates Translation Project domain gnutls"
 title = "gnutls"
 url = "https://gitlab.com/gnutls/gnutls"
 files = ["po/{lang}.po"]
