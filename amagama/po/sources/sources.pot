@@ -1216,10 +1216,6 @@ msgid "Celluloid"
 msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "cheatsheets"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
 msgid "sosauce apps"
 msgstr ""
 
