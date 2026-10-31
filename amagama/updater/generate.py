@@ -151,12 +151,14 @@ class Names(object):
 
     taken are other blocks' names; previous maps the identity() of blocks
     generated before to their names, which are kept: a block's name keys its
-    imports.
+    imports. before are all those blocks' names (default previous's): blocks
+    reading the same can share an identity.
     """
 
-    def __init__(self, taken=(), previous=None):
+    def __init__(self, taken=(), previous=None, before=None):
         self.taken = set(taken)
         self.previous = previous or {}
+        self.before = set(self.previous.values()) if before is None else set(before)
 
     def __contains__(self, name):
         return name in self.taken
@@ -198,7 +200,8 @@ def context(blocks, prefix):
                         for block in own if not block.enabled and block.path == path)
     covered = [block.fetcher.settings["url"] for block in others
                if block.enabled and block.source in ("git", "svn")]
-    return Names({block.name for block in others}, previous_names(own)), covered, disabled
+    return (Names({block.name for block in others}, previous_names(own),
+                  {block.name for block in own}), covered, disabled)
 
 
 # What a block reads, from its sources-file settings: unchanged, a block

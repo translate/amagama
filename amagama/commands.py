@@ -771,7 +771,7 @@ def write_generated(found, skipped, command, min_age_days, weight, tags, output,
     click.echo("%d blocks%s%s." % (
         len(found), ", %d disabled" % len(disabled) if disabled else "",
         " (%d not found again)" % missing if missing else ""), err=True)
-    previous = set(names.previous.values()) if names else set()
+    previous = names.before if names else set()
     new, gone = generate.changes(found, previous, disabled)
     click.echo("%d new and %d gone since the last run." % (len(new), len(gone)), err=True)
     if report:

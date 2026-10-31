@@ -58,6 +58,19 @@ def test_context(tmp_path):
     assert disabled["t-off"]["disabled"] == "duplicates other"
 
 
+def test_context_same_identity(tmp_path):
+    path = tmp_path / "sources.toml"
+    # Two blocks reading the same repository, with no template, share an
+    # identity: both were there before all the same.
+    path.write_text(
+        block("t-app", "git", url="https://git.example/app", files=["po/{lang}.po"])
+        + block("t-app-man", "git", url="https://git.example/app", files=["man/po/{lang}.po"]),
+        encoding="utf-8")
+    names, _, _ = generate.context(load_sources(str(path), disabled=True), "t")
+    assert len(names.previous) == 1
+    assert names.before == {"t-app", "t-app-man"}
+
+
 def test_with_disabled():
     found = [{"name": "a", "title": "A"}, {"name": "b", "title": "B"}]
     disabled = {"b": {"name": "b", "title": "B", "disabled": "why"},
