@@ -31,6 +31,13 @@ def test_names_kept_while_free():
     assert names.kept("x") is None
 
 
+def test_normal_url():
+    assert generate.normal_url("https://user@github.com/Org/App.git/") == "github.com/org/app"
+    assert generate.normal_url("https://gitlab.com/O/A") == generate.normal_url("https://gitlab.com/o/a")
+    # Elsewhere a path's case may matter.
+    assert generate.normal_url("https://git.example/Org/App") == "git.example/Org/App"
+
+
 def test_matching():
     paths = ["po/af.po", "po/de.po", "res/values/s.xml"]
     assert generate.matching(["po/{lang}.po", "gone/{lang}.po"], paths) == ["po/{lang}.po"]
