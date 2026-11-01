@@ -62,6 +62,7 @@ jobs:
           devsupport/regenerate-sources.sh "$RUNNER_TEMP/reports"
           amagama/updater/weblate-fedora.toml
           amagama/updater/linguas-github.toml
+          amagama/updater/transifex-github.toml
       - name: Open a pull request
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
