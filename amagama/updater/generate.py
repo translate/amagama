@@ -123,10 +123,18 @@ def add_mirrors(blocks, pause=None, exists=exists):
     return [with_mirror(block, exists=cached) for block in blocks]
 
 
+# Hosts whose repository paths ignore case.
+CASELESS_HOSTS = {"github.com", "gitlab.com", "codeberg.org"}
+
+
 def normal_url(repo):
-    """A repository URL without scheme, credentials, trailing .git or /."""
+    """A repository URL without scheme, credentials, trailing .git or /,
+    lowercased on hosts whose paths ignore case."""
     parts = urllib.parse.urlsplit(repo)
-    return (parts.hostname or "") + re.sub(r"(\.git)?/*$", "", parts.path)
+    path = re.sub(r"(\.git)?/*$", "", parts.path)
+    if parts.hostname in CASELESS_HOSTS:
+        path = path.lower()
+    return (parts.hostname or "") + path
 
 
 def identity(url, ref, template, segment, licence):
