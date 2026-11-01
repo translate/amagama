@@ -63,6 +63,7 @@ jobs:
           amagama/updater/weblate-fedora.toml
           amagama/updater/linguas-github.toml
           amagama/updater/transifex-github.toml
+          amagama/updater/crowdin-github.toml
       - name: Open a pull request
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
