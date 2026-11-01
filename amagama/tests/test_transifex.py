@@ -13,7 +13,7 @@ from click.testing import CliRunner
 
 from amagama.cli import manage
 from amagama.tests.test_updater import block
-from amagama.updater import generate, repositories, transifex
+from amagama.updater import discovery, generate, repositories, transifex
 from amagama.updater.fetchers import FetchError
 from amagama.updater.sources import load_sources
 
@@ -231,6 +231,29 @@ def test_command(amagama_config, repository, tmp_path):
                            "--from-file %s --min-age-days 60 --tag discovered\n" % (repository, listed))
     [found] = load_sources(str(output))
     assert (found.name, found.min_age_days) == ("tx-repo", 60)
+    assert found.selection.mask_texts == ["po/{lang}.po", "web/po/{lang}.po"]
+
+
+def test_discover_sources(amagama_config, repository, tmp_path, monkeypatch):
+    amagama_config(UPDATER_SOURCES=str(tmp_path / "missing.toml"))
+    monkeypatch.setenv("GITHUB_TOKEN", "t")
+    queries = []
+
+    def search(query, token, **kwargs):
+        queries.append(query)
+        return ["org/repo"], False
+
+    monkeypatch.setattr(discovery, "search", search)
+    monkeypatch.setattr(discovery, "stats", lambda names, token: {"org/repo": {
+        "url": repository, "stargazerCount": 500, "pushedAt": "2026-01-01T00:00:00Z",
+        "isArchived": False, "isFork": False, "licenseInfo": {"spdxId": "MIT"}}})
+    output = tmp_path / "transifex.toml"
+    result = CliRunner().invoke(manage, ("discover_sources", "transifex", "--prefix", "transifex",
+                                         "--output", str(output)))
+    assert result.exit_code == 0, result.output
+    assert queries == ["filename:config path:.tx"]
+    [found] = load_sources(str(output))
+    assert (found.name, found.licence) == ("transifex-repo", "MIT")
     assert found.selection.mask_texts == ["po/{lang}.po", "web/po/{lang}.po"]
 
 
