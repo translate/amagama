@@ -36,6 +36,13 @@ def test_matching():
     assert generate.matching(["po/{lang}.po", "gone/{lang}.po"], paths) == ["po/{lang}.po"]
     assert generate.matching(["po/{lang}.po"], paths, template="res/values/s.xml") == ["po/{lang}.po"]
     assert generate.matching(["po/{lang}.po"], paths, template="res/values/gone.xml") == []
+    # Only the file translated: no translation.
+    assert generate.matching(["po/{lang}.po"], ["po/en.po"], sources=["po/en.po"]) == []
+    assert generate.matching(["l/{lang}/s.json"], ["l/en/s.json"], template="l/en/s.json") == []
+    assert generate.matching(["l/{lang}/s.json"], ["l/en/s.json", "l/af/s.json"],
+                             template="l/en/s.json") == ["l/{lang}/s.json"]
+    # A template that isn't a valid mask matches nothing.
+    assert generate.matching(["po/{lang}.po"], paths, template="res/{lang}/s.xml") == []
     assert not generate.matches("po/{lang", "po/af.po")
 
 

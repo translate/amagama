@@ -191,7 +191,7 @@ def candidates(files, paths, what, nothing):
     for (file_format, template, languages), group in sorted(
             groups.items(), key=lambda item: (bool(item[0][1]), item[0])):
         template = template or None
-        found_masks = matching(group["masks"], paths, template)
+        found_masks = matching(group["masks"], paths, template, group["sources"])
         if not found_masks:
             skipped[what, nothing] += 1
             continue
