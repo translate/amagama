@@ -387,11 +387,21 @@ def has_template(template, paths):
     return any(mask.match(path) for path in paths)
 
 
-def matching(masks, paths, template=None):
-    """The masks matching any of paths; none if template isn't among them."""
-    if template and not has_template(template, paths):
-        return []
-    return sorted(mask for mask in masks if any(matches(mask, path) for path in paths))
+def matching(masks, paths, template=None, sources=()):
+    """The masks matching a translation among paths: not the template, nor
+    one of sources (bilingual source files); none if template isn't among
+    them."""
+    if template:
+        try:
+            template_mask = compile_mask(template, allow_lang=False)
+        except ValueError:
+            return []
+        if not any(template_mask.match(path) for path in paths):
+            return []
+        paths = [path for path in paths if not template_mask.match(path)]
+    sources = set(sources)
+    return sorted(mask for mask in masks
+                  if any(matches(mask, path) for path in paths if path not in sources))
 
 
 def _store(directory, path, format):
