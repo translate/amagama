@@ -135,13 +135,15 @@ def repository(url):
 
 
 def blocks(repositories, prefix, covered=(), names=None, pause=1, read=None, licences=None,
-           mirrors=None):
+           mirrors=None, min_units=None):
     """(blocks, skipped) for repositories' Transifex resources; see
     repositories.blocks() for the arguments and what skipped counts.
 
     A repository's resources of one format and language overrides share a
     block, but a monolingual resource has its own, for its template, named
     by its resource. Masks matching no file in the repository are dropped.
+    Translated units aren't counted (min_units): a monolingual resource needs
+    its template to count.
     """
     def resolve(url):
         read_back = (read or repository)(url)

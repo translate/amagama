@@ -545,8 +545,8 @@ localisation configuration they commit, and writes :ref:`sources file
 the signal: ``linguas`` is gettext's :file:`po/LINGUAS`, ``crowdin`` is
 Crowdin's :file:`crowdin.yml`, ``l10n-toml`` Mozilla's :file:`l10n.toml`,
 ``lingui`` Lingui's configuration, ``inlang`` inlang's
-:file:`project.inlang/settings.json` and ``weblate`` the wlc client's
-:file:`.weblate`. GitHub's code search
+:file:`project.inlang/settings.json`, ``transifex`` Transifex's
+:file:`.tx/config` and ``weblate`` the wlc client's :file:`.weblate`. GitHub's code search
 finds the files; it needs a token, in ``GITHUB_TOKEN``:
 
 .. code-block:: console
