@@ -40,7 +40,7 @@ repos:
       - id: codespell
         # Generated sources files, and the titles template from them: project
         # and file names, not prose.
-        exclude: ^amagama/(updater/(weblate|linguas)-.*\.toml|po/sources/sources\.pot)$
+        exclude: ^amagama/(updater/(weblate|linguas|transifex|crowdin)-.*\.toml|po/sources/sources\.pot)$
 
   - repo: https://github.com/jorisroovers/gitlint
     rev: v0.19.1
