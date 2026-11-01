@@ -66,6 +66,7 @@ jobs:
           amagama/updater/crowdin-github.toml
           amagama/updater/l10n-toml-github.toml
           amagama/updater/lingui-github.toml
+          amagama/updater/inlang-github.toml
       - name: Open a pull request
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
