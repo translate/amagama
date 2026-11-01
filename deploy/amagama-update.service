@@ -24,4 +24,5 @@ Nice=10
 IOSchedulingClass=idle
 # Reclaim its own page cache, then slow down, before squeezing the web app.
 MemoryHigh=1G
-TimeoutStartSec=24h
+# A rebuild of the full cache takes about a day (#3599 would shorten it).
+TimeoutStartSec=48h
