@@ -5,8 +5,8 @@
 # there's no use fetching a moving branch more often.
 
 # Blocks written by weblate_sources and discover_sources.
-include = ["weblate-fedora.toml", "weblate-hosted.toml", "linguas-github.toml", "transifex-github.toml",
-           "crowdin-github.toml"]
+include = ["weblate-fedora.toml", "weblate-hosted.toml", "linguas-github.toml",
+           "transifex-github.toml", "crowdin-github.toml", "l10n-toml-github.toml"]
 
 # The blocks here are chosen by hand.
 [defaults]

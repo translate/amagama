@@ -7146,3 +7146,19 @@ msgstr ""
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
 msgid "zotonic"
 msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "SlimeVR-Server"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "gateway"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "nesbox"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "sideraven"
+msgstr ""
