@@ -6,7 +6,8 @@
 
 # Blocks written by weblate_sources and discover_sources.
 include = ["weblate-fedora.toml", "weblate-hosted.toml", "linguas-github.toml",
-           "transifex-github.toml", "crowdin-github.toml", "l10n-toml-github.toml"]
+           "transifex-github.toml", "crowdin-github.toml", "l10n-toml-github.toml",
+           "lingui-github.toml"]
 
 # The blocks here are chosen by hand.
 [defaults]
