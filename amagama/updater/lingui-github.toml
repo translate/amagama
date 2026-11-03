@@ -349,6 +349,15 @@ sparse = ["apps/web/src/locales/*/messages.po"]
 licence = "AGPL-3.0-only"
 
 [[block]]
+name = "lingui-meru"
+title = "meru"
+url = "https://github.com/zoidsh/meru"
+files = ["packages/preload-gmail/locales/{lang}.po", "packages/shared/i18n/locales/{lang}.po"]
+exclude = ["packages/preload-gmail/locales/en.po", "packages/shared/i18n/locales/en.po"]
+sparse = ["packages/preload-gmail/locales/*.po", "packages/shared/i18n/locales/*.po"]
+licence = "AGPL-3.0-only"
+
+[[block]]
 name = "lingui-museeks"
 title = "museeks"
 url = "https://github.com/martpie/museeks"
@@ -436,7 +445,7 @@ url = "https://github.com/hua0512/rust-srec"
 files = ["rust-srec/frontend/src/locales/{lang}/messages.po"]
 exclude = ["rust-srec/frontend/src/locales/en/messages.po"]
 sparse = ["rust-srec/frontend/src/locales/*/messages.po"]
-licence = "MIT"
+licence = "Apache-2.0"
 
 [[block]]
 name = "lingui-subtitle-translator-electron"

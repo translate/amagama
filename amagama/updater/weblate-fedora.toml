@@ -352,8 +352,8 @@ name = "fedora-dnf5-2"
 title = "dnf5"
 url = "https://github.com/rpm-software-management/dnf5-l10n"
 ref = "main"
-files = ["dnf5-plugin-builddep/{lang}.po", "dnf5-plugin-changelog/{lang}.po", "dnf5-plugin-config-manager/{lang}.po", "dnf5-plugin-copr/{lang}.po", "dnf5-plugin-needs-restarting/{lang}.po", "dnf5-plugin-repoclosure/{lang}.po", "dnf5/{lang}.po", "dnf5daemon-client/{lang}.po", "dnf5daemon-server/{lang}.po", "libdnf5-cli/{lang}.po", "libdnf5-plugin-actions/{lang}.po", "libdnf5-plugin-rhsm/{lang}.po", "libdnf5/{lang}.po"]
-sparse = ["dnf5-plugin-builddep/*.po", "dnf5-plugin-changelog/*.po", "dnf5-plugin-config-manager/*.po", "dnf5-plugin-copr/*.po", "dnf5-plugin-needs-restarting/*.po", "dnf5-plugin-repoclosure/*.po", "dnf5/*.po", "dnf5daemon-client/*.po", "dnf5daemon-server/*.po", "libdnf5-cli/*.po", "libdnf5-plugin-actions/*.po", "libdnf5-plugin-rhsm/*.po", "libdnf5/*.po"]
+files = ["dnf5-plugin-automatic/{lang}.po", "dnf5-plugin-builddep/{lang}.po", "dnf5-plugin-changelog/{lang}.po", "dnf5-plugin-config-manager/{lang}.po", "dnf5-plugin-copr/{lang}.po", "dnf5-plugin-deptree/{lang}.po", "dnf5-plugin-needs-restarting/{lang}.po", "dnf5-plugin-repoclosure/{lang}.po", "dnf5-plugin-reposync/{lang}.po", "dnf5/{lang}.po", "dnf5daemon-client/{lang}.po", "dnf5daemon-server/{lang}.po", "libdnf5-cli/{lang}.po", "libdnf5-plugin-actions/{lang}.po", "libdnf5-plugin-expired-pgp-keys/{lang}.po", "libdnf5/{lang}.po"]
+sparse = ["dnf5-plugin-automatic/*.po", "dnf5-plugin-builddep/*.po", "dnf5-plugin-changelog/*.po", "dnf5-plugin-config-manager/*.po", "dnf5-plugin-copr/*.po", "dnf5-plugin-deptree/*.po", "dnf5-plugin-needs-restarting/*.po", "dnf5-plugin-repoclosure/*.po", "dnf5-plugin-reposync/*.po", "dnf5/*.po", "dnf5daemon-client/*.po", "dnf5daemon-server/*.po", "libdnf5-cli/*.po", "libdnf5-plugin-actions/*.po", "libdnf5-plugin-expired-pgp-keys/*.po", "libdnf5/*.po"]
 licence = "LGPL-2.1-or-later"
 
 [[block]]

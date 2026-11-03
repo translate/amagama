@@ -925,10 +925,11 @@ licence = "BSD-3-Clause"
 name = "crowdin-Butterfly-en"
 title = "Butterfly"
 url = "https://github.com/LinwoodDev/Butterfly"
-files = ["docs/src/translations/{lang}.json"]
-sparse = ["docs/src/translations/*.json", "docs/src/translations/en.json"]
+files = ["docs/src/content/i18n/{lang}.json"]
+sparse = ["docs/src/content/i18n/*.json", "docs/src/content/i18n/en.json"]
 format = "json"
-template = "docs/src/translations/en.json"
+template = "docs/src/content/i18n/en.json"
+languages = {"zh" = "zh_CN"}
 licence = "AGPL-3.0-only"
 
 [[block]]
@@ -2980,6 +2981,7 @@ files = ["manager/src/main/res/values-{lang}/strings.xml"]
 sparse = ["manager/src/main/res/values-*/strings.xml", "manager/src/main/res/values/strings.xml"]
 format = "android"
 template = "manager/src/main/res/values/strings.xml"
+languages = {"es" = "es_ES", "hy" = "hy_AM", "pa" = "pa_IN", "pt" = "pt_PT", "sv" = "sv_SE", "ur" = "ur_PK"}
 licence = "Apache-2.0"
 
 [[block]]
@@ -2990,6 +2992,7 @@ files = ["manager/src/main/res/values-{lang}/strings_companion.xml"]
 sparse = ["manager/src/main/res/values-*/strings_companion.xml", "manager/src/main/res/values/strings_companion.xml"]
 format = "android"
 template = "manager/src/main/res/values/strings_companion.xml"
+languages = {"es" = "es_ES", "hy" = "hy_AM", "pa" = "pa_IN", "pt" = "pt_PT", "sv" = "sv_SE", "ur" = "ur_PK"}
 licence = "Apache-2.0"
 
 [[block]]
@@ -3301,6 +3304,16 @@ files = ["feature/settings/src/main/res/values-{lang}/strings.xml"]
 sparse = ["feature/settings/src/main/res/values-*/strings.xml", "feature/settings/src/main/res/values/strings.xml"]
 format = "android"
 template = "feature/settings/src/main/res/values/strings.xml"
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "crowdin-Stash-strings-6"
+title = "Stash"
+url = "https://github.com/rawnaldclark/Stash"
+files = ["feature/sync/src/main/res/values-{lang}/strings.xml"]
+sparse = ["feature/sync/src/main/res/values-*/strings.xml", "feature/sync/src/main/res/values/strings.xml"]
+format = "android"
+template = "feature/sync/src/main/res/values/strings.xml"
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -4991,6 +5004,17 @@ url = "https://github.com/frappe/drive"
 files = ["drive/locale/{lang}.po"]
 sparse = ["drive/locale/*.po"]
 licence = "AGPL-3.0-only"
+
+[[block]]
+name = "crowdin-drydock-locales"
+title = "drydock"
+url = "https://github.com/CodesWhat/drydock"
+files = ["ui/src/locales/{lang}/**/*.json"]
+sparse = ["ui/src/locales/*/**/*.json", "ui/src/locales/en/**/*.json"]
+format = "json"
+template = "ui/src/locales/en/**/*.json"
+languages = {"es" = "es_ES"}
+licence = "MIT"
 
 [[block]]
 name = "crowdin-dsi.cfw.guide-en_US"
@@ -7051,16 +7075,6 @@ sparse = ["modules/lti/src/i18n/lang-*.json", "modules/lti/src/i18n/lang-en_US.j
 format = "json"
 template = "modules/lti/src/i18n/lang-en_US.json"
 licence = "ECL-2.0"
-
-[[block]]
-name = "crowdin-opencollective-frontend-en"
-title = "opencollective-frontend"
-url = "https://github.com/opencollective/opencollective-frontend"
-files = ["lang/{lang}.json"]
-sparse = ["lang/*.json", "lang/en.json"]
-format = "json"
-template = "lang/en.json"
-licence = "MIT"
 
 [[block]]
 name = "crowdin-openfoodfacts-androidapp-changelog"
