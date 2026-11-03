@@ -72,14 +72,6 @@ sparse = ["po/*.po"]
 licence = "GPL-3.0-only"
 
 [[block]]
-name = "linguas-Bottles"
-title = "Bottles"
-url = "https://github.com/bottlesdevs/Bottles"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
 name = "linguas-CoBang"
 title = "CoBang"
 url = "https://github.com/hongquan/CoBang"
@@ -204,14 +196,6 @@ sparse = ["po/*.po"]
 licence = "GPL-3.0-only"
 
 [[block]]
-name = "linguas-Frog"
-title = "Frog"
-url = "https://github.com/TenderOwl/Frog"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "MIT"
-
-[[block]]
 name = "linguas-Gameeky"
 title = "Gameeky"
 url = "https://github.com/tchx84/Gameeky"
@@ -309,14 +293,6 @@ url = "https://github.com/Jeffser/Nocturne"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-Norka"
-title = "Norka"
-url = "https://github.com/TenderOwl/Norka"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "MIT"
 
 [[block]]
 name = "linguas-OpenXMB"
