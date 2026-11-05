@@ -93,14 +93,14 @@ class PostGres(object):
             if response.status_code < 400:
                 connection.commit()
             else:
-                connection.rollback()
+                self.rollback(connection)
             self.pool.putconn(connection)
         return response
 
     def bailout(self, app, exception):
         """Return connection to pool on request ended by unhandled exception."""
         if app.debug and getattr(g, 'transaction_dirty', False):
-            self.connection.rollback()
+            self.rollback(self.connection)
             self.pool.putconn()
 
     def init_app(self, app):
@@ -135,6 +135,11 @@ class PostGres(object):
             pass
 
         return self.pool.getconn()
+
+    def rollback(self, conn):
+        """Roll back conn's transaction, and with it any SET SCHEMA it ran."""
+        conn.rollback()
+        self._last_schema.pop(id(conn), None)
 
     def forget_connection(self, conn):
         """Drop what is remembered about a connection that is going away."""
