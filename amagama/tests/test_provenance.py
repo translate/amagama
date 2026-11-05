@@ -251,3 +251,17 @@ class TestRepairMojibake(object):
             ('Résumé', 'Opsomming', 'debian'),
             ('Résumé', 'Opsomming', 'gnome-51')]
         assert query(pg_connection, "SELECT COUNT(*) FROM en.target_imports") == [(2,)]
+
+
+def test_replies_have_their_own_headers(load):
+    """Concurrent replies sharing one Headers would send each other's
+    Content-Length."""
+    from amagama.views import api
+    run('initdb', '-s', 'en')
+    load('gnome-51', 'af', [('Open file', 'Maak lêer oop')])
+    with client() as c:
+        replies = [c.get('/api/v1/en/af/unit/Open file'), c.get('/api/v1/languages/')]
+    assert [r.headers['Content-Length'] for r in replies] == [
+        str(len(r.data)) for r in replies]
+    assert replies[0].headers is not replies[1].headers
+    assert list(api.cache_headers) == [('Cache-Control', 'max-age=3600, public')]
