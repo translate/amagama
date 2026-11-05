@@ -69,3 +69,16 @@ class TestClosedConnections(object):
         assert conn.closed
         assert id(conn) not in tmdb._prepared_statements
         assert id(conn) not in tmdb._last_schema
+
+
+def test_rollback_undoes_set_schema(app):
+    """A rollback undoes the SET SCHEMA in its transaction, so the next
+    cursor for that schema sets it again."""
+    with app.app_context():
+        cursor = app.tmdb.get_cursor('public')
+        cursor.connection.commit()
+        cursor = app.tmdb.get_cursor('en')
+        app.tmdb.rollback(cursor.connection)
+        cursor = app.tmdb.get_cursor('en')
+        cursor.execute("SELECT current_schema()")
+        assert cursor.fetchone()[0] == 'en'
