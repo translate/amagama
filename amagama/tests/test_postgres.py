@@ -82,3 +82,12 @@ def test_rollback_undoes_set_schema(app):
         cursor = app.tmdb.get_cursor('en')
         cursor.execute("SELECT current_schema()")
         assert cursor.fetchone()[0] == 'en'
+
+
+def test_a_debug_request_ended_by_an_exception_sets_the_schema_again(app):
+    app.debug = True
+    with app.test_request_context():
+        cursor = app.tmdb.get_cursor('en')
+        conn = cursor.connection
+        app.tmdb.bailout(app, RuntimeError())
+        assert id(conn) not in app.tmdb._last_schema
