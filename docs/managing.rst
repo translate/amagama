@@ -186,6 +186,28 @@ target language is recorded as an :ref:`import <importing#record>` under the
 given ``--block`` and optional ``--licence``.
 
 
+.. _managing#log-summary:
+
+log_summary
+-----------
+
+This subcommand counts the API requests in nginx access logs (rotated
+``.gz`` ones too) by kind: ordinary lookups, prefetches and bulk fetches, from
+the logged :ref:`Sec-Purpose <api#prefetch>` header, with how many of each got
+a 429:
+
+.. code-block:: bash
+
+    $ amagama-manage log_summary /srv/amagama/logs/live-nginx.access.log
+    kind	requests	limited (429)
+    ordinary	3907	0
+    prefetch	512	0
+    bulk	2210	14
+
+Lines without the header field, from before it was logged, count as ordinary.
+It prints only counts.
+
+
 .. _managing#migrate-db:
 
 migrate_db

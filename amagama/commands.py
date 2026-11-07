@@ -27,6 +27,7 @@ from translate.lang.data import langcode_ire
 from translate.lang.identify import LanguageIdentifier
 from translate.storage import factory
 
+from amagama import logsummary
 from amagama.licences import normalise_licence
 from amagama.source_options import MAX_WEIGHT
 from amagama.updater import discovery, generate, status, transifex, weblate
@@ -170,6 +171,17 @@ def tmdb_stats(build):
                 block or '-', files, langs, units, skipped, last.date()))
         logging.info("\nIndex sizes:")
         cursor.copy_expert(query, sys.stdout)
+
+
+@click.command('log_summary')
+@click.argument('logs', nargs=-1, required=True, type=click.Path(exists=True, dir_okay=False))
+def log_summary(logs):
+    """Count the API requests in nginx access logs by kind: ordinary
+    lookups, prefetches and bulk fetches (from Sec-Purpose)."""
+    counts = logsummary.summarise(logs)
+    print("kind\trequests\tlimited (429)")
+    for kind in logsummary.KINDS:
+        print("%s\t%d\t%d" % (kind, *counts[kind]))
 
 
 def spdx_expression(ctx, param, value):
@@ -1025,6 +1037,7 @@ cli_commands = (
     build_tmdb,
     snapshot_db,
     load_snapshot,
+    log_summary,
     fetch_sources,
     update,
     swap_db,
