@@ -161,8 +161,8 @@ Bulk requests
 
 Clients mark lookups made ahead of need with a ``Sec-Purpose`` header
 (``prefetch``, or ``prefetch;bulk`` for a whole-file fetch; see the API
-docs). nginx limits only bulk requests: 2 a second per client address with a
-queue of 10, and 5 a second from all clients with a queue of 20; one past the
+docs). nginx limits only bulk requests: 1 a second per client address with a
+queue of 5, and 2 a second from all clients with a queue of 10; one past the
 queue gets a 429 with ``Retry-After: 30``. Ordinary lookups and plain
 prefetches aren't limited. The access logs end with the header (``-`` when
 absent), and ``amagama-manage log_summary`` counts the three kinds::
