@@ -156,6 +156,20 @@ public.targets_en`` as the read-write user) and /var/www/sites/amagama_fw can
 go.
 
 
+Bulk requests
+-------------
+
+Clients mark lookups made ahead of need with a ``Sec-Purpose`` header
+(``prefetch``, or ``prefetch;bulk`` for a whole-file fetch; see the API
+docs). nginx limits only bulk requests: 2 a second per client address with a
+queue of 10, and 5 a second from all clients with a queue of 20; one past the
+queue gets a 429 with ``Retry-After: 30``. Ordinary lookups and plain
+prefetches aren't limited. The access logs end with the header (``-`` when
+absent).
+
+After changing the site, ``sudo nginx -t && sudo systemctl reload nginx``.
+
+
 Scheduled updates
 -----------------
 
