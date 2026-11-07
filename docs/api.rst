@@ -182,6 +182,20 @@ same (``en_US`` is the same as ``en``, ``en_GB`` isn't) or if a weight isn't
 max-age=3600, public``).
 
 
+.. _api#prefetch:
+
+Prefetch and bulk requests
+++++++++++++++++++++++++++
+
+A client asking ahead of need says so with a ``Sec-Purpose`` header: ``prefetch``
+for a lookup it expects to need soon (the next units), ``prefetch;bulk`` for one
+of many fetched together (a whole file, to work offline). Ordinary lookups send
+neither. Prefetches are answered like ordinary lookups. The public server
+limits bulk requests from each client, and in total, so they can't crowd out
+people translating now: one over the limit gets a 429 with ``Retry-After``,
+and the client should wait that many seconds before its next bulk request.
+
+
 .. _api#tm-suggestion-results:
 
 TM suggestion results
