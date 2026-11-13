@@ -12,6 +12,7 @@ import hashlib
 import itertools
 import json
 import logging
+import math
 import os
 import re
 import shutil
@@ -174,14 +175,42 @@ def tmdb_stats(build):
 
 
 @click.command('log_summary')
+@click.option('--rates', is_flag=True,
+              help="Also measure each client's lookup rate (ordinary and prefetch).")
+@click.option('--rate', type=click.FloatRange(min=0, min_open=True),
+              help='With --burst: count the lookups a limit_req of this rate a second would refuse.')
+@click.option('--burst', type=click.IntRange(min=0),
+              help="The limit_req burst for --rate.")
 @click.argument('logs', nargs=-1, required=True, type=click.Path(exists=True, dir_okay=False))
-def log_summary(logs):
+def log_summary(rates, rate, burst, logs):
     """Count the API requests in nginx access logs by kind: ordinary
     lookups, prefetches and bulk fetches (from Sec-Purpose)."""
+    if (rate is None) != (burst is None):
+        raise click.UsageError("--rate and --burst go together.")
+    if rate is not None and not math.isfinite(rate):
+        raise click.UsageError("--rate must be a number.")
     counts = logsummary.summarise(logs)
     print("kind\trequests\tlimited (429)")
     for kind in logsummary.KINDS:
         print("%s\t%d\t%d" % (kind, *counts[kind]))
+    if not rates and rate is None:
+        return
+    clients = logsummary.lookups_per_second(logs)
+    print()
+    print("clients\t%d" % len(clients))
+    if not clients:
+        return
+    per_second, per_minute = zip(*map(logsummary.peaks, clients))
+    per_second, per_minute = sorted(per_second), sorted(per_minute)
+    print("peak lookups\tper second\tper minute")
+    for share in (50, 90, 99, 100):
+        print("%s\t%d\t%d" % ("max" if share == 100 else "%d%%" % share,
+                              logsummary.percentile(per_second, share),
+                              logsummary.percentile(per_minute, share)))
+    if rate is not None:
+        refused = [logsummary.over_limit(c, rate, burst) for c in clients]
+        print("refused at %g a second, burst %d\t%d lookups\t%d clients" % (
+            rate, burst, sum(refused), sum(1 for n in refused if n)))
 
 
 def spdx_expression(ctx, param, value):

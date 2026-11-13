@@ -169,6 +169,10 @@ absent), and ``amagama-manage log_summary`` counts the three kinds::
 
     sudo /srv/amagama/venv/bin/amagama-manage log_summary /srv/amagama/logs/live-nginx.access.log
 
+Before changing a limit, ``log_summary --rate R --burst B``, over the
+rotated logs too, estimates the lookups it would have refused (the logs
+time requests to the second, so the count is close, not exact).
+
 After changing the site, ``sudo nginx -t && sudo systemctl reload nginx``.
 
 
