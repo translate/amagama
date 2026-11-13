@@ -194,6 +194,8 @@ neither. Prefetches are answered like ordinary lookups. The public server
 limits bulk requests from each client, and in total, so they can't crowd out
 people translating now: one over the limit gets a 429 with ``Retry-After``,
 and the client should wait that many seconds before its next bulk request.
+Other lookups have a separate, higher limit for each client, well above what
+someone translating sends; one over it gets a 429 with ``Retry-After`` too.
 
 
 .. _api#tm-suggestion-results:

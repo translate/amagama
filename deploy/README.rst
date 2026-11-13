@@ -156,15 +156,18 @@ public.targets_en`` as the read-write user) and /var/www/sites/amagama_fw can
 go.
 
 
-Bulk requests
--------------
+Request limits
+--------------
 
 Clients mark lookups made ahead of need with a ``Sec-Purpose`` header
 (``prefetch``, or ``prefetch;bulk`` for a whole-file fetch; see the API
-docs). nginx limits only bulk requests: 1 a second per client address with a
-queue of 5, and 2 a second from all clients with a queue of 10; one past the
-queue gets a 429 with ``Retry-After: 30``. Ordinary lookups and plain
-prefetches aren't limited. The access logs end with the header (``-`` when
+docs). nginx limits bulk requests to 1 a second per client address with a
+queue of 5, and 2 a second from all clients with a queue of 10. Other API
+lookups (ordinary ones and plain prefetches) have their own limit: 5 a second
+per client address, with a burst of 50 answered at once. One past a limit
+gets a 429 with ``Retry-After: 30``. The rates are in the ``limit_req_zone``
+lines, the bursts in the two ``limit_req`` copies (``location /tmserver`` and
+``location @amagama``). The access logs end with the header (``-`` when
 absent), and ``amagama-manage log_summary`` counts the three kinds::
 
     sudo /srv/amagama/venv/bin/amagama-manage log_summary /srv/amagama/logs/live-nginx.access.log
