@@ -6,10 +6,13 @@
 # the AUTHORS.md file for copyright and authorship information.
 
 
-"""Count the API requests in nginx access logs by their Sec-Purpose."""
+"""Count the API requests in nginx access logs by their Sec-Purpose, and
+measure each client's lookup rate."""
 
+import collections
 import gzip
 import re
+from datetime import datetime, timedelta, timezone
 
 ORDINARY = "ordinary"
 PREFETCH = "prefetch"
@@ -21,8 +24,15 @@ API_PREFIXES = ("/api/", "/tmserver/")
 # The combined format, optionally followed by the quoted Sec-Purpose header
 # (deploy/nginx-amagama.conf's "amagama" format). nginx escapes quotes in
 # variables as \x22, so a quoted field has none.
+# $time_local, parsed by hand: strptime's %b follows the locale.
+TIME = re.compile(
+    r"^(\d\d)/(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)/(\d{4}):"
+    r"(\d\d):(\d\d):(\d\d) ([+-])(\d\d)(\d\d)$")
+MONTHS = "Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split()
+
 LOG_LINE = re.compile(
-    r'^\S+ \S+ \S+ \[[^\]]*\] "(?P<request>[^"]*)" (?P<status>\d{3}) \S+ '
+    r'^(?P<client>\S+) \S+ \S+ \[(?P<time>[^\]]*)\] "(?P<request>[^"]*)" '
+    r'(?P<status>\d{3}) \S+ '
     r'"[^"]*" "[^"]*"(?: "(?P<purpose>[^"]*)")?')
 
 
@@ -69,9 +79,8 @@ def _open(path):
     return open(path, encoding="utf-8", errors="replace")
 
 
-def summarise(paths):
-    """Count API requests and 429s per kind: {kind: [requests, limited]}."""
-    counts = {kind: [0, 0] for kind in KINDS}
+def _requests(paths):
+    """Yield (match, kind) for each API request in the logs."""
     for path in paths:
         with _open(path) as log:
             for line in log:
@@ -82,8 +91,84 @@ def summarise(paths):
                 if len(request) < 2 or not request[1].startswith(API_PREFIXES):
                     continue
                 purpose = match.group("purpose")
-                count = counts[classify(None if purpose == "-" else purpose)]
-                count[0] += 1
-                if match.group("status") == "429":
-                    count[1] += 1
+                yield match, classify(None if purpose == "-" else purpose)
+
+
+def _seconds(time_local):
+    """Seconds since the epoch for a $time_local, or None."""
+    match = TIME.match(time_local)
+    if not match:
+        return None
+    day, month, year, hour, minute, second, sign, tzh, tzm = match.groups()
+    offset = timedelta(hours=int(tzh), minutes=int(tzm)) * (-1 if sign == "-" else 1)
+    try:
+        stamp = datetime(int(year), MONTHS.index(month) + 1, int(day), int(hour),
+                         int(minute), int(second), tzinfo=timezone(offset))
+    except ValueError:
+        return None
+    return int(stamp.timestamp())
+
+
+def summarise(paths):
+    """Count API requests and 429s per kind: {kind: [requests, limited]}."""
+    counts = {kind: [0, 0] for kind in KINDS}
+    for match, kind in _requests(paths):
+        count = counts[kind]
+        count[0] += 1
+        if match.group("status") == "429":
+            count[1] += 1
     return counts
+
+
+def lookups_per_second(paths):
+    """Count each client's lookups (ordinary and prefetch, what nginx's
+    lookup limit counts) per second: [{second: requests}], one per client,
+    in no order. Clients aren't named."""
+    clients = collections.defaultdict(collections.Counter)
+    last_time, second = None, None
+    for match, kind in _requests(paths):
+        if kind == BULK:
+            continue
+        time = match.group("time")
+        if time != last_time:
+            last_time, second = time, _seconds(time)
+        if second is not None:
+            clients[match.group("client")][second] += 1
+    return list(clients.values())
+
+
+def peaks(seconds):
+    """The most requests in one second, and in any 60 seconds."""
+    times = sorted(seconds)
+    per_minute, total, start = 0, 0, 0
+    for time in times:
+        total += seconds[time]
+        while times[start] <= time - 60:
+            total -= seconds[times[start]]
+            start += 1
+        per_minute = max(per_minute, total)
+    return max(seconds.values(), default=0), per_minute
+
+
+def over_limit(seconds, rate, burst):
+    """How many requests nginx's limit_req (rate a second, burst) would
+    refuse. The logs time requests to the second, so it's close, not
+    exact."""
+    # nginx's leaky bucket, in thousandths of a request.
+    excess, last, refused = 0, None, 0
+    for time in sorted(seconds):
+        for _n in range(seconds[time]):
+            if last is None:
+                new = 0
+            else:
+                new = max(excess - rate * (time - last) * 1000 + 1000, 0)
+            if new > burst * 1000:
+                refused += 1
+                continue
+            excess, last = new, time
+    return refused
+
+
+def percentile(values, share):
+    """The nearest-rank percentile of sorted values."""
+    return values[max(0, -(-len(values) * share // 100) - 1)]

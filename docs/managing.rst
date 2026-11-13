@@ -207,6 +207,18 @@ a 429:
 Lines without the header field, from before it was logged, count as ordinary.
 It prints only counts.
 
+``--rates`` also measures how fast each client looks things up (ordinary
+lookups and prefetches, which nginx limits together): the number of clients,
+then the median, 90th and 99th percentile and highest of their busiest second
+and busiest 60 seconds. ``--rate`` and ``--burst`` (which imply ``--rates``)
+count how many lookups, from how many clients, a ``limit_req`` with that rate
+a second and burst would have refused. The logs time lookups to the second,
+so the count is close, not exact. Clients aren't named.
+
+.. code-block:: bash
+
+    $ amagama-manage log_summary --rate 5 --burst 50 /srv/amagama/logs/live-nginx.access.log*
+
 
 .. _managing#migrate-db:
 
