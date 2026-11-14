@@ -437,6 +437,9 @@ This subcommand refreshes a source language from the :ref:`sources file
     Left out 10 targets that look broken.
       printf: 6 (0.07%)
     ...
+    Flagged 2000 targets.
+      tags: 10 (0.11%)
+    ...
     Swapped in 'en'; the replaced copy is _old_en.
 
 The build starts empty: snapshot blocks are loaded first, then every file of
@@ -444,7 +447,12 @@ every other block, :setting:`UPDATER_WORKERS` at a time, each with its known
 target language, block name and licence. Files that can't be read are listed
 and left out. Before the swap, targets failing the ``printf``, ``braces`` or
 ``script`` checks of :ref:`check_units <managing#check-units>` are left out,
-and listed by check, language and block. A database error stops it before the swap, leaving the live data
+and listed by check, language and block. The other checks, amaGama's and
+the translate-toolkit ones :setting:`UNIT_CHECKS_TTK` lists, flag the targets
+they keep: each target's failures are recorded as a bit mask (``targets.checks``,
+``NULL`` for none) whose bits ``check_names`` names. Targets added later through the write API have no flags
+until the next rebuild. The checks run in :setting:`UNIT_CHECKS_WORKERS`
+processes. A database error stops it before the swap, leaving the live data
 as it was. So does an import worker dying (killed for lack of memory, say):
 the error names the files being imported, and if the whole update is killed,
 the next one names them. The previous copy is kept as ``_old_<lang>`` until

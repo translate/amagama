@@ -97,6 +97,33 @@ def test_changed_content_rebuilds(update, site, pg_connection):
     assert old_copy(pg_connection)
 
 
+def test_changed_checker_rebuilds(update, tmp_path, site):
+    root, url = site
+    assert update(30).exit_code == 0
+    sources = tmp_path / "sources.toml"
+    sources.write_text(block("tp", "translationproject", base_url=url, max_age_days=30,
+                             checker="gnome"))
+
+    def run(*args):
+        result = CliRunner().invoke(manage, ("update", "-s", "en") + args)
+        assert result.exit_code == 0, result.output
+        return result.output
+    # Not fetched again, but rebuilt for the checker, then not again.
+    assert "Swapped in 'en'" in run()
+    assert run() == "Nothing changed.\n"
+    sources.write_text(block("tp", "translationproject", base_url=url, max_age_days=30))
+    assert "Swapped in 'en'" in run("--no-fetch")
+    assert run("--no-fetch") == "Nothing changed.\n"
+
+
+def test_changed_checks_rebuild(update, amagama_config):
+    assert update(30).exit_code == 0
+    amagama_config(UNIT_CHECKS_TTK=["endpunc"])
+    result = CliRunner().invoke(manage, ("update", "-s", "en"))
+    assert "Swapped in 'en'" in result.output
+    assert CliRunner().invoke(manage, ("update", "-s", "en")).output == "Nothing changed.\n"
+
+
 def test_force_rebuilds_same_content(update, pg_connection):
     assert update(0).exit_code == 0
     result = update(0, "--force")

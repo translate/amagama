@@ -18,6 +18,7 @@ import tempfile
 from flask import current_app
 from amagama.commands import file_checksum
 from amagama.tmdb import BUILD_PREFIX, OLD_PREFIX, lang_to_table
+from amagama import unit_checks
 from amagama.unit_checks import FILTER, reject
 from amagama.updater import chromium, compressed
 from amagama.updater.formats import CHROMIUM, open_pieces, open_store
@@ -195,10 +196,17 @@ def import_files(tasks, workers, progress=None):
     return in_workers(func, tasks, workers, _start_worker)
 
 
-def built_from(blocks, cache_dir):
-    """What a rebuild would read: {block name: its fetched content}."""
+# The key of built_from()'s checks; block names can't start with a dot.
+CHECKS = ".checks"
+
+
+def built_from(blocks, cache_dir, checks):
+    """What a rebuild would read: {block name: its fetched content}, and
+    under CHECKS the checks it runs."""
     states = ((block.name, block.state(cache_dir)) for block in blocks)
-    return {name: state["content"] for name, state in states if state}
+    built = {name: state["content"] for name, state in states if state}
+    built[CHECKS] = checks
+    return built
 
 
 def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=print,
@@ -210,7 +218,8 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
 
     Without fetch, the cache is used as it is (fetch_sources keeps it
     current), and slang is rebuilt if it differs from what the last rebuild
-    read. At most first_fetches blocks are fetched for the first time; the rest
+    read. Either way it is rebuilt when its checks or checkers have changed.
+    At most first_fetches blocks are fetched for the first time; the rest
     wait for later updates. A block that fails to fetch is skipped, and
     rebuilt from its last fetch if it has one. Returns {block name: its
     failures in a row} for those. Any other failure raises before the swap, leaving the live data
@@ -220,6 +229,11 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
     slang = lang_to_table(slang)
     tmdb = current_app.tmdb
     blocks = select(load_sources(sources_path), tags, exclude_tags)
+    flags = [name for name in unit_checks.check_names(
+        unit_checks.default_names() + unit_checks.configured_ttk(current_app.config))
+        if name not in FILTER]
+    styles = {block.name: block.checker for block in blocks if block.checker}
+    checks = {"leave_out": list(FILTER), "flags": flags, "checkers": styles}
     # Without its snapshot, a rebuild would drop data that only the live
     # schema still has.
     cursor = tmdb.get_cursor()
@@ -259,8 +273,10 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
             last_built = json.load(f)
     except (FileNotFoundError, ValueError):
         last_built = None
-    cache_changed = not fetch and built_from(blocks, cache_dir) != last_built
-    if not changed and not force and not was_pending and not cache_changed:
+    cache_changed = not fetch and built_from(blocks, cache_dir, checks) != last_built
+    checks_changed = last_built is not None and last_built.get(CHECKS) != checks
+    if not changed and not force and not was_pending and not cache_changed \
+            and not checks_changed:
         out("Nothing changed.")
         report_failures(failed, out)
         return failed
@@ -290,7 +306,8 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
                 block.name, ", ".join(state["no_template"])))
         if block.mirror_note(cache_dir):
             out("%s: %s" % (block.name, block.mirror_note(cache_dir)))
-    if all(same) and not force and not was_pending and not cache_changed:
+    if all(same) and not force and not was_pending and not cache_changed \
+            and not checks_changed:
         os.remove(pending)
         out("Nothing changed.")
         report_failures(failed, out)
@@ -352,9 +369,14 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
         for path, reason in unreadable:
             out("  %s: %s" % (os.path.relpath(path, cache_dir), reason))
 
-    rejected = reject(tmdb.get_cursor().connection, tmdb.schema(slang))
+    rejected = reject(tmdb.get_cursor().connection, tmdb.schema(slang), names=flags,
+                      styles=styles,
+                      workers=unit_checks.workers(current_app.config))
     out("Left out %d targets that look broken." % rejected.left_out)
     for line in rejected.lines(FILTER):
+        out("  " + line)
+    out("Flagged %d targets." % rejected.flagged)
+    for line in rejected.summary(flags):
         out("  " + line)
 
     tmdb.deploy(slang)
@@ -363,7 +385,7 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
     tmdb.use_schemas("")
     tmdb.swap(slang)
     with open(record + ".new", "w", encoding="utf-8") as f:
-        json.dump(built_from(blocks, cache_dir), f)
+        json.dump(built_from(blocks, cache_dir, checks), f)
     os.replace(record + ".new", record)
     os.remove(pending)
     out("Swapped in '%s'; the replaced copy is %s%s." % (slang, OLD_PREFIX, slang))

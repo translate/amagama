@@ -33,6 +33,8 @@ from psycopg2 import sql
 from translate.filters import checks
 from translate.filters.checks import CheckerConfig, projectcheckers
 
+from amagama.tmdb import TMDB
+
 _checker = checks.StandardChecker()
 
 # printf conversions (%s, %1$s, %(name)s, with flags, width and length), or
@@ -372,8 +374,8 @@ class Report(object):
         self.by_language = collections.defaultdict(collections.Counter)
         self.by_block = collections.defaultdict(collections.Counter)
         self.examples = collections.defaultdict(list)
-        # The targets a rebuild left out.
-        self.left_out = 0
+        # The targets a rebuild left out, and those it flagged.
+        self.left_out = self.flagged = 0
         # Failures so far, for choosing examples.
         self.seen = collections.Counter()
 
@@ -395,9 +397,8 @@ class Report(object):
     def lines(self, names, top=10):
         """The report on names, as lines of text."""
         for name in names:
-            failures = self.failures(name)
-            yield "%s: %d (%.2f%%)" % (name, failures, 100 * failures / (self.targets or 1))
-            if not failures:
+            yield next(self.summary([name]))
+            if not self.failures(name):
                 continue
             yield "  Languages: " + ", ".join(
                 "%s %d (%.1f%%)" % (lang, n, 100 * n / self.languages[lang])
@@ -408,6 +409,12 @@ class Report(object):
             for lang, source, target, blocks in self.examples[name]:
                 yield "  [%s] %r -> %r%s" % (
                     lang, source, target, " (%s)" % ", ".join(blocks) if blocks else "")
+
+    def summary(self, names):
+        """A line per check in names: its failures."""
+        for name in names:
+            failures = self.failures(name)
+            yield "%s: %d (%.2f%%)" % (name, failures, 100 * failures / (self.targets or 1))
 
     def count_blocks(self, cursor, schema, checks):
         """Count each check's failures (in the checked table) by the blocks
@@ -564,18 +571,33 @@ def _has_imports(cursor, schema):
     return cursor.fetchone()[0]
 
 
-def reject(connection, schema, examples=3):
-    """Delete the targets in schema that fail FILTER; a Report on them."""
-    report, checks = _check(connection, schema, examples=examples, names=FILTER)
-    leave_out = sum(checks.bits[name] for name in FILTER)
+def reject(connection, schema, examples=3, names=(), leave_out=FILTER, styles=None, workers=1):
+    """Delete the targets in schema failing leave_out, and record the
+    failures of names on the others (targets.checks, named in
+    check_names); a Report on both, see _check().
+
+    For a rebuild about to deploy: the targets' unique index, which deploy
+    drops anyway, goes first, so the flags don't rewrite it.
+    """
+    report, checks = _check(connection, schema, examples=examples,
+                            names=list(leave_out) + list(names), styles=styles, workers=workers)
+    mask = sum(checks.bits[name] for name in leave_out)
+    table = sql.Identifier(schema)
     with connection.cursor() as cursor:
         if _has_imports(cursor, schema):
             cursor.execute(sql.SQL("""DELETE FROM {}.target_imports l USING checked c
-                WHERE l.tid = c.tid AND c.mask & %s <> 0""").format(sql.Identifier(schema)),
-                (leave_out,))
+                WHERE l.tid = c.tid AND c.mask & %s <> 0""").format(table), (mask,))
         cursor.execute(sql.SQL("""DELETE FROM {}.targets t USING checked c
-            WHERE t.tid = c.tid AND c.mask & %s <> 0""").format(sql.Identifier(schema)),
-            (leave_out,))
+            WHERE t.tid = c.tid AND c.mask & %s <> 0""").format(table), (mask,))
         report.left_out = cursor.rowcount
+        cursor.execute(sql.SQL("SET LOCAL search_path TO {}").format(table))
+        cursor.execute(TMDB.INIT_CHECKS)
+        cursor.execute("DELETE FROM check_names")
+        cursor.executemany("INSERT INTO check_names (bit, name, left_out) VALUES (%s, %s, %s)",
+                           [(bit, name, name in leave_out) for bit, name in enumerate(checks.names)])
+        cursor.execute("DROP INDEX IF EXISTS targets_unique_idx")
+        cursor.execute("""UPDATE targets t SET checks = c.mask FROM checked c
+            WHERE t.tid = c.tid AND c.mask & %s = 0""", (mask,))
+        report.flagged = cursor.rowcount
     connection.commit()
     return report
