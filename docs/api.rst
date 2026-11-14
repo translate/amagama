@@ -408,7 +408,9 @@ Each source language has:
 +-----------------+-------------------------------------------------+
 | blocks          | Per :ref:`block <sources>`: ``name``,           |
 |                 | ``title``, ``version``, ``languages`` (how      |
-|                 | many), ``targets``, ``imported`` and ``checks`` |
+|                 | many), ``targets`` (null for data built before  |
+|                 | translations recorded their imports),           |
+|                 | ``imported`` and ``checks``                     |
 +-----------------+-------------------------------------------------+
 | checks          | ``flagged``: the checks that flag translations; |
 |                 | ``failures``: each one's failures;              |
