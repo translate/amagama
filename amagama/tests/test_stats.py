@@ -232,6 +232,35 @@ class TestCategories(object):
         assert checks["categories"] == {"startcaps": "cosmetic", "printf": "critical"}
 
 
+def test_failed_write_keeps_the_file(tmp_path, monkeypatch):
+    filename = tmp_path / "stats.json"
+    write_figures(filename, {})
+    before = filename.read_text(encoding="utf-8")
+
+    def full(*args):
+        raise OSError("disk full")
+    monkeypatch.setattr(stats.os, "replace", full)
+    with pytest.raises(OSError):
+        stats.update_use(str(filename), [])
+    assert filename.read_text(encoding="utf-8") == before
+    assert sorted(os.listdir(tmp_path)) == ["stats.json", "stats.json.lock"]
+
+
+def test_source_language_gone(tmp_path, monkeypatch):
+    filename = tmp_path / "stats.json"
+    write_figures(filename, {})
+    figures = json.loads(filename.read_text(encoding="utf-8"))
+    figures["sourceLanguages"]["fr"] = figures["sourceLanguages"]["en"]
+    filename.write_text(json.dumps(figures), encoding="utf-8")
+
+    class TMDB:
+        source_langs = ["en"]
+    monkeypatch.setattr(stats, "compute", lambda tmdb, slang: dict(
+        figures["sourceLanguages"]["en"], built="2026-11-14T00:00:00Z", history=None))
+    stats.update_tm(str(filename), TMDB())
+    assert list(stats.load(str(filename))["sourceLanguages"]) == ["en"]
+
+
 def test_words(pg_connection):
     with pg_connection.cursor() as cursor:
         cursor.execute("SELECT %s FROM (VALUES ('Open file'), (E'\\tOpen  file\\n'), (''), ('  ')) "
