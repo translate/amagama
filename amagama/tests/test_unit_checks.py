@@ -373,6 +373,9 @@ def test_command_ttk(imported, styled):
     assert "  [af] '_Open the file' -> 'Maak die lêer oop' (gnome)" in output
     assert "endpunc: 1 (25.00%)" in output
     assert "sentencecount: 0 (0.00%)" in output
+    imported('gnome', 'de', ('_Save', 'Speichern'))
+    assert "accelerators: 2 (40.00%)" in check('--ttk')
+    assert "accelerators: 1 (25.00%)" in check('--ttk', '-t', 'af')
 
 
 def test_command_chosen_checks(imported, styled):
