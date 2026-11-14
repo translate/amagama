@@ -566,7 +566,8 @@ how many were refused (429). Lookups by Virtaal test instances (a user agent
 ending in ``Test/instance``) are left out, and nothing about a client is kept.
 It takes glob patterns and may be repeated. A day split between two logs
 keeps the highest count seen for it, so reading only the newest logs every day
-never lowers a day counted before; the last 366 days are kept.
+never lowers a day counted before; the 366 days up to the newest counted are
+kept.
 ``--only-use`` counts the lookups without the translation figures:
 
 .. code-block:: bash
