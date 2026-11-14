@@ -75,3 +75,10 @@ UNIT_CHECKS_SUGGEST_WEIGHTS = False
 MAX_LENGTH = 2000
 MIN_SIMILARITY = 70
 MAX_CANDIDATES = 5
+
+
+# Statistics config
+#
+# The statistics page's figures, which rebuilds and update_stats write and the
+# web app reads (None: stats.json in UPDATER_CACHE_DIR).
+STATS_FILE = None

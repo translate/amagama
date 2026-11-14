@@ -9,6 +9,7 @@
 import contextlib
 import functools
 import datetime
+import glob
 import hashlib
 import itertools
 import json
@@ -30,7 +31,7 @@ from translate.lang.data import langcode_ire
 from translate.lang.identify import LanguageIdentifier
 from translate.storage import factory
 
-from amagama import logsummary
+from amagama import logsummary, stats
 from amagama.licences import normalise_licence
 from amagama.source_options import MAX_WEIGHT
 from amagama.updater import discovery, generate, status, transifex, weblate
@@ -213,6 +214,33 @@ def log_summary(rates, rate, burst, logs):
         refused = [logsummary.over_limit(c, rate, burst) for c in clients]
         print("refused at %g a second, burst %d\t%d lookups\t%d clients" % (
             rate, burst, sum(refused), sum(1 for n in refused if n)))
+
+
+@click.command('update_stats')
+@click.option('--logs', 'patterns', multiple=True, metavar='PATTERN',
+              help="Also count the lookups per day in these nginx access logs (a glob, "
+              "such as live-nginx.access.log*; may be repeated).")
+@click.option('--only-use', is_flag=True,
+              help="Only count the lookups in --logs; leave the translation figures.")
+@with_appcontext
+def update_stats(patterns, only_use):
+    """Compute the statistics page's figures from the live data."""
+    if only_use and not patterns:
+        raise click.UsageError("--only-use needs --logs.")
+    logs = sorted({log for pattern in patterns for log in glob.glob(os.path.expanduser(pattern))
+                   if os.path.isfile(log)})
+    if patterns and not logs:
+        raise click.UsageError("No logs match %s." % ", ".join(patterns))
+    filename = stats.path(current_app.config)
+    if not only_use:
+        for slang, figures in stats.update_tm(filename, current_app.tmdb).items():
+            print("%s: %d sources, %d targets in %d languages, %d blocks." % (
+                slang, figures["sources"], figures["targets"], len(figures["languages"]),
+                len(figures["blocks"])))
+    if logs:
+        days = stats.update_use(filename, logs)
+        print("Lookups counted on %d days from %d logs." % (len(days), len(logs)))
+    print("Updated the statistics in %s." % filename)
 
 
 def spdx_expression(ctx, param, value):
@@ -1133,6 +1161,7 @@ cli_commands = (
     snapshot_db,
     load_snapshot,
     log_summary,
+    update_stats,
     fetch_sources,
     update,
     swap_db,
