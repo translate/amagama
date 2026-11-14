@@ -231,6 +231,13 @@ class TestCategories(object):
         assert checks["categories"] == {"startcaps": "cosmetic", "printf": "critical"}
 
 
+def test_words(pg_connection):
+    with pg_connection.cursor() as cursor:
+        cursor.execute("SELECT %s FROM (VALUES ('Open file'), (E'\\tOpen  file\\n'), (''), ('  ')) "
+                       "AS v(text)" % stats.WORDS)
+        assert [row[0] for row in cursor.fetchall()] == [2, 2, 0, 0]
+
+
 def test_path():
     assert stats.path({"STATS_FILE": "/srv/stats.json"}) == "/srv/stats.json"
     assert stats.path({"UPDATER_CACHE_DIR": "/srv/cache"}) == "/srv/cache/stats.json"

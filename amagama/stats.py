@@ -30,8 +30,9 @@ VERSION = 1
 HISTORY = 52
 USE_DAYS = 366
 
-# Words: the source text split on white space.
-WORDS = r"COALESCE(array_length(regexp_split_to_array(btrim(text), '\s+'), 1), 0)"
+# Words: the source text split on white space, none in an empty one.
+WORDS = (r"COALESCE(array_length(regexp_split_to_array("
+         r"NULLIF(regexp_replace(text, '^\s+|\s+$', '', 'g'), ''), '\s+'), 1), 0)")
 
 
 def path(config, cache_dir=None):
