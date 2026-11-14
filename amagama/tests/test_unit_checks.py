@@ -478,3 +478,89 @@ def test_update_leaves_out_promoted_check(update, amagama_config, tmp_path):
     assert "  [af] 'Save the file.' -> 'Stoor die lêer' (x)" in result.output
     assert test_pairing.lookup("af", "Save the file.") == []
     assert test_pairing.lookup("af", "Close every window.") == ["Maak elke venster toe."]
+
+
+def test_by_source(imported, styled, tmp_path):
+    imported('gnome', 'af', ('_Open the file', 'Maak die lêer oop'), ('Save the file.', 'Stoor.'))
+    imported('gnome', 'de', ('Save the file.', 'Speichern'))
+    imported('odd', 'af', ('_Close the file', 'Maak die lêer toe'), ('Save the file.', 'Stoor.'))
+    table = tmp_path / "by-source.tsv"
+    check('--check', 'accelerators', '--check', 'endpunc', '--by-source', str(table))
+    assert table.read_text(encoding="utf-8").splitlines() == [
+        "source\tblock\tlanguage\ttargets\taccelerators\tendpunc",
+        "en\tgnome\taf\t2\t1\t0",
+        "en\tgnome\tde\t1\t0\t1",
+        "en\todd\taf\t2\t0\t0"]
+    check('--check', 'endpunc', '-t', 'de', '--by-source', str(table))
+    assert table.read_text(encoding="utf-8").splitlines() == [
+        "source\tblock\tlanguage\ttargets\tendpunc", "en\tgnome\tde\t1\t1"]
+
+
+def test_by_source_to_stdout(imported, styled, tmp_path):
+    imported('gnome', 'af', ('Save the file.', 'Stoor.'))
+    runner = CliRunner()
+    assert runner.invoke(manage, ('initdb', '-s', 'fr')).exit_code == 0
+    path = tmp_path / 'fr-af.po'
+    path.write_text(po(('Enregistrer.', 'Stoor')), encoding='utf-8')
+    assert runner.invoke(manage, ('build_tmdb', '-s', 'fr', '-t', 'af', '-i', str(path),
+                                  '--block', 'odd')).exit_code == 0
+    result = runner.invoke(manage, ('check_units', '-s', 'en', '-s', 'fr', '--check', 'endpunc',
+                                    '--by-source', '-'))
+    assert result.exit_code == 0, result.output
+    # One table, the report beside it.
+    assert result.stdout.splitlines() == [
+        "source\tblock\tlanguage\ttargets\tendpunc",
+        "en\tgnome\taf\t1\t0",
+        "fr\todd\taf\t1\t1"]
+    assert "Checked 'en': 1 targets in 1 languages." in result.stderr
+    assert "Checked 'fr': 1 targets in 1 languages." in result.stderr
+
+
+def test_suggested_weights():
+    report = Report()
+    report.targets = 12000
+    report.source_targets = {("good", "af"): 5000, ("good", "de"): 5000, ("poor", "af"): 1000,
+                             ("small", "af"): 999, ("weighted", "af"): 1001}
+    report.weighed.update({None: 1000, "good": 400, "poor": 300, "small": 999, "weighted": 200})
+    # 8.33% of all targets fail: poor 30% loses 2 x 21.67%, weighted 20% from
+    # its 0.8; good is better than average, small too small to judge.
+    assert report.suggested_weights({"weighted": 0.8}) == [
+        ("poor", 1.0, 0.55, 0.3), ("weighted", 0.8, 0.6, 200 / 1001)]
+    # At most half.
+    report.weighed["poor"] = 1000
+    assert report.suggested_weights()[0] == ("poor", 1.0, 0.5, 1.0)
+    # Half, up to a step of 0.05; none without a lower step.
+    assert report.suggested_weights({"poor": 0.33})[0] == ("poor", 0.33, 0.2, 1.0)
+    assert report.suggested_weights({"poor": 0.08})[0] == ("poor", 0.08, 0.05, 1.0)
+    assert [w[0] for w in report.suggested_weights({"poor": 0.04})] == ["weighted"]
+
+
+def test_command_suggest_weights(imported, amagama_config, tmp_path, monkeypatch):
+    monkeypatch.setattr(unit_checks, "WEIGHT_MIN_TARGETS", 1)
+    sources = tmp_path / "sources.toml"
+    sources.write_text(block("good", "translationproject")
+                       + block("poor", "translationproject", weight=0.8))
+    amagama_config(UPDATER_SOURCES=str(sources), UNIT_CHECKS_WORKERS=1)
+    imported('good', 'af', ('Save the file.', 'Stoor die lêer.'), ('Open it.', 'Maak oop.'))
+    imported('poor', 'af', ('Close the file.', 'Maak die lêer toe'), ('Quit now.', 'Hou op.'))
+    output = check('--check', 'endpunc', '--suggest-weights')
+    assert "Suggested weights, by endpunc (25.00% of all targets fail): " in output
+    assert "  poor: 0.8 -> 0.4 (50.00% fail)" in output
+    # By the checks rebuilds leave out, which none fail.
+    output = check('--suggest-weights')
+    assert "Suggested weights, by printf, braces, script (0.00% of all targets fail): none" \
+        in output
+
+
+def test_update_suggests_weights(update, amagama_config, tmp_path, monkeypatch):
+    monkeypatch.setattr(unit_checks, "WEIGHT_MIN_TARGETS", 1)
+    url = test_pairing.git_repo(tmp_path / "repo", {"po/af.po": po(
+        ('Open the %s file now', 'Maak die lêer oop'), ('Save the file', 'Stoor die lêer'))})
+    url2 = test_pairing.git_repo(tmp_path / "repo2", {"po/af.po": po(
+        ('Close every window', 'Maak elke venster toe'))})
+    amagama_config(UNIT_CHECKS_SUGGEST_WEIGHTS=True)
+    result = update(block("x", "git", url=url, files=["po/{lang}.po"])
+                    + block("y", "git", url=url2, files=["po/{lang}.po"]))
+    assert result.exit_code == 0, result.output
+    assert "Suggested weights, by printf, braces, script (33.33% of all targets fail): \n" \
+        "  x: 1 -> 0.65 (50.00% fail)" in result.output

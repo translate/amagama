@@ -252,6 +252,17 @@ Settings for the checks of stored translations, see :ref:`check_units
   failures shows broken translations. The others only flag a translation.
 
 
+.. setting:: UNIT_CHECKS_SUGGEST_WEIGHTS
+
+``UNIT_CHECKS_SUGGEST_WEIGHTS``
+  Default: ``False``
+
+  Whether :ref:`update <managing#update>` lists lower weights for the blocks
+  whose translations fail the checks it leaves out more often than the rest,
+  as ``check_units --suggest-weights`` does. Weights stay as the sources file
+  sets them.
+
+
 .. setting:: UNIT_CHECKS_TTK
 
 ``UNIT_CHECKS_TTK``

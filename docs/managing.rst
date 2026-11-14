@@ -344,6 +344,26 @@ same sample again):
       [af] '_Open the file' -> 'Maak die lêer oop' (gnome-51)
     ...
 
+``--by-source FILE`` writes each block's targets in each language and their
+failures per check, tab-separated, for comparing sources and languages; with
+``-`` the table goes to standard output and the report to standard error:
+
+.. code-block:: console
+
+    $ amagama-manage check_units -s en --ttk --by-source - > by-source.tsv
+    $ head -2 by-source.tsv
+    source	block	language	targets	printf	braces	...
+    en	gnome-51	af	1000	2	0	...
+
+``--suggest-weights`` lists blocks of 1000 targets or more whose share failing
+the ``--check`` checks (else the checks rebuilds leave out) is over the share
+of all targets, with a lower :ref:`weight <sources>`: the block's weight less
+twice the difference, by at most half, in steps of 0.05 (none for a weight of
+0.05 or less). It is only a suggestion, to copy into the sources file. On live
+data the left-out targets are gone already;
+:setting:`UNIT_CHECKS_SUGGEST_WEIGHTS` has each rebuild list the suggestions
+before it leaves them out.
+
 
 .. _managing#snapshot-db:
 

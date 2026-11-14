@@ -372,6 +372,8 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
 
     rejected = reject(tmdb.get_cursor().connection, tmdb.schema(slang), names=flags,
                       leave_out=leave_out,
+                      weigh=leave_out if current_app.config.get("UNIT_CHECKS_SUGGEST_WEIGHTS")
+                      else None,
                       styles=styles,
                       workers=unit_checks.workers(current_app.config))
     out("Left out %d targets that look broken." % rejected.left_out)
@@ -380,6 +382,9 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
     out("Flagged %d targets." % rejected.flagged)
     for line in rejected.summary(flags):
         out("  " + line)
+    if current_app.config.get("UNIT_CHECKS_SUGGEST_WEIGHTS"):
+        for line in rejected.weight_lines(leave_out, {block.name: block.weight for block in blocks}):
+            out(line)
 
     tmdb.deploy(slang)
     tmdb.use_schemas(OLD_PREFIX)
