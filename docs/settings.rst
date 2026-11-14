@@ -233,6 +233,33 @@ Settings for fetching translations to import, see :ref:`sources`.
   own process with its own database connection.
 
 
+.. _settings#unit-checks-settings:
+
+Unit checks settings
+====================
+
+Settings for the checks of stored translations, see :ref:`check_units
+<managing#check-units>`.
+
+.. setting:: UNIT_CHECKS_TTK
+
+``UNIT_CHECKS_TTK``
+  Default: ``None``
+
+  The translate-toolkit checks ``check_units --ttk`` runs, such as
+  ``["accelerators", "endpunc", "variables"]``. ``None`` is every one that
+  suits stored translations; leave out ``sentencecount``, the slowest, to save
+  time.
+
+
+.. setting:: UNIT_CHECKS_WORKERS
+
+``UNIT_CHECKS_WORKERS``
+  Default: ``None``
+
+  How many processes run the checks. ``None`` is one per CPU.
+
+
 .. _settings#levenshtein-settings:
 
 Levenshtein settings

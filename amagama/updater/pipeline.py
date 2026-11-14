@@ -353,8 +353,7 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
             out("  %s: %s" % (os.path.relpath(path, cache_dir), reason))
 
     rejected = reject(tmdb.get_cursor().connection, tmdb.schema(slang))
-    out("Left out %d targets that look broken." % len({
-        tid for name in FILTER for tid in rejected.tids[name]}))
+    out("Left out %d targets that look broken." % rejected.left_out)
     for line in rejected.lines(FILTER):
         out("  " + line)
 

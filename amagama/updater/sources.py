@@ -17,6 +17,8 @@ import random
 import shutil
 import tomllib
 
+from translate.filters.checks import projectcheckers
+
 from amagama.licences import normalise_licence
 from amagama.source_options import MAX_WEIGHT
 from amagama.updater import chromium, compressed
@@ -56,7 +58,7 @@ class Block(object):
                  exclude=None, keep=None, languages=None, format=None, template=None,
                  exclude_ids=None, columns=None, header_row=None, xliff_states=None,
                  max_age_days=30, min_age_days=0, segment=False, weight=1, tags=None,
-                 mirror_lag_days=14, language_in_ids=False, **settings):
+                 mirror_lag_days=14, language_in_ids=False, checker=None, **settings):
         self.name = name
         self.title = title
         self.version = version
@@ -127,6 +129,9 @@ class Block(object):
         if type(weight) not in (int, float) or not 0 <= weight <= MAX_WEIGHT:
             raise ValueError("weight must be a number from 0 to %d" % MAX_WEIGHT)
         self.weight = float(weight)
+        if checker is not None and (not isinstance(checker, str) or checker not in projectcheckers):
+            raise ValueError("checker must be one of %s" % ", ".join(sorted(projectcheckers)))
+        self.checker = checker
         self.tags = check_tags(tags if tags is not None else [], "tags")
         if len(self.tags & set(TIERS)) > 1:
             raise ValueError("tags can have one of %s" % ", ".join(TIERS))

@@ -23,6 +23,7 @@ snapshot = "legacy"
 name = "gnome-{version}"
 title = "GNOME"
 source = "damned-lies"
+checker = "gnome"
 release = "gnome-{version}"
 # Old releases hardly change: each language once a year.
 versions = [
@@ -59,6 +60,7 @@ versions = [
 name = "kde"
 title = "KDE"
 source = "svn"
+checker = "kde"
 url = "svn://anonsvn.kde.org/home/kde/trunk/l10n-kf6"
 dirs = ["messages"]
 # Paced: KDE's anonymous svn is shared.
@@ -124,6 +126,7 @@ versions = [
 name = "libreoffice-{version}"
 title = "LibreOffice"
 source = "git"
+checker = "libreoffice"
 min_age_days = 7
 url = "https://git.libreoffice.org/translations"
 files = ["source/{lang}/**/*.po"]
@@ -244,48 +247,56 @@ licence = "AGPL-3.0-only"
 name = "gnome-circle"
 title = "GNOME Circle"
 source = "damned-lies"
+checker = "gnome"
 release = "gnome-circle"
 
 [[block]]
 name = "gnome-extras-stable"
 title = "GNOME Other Apps"
 source = "damned-lies"
+checker = "gnome"
 release = "gnome-extras-stable"
 
 [[block]]
 name = "evolution"
 title = "Evolution"
 source = "damned-lies"
+checker = "gnome"
 release = "evolution"
 
 [[block]]
 name = "freedesktop-org"
 title = "freedesktop.org"
 source = "damned-lies"
+checker = "gnome"
 release = "freedesktop-org"
 
 [[block]]
 name = "phosh"
 title = "Phosh"
 source = "damned-lies"
+checker = "gnome"
 release = "phosh"
 
 [[block]]
 name = "gnome-gimp"
 title = "GIMP"
 source = "damned-lies"
+checker = "gnome"
 release = "gnome-gimp"
 
 [[block]]
 name = "gnome-infrastructure"
 title = "GNOME Infrastructure"
 source = "damned-lies"
+checker = "gnome"
 release = "gnome-infrastructure"
 
 [[block]]
 name = "mozilla"
 title = "Mozilla"
 source = "pontoon"
+checker = "mozilla"
 # Website content, not interface text.
 exclude_ids = ["foundation-website-content:*", "staging:*"]
 # Keep script and idiom apart.
@@ -488,6 +499,7 @@ licence = "GPL-2.0-or-later"
 name = "drupal-{version}"
 title = "Drupal"
 source = "drupal"
+checker = "drupal"
 projects = ["drupal"]
 core = "{version}"
 # Not translations.
@@ -502,6 +514,7 @@ versions = ["10", "11"]
 name = "drupal-modules"
 title = "Drupal modules"
 source = "drupal"
+checker = "drupal"
 # Widely used modules; their releases support Drupal 10 and 11.
 projects = [
   "token", "ctools", "pathauto", "admin_toolbar", "metatag", "webform", "redirect",

@@ -6,6 +6,7 @@
 # the AUTHORS.md file for copyright and authorship information.
 
 
+import os
 import random
 
 import pytest
@@ -198,6 +199,14 @@ def test_deployed(imported):
     assert "  [af] 'Open the %s file now' -> 'Maak lêer oop' (gnome)" in output
 
 
+def test_deployed_ttk(imported, styled):
+    imported('gnome', 'af', ('_Open the file', 'Maak lêer oop'), ('Save the file', 'Stoor'))
+    result = CliRunner().invoke(manage, ('deploy_db',), input='y\n')
+    assert result.exit_code == 0, result.output
+    output = check('--ttk')
+    assert "  [af] '_Open the file' -> 'Maak lêer oop' (gnome)" in output
+
+
 def test_script_judged_in_larger_languages(imported, monkeypatch):
     monkeypatch.setattr(unit_checks, "SCRIPT_MIN_SHARE", 0.5)
     imported('gnome', 'et', ('Open the file', 'Ava fail'), ('Close the file', 'Sulge fail'))
@@ -245,3 +254,164 @@ def test_update_leaves_out(update, tmp_path):
     assert "  printf: 1 (50.00%)" in result.output
     assert test_pairing.lookup("af", "Open the %s file now") == []
     assert test_pairing.lookup("af", "Save the file") == ["Stoor die lêer"]
+
+
+@pytest.mark.parametrize("style, source, target, failed", [
+    (None, "Open the file.", "Maak die lêer oop", ["endpunc"]),
+    (None, "_Open", "Oop", []),
+    # GNOME marks accelerators with _.
+    ("gnome", "_Open", "Oop", ["accelerators"]),
+    ("kde", "&Open", "&Oop", []),
+    ("kde", "&Open", "Oop", ["accelerators"]),
+])
+def test_ttk_checks(style, source, target, failed):
+    checks = unit_checks.Checks(unit_checks.check_names(["accelerators", "endpunc"]))
+    assert checks.failed(checks.mask("af", style, source, target)) == failed
+
+
+def test_ttk_check_by_language():
+    checks = unit_checks.Checks(["endpunc"])
+    # Japanese ends a sentence with its own full stop.
+    assert checks.mask("ja", None, "Save the file.", "ファイルを保存します。") == 0
+
+
+def test_slow_check_left_out_on_long_text(monkeypatch):
+    monkeypatch.setattr(unit_checks, "SLOW_CHECKS", {"sentencecount": 30})
+    checks = unit_checks.Checks(["sentencecount"])
+    assert checks.mask("af", None, "Open it. Save it.", "Maak oop en stoor.") == 1
+    assert checks.mask("af", None, "Open the file now. Save the file now.",
+                       "Maak die lêer nou oop en stoor dit.") == 0
+
+
+def test_broken_ttk_check_passes(monkeypatch):
+    def broken(self, str1, str2):
+        raise KeyError(str1)
+    monkeypatch.setattr(unit_checks.checks.StandardChecker, "endpunc", broken, raising=False)
+    checks = unit_checks.Checks(["endpunc"])
+    assert checks.mask("af", None, "Open the file.", "Maak oop") == 0
+
+
+def test_check_names():
+    assert unit_checks.check_names(["endpunc", "length", "printf", "endpunc"]) == [
+        "printf", "length", "endpunc"]
+    # A project checker's own.
+    assert unit_checks.check_names(["gconf"]) == ["gconf"]
+    with pytest.raises(ValueError, match="Not checks: spelling"):
+        unit_checks.check_names(["spelling"])
+
+
+def test_check_names_fit_a_mask(monkeypatch):
+    names = unit_checks.default_names() + sorted(unit_checks.ttk_names())
+    assert len(names) <= unit_checks.MAX_CHECKS
+    monkeypatch.setattr(unit_checks, "MAX_CHECKS", 2)
+    with pytest.raises(ValueError, match="At most 2 checks"):
+        unit_checks.check_names(["printf", "braces", "tags"])
+
+
+def test_default_ttk_checks():
+    assert "sentencecount" in unit_checks.TTK_CHECKS
+    # amaGama has its own; these need what amaGama hasn't got.
+    assert not {"printf", "escapes", "unchanged", "spellcheck", "untranslated"} & set(
+        unit_checks.TTK_CHECKS)
+
+
+@pytest.fixture
+def styled(amagama_config, tmp_path):
+    """A sources file giving block gnome GNOME's checker."""
+    sources = tmp_path / "sources.toml"
+    sources.write_text(block("gnome", "translationproject", checker="gnome")
+                       + block("odd", "translationproject"))
+    amagama_config(UPDATER_SOURCES=str(sources), UNIT_CHECKS_WORKERS=1)
+
+
+def test_command_ttk(imported, styled):
+    imported('gnome', 'af', ('_Open the file', 'Maak die lêer oop'),
+             ('Save the file.', 'Stoor die lêer.'))
+    imported('odd', 'af', ('_Close the file', 'Maak die lêer toe'),
+             ('Save the file.', 'Stoor die lêer'))
+    output = check('--ttk', '--examples', '1')
+    assert "printf: 0 (0.00%)" in output
+    # Only GNOME marks accelerators with _.
+    assert "accelerators: 1 (25.00%)" in output
+    assert "  [af] '_Open the file' -> 'Maak die lêer oop' (gnome)" in output
+    assert "endpunc: 1 (25.00%)" in output
+    assert "sentencecount: 0 (0.00%)" in output
+
+
+def test_command_chosen_checks(imported, styled):
+    imported('gnome', 'af', ('_Open the file', 'Maak die lêer oop'),
+             ('Open the %s file now', 'Maak lêer oop'))
+    output = check('--check', 'accelerators', '--check', 'printf')
+    assert output.splitlines()[1:] == [
+        "printf: 1 (50.00%)", "  Languages: af 1 (50.0%)", "  Blocks: gnome 1",
+        "  [af] 'Open the %s file now' -> 'Maak lêer oop' (gnome)",
+        "accelerators: 1 (50.00%)", "  Languages: af 1 (50.0%)", "  Blocks: gnome 1",
+        "  [af] '_Open the file' -> 'Maak die lêer oop' (gnome)"]
+
+
+def test_command_unknown_check(imported):
+    result = CliRunner().invoke(manage, ('check_units', '-s', 'en', '--check', 'spelling'))
+    assert result.exit_code == 2
+    assert "Not checks: spelling" in result.output
+
+
+def test_command_workers(imported, styled, monkeypatch):
+    # Batches of one, so the rows don't fit the first.
+    monkeypatch.setattr(unit_checks, "BATCH", 1)
+    imported('gnome', 'af', *[('Save file %d.' % n, 'Stoor lêer %d' % n) for n in range(10)])
+    output = check('--check', 'endpunc', '--check', 'printf', '--check', 'script',
+                   '--workers', '2', '--examples', '10')
+    assert "endpunc: 10 (100.00%)" in output
+    assert "printf: 0 (0.00%)" in output
+    assert "  [af] 'Save file 9.' -> 'Stoor lêer 9' (gnome)" in output
+
+
+def die(batch):
+    os._exit(1)
+
+
+def test_dead_check_worker(monkeypatch):
+    monkeypatch.setattr(unit_checks, "BATCH", 1)
+    monkeypatch.setattr(unit_checks, "_check_batch", die)
+    rows = [("af", n, "Save.", "Stoor", None) for n in range(3)]
+    with pytest.raises(RuntimeError, match="A check worker died"):
+        list(unit_checks.masks(rows, unit_checks.Checks(["endpunc"]), workers=2))
+
+
+def test_masks_read_rows_as_checked(monkeypatch):
+    monkeypatch.setattr(unit_checks, "BATCH", 2)
+    read = []
+
+    def rows():
+        for n in range(10):
+            read.append(n)
+            yield ("af", n, "Save.", "Stoor", None)
+    masks = unit_checks.masks(rows(), unit_checks.Checks(["endpunc"]))
+    assert next(masks)[1] == 1
+    # The first batch, not the whole table.
+    assert len(read) == 2
+    assert len(list(masks)) == 9
+
+
+def test_check_batch():
+    checks = unit_checks.Checks(["endpunc"])
+    unit_checks._start_worker(checks)
+    assert unit_checks._check_batch([("af", 1, "Save.", "Stoor", None),
+                                     ("af", 2, "Save.", "Stoor.", None)]) == [1, 0]
+
+
+def test_failures_copied_in_batches(imported, monkeypatch):
+    monkeypatch.setattr(unit_checks, "COPY_BATCH", 2)
+    imported('gnome', 'af', *[('Save file %d.' % n, 'Stoor lêer %d' % n) for n in range(5)])
+    output = check('--check', 'endpunc')
+    assert "endpunc: 5 (100.00%)" in output
+    assert "  Blocks: gnome 5" in output
+
+
+def test_command_invalid_sources(imported, amagama_config, tmp_path):
+    sources = tmp_path / "sources.toml"
+    sources.write_text(block("a", "translationproject", checker="gtk"))
+    amagama_config(UPDATER_SOURCES=str(sources))
+    result = CliRunner().invoke(manage, ('check_units', '-s', 'en', '--ttk'))
+    assert result.exit_code == 1
+    assert "block a: checker must be one of" in result.output
