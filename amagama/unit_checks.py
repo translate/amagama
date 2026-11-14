@@ -493,18 +493,18 @@ class Report(object):
             failures = self.failures(name)
             yield "%s: %d (%.2f%%)" % (name, failures, 100 * failures / (self.targets or 1))
 
-    def count_blocks(self, cursor, schema, checks):
+    def count_blocks(self, cursor, schema, checks, by_source=False):
         """Count each check's failures (in the checked table) by the blocks
-        that supplied them."""
-        cursor.execute(sql.SQL("""SELECT i.block, i.lang, b.bit, COUNT(DISTINCT c.tid)
+        that supplied them, and with by_source by block and language."""
+        cursor.execute(sql.SQL("""SELECT i.block, i.lang, c.mask, COUNT(DISTINCT c.tid)
             FROM checked c
             JOIN {0}.target_imports l ON l.tid = c.tid JOIN {0}.imports i ON i.iid = l.iid
-            CROSS JOIN generate_series(0, %s) b(bit)
-            WHERE i.block IS NOT NULL AND c.mask & (1::BIGINT << b.bit) <> 0
-            GROUP BY 1, 2, 3""").format(sql.Identifier(schema)), (len(checks.names) - 1,))
-        for block, lang, bit, n in cursor.fetchall():
-            self.by_block[checks.names[bit]][block] += n
-            self.by_source[(block, lang)][checks.names[bit]] += n
+            WHERE i.block IS NOT NULL GROUP BY 1, 2, 3""").format(sql.Identifier(schema)))
+        for block, lang, mask, n in cursor.fetchall():
+            for name in checks.failed(mask):
+                self.by_block[name][block] += n
+                if by_source:
+                    self.by_source[(block, lang)][name] += n
         for examples in self.examples.values():
             for example in examples:
                 cursor.execute(sql.SQL("""SELECT DISTINCT i.block FROM {0}.target_imports l
@@ -531,7 +531,7 @@ def _rows(connection, schema, langs, styled=False):
         yield from rows
 
 
-def _style_targets(cursor, schema, styles):
+def _style_targets(cursor, schema, styles, langs):
     """Make the target_styles table: each target's checker style, where the
     blocks it came from that have one (styles: {block: style}) agree."""
     cursor.execute("CREATE TEMPORARY TABLE block_styles (block TEXT, style TEXT) ON COMMIT DROP")
@@ -539,7 +539,9 @@ def _style_targets(cursor, schema, styles):
     cursor.execute(sql.SQL("""CREATE TEMPORARY TABLE target_styles ON COMMIT DROP AS
         SELECT l.tid, MIN(b.style) AS style FROM {0}.target_imports l
         JOIN {0}.imports i ON i.iid = l.iid JOIN block_styles b ON b.block = i.block
-        GROUP BY l.tid HAVING COUNT(DISTINCT b.style) = 1""").format(sql.Identifier(schema)))
+        WHERE %s IS NULL OR i.lang = ANY(%s)
+        GROUP BY l.tid HAVING COUNT(DISTINCT b.style) = 1""").format(sql.Identifier(schema)),
+        (list(langs) or None, list(langs)))
     cursor.execute("ANALYZE target_styles")
 
 
@@ -612,7 +614,7 @@ def _check(connection, schema, langs=(), examples=3, names=None, styles=None, wo
         links = _has_imports(cursor, schema)
         styled = bool(links and styles and checks.ttk)
         if styled:
-            _style_targets(cursor, schema, styles)
+            _style_targets(cursor, schema, styles, langs)
         cursor.execute("CREATE TEMPORARY TABLE checked (tid INTEGER NOT NULL, mask BIGINT NOT NULL)"
                        " ON COMMIT DROP")
         failed = io.StringIO()
@@ -638,7 +640,7 @@ def _check(connection, schema, langs=(), examples=3, names=None, styles=None, wo
         write()
         cursor.execute("ANALYZE checked")
         if links:
-            report.count_blocks(cursor, schema, checks)
+            report.count_blocks(cursor, schema, checks, weigh is not None)
             if weigh is not None:
                 report.count_sources(cursor, schema, langs, checks, weigh)
         else:
