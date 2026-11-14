@@ -452,3 +452,29 @@ def test_command_invalid_sources(imported, amagama_config, tmp_path):
     result = CliRunner().invoke(manage, ('check_units', '-s', 'en', '--ttk'))
     assert result.exit_code == 1
     assert "block a: checker must be one of" in result.output
+
+
+def test_sample(imported, styled):
+    imported('gnome', 'af', *[('Save file %d.' % n, 'Stoor lêer %d' % n) for n in range(5)])
+    imported('odd', 'de', ('Save the file.', 'Datei speichern'), ('Open it.', 'Öffnen.'))
+    output = check('--sample', 'endpunc', '--examples', '2', '--seed', '1')
+    lines = output.splitlines()
+    assert lines[1] == "endpunc: 6 (85.71%)"
+    assert len(lines) == 5
+    assert [line[:6] for line in lines[2:]] == ["  [af]", "  [af]", "  [de]"]
+    assert "  [de] 'Save the file.' -> 'Datei speichern' (odd)" in lines
+    # The same seed, the same sample.
+    assert check('--sample', 'endpunc', '--examples', '2', '--seed', '1') == output
+
+
+def test_update_leaves_out_promoted_check(update, amagama_config, tmp_path):
+    url = test_pairing.git_repo(tmp_path / "repo", {"po/af.po": po(
+        ('Save the file.', 'Stoor die lêer'), ('Close every window.', 'Maak elke venster toe.'))})
+    amagama_config(UNIT_CHECKS_LEAVE_OUT=["endpunc"])
+    result = update(block("x", "git", url=url, files=["po/{lang}.po"]))
+    assert result.exit_code == 0, result.output
+    assert "Left out 1 targets that look broken." in result.output
+    assert "  endpunc: 1 (50.00%)" in result.output
+    assert "  [af] 'Save the file.' -> 'Stoor die lêer' (x)" in result.output
+    assert test_pairing.lookup("af", "Save the file.") == []
+    assert test_pairing.lookup("af", "Close every window.") == ["Maak elke venster toe."]

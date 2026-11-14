@@ -305,7 +305,8 @@ A target fails:
   translation can be right, so this one is only for looking at.
 
 :ref:`update <managing#update>` leaves out the targets failing ``printf``,
-``braces`` or ``script``; the others are only for looking at.
+``braces`` or ``script``, and those :setting:`UNIT_CHECKS_LEAVE_OUT` adds; the
+others only flag a translation.
 
 With ``--ttk`` it also runs `translate-toolkit's checks
 <https://docs.translatehouse.org/projects/translate-toolkit/en/latest/commands/pofilter_tests.html>`_
@@ -328,6 +329,20 @@ and length. The checks run in :setting:`UNIT_CHECKS_WORKERS` processes
 million targets of interface text, five times amaGama's own;
 ``sentencecount`` is a sixth of that, and is skipped on text over 1000
 characters, where it gets slow.
+
+A check earns a place in :setting:`UNIT_CHECKS_LEAVE_OUT` when its failures
+turn out to be broken translations rather than style. ``--sample`` runs just
+that check and lists ``--examples`` of its failures in each language, chosen
+at random, for someone who reads the language to judge (``--seed`` gives the
+same sample again):
+
+.. code-block:: console
+
+    $ amagama-manage check_units -s en --sample accelerators --examples 20
+    Checked 'en': 5000 targets in 2 languages.
+    accelerators: 40 (0.80%)
+      [af] '_Open the file' -> 'Maak die lêer oop' (gnome-51)
+    ...
 
 
 .. _managing#snapshot-db:
@@ -446,7 +461,8 @@ The build starts empty: snapshot blocks are loaded first, then every file of
 every other block, :setting:`UPDATER_WORKERS` at a time, each with its known
 target language, block name and licence. Files that can't be read are listed
 and left out. Before the swap, targets failing the ``printf``, ``braces`` or
-``script`` checks of :ref:`check_units <managing#check-units>` are left out,
+``script`` checks of :ref:`check_units <managing#check-units>`, and those
+:setting:`UNIT_CHECKS_LEAVE_OUT` adds, are left out,
 and listed by check, language and block. The other checks, amaGama's and
 the translate-toolkit ones :setting:`UNIT_CHECKS_TTK` lists, flag the targets
 they keep: each target's failures are recorded as a bit mask (``targets.checks``,

@@ -122,6 +122,8 @@ def test_changed_checks_rebuild(update, amagama_config):
     result = CliRunner().invoke(manage, ("update", "-s", "en"))
     assert "Swapped in 'en'" in result.output
     assert CliRunner().invoke(manage, ("update", "-s", "en")).output == "Nothing changed.\n"
+    amagama_config(UNIT_CHECKS_LEAVE_OUT=["endpunc"])
+    assert "Swapped in 'en'" in CliRunner().invoke(manage, ("update", "-s", "en")).output
 
 
 def test_force_rebuilds_same_content(update, pg_connection):

@@ -366,9 +366,11 @@ class Report(object):
     """What check_units found, by check: counts by language and by block,
     and examples as (lang, source, target, blocks), chosen at random."""
 
-    def __init__(self, examples=3, rng=None):
+    def __init__(self, examples=3, rng=None, sample=None):
         self.max_examples = examples
         self.rng = rng or random.Random()
+        # The check whose examples are chosen in each language instead.
+        self.sample = sample
         self.targets = 0
         self.languages = collections.Counter()
         self.by_language = collections.defaultdict(collections.Counter)
@@ -384,15 +386,23 @@ class Report(object):
 
     def add(self, name, lang, tid, source, target):
         self.by_language[name][lang] += 1
-        self.seen[name] += 1
+        key = (name, lang) if name == self.sample else name
+        self.seen[key] += 1
         # Each failure so far is equally likely to be an example.
         example = [lang, source, target, tid]
-        if len(self.examples[name]) < self.max_examples:
-            self.examples[name].append(example)
+        if len(self.examples[key]) < self.max_examples:
+            self.examples[key].append(example)
         else:
-            n = self.rng.randrange(self.seen[name])
+            n = self.rng.randrange(self.seen[key])
             if n < self.max_examples:
-                self.examples[name][n] = example
+                self.examples[key][n] = example
+
+    def sample_lines(self):
+        """The sample check's examples, by language, as lines of text."""
+        for lang in sorted(self.by_language[self.sample]):
+            for _, source, target, blocks in self.examples[(self.sample, lang)]:
+                yield "[%s] %r -> %r%s" % (
+                    lang, source, target, " (%s)" % ", ".join(blocks) if blocks else "")
 
     def lines(self, names, top=10):
         """The report on names, as lines of text."""
@@ -406,7 +416,7 @@ class Report(object):
             if self.by_block[name]:
                 yield "  Blocks: " + ", ".join(
                     "%s %d" % item for item in self.by_block[name].most_common(top))
-            for lang, source, target, blocks in self.examples[name]:
+            for lang, source, target, blocks in self.examples.get(name, ()):
                 yield "  [%s] %r -> %r%s" % (
                     lang, source, target, " (%s)" % ", ".join(blocks) if blocks else "")
 
@@ -475,15 +485,23 @@ def configured_ttk(config):
     return list(TTK_CHECKS if names is None else names)
 
 
+def leave_out(config):
+    """The checks whose failures rebuilds leave out: FILTER, and those
+    UNIT_CHECKS_LEAVE_OUT adds."""
+    return list(dict.fromkeys(list(FILTER) + list(config.get("UNIT_CHECKS_LEAVE_OUT") or ())))
+
+
 def workers(config, given=None):
     """Processes to run checks in: given, else UNIT_CHECKS_WORKERS, else one per CPU."""
     return given or config.get("UNIT_CHECKS_WORKERS") or os.cpu_count() or 1
 
 
-def _check(connection, schema, langs=(), examples=3, names=None, styles=None, workers=1):
+def _check(connection, schema, langs=(), examples=3, names=None, styles=None, workers=1,
+           sample=None, rng=None):
     """(Report, Checks) on the targets in schema, in langs or all of its
     languages, for names (check_names(); None: default_names()), leaving
     each failing target's mask in the checked table. Nothing is committed.
+    With sample, a check, its examples are chosen in each language.
 
     translate-toolkit's checks use the checker of the style the target's
     blocks have (styles: {block: style}), else the standard one.
@@ -518,7 +536,7 @@ def _check(connection, schema, langs=(), examples=3, names=None, styles=None, wo
         usual[lang] = counter.most_common(1)[0][0] if counter else None
     checks = Checks(names, home, rare, usual)
 
-    report = Report(examples)
+    report = Report(examples, rng, sample)
     with connection.cursor() as cursor:
         links = _has_imports(cursor, schema)
         styled = bool(links and styles and checks.ttk)
@@ -557,10 +575,12 @@ def _check(connection, schema, langs=(), examples=3, names=None, styles=None, wo
     return report, checks
 
 
-def check_units(connection, schema, langs=(), examples=3, names=None, styles=None, workers=1):
+def check_units(connection, schema, langs=(), examples=3, names=None, styles=None, workers=1,
+                sample=None, rng=None):
     """A Report on the targets in schema; see _check(). Nothing is written."""
     try:
-        return _check(connection, schema, langs, examples, names, styles, workers)[0]
+        return _check(connection, schema, langs, examples, names, styles, workers, sample,
+                      rng)[0]
     finally:
         connection.rollback()
 

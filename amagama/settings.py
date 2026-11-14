@@ -62,6 +62,9 @@ UPDATER_EXCLUDE_TAGS = []
 # the processes running checks (None: one per CPU).
 UNIT_CHECKS_TTK = None
 UNIT_CHECKS_WORKERS = None
+# Checks whose failures rebuilds leave out, besides printf, braces and script:
+# one whose sampled failures turned out to be broken translations.
+UNIT_CHECKS_LEAVE_OUT = []
 
 
 # Levenshtein config

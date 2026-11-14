@@ -14,6 +14,7 @@ import json
 import logging
 import math
 import os
+import random
 import re
 import shutil
 import sys
@@ -457,14 +458,18 @@ snapshot_option = click.option(
               help="Run only this check (may be repeated), amaGama's or translate-toolkit's.")
 @click.option('--workers', type=click.IntRange(min=1), default=None,
               help="Processes running the checks. Default: UNIT_CHECKS_WORKERS.")
+@click.option('--sample', default=None, metavar='CHECK',
+              help="Run only this check and list --examples of its failures per language.")
+@click.option('--seed', type=int, default=None, help="Seed for choosing examples.")
 @build_option
 @with_appcontext
-def check_units(source_langs, target_langs, examples, top, ttk, names, workers, build):
+def check_units(source_langs, target_langs, examples, top, ttk, names, workers, sample, seed,
+                build):
     """Report stored translations that look broken. Nothing is changed."""
     from amagama import unit_checks
     use_build_schemas(build)
     ensure_source_exists()
-    names = list(names) or unit_checks.default_names() + (
+    names = [sample] if sample else list(names) or unit_checks.default_names() + (
         unit_checks.configured_ttk(current_app.config) if ttk else [])
     try:
         names = unit_checks.check_names(names)
@@ -476,9 +481,14 @@ def check_units(source_langs, target_langs, examples, top, ttk, names, workers, 
         report = unit_checks.check_units(
             tmdb.get_cursor().connection, tmdb.schema(lang_to_table(slang)),
             [lang_to_table(lang) for lang in target_langs], examples, names, styles,
-            unit_checks.workers(current_app.config, workers))
+            unit_checks.workers(current_app.config, workers), sample, random.Random(seed))
         print("Checked '%s': %d targets in %d languages." % (
             slang, report.targets, len(report.languages)))
+        if sample:
+            print(next(report.summary([sample])))
+            for line in report.sample_lines():
+                print("  " + line)
+            continue
         for line in report.lines(names, top):
             print(line)
 
