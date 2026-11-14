@@ -161,6 +161,8 @@
           <li>&middot;</li>
           <li><a href="" data-toggle="modal" data-target="#helpModal">{{ _("Help") }}</a></li>
           <li>&middot;</li>
+          <li><a href="{{ url_for('web_ui.statistics', lang=request.args.get('lang')) }}">{{ _("Statistics") }}</a></li>
+          <li>&middot;</li>
           <li><a href="" data-toggle="modal" data-target="#contactModal">{{ _("Contact") }}</a></li>
           <li>&middot;</li>
           <li>{{ _("{year} © Translate House", year=year) }}</li>

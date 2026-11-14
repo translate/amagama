@@ -9,13 +9,17 @@
 """Rebuild a source language from the sources file and swap it in."""
 
 import concurrent.futures
+import contextlib
 import functools
 import json
 import multiprocessing
 import os
 import tempfile
 
+import psycopg2
 from flask import current_app
+
+from amagama import stats
 from amagama.commands import file_checksum
 from amagama.tmdb import BUILD_PREFIX, OLD_PREFIX, lang_to_table
 from amagama import unit_checks
@@ -396,8 +400,23 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
     os.replace(record + ".new", record)
     os.remove(pending)
     out("Swapped in '%s'; the replaced copy is %s%s." % (slang, OLD_PREFIX, slang))
+    update_stats(slang, cache_dir, stats.left_out(rejected, leave_out), out)
     report_failures(failed, out)
     return failed
+
+
+def update_stats(slang, cache_dir, left_out, out=print):
+    """Compute the statistics page's figures of the swapped-in slang; a failure
+    is reported, not raised: the rebuild is live already."""
+    filename = stats.path(current_app.config, cache_dir)
+    try:
+        stats.update_tm(filename, current_app.tmdb, [slang], {slang: left_out})
+    except (OSError, psycopg2.Error) as e:
+        with contextlib.suppress(psycopg2.Error):
+            current_app.tmdb.rollback(current_app.tmdb.get_cursor().connection)
+        out("Couldn't update the statistics in %s: %s" % (filename, e))
+        return
+    out("Updated the statistics in %s." % filename)
 
 
 def report_failures(failed, out=print):

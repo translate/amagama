@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="{{ _.tag }}" dir="{{ _.dir }}">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    {# Translators: {host} is the site's address, such as amagama-live.translatehouse.org. #}
+    <title>{{ _("{host} - Statistics", host=request.host) }}</title>
+
+    <link rel="icon" href="{{ url_for('web_ui.static', filename='favicon.ico') }}">
+    <link rel="stylesheet" href="{{ url_for('web_ui.static', filename='css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('web_ui.static', filename='css/amagama.css') }}">
+  </head>
+  <body>
+
+    <div id="wrap">
+
+      <!-- HEADER -->
+      <div class="navbar navbar-inverse navbar-amagama navbar-fixed-top" role="navigation">
+        <div class="container">
+          <div class="navbar-header">
+            <a class="navbar-brand" href="http://translatehouse.org/">Translate House</a>
+          </div>
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="{{ url_for('web_ui.translate', lang=lang) }}"><span class="glyphicon glyphicon-search" aria-hidden="true"></span> {{ _("Search") }}</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- PAGE CONTENT -->
+      <main class="container stats-page">
+
+        <div class="text-center">
+          <div class="amagama-logo-and-motto">
+            <h1><span class="amagama-logo"></span> {{ request.host }}</h1>
+            <p class="amagama-motto">{{ _("Statistics") }}</p>
+          </div>
+        </div>
+
+        {% if page is none %}
+        <p class="lead">{{ _("The statistics haven't been computed yet. They are computed each time the translation memory is rebuilt.") }}</p>
+        {% else %}
+        <p>
+          {# Translators: {date} is when the figures were computed, such as 2026-11-01. #}
+          {{ _("These figures were computed on {date}, after the translation memory was last rebuilt.", date=page.computed) }}
+        </p>
+
+        <nav aria-labelledby="stats-contents">
+          <h2 id="stats-contents" class="sr-only">{{ _("Contents") }}</h2>
+          <ul class="list-inline">
+            {% for source in page.sourceLanguages %}
+            <li><a href="#volume-{{ source.code }}">{{ _("Volume") }}</a></li>
+            <li><a href="#languages-{{ source.code }}">{{ _("Languages and coverage") }}</a></li>
+            <li><a href="#sources-{{ source.code }}">{{ _("Data sources") }}</a></li>
+            <li><a href="#checks-{{ source.code }}">{{ _("Checks") }}</a></li>
+            {% endfor %}
+            <li><a href="#use">{{ _("Use") }}</a></li>
+          </ul>
+        </nav>
+
+        {% if not page.sourceLanguages %}
+        <p>{{ _("The translation memory has no translations yet.") }}</p>
+        {% endif %}
+
+        {% for source in page.sourceLanguages %}
+        {% set figures = source.figures %}
+
+        <section aria-labelledby="volume-{{ source.code }}">
+          {# Translators: Heading of the figures of one source language, such as Volume: English — en. #}
+          <h2 id="volume-{{ source.code }}">{{ _("Volume: {language}", language=source.name) }}</h2>
+          <dl class="dl-horizontal stats-summary">
+            <dt>{{ _("Source strings") }}</dt><dd>{{ number(figures.sources) }}</dd>
+            {# Translators: How many words the source strings have. #}
+            <dt>{{ _("Words") }}</dt><dd>{{ number(figures.words) }}</dd>
+            <dt>{{ _("Translations") }}</dt><dd>{{ number(figures.targets) }}</dd>
+            <dt>{{ _("Languages") }}</dt><dd>{{ number(figures.languages|length) }}</dd>
+          </dl>
+          {% if source.history %}
+          <div class="table-responsive">
+          <table class="table table-condensed stats-table">
+            <caption>{{ _("The translation memory at each rebuild, newest first") }}</caption>
+            <thead>
+              <tr>
+                {# Translators: Column of the date the translation memory was rebuilt. #}
+                <th scope="col">{{ _("Rebuilt") }}</th>
+                <th scope="col" class="number">{{ _("Source strings") }}</th>
+                <th scope="col" class="number">{{ _("Words") }}</th>
+                <th scope="col" class="number">{{ _("Languages") }}</th>
+                <th scope="col" class="number">{{ _("Translations") }}</th>
+                <th scope="col" class="bar-column"><span class="sr-only">{{ _("Translations") }}</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for entry in source.history %}
+              <tr>
+                <th scope="row" class="date">{{ (entry.built or "")[:10] }}</th>
+                <td class="number">{{ number(entry.sources) }}</td>
+                <td class="number">{{ number(entry.words) }}</td>
+                <td class="number">{{ number(entry.languages) }}</td>
+                <td class="number">{{ number(entry.targets) }}</td>
+                <td class="bar-column" aria-hidden="true"><span class="stats-bar" style="width: {{ entry.bar }}%"></span></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          </div>
+          {% endif %}
+        </section>
+
+        <section aria-labelledby="languages-{{ source.code }}">
+          <h2 id="languages-{{ source.code }}">{{ _("Languages and coverage") }}</h2>
+          <p>{{ _("Coverage is the share of the source strings a language has a translation for. Words are those of the source strings it translates.") }}</p>
+          <div class="stats-scroll">
+            <table class="table table-condensed table-striped stats-table">
+              <caption class="sr-only">{{ _("Languages and coverage") }}</caption>
+              <thead>
+                <tr>
+                  <th scope="col">{{ _("Language") }}</th>
+                  <th scope="col" class="number">{{ _("Translations") }}</th>
+                  <th scope="col" class="number">{{ _("Words") }}</th>
+                  {# Translators: Column of the share of the source strings a language has a translation for. #}
+                  <th scope="col" class="number">{{ _("Coverage") }}</th>
+                  <th scope="col" class="bar-column"><span class="sr-only">{{ _("Coverage") }}</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for language in source.languages %}
+                <tr>
+                  <th scope="row"{% if language.tag %} lang="{{ language.tag }}"{% endif %}>{{ language.name }}</th>
+                  <td class="number">{{ number(language.targets) }}</td>
+                  <td class="number">{{ number(language.words) }}</td>
+                  <td class="number">{{ percent(language.sources, figures.sources) }}</td>
+                  <td class="bar-column" aria-hidden="true"><span class="stats-bar" style="width: {{ language.coverageBar }}%"></span></td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section aria-labelledby="sources-{{ source.code }}">
+          <h2 id="sources-{{ source.code }}">{{ _("Data sources") }}</h2>
+          <div class="stats-scroll">
+            <table class="table table-condensed table-striped stats-table">
+              <caption class="sr-only">{{ _("Data sources") }}</caption>
+              <thead>
+                <tr>
+                  <th scope="col">{{ _("Project") }}</th>
+                  <th scope="col" class="number">{{ _("Languages") }}</th>
+                  <th scope="col" class="number">{{ _("Translations") }}</th>
+                  <th scope="col" class="bar-column"><span class="sr-only">{{ _("Translations") }}</span></th>
+                  <th scope="col">{{ _("Imported") }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for block in source.blocks %}
+                <tr>
+                  <th scope="row" dir="{{ source.blocksDir }}">{{ block.displayTitle }}</th>
+                  <td class="number">{{ number(block.languages) }}</td>
+                  <td class="number">{{ number(block.targets) if block.targets is not none else "–" }}</td>
+                  <td class="bar-column" aria-hidden="true"><span class="stats-bar" style="width: {{ block.bar }}%"></span></td>
+                  <td class="date">{{ (block.imported or "")[:10] }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section aria-labelledby="checks-{{ source.code }}">
+          <h2 id="checks-{{ source.code }}">{{ _("Checks") }}</h2>
+          {% if source.leftOut %}
+          <p>
+            {# Translators: {count} is how many translations the last rebuild left out. #}
+            {{ _("The last rebuild left out {count} translations that look broken:", count=number(source.leftOut.targets)) }}
+            {% for name, n in source.leftOut.checks|dictsort %}{{ name }} {{ number(n) }}{% if not loop.last %}, {% endif %}{% endfor %}.
+          </p>
+          {% endif %}
+          {% if source.checks or source.passed %}
+          <p>{{ _("The translations kept are checked too, and suggestions say which checks they fail. A translation can fail several.") }}</p>
+          {% endif %}
+          {% if source.checks %}
+          <div class="table-responsive">
+          <table class="table table-condensed stats-table">
+            <caption class="sr-only">{{ _("Checks") }}</caption>
+            <thead>
+              <tr>
+                <th scope="col">{{ _("Check") }}</th>
+                {# Translators: Column of how many translations fail a check. #}
+                <th scope="col" class="number">{{ _("Failures") }}</th>
+                {# Translators: Column of the share of all translations that fail a check. #}
+                <th scope="col" class="number">{{ _("Share") }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for check in source.checks %}
+              <tr>
+                <th scope="row"><code>{{ check.name }}</code></th>
+                <td class="number">{{ number(check.failures) }}</td>
+                <td class="number">{{ check.share }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          </div>
+          {% for check in source.checks %}
+          <details class="stats-details">
+            {# Translators: Opens the languages and projects that fail the check {check} most. #}
+            <summary>{{ _("{check}: where it fails most", check=check.name) }}</summary>
+            <div class="row">
+              <div class="col-sm-6">
+                <table class="table table-condensed stats-table">
+                  <caption>{{ _("By language") }}</caption>
+                  <thead><tr>
+                    <th scope="col">{{ _("Language") }}</th>
+                    <th scope="col" class="number">{{ _("Failures") }}</th>
+                    <th scope="col" class="number">{{ _("Share") }}</th>
+                  </tr></thead>
+                  <tbody>
+                    {% for name, n, share in check.languages %}
+                    <tr><th scope="row">{{ name }}</th><td class="number">{{ number(n) }}</td><td class="number">{{ share }}</td></tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+              <div class="col-sm-6">
+                <table class="table table-condensed stats-table">
+                  <caption>{{ _("By project") }}</caption>
+                  <thead><tr>
+                    <th scope="col">{{ _("Project") }}</th>
+                    <th scope="col" class="number">{{ _("Failures") }}</th>
+                    <th scope="col" class="number">{{ _("Share") }}</th>
+                  </tr></thead>
+                  <tbody>
+                    {% for title, n, share in check.blocks %}
+                    <tr><th scope="row" dir="{{ source.blocksDir }}">{{ title }}</th><td class="number">{{ number(n) }}</td><td class="number">{{ share }}</td></tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </details>
+          {% endfor %}
+          {% endif %}
+          {% if source.passed %}
+          <p>
+            {# Translators: Followed by the names of the checks no translation fails. #}
+            {{ _("No translation fails these checks:") }}
+            {% for name in source.passed %}<code>{{ name }}</code>{% if not loop.last %}, {% endif %}{% endfor %}.
+          </p>
+          {% endif %}
+        </section>
+        {% endfor %}
+
+        <section aria-labelledby="use">
+          <h2 id="use">{{ _("Use") }}</h2>
+          {% if page.use %}
+          <p>{{ _("Lookups per day. Prefetches are lookups a translation tool makes ahead of need; bulk fetches look up a whole file at once.") }}</p>
+          <p class="stats-legend" aria-hidden="true">
+            <span><span class="stats-swatch ordinary"></span> {{ _("Ordinary") }}</span>
+            <span><span class="stats-swatch prefetch"></span> {{ _("Prefetch") }}</span>
+            <span><span class="stats-swatch bulk"></span> {{ _("Bulk") }}</span>
+          </p>
+          <div class="table-responsive">
+          <table class="table table-condensed stats-table">
+            <caption class="sr-only">{{ _("Lookups per day") }}</caption>
+            <thead>
+              <tr>
+                <th scope="col">{{ _("Day") }}</th>
+                {# Translators: Column of the lookups made when needed, not ahead of need. #}
+                <th scope="col" class="number">{{ _("Ordinary") }}</th>
+                <th scope="col" class="number">{{ _("Prefetch") }}</th>
+                <th scope="col" class="number">{{ _("Bulk") }}</th>
+                <th scope="col" class="number">{{ _("Total") }}</th>
+                <th scope="col" class="bar-column"><span class="sr-only">{{ _("Total") }}</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for day in page.use.days %}
+              <tr>
+                <th scope="row" class="date">{{ day.date }}</th>
+                <td class="number">{{ number(day.ordinary) }}</td>
+                <td class="number">{{ number(day.prefetch) }}</td>
+                <td class="number">{{ number(day.bulk) }}</td>
+                <td class="number">{{ number(day.total) }}</td>
+                <td class="bar-column" aria-hidden="true">{% for kind, width in day.bars %}<span class="stats-bar {{ kind }}" style="width: {{ width }}%"></span>{% endfor %}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+            <tfoot>
+              <tr>
+                <th scope="row">{{ _("Total") }}</th>
+                <td class="number">{{ number(page.use.totals.ordinary) }}</td>
+                <td class="number">{{ number(page.use.totals.prefetch) }}</td>
+                <td class="number">{{ number(page.use.totals.bulk) }}</td>
+                <td class="number">{{ number(page.use.totals.total) }}</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+          </div>
+          {% else %}
+          <p>{{ _("Lookups haven't been counted yet.") }}</p>
+          {% endif %}
+        </section>
+
+        <p>
+          {# Translators: {api} is a link to the same figures as JSON, named /api/v1/stats/. #}
+          {{ _("The same figures are available as JSON from {api}.",
+               api=('<a href="' ~ url_for('read_api_v1.get_stats') ~ '">/api/v1/stats/</a>')|safe) }}
+        </p>
+        {% endif %}
+      </main>
+    </div>
+
+    <!-- FOOTER -->
+    <div id="footer">
+      <div class="container">
+        <ul class="footer-links muted text-center">
+          <li><a href="{{ url_for('web_ui.translate', lang=lang) }}">{{ _("Search") }}</a></li>
+          <li>&middot;</li>
+          <li>{{ _("{year} © Translate House", year=year) }}</li>
+        </ul>
+      </div>
+    </div>
+  </body>
+</html>
