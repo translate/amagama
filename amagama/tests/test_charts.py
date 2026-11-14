@@ -30,6 +30,8 @@ class TestNiceTicks(object):
         assert charts.nice_ticks(0, 108) == [0, 50, 100, 150]
         assert charts.nice_ticks(0, 90) == [0, 25, 50, 75, 100]
         assert charts.nice_ticks(9, 15) == [8, 10, 12, 14, 16]
+        # Rounded out, a step of 2 would need five.
+        assert charts.nice_ticks(1, 9) == [0, 5, 10]
         assert charts.nice_ticks(28_000_000, 29_200_000) == [
             28_000_000, 28_500_000, 29_000_000, 29_500_000]
 
@@ -82,6 +84,10 @@ class TestLine(object):
     def test_one_day(self):
         chart = charts.line([(at(1, 5), 1), (at(1, 6), 2)])
         assert chart["xTicks"] == [(14.5, "2026-11-01", "start")]
+
+    def test_two_rebuilds_at_once(self):
+        chart = charts.line([(at(1, 5), 1), (at(1, 5), 2)])
+        assert [x for x, y in chart["dots"]] == [165.2, 165.2]
 
     def test_fewer_than_two_points(self):
         assert charts.line([]) is None
