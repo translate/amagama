@@ -412,8 +412,9 @@ def update_stats(slang, cache_dir, left_out, out=print):
     try:
         stats.update_tm(filename, current_app.tmdb, [slang], {slang: left_out})
     except (OSError, psycopg2.Error) as e:
+        # Not get_cursor(): its check fails in an aborted transaction.
         with contextlib.suppress(psycopg2.Error):
-            current_app.tmdb.rollback(current_app.tmdb.get_cursor().connection)
+            current_app.tmdb.rollback(current_app.tmdb.connection)
         out("Couldn't update the statistics in %s: %s" % (filename, e))
         return
     out("Updated the statistics in %s." % filename)
