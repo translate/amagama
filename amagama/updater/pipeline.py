@@ -19,7 +19,7 @@ from flask import current_app
 from amagama.commands import file_checksum
 from amagama.tmdb import BUILD_PREFIX, OLD_PREFIX, lang_to_table
 from amagama import unit_checks
-from amagama.unit_checks import FILTER, reject
+from amagama.unit_checks import reject
 from amagama.updater import chromium, compressed
 from amagama.updater.formats import CHROMIUM, open_pieces, open_store
 from amagama.updater.pairing import paired_store, without_ids
@@ -229,11 +229,12 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
     slang = lang_to_table(slang)
     tmdb = current_app.tmdb
     blocks = select(load_sources(sources_path), tags, exclude_tags)
+    leave_out = unit_checks.check_names(unit_checks.leave_out(current_app.config))
     flags = [name for name in unit_checks.check_names(
         unit_checks.default_names() + unit_checks.configured_ttk(current_app.config))
-        if name not in FILTER]
+        if name not in leave_out]
     styles = {block.name: block.checker for block in blocks if block.checker}
-    checks = {"leave_out": list(FILTER), "flags": flags, "checkers": styles}
+    checks = {"leave_out": leave_out, "flags": flags, "checkers": styles}
     # Without its snapshot, a rebuild would drop data that only the live
     # schema still has.
     cursor = tmdb.get_cursor()
@@ -370,10 +371,11 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
             out("  %s: %s" % (os.path.relpath(path, cache_dir), reason))
 
     rejected = reject(tmdb.get_cursor().connection, tmdb.schema(slang), names=flags,
+                      leave_out=leave_out,
                       styles=styles,
                       workers=unit_checks.workers(current_app.config))
     out("Left out %d targets that look broken." % rejected.left_out)
-    for line in rejected.lines(FILTER):
+    for line in rejected.lines(leave_out):
         out("  " + line)
     out("Flagged %d targets." % rejected.flagged)
     for line in rejected.summary(flags):

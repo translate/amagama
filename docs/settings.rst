@@ -241,6 +241,17 @@ Unit checks settings
 Settings for the checks of stored translations, see :ref:`check_units
 <managing#check-units>`.
 
+.. setting:: UNIT_CHECKS_LEAVE_OUT
+
+``UNIT_CHECKS_LEAVE_OUT``
+  Default: ``[]``
+
+  Checks whose failures :ref:`update <managing#update>` leaves out, besides
+  ``printf``, ``braces`` and ``script``, such as ``["variables"]``: amaGama's
+  or translate-toolkit's, once a :ref:`sample <managing#check-units>` of their
+  failures shows broken translations. The others only flag a translation.
+
+
 .. setting:: UNIT_CHECKS_TTK
 
 ``UNIT_CHECKS_TTK``
