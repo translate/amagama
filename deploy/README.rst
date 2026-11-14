@@ -17,6 +17,8 @@ amagama-update.service   /etc/systemd/system/amagama-update.service
 amagama-update.timer     /etc/systemd/system/amagama-update.timer
 amagama-drop-old.service /etc/systemd/system/amagama-drop-old.service
 amagama-drop-old.timer   /etc/systemd/system/amagama-drop-old.timer
+amagama-stats.service    /etc/systemd/system/amagama-stats.service
+amagama-stats.timer      /etc/systemd/system/amagama-stats.timer
 requirements.txt         /srv/amagama/venv (pip install -r)
 ======================== =============================================
 
@@ -30,7 +32,8 @@ local_settings.py        the web app's settings, with the read-only
                          database user (root:www-data, 640)
 updater_settings.py      the updater's settings, with the read-write
                          database user (amagama, 600)
-cache/                   the fetch cache (amagama)
+cache/                   the fetch cache (amagama), and stats.json,
+                         the statistics page's figures
 logs/                    nginx and uWSGI logs (root)
 ======================== =============================================
 
@@ -78,10 +81,15 @@ and the updater's own::
     # One import worker: the box has 2 GB of memory.
     UPDATER_WORKERS = 1
 
+The web app reads the statistics page's figures from the file the updater
+writes, so ``local_settings.py`` also has::
+
+    STATS_FILE = "/srv/amagama/cache/stats.json"
+
 Install the units and the nginx site from the table above, then::
 
     sudo systemctl daemon-reload
-    sudo systemctl enable --now amagama.uwsgi amagama-fetch.timer
+    sudo systemctl enable --now amagama.uwsgi amagama-fetch.timer amagama-stats.timer
     sudo nginx -t && sudo systemctl reload nginx
 
 The cache starts empty and fills a little each day: a run fetches at most 100
@@ -198,6 +206,18 @@ means fixing the cause and rebuilding.
 
 These run as the ``amagama`` user, with settings the web app can't read, since
 they need the database user that can write.
+
+After the swap, an update computes the figures of the statistics page
+(``/stats/``) into ``/srv/amagama/cache/stats.json``, which the web app reads
+when it changes. ``amagama-stats.timer`` adds the lookups per day every night
+(``amagama-manage update_stats --only-use``), from the current access log and
+the last rotated one, so ``amagama`` must be able to read them (``ls -l
+/srv/amagama/logs``). Only totals are kept. To fill the page without waiting
+for a rebuild, and to count the older logs once::
+
+    sudo -u amagama env AMAGAMA_CONFIG=/srv/amagama/updater_settings.py \
+        /srv/amagama/venv/bin/amagama-manage update_stats \
+        --logs '/srv/amagama/logs/live-nginx.access.log*'
 
 The output goes to the journal (``journalctl -u amagama-update``). A source
 that fails to fetch is listed there, and the unit is marked failed
