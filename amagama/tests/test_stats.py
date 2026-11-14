@@ -326,6 +326,17 @@ class TestUse(object):
         days = {day["date"]: day["ordinary"] for day in stats.load(filename)["use"]["days"]}
         assert days == {"2026-11-12": 3, "2026-11-13": 2, "2026-11-14": 2}
 
+    def test_keeps_a_year_up_to_the_newest_day(self, tmp_path):
+        old = tmp_path / "old.log"
+        old.write_text(log_line("12/Nov/2025:10:00:00") + log_line("13/Nov/2025:10:00:00"),
+                       encoding="utf-8")
+        new = tmp_path / "new.log"
+        new.write_text(log_line("13/Nov/2026:10:00:00"), encoding="utf-8")
+        filename = str(tmp_path / "stats.json")
+        stats.update_use(filename, [str(old), str(new)])
+        assert [day["date"] for day in stats.load(filename)["use"]["days"]] == [
+            "2025-11-13", "2026-11-13"]
+
     def test_only_use_needs_logs(self, amagama_config):
         result = CliRunner().invoke(manage, ["update_stats", "--only-use"])
         assert result.exit_code == 2

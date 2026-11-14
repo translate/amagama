@@ -263,7 +263,8 @@ def update_tm(filename, tmdb, slangs=None, rejected=None):
 
 def update_use(filename, logs):
     """Add the lookups per day in logs to filename, keeping each day's highest
-    counts (a day can be split between logs) for the last USE_DAYS days."""
+    counts (a day can be split between logs) for the USE_DAYS days up to the
+    newest counted."""
     counted = logsummary.lookups_per_day(logs)
     with _updating(filename) as figures:
         days = {day["date"]: day for day in (figures.get("use") or {}).get("days", [])}
@@ -271,6 +272,10 @@ def update_use(filename, logs):
             old = days.get(date, {})
             days[date] = dict({key: max(n, old.get(key, 0)) for key, n in counts.items()},
                               date=date)
-        figures["use"] = {"computed": _now(),
-                          "days": [days[date] for date in sorted(days)[-USE_DAYS:]]}
+        kept = sorted(days)
+        if kept:
+            first = (datetime.date.fromisoformat(kept[-1])
+                     - datetime.timedelta(days=USE_DAYS - 1)).isoformat()
+            kept = [date for date in kept if date >= first]
+        figures["use"] = {"computed": _now(), "days": [days[date] for date in kept]}
     return counted
