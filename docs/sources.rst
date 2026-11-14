@@ -216,6 +216,13 @@ files it includes); a block's own settings take precedence. ``name`` and
   of higher weight takes that weight. Set it in a file's ``[defaults]`` to
   weight all of an included file's blocks.
 
+``checker``
+  Optional translate-toolkit checker for the block's translations, such as
+  ``gnome``, ``kde``, ``libreoffice``, ``mozilla`` or ``drupal``: the
+  :ref:`translate-toolkit checks <managing#check-units>` then know the
+  project's accelerators and variables. A translation from blocks with
+  different checkers gets the standard one; blocks without one don't count.
+
 ``tags``
   Optional list grouping blocks apart from the file they're in, so a server
   can :ref:`build a set of them <managing#update>`. A file's ``[defaults]``

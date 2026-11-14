@@ -264,6 +264,8 @@ class TestSourcesFile(object):
         (block("a", "translationproject", exclude=["{lang}.po"]), "not in exclude"),
         (block("a", "translationproject", languages=["af"]), "languages must map codes"),
         (block("a", "translationproject", format="yaml"), "format must be one of"),
+        (block("a", "translationproject", checker="gtk"), "checker must be one of"),
+        (block("a", "translationproject", checker=["gnome"]), "block a: checker must be one of"),
         (block("a", "translationproject", format="android"), "format android needs a template"),
         (block("a", "translationproject", format="po", template="en.po"),
          "template is for monolingual formats only"),

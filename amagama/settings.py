@@ -55,6 +55,15 @@ UPDATER_TAGS = None
 UPDATER_EXCLUDE_TAGS = []
 
 
+# Unit checks config
+#
+# translate-toolkit's checks that check_units --ttk runs (None: every one that
+# suits stored translations), and the processes running checks (None: one per
+# CPU).
+UNIT_CHECKS_TTK = None
+UNIT_CHECKS_WORKERS = None
+
+
 # Levenshtein config
 
 MAX_LENGTH = 2000

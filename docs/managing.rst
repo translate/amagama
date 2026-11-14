@@ -307,11 +307,27 @@ A target fails:
 :ref:`update <managing#update>` leaves out the targets failing ``printf``,
 ``braces`` or ``script``; the others are only for looking at.
 
+With ``--ttk`` it also runs `translate-toolkit's checks
+<https://docs.translatehouse.org/projects/translate-toolkit/en/latest/commands/pofilter_tests.html>`_
+(``accelerators``, ``endpunc``, ``variables``, ``sentencecount`` and the
+others :setting:`UNIT_CHECKS_TTK` lists), each with the checker of the
+:ref:`blocks <sources>` a target came from (their ``checker``; blocks without
+one don't count), else the standard one, and the target language's rules. A
+target from blocks with different checkers gets the standard one.
+translate-toolkit's ``printf``, ``escapes`` and ``unchanged`` are left to
+amaGama's own, and checks that need a dictionary or word lists aren't run. Many of these failures are differences of
+style rather than broken translations. ``--check`` runs only the named checks,
+amaGama's or translate-toolkit's (may be repeated).
+
 Each check lists the languages and blocks with the most failures (``--top``,
 default 10) and examples chosen at random (``--examples``, default 3). ``-t``
 checks only the given target languages, and ``--build`` the build schemas. The
 targets are read twice, the first time to find each language's usual scripts
-and length.
+and length. The checks run in :setting:`UNIT_CHECKS_WORKERS` processes
+(``--workers``). translate-toolkit's checks cost about 85 CPU seconds per
+million targets of interface text, five times amaGama's own;
+``sentencecount`` is a sixth of that, and is skipped on text over 1000
+characters, where it gets slow.
 
 
 .. _managing#snapshot-db:

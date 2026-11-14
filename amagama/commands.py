@@ -451,21 +451,47 @@ snapshot_option = click.option(
 @click.option('--examples', default=3, show_default=True, help="Examples to show per check.")
 @click.option('--top', default=10, show_default=True,
               help="Languages and blocks to list per check.")
+@click.option('--ttk', is_flag=True,
+              help="Also run translate-toolkit's checks (UNIT_CHECKS_TTK).")
+@click.option('--check', 'names', multiple=True,
+              help="Run only this check (may be repeated), amaGama's or translate-toolkit's.")
+@click.option('--workers', type=click.IntRange(min=1), default=None,
+              help="Processes running the checks. Default: UNIT_CHECKS_WORKERS.")
 @build_option
 @with_appcontext
-def check_units(source_langs, target_langs, examples, top, build):
+def check_units(source_langs, target_langs, examples, top, ttk, names, workers, build):
     """Report stored translations that look broken. Nothing is changed."""
-    from amagama.unit_checks import CHECKS, MEASURES, check_units as check
+    from amagama import unit_checks
     use_build_schemas(build)
     ensure_source_exists()
+    names = list(names) or unit_checks.default_names() + (
+        unit_checks.configured_ttk(current_app.config) if ttk else [])
+    try:
+        names = unit_checks.check_names(names)
+    except ValueError as e:
+        raise click.UsageError(str(e))
+    styles = checker_styles() if set(names) - set(unit_checks.default_names()) else None
     tmdb = current_app.tmdb
     for slang in source_langs:
-        report = check(tmdb.get_cursor().connection, tmdb.schema(lang_to_table(slang)),
-                       [lang_to_table(lang) for lang in target_langs], examples)
+        report = unit_checks.check_units(
+            tmdb.get_cursor().connection, tmdb.schema(lang_to_table(slang)),
+            [lang_to_table(lang) for lang in target_langs], examples, names, styles,
+            unit_checks.workers(current_app.config, workers))
         print("Checked '%s': %d targets in %d languages." % (
             slang, report.targets, len(report.languages)))
-        for line in report.lines(list(CHECKS) + list(MEASURES), top):
+        for line in report.lines(names, top):
             print(line)
+
+
+def checker_styles():
+    """{block name: translate-toolkit checker} of the sources file's blocks,
+    disabled ones too; exits on a sources file that isn't valid."""
+    try:
+        blocks = load_sources(current_app.config.get('UPDATER_SOURCES'), disabled=True)
+    except (OSError, ValueError) as e:
+        print(e)
+        raise SystemExit(1)
+    return {block.name: block.checker for block in blocks if block.checker}
 
 
 @click.command('snapshot_db')
