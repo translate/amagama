@@ -16,6 +16,7 @@ from click.testing import CliRunner
 from amagama import stats, unit_checks
 from amagama.application import amagama_server_factory
 from amagama.cli import manage
+from amagama.updater import pipeline
 from amagama.tests.test_update import run, site, write_gnome  # noqa: F401 - fixtures
 from amagama.tests.test_updater import write_stats
 
@@ -103,6 +104,22 @@ class TestRebuild(object):
         assert "Swapped in 'en'" in result.output
         assert "Couldn't update the statistics in %s: disk full" % (
             tmp_path / "cache" / "stats.json") in result.output
+
+    def test_failure_leaves_the_connection_usable(self, amagama_config, monkeypatch, tmp_path):
+        amagama_config()
+        app = amagama_server_factory()
+
+        def broken(filename, tmdb, *args):
+            tmdb.get_cursor().execute("SELECT nonexistent")
+        monkeypatch.setattr(stats, "update_tm", broken)
+        out = []
+        with app.app_context():
+            pipeline.update_stats("en", str(tmp_path), None, out.append)
+            cursor = app.tmdb.get_cursor()
+            cursor.execute("SELECT 1")
+            assert cursor.fetchone()[0] == 1
+        assert out[0].startswith("Couldn't update the statistics in %s: column"
+                                 % (tmp_path / "stats.json"))
 
     def test_page(self, checked):
         response = get("/stats/")
