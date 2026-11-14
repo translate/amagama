@@ -104,6 +104,12 @@ following fields.
 |                   | such as ``!AGPL-*``: see                  |
 |                   | :ref:`api#licences`.                      |
 +-------------------+-------------------------------------------+
+| exclude_checks    | Comma-separated globs of check names:     |
+|                   | suggestions flagged with a matching       |
+|                   | ``checks`` name are left out, such as     |
+|                   | ``accelerators,variables``; ``*`` leaves  |
+|                   | out every flagged suggestion.             |
++-------------------+-------------------------------------------+
 | jsoncallback      | Wrap the reply in a call to this          |
 |                   | JavaScript function (JSONP).              |
 +-------------------+-------------------------------------------+
@@ -225,6 +231,15 @@ list containing zero or more results. The results contain the following fields:
 |           | :ref:`write API <api#write>`. Empty   |
 |           | if none was recorded.                 |
 +-----------+---------------------------------------+
+| checks    | The names of the :ref:`checks         |
+|           | <managing#check-units>` this          |
+|           | translation fails, in the order the   |
+|           | rebuild ran them, such as             |
+|           | ``["endpunc"]``: maybe broken, maybe  |
+|           | only styled differently. Empty if it  |
+|           | fails none, or wasn't checked (added  |
+|           | since the last rebuild).              |
++-----------+---------------------------------------+
 
 An example:
 
@@ -236,35 +251,40 @@ An example:
         "quality": 100.0,
         "target": "Rekenaar",
         "rank": 100.0,
-        "sources": ["gnome-51", "kde"]
+        "sources": ["gnome-51", "kde"],
+        "checks": []
       },
       {
         "source": "Computers",
          "quality": 88.888888888888886,
          "target": "Rekenaars",
          "rank": 100.0,
-         "sources": ["kde"]
+         "sources": ["kde"],
+         "checks": []
        },
        {
          "source": "&Computer",
          "quality": 88.888888888888886,
          "target": "Rekenaar",
          "rank": 100.0,
-         "sources": ["libreoffice-26.8"]
+         "sources": ["kde"],
+         "checks": ["accelerators"]
        },
        {
          "source": "_Computer",
          "quality": 88.888888888888886,
          "target": "_Rekenaar",
          "rank": 100.0,
-         "sources": ["gnome-51"]
+         "sources": ["gnome-51"],
+         "checks": []
        },
        {
          "source": "My Computer",
          "quality": 72.727272727272734,
          "target": "My Rekenaar",
          "rank": 100.0,
-         "sources": ["legacy-2019"]
+         "sources": ["legacy-2019"],
+         "checks": []
        }
      ]
 

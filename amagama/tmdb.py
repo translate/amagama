@@ -303,6 +303,7 @@ ORDER BY rank DESC{order};
         self._sources = None
         self._weights = {}
         self._licences = {}
+        self._check_names = {}
         self._load_source_langs()
         # set of languages with prepared statements per connection key:
         # {connection id: {slang: the lookup statement prepared for it}}
@@ -327,6 +328,7 @@ ORDER BY rank DESC{order};
         self._sources = None
         self._weights = {}
         self._licences = {}
+        self._check_names = {}
         self._load_source_langs()
 
     def schema(self, slang):
@@ -774,6 +776,7 @@ ORDER BY rank DESC{order};
         self._sources = None
         self._weights = {}
         self._licences = {}
+        self._check_names = {}
         self._load_source_langs()
         current_app.cache.clear()
 
@@ -874,6 +877,17 @@ ORDER BY rank DESC{order};
                 licences = dict(cursor.fetchall())
             self._licences[slang] = licences
         return self._licences[slang]
+
+    def check_names(self, slang):
+        """{bit: check name} of the checks the slang rebuild flagged targets with."""
+        if slang not in self._check_names:
+            cursor = self.get_cursor(self.schema(slang))
+            names = {}
+            if self._has_relation(cursor, 'check_names'):
+                cursor.execute("SELECT bit, name FROM check_names WHERE NOT left_out")
+                names = dict(cursor.fetchall())
+            self._check_names[slang] = names
+        return self._check_names[slang]
 
     def get_sid(self, unit_dict, cursor):
         source = unit_dict['source']
@@ -1121,6 +1135,7 @@ ORDER BY rank DESC{order};
             self._sources = None
             self._weights = {}
             self._licences = {}
+        self._check_names = {}
         return count
 
     @property
@@ -1195,23 +1210,30 @@ ORDER BY rank DESC{order};
                 result['quality'] = quality
                 results.append(result)
         # Choosing needs the sources of every match, not just the best.
-        self._add_sources(cursor, tlang, results)
+        self._add_sources(cursor, tlang, results, self.check_names(slang))
         source_options = source_options or SourceOptions()
         licences = self.block_licences(slang) if source_options.licences else None
         return source_options.choose(results, max_candidates, self.block_weights(slang), licences)
 
-    def _add_sources(self, cursor, tlang, results):
-        """Give each result the names of the blocks it was imported from."""
-        blocks = {}
+    def _add_sources(self, cursor, tlang, results, check_names=None):
+        """Give each result the names of the blocks it was imported from, and
+        of the check_names ({bit: name}) it is flagged with."""
+        blocks, flags = {}, {}
         if results and self._has_relation(cursor, 'target_imports'):
-            cursor.execute("""SELECT t.sid, t.text, ARRAY_AGG(DISTINCT i.block ORDER BY i.block)
+            cursor.execute("""SELECT t.sid, t.text, ARRAY_AGG(DISTINCT i.block ORDER BY i.block),
+                    %s
                 FROM targets t JOIN target_imports l ON l.tid = t.tid
                 JOIN imports i ON i.iid = l.iid
-                WHERE t.lang = %s AND t.sid = ANY(%s) AND i.block IS NOT NULL
-                GROUP BY t.sid, t.text""", (tlang, [result['sid'] for result in results]))
-            blocks = {(sid, text): names for sid, text, names in cursor.fetchall()}
+                WHERE t.lang = %%s AND t.sid = ANY(%%s) AND i.block IS NOT NULL
+                GROUP BY t.sid, t.text""" % ("BIT_OR(t.checks)" if check_names else "NULL"),
+                (tlang, [result['sid'] for result in results]))
+            for sid, text, names, mask in cursor.fetchall():
+                blocks[(sid, text)], flags[(sid, text)] = names, mask or 0
         for result in results:
-            result['sources'] = blocks.get((result.pop('sid'), result['target']), [])
+            key = (result.pop('sid'), result['target'])
+            result['sources'] = blocks.get(key, [])
+            result['checks'] = [name for bit, name in sorted((check_names or {}).items())
+                                if flags.get(key, 0) >> bit & 1]
 
 
 def min_levenshtein_length(length, min_similarity):

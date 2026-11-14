@@ -52,17 +52,20 @@ def licence_allowed(expression, allowed):
 
 
 class SourceOptions(object):
-    """Block-name globs to exclude or keep only, (glob, weight) pairs and licence globs."""
+    """Block-name globs to exclude or keep only, (glob, weight) pairs, licence
+    globs and globs of check names a suggestion mustn't be flagged with."""
 
-    def __init__(self, exclude=(), only=(), weights=(), licences=()):
+    def __init__(self, exclude=(), only=(), weights=(), licences=(), exclude_checks=()):
         self.exclude = list(exclude)
         self.only = list(only)
         self.weights = list(weights)
         self.licences = tuple(licences)
+        self.exclude_checks = list(exclude_checks)
 
     @classmethod
     def from_args(cls, args):
-        """From ?exclude=, ?only=, ?weight= and ?licence=; ValueError for a bad weight."""
+        """From ?exclude=, ?only=, ?weight=, ?licence= and ?exclude_checks=;
+        ValueError for a bad weight."""
         def items(name):
             return [item.strip() for item in args.get(name, '').split(',') if item.strip()]
 
@@ -74,10 +77,12 @@ class SourceOptions(object):
                 raise ValueError("weight must be glob:number from 0 to %d, not %s"
                                  % (MAX_WEIGHT, item))
             weights.append((glob, weight))
-        return cls(items('exclude'), items('only'), weights, items('licence'))
+        return cls(items('exclude'), items('only'), weights, items('licence'),
+                   items('exclude_checks'))
 
     def __bool__(self):
-        return bool(self.exclude or self.only or self.weights or self.licences)
+        return bool(self.exclude or self.only or self.weights or self.licences
+                    or self.exclude_checks)
 
     def kept(self, names, licences=None):
         """The names a suggestion keeps, or None if it is left out.
@@ -104,9 +109,12 @@ class SourceOptions(object):
 
     def choose(self, results, max_candidates, defaults=None, licences=None):
         """The results kept, at most max_candidates: best quality times weight
-        first, then the one more sources supplied, then in the given order."""
+        first, then the one more sources supplied, then in the given order.
+        A result flagged with a check exclude_checks matches is left out."""
         chosen = []
         for result in results:
+            if any(_matches(name, self.exclude_checks) for name in result.get('checks', ())):
+                continue
             kept = self.kept(result['sources'], licences)
             if kept is not None:
                 chosen.append(dict(result, sources=kept))
