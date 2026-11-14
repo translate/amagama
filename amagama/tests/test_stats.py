@@ -203,6 +203,7 @@ class TestCategories(object):
         assert table.index("Critical: likely broken") < table.index("Functional: may not") \
             < table.index("Cosmetic: style")
         assert "Extraction" not in table
+        assert '<th scope="rowgroup" colspan="3">Critical: likely broken</th>' in page
         assert "No translation fails these checks:" in page
         assert "printf 1" in page
 
