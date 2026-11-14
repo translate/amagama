@@ -209,6 +209,8 @@ CREATE TABLE targets (
     sid INTEGER NOT NULL,
     text TEXT NOT NULL,
     lang VARCHAR(32) NOT NULL,
+    -- The checks it fails, as bits of check_names; NULL for none.
+    checks BIGINT,
     FOREIGN KEY (sid) references sources(sid)
 );
 CREATE UNIQUE INDEX targets_unique_idx ON targets (sid, text, lang);
@@ -242,6 +244,17 @@ CREATE TABLE IF NOT EXISTS blocks (
     weight DOUBLE PRECISION NOT NULL DEFAULT 1
 );
 ALTER TABLE blocks ADD COLUMN IF NOT EXISTS weight DOUBLE PRECISION NOT NULL DEFAULT 1;
+"""
+
+    # The checks a rebuild ran, each a bit of targets.checks; those left_out
+    # removed the targets failing them.
+    INIT_CHECKS = """
+CREATE TABLE IF NOT EXISTS check_names (
+    bit SMALLINT PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE,
+    left_out BOOLEAN NOT NULL
+);
+ALTER TABLE targets ADD COLUMN IF NOT EXISTS checks BIGINT;
 """
 
     DEPLOY_QUERY = """

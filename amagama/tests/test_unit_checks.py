@@ -242,18 +242,55 @@ def test_reject(imported, pg_connection, monkeypatch):
     assert orphans == 0
 
 
+def test_reject_flags(imported, pg_connection):
+    imported('gnome', 'af', ('Open the %s file now', 'Maak lêer oop'),
+             ('Do you want to save?', 'Do you want to save?'),
+             ('Save the file.', 'Stoor die lêer'), ('Close the file.', 'Maak die lêer toe.'))
+    report = unit_checks.reject(pg_connection, 'en', names=['unchanged', 'endpunc'],
+                                leave_out=['printf'])
+    assert (report.left_out, report.flagged) == (1, 2)
+    with pg_connection.cursor() as cursor:
+        cursor.execute("SELECT bit, name, left_out FROM en.check_names ORDER BY bit")
+        names = cursor.fetchall()
+        cursor.execute("SELECT text, checks FROM en.targets ORDER BY text")
+        targets = cursor.fetchall()
+    assert names == [(0, 'printf', True), (1, 'unchanged', False), (2, 'endpunc', False)]
+    assert targets == [('Do you want to save?', 2), ('Maak die lêer toe.', None),
+                       ('Stoor die lêer', 4)]
+
+
 update = test_pairing.update
 
 
-def test_update_leaves_out(update, tmp_path):
+def test_update_leaves_out(update, tmp_path, pg_connection):
     url = test_pairing.git_repo(tmp_path / "repo", {"po/af.po": po(
-        ('Open the %s file now', 'Maak die lêer oop'), ('Save the file', 'Stoor die lêer'))})
-    result = update(block("x", "git", url=url, files=["po/{lang}.po"]))
+        ('Open the %s file now', 'Maak die lêer oop'), ('Save the file', 'Stoor die lêer'),
+        ('_Close the window', 'Maak die venster toe'))})
+    result = update(block("x", "git", url=url, files=["po/{lang}.po"], checker="gnome"))
     assert result.exit_code == 0, result.output
     assert "Left out 1 targets that look broken." in result.output
-    assert "  printf: 1 (50.00%)" in result.output
+    assert "  printf: 1 (33.33%)" in result.output
+    assert "Flagged 1 targets." in result.output
+    assert "  accelerators: 1 (33.33%)" in result.output
+    assert "  endpunc: 0 (0.00%)" in result.output
     assert test_pairing.lookup("af", "Open the %s file now") == []
     assert test_pairing.lookup("af", "Save the file") == ["Stoor die lêer"]
+    # Deployed and swapped in, with the flags.
+    with pg_connection.cursor() as cursor:
+        cursor.execute("""SELECT t.text, n.name FROM en.targets t
+            JOIN en.check_names n ON t.checks & (1::BIGINT << n.bit) <> 0""")
+        assert cursor.fetchall() == [('Maak die venster toe', 'accelerators')]
+        cursor.execute("SELECT to_regclass('en.targets_lang_sid_idx') IS NOT NULL")
+        assert cursor.fetchone()[0]
+    pg_connection.commit()
+
+
+def test_update_unknown_check(update, amagama_config, tmp_path):
+    url = test_pairing.git_repo(tmp_path / "repo", {"po/af.po": po(('Save', 'Stoor'))})
+    amagama_config(UNIT_CHECKS_TTK=["endpunc", "spelling"])
+    result = update(block("x", "git", url=url, files=["po/{lang}.po"]))
+    assert result.exit_code == 1
+    assert "Not checks: spelling" in result.output
 
 
 @pytest.mark.parametrize("style, source, target, failed", [

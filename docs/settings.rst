@@ -246,7 +246,8 @@ Settings for the checks of stored translations, see :ref:`check_units
 ``UNIT_CHECKS_TTK``
   Default: ``None``
 
-  The translate-toolkit checks ``check_units --ttk`` runs, such as
+  The translate-toolkit checks :ref:`update <managing#update>` flags
+  translations with, and ``check_units --ttk`` runs, such as
   ``["accelerators", "endpunc", "variables"]``. ``None`` is every one that
   suits stored translations; leave out ``sentencecount``, the slowest, to save
   time.
