@@ -6,6 +6,7 @@
 # the AUTHORS.md file for copyright and authorship information.
 
 
+import contextlib
 import functools
 import datetime
 import hashlib
@@ -461,47 +462,76 @@ snapshot_option = click.option(
 @click.option('--sample', default=None, metavar='CHECK',
               help="Run only this check and list --examples of its failures per language.")
 @click.option('--seed', type=int, default=None, help="Seed for choosing examples.")
+@click.option('--by-source', type=click.Path(dir_okay=False, allow_dash=True), default=None,
+              metavar='FILE', help="Write each source language, block and language's targets "
+              "and failures per check, tab-separated ('-': standard output, the report going "
+              "to standard error).")
+@click.option('--suggest-weights', is_flag=True,
+              help="Suggest lower weights for blocks failing more than the rest: by the "
+              "--check checks, else those rebuilds leave out. Nothing is changed.")
 @build_option
 @with_appcontext
 def check_units(source_langs, target_langs, examples, top, ttk, names, workers, sample, seed,
-                build):
+                by_source, suggest_weights, build):
     """Report stored translations that look broken. Nothing is changed."""
     from amagama import unit_checks
     use_build_schemas(build)
     ensure_source_exists()
-    names = [sample] if sample else list(names) or unit_checks.default_names() + (
+    chosen = list(names)
+    names = [sample] if sample else chosen or unit_checks.default_names() + (
         unit_checks.configured_ttk(current_app.config) if ttk else [])
+    weigh = None
+    if suggest_weights:
+        weigh = chosen or unit_checks.leave_out(current_app.config)
+        names = names + weigh
+    elif by_source:
+        weigh = []
     try:
         names = unit_checks.check_names(names)
+        weigh = weigh if weigh is None else unit_checks.check_names(weigh)
     except ValueError as e:
         raise click.UsageError(str(e))
-    styles = checker_styles() if set(names) - set(unit_checks.default_names()) else None
+    # Only translate-toolkit's checks and weights need the sources file.
+    blocks = sources_file_blocks() if suggest_weights or set(names) - set(
+        unit_checks.default_names()) else []
+    styles = {block.name: block.checker for block in blocks if block.checker}
+    # The table on standard output, the report goes to standard error.
+    out = functools.partial(print, file=sys.stderr) if by_source == '-' else print
     tmdb = current_app.tmdb
-    for slang in source_langs:
-        report = unit_checks.check_units(
-            tmdb.get_cursor().connection, tmdb.schema(lang_to_table(slang)),
-            [lang_to_table(lang) for lang in target_langs], examples, names, styles,
-            unit_checks.workers(current_app.config, workers), sample, random.Random(seed))
-        print("Checked '%s': %d targets in %d languages." % (
-            slang, report.targets, len(report.languages)))
-        if sample:
-            print(next(report.summary([sample])))
-            for line in report.sample_lines():
-                print("  " + line)
-            continue
-        for line in report.lines(names, top):
-            print(line)
+    with (click.open_file(by_source, 'w', encoding='utf-8') if by_source
+          else contextlib.nullcontext()) as table:
+        for n, slang in enumerate(source_langs):
+            report = unit_checks.check_units(
+                tmdb.get_cursor().connection, tmdb.schema(lang_to_table(slang)),
+                [lang_to_table(lang) for lang in target_langs], examples, names, styles,
+                unit_checks.workers(current_app.config, workers), sample, random.Random(seed),
+                weigh)
+            out("Checked '%s': %d targets in %d languages." % (
+                slang, report.targets, len(report.languages)))
+            if table is not None:
+                for row in report.source_table(slang, names, header=not n):
+                    table.write("\t".join(str(field) for field in row) + "\n")
+            if sample:
+                out(next(report.summary([sample])))
+                for line in report.sample_lines():
+                    out("  " + line)
+                continue
+            for line in report.lines(names, top):
+                out(line)
+            if suggest_weights:
+                weights = {block.name: block.weight for block in blocks}
+                for line in report.weight_lines(weigh, weights):
+                    out(line)
 
 
-def checker_styles():
-    """{block name: translate-toolkit checker} of the sources file's blocks,
-    disabled ones too; exits on a sources file that isn't valid."""
+def sources_file_blocks():
+    """The sources file's blocks, disabled ones too; exits on a sources file
+    that isn't valid."""
     try:
-        blocks = load_sources(current_app.config.get('UPDATER_SOURCES'), disabled=True)
+        return load_sources(current_app.config.get('UPDATER_SOURCES'), disabled=True)
     except (OSError, ValueError) as e:
         print(e)
         raise SystemExit(1)
-    return {block.name: block.checker for block in blocks if block.checker}
 
 
 @click.command('snapshot_db')

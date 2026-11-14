@@ -165,6 +165,8 @@ TTK_CHECKS = tuple(sorted(set(_checker.defaultfilters) - TTK_LEFT_OUT - set(CHEC
 SLOW_CHECKS = {"sentencecount": 1000}
 # A target's failures are a 64-bit mask.
 MAX_CHECKS = 63
+# Blocks with fewer targets get no suggested weight.
+WEIGHT_MIN_TARGETS = 1000
 # Rows checked at a time in a worker process.
 BATCH = 2000
 # Failures copied to the database at a time.
@@ -376,6 +378,11 @@ class Report(object):
         self.by_language = collections.defaultdict(collections.Counter)
         self.by_block = collections.defaultdict(collections.Counter)
         self.examples = collections.defaultdict(list)
+        # Failures by (block, language), and the targets of each.
+        self.by_source = collections.defaultdict(collections.Counter)
+        self.source_targets = {}
+        # Targets failing the weighed checks, by block and (None) in all.
+        self.weighed = collections.Counter()
         # The targets a rebuild left out, and those it flagged.
         self.left_out = self.flagged = 0
         # Failures so far, for choosing examples.
@@ -420,6 +427,66 @@ class Report(object):
                 yield "  [%s] %r -> %r%s" % (
                     lang, source, target, " (%s)" % ", ".join(blocks) if blocks else "")
 
+    def count_sources(self, cursor, schema, langs, checks, weigh):
+        """Count the targets each block supplied in each language, and those
+        failing any of the checks weigh, by block and in all."""
+        mask = sum(checks.bits[name] for name in weigh)
+        query = sql.SQL("""SELECT i.block, i.lang, COUNT(DISTINCT l.tid),
+                COUNT(DISTINCT c.tid) FILTER (WHERE c.mask & %s <> 0)
+            FROM {0}.target_imports l JOIN {0}.imports i ON i.iid = l.iid
+            LEFT JOIN checked c ON c.tid = l.tid WHERE i.block IS NOT NULL""").format(
+            sql.Identifier(schema))
+        params = [mask]
+        if langs:
+            query += sql.SQL(" AND i.lang = ANY(%s)")
+            params.append(list(langs))
+        cursor.execute(query + sql.SQL(" GROUP BY 1, 2"), params)
+        for block, lang, targets, weighed in cursor.fetchall():
+            self.source_targets[(block, lang)] = targets
+            self.weighed[block] += weighed
+        cursor.execute("SELECT COUNT(*) FROM checked WHERE mask & %s <> 0", (mask,))
+        self.weighed[None] = cursor.fetchone()[0]
+
+    def source_table(self, slang, names, header=True):
+        """Rows of slang, block, language, targets, then each of names'
+        failures; with header, a row of column names first."""
+        if header:
+            yield ["source", "block", "language", "targets"] + list(names)
+        for block, lang in sorted(self.source_targets):
+            failures = self.by_source.get((block, lang), {})
+            yield [slang, block, lang, self.source_targets[(block, lang)]] + [
+                failures.get(name, 0) for name in names]
+
+    def suggested_weights(self, weights=None, min_targets=None):
+        """(block, weight, suggested weight, share failing) of the blocks of
+        min_targets or more whose share of targets failing the weighed checks
+        is over the share of all targets: weight (default 1, from weights)
+        less twice the difference, by at most half, in steps of 0.05; none
+        for a block whose weight has no lower step from half up."""
+        weights = weights or {}
+        min_targets = WEIGHT_MIN_TARGETS if min_targets is None else min_targets
+        overall = self.weighed[None] / (self.targets or 1)
+        targets = collections.Counter()
+        for (block, _), n in self.source_targets.items():
+            targets[block] += n
+        suggested = []
+        for block, n in sorted(targets.items()):
+            share = self.weighed[block] / n
+            weight = weights.get(block, 1.0)
+            new = max(math.floor(20 * weight * max(0.5, 1 - 2 * (share - overall)) + 1e-9),
+                      math.ceil(10 * weight - 1e-9)) / 20
+            if n >= min_targets and share > overall and new < weight:
+                suggested.append((block, weight, new, share))
+        return suggested
+
+    def weight_lines(self, weigh, weights=None):
+        """The suggested weights, as lines of text."""
+        yield "Suggested weights, by %s (%.2f%% of all targets fail): %s" % (
+            ", ".join(weigh), 100 * self.weighed[None] / (self.targets or 1),
+            "" if self.suggested_weights(weights) else "none")
+        for block, weight, new, share in self.suggested_weights(weights):
+            yield "  %s: %g -> %g (%.2f%% fail)" % (block, weight, new, 100 * share)
+
     def summary(self, names):
         """A line per check in names: its failures."""
         for name in names:
@@ -429,13 +496,15 @@ class Report(object):
     def count_blocks(self, cursor, schema, checks):
         """Count each check's failures (in the checked table) by the blocks
         that supplied them."""
-        cursor.execute(sql.SQL("""SELECT i.block, b.bit, COUNT(DISTINCT c.tid) FROM checked c
+        cursor.execute(sql.SQL("""SELECT i.block, i.lang, b.bit, COUNT(DISTINCT c.tid)
+            FROM checked c
             JOIN {0}.target_imports l ON l.tid = c.tid JOIN {0}.imports i ON i.iid = l.iid
             CROSS JOIN generate_series(0, %s) b(bit)
             WHERE i.block IS NOT NULL AND c.mask & (1::BIGINT << b.bit) <> 0
-            GROUP BY 1, 2""").format(sql.Identifier(schema)), (len(checks.names) - 1,))
-        for block, bit, n in cursor.fetchall():
+            GROUP BY 1, 2, 3""").format(sql.Identifier(schema)), (len(checks.names) - 1,))
+        for block, lang, bit, n in cursor.fetchall():
             self.by_block[checks.names[bit]][block] += n
+            self.by_source[(block, lang)][checks.names[bit]] += n
         for examples in self.examples.values():
             for example in examples:
                 cursor.execute(sql.SQL("""SELECT DISTINCT i.block FROM {0}.target_imports l
@@ -497,11 +566,13 @@ def workers(config, given=None):
 
 
 def _check(connection, schema, langs=(), examples=3, names=None, styles=None, workers=1,
-           sample=None, rng=None):
+           sample=None, rng=None, weigh=None):
     """(Report, Checks) on the targets in schema, in langs or all of its
     languages, for names (check_names(); None: default_names()), leaving
     each failing target's mask in the checked table. Nothing is committed.
-    With sample, a check, its examples are chosen in each language.
+    With sample, a check, its examples are chosen in each language. With
+    weigh, checks among names, the targets of each block and language are
+    counted, and those failing any of weigh.
 
     translate-toolkit's checks use the checker of the style the target's
     blocks have (styles: {block: style}), else the standard one.
@@ -568,6 +639,8 @@ def _check(connection, schema, langs=(), examples=3, names=None, styles=None, wo
         cursor.execute("ANALYZE checked")
         if links:
             report.count_blocks(cursor, schema, checks)
+            if weigh is not None:
+                report.count_sources(cursor, schema, langs, checks, weigh)
         else:
             for examples in report.examples.values():
                 for example in examples:
@@ -576,11 +649,11 @@ def _check(connection, schema, langs=(), examples=3, names=None, styles=None, wo
 
 
 def check_units(connection, schema, langs=(), examples=3, names=None, styles=None, workers=1,
-                sample=None, rng=None):
+                sample=None, rng=None, weigh=None):
     """A Report on the targets in schema; see _check(). Nothing is written."""
     try:
         return _check(connection, schema, langs, examples, names, styles, workers, sample,
-                      rng)[0]
+                      rng, weigh)[0]
     finally:
         connection.rollback()
 
@@ -591,7 +664,8 @@ def _has_imports(cursor, schema):
     return cursor.fetchone()[0]
 
 
-def reject(connection, schema, examples=3, names=(), leave_out=FILTER, styles=None, workers=1):
+def reject(connection, schema, examples=3, names=(), leave_out=FILTER, styles=None, workers=1,
+           weigh=None):
     """Delete the targets in schema failing leave_out, and record the
     failures of names on the others (targets.checks, named in
     check_names); a Report on both, see _check().
@@ -600,7 +674,8 @@ def reject(connection, schema, examples=3, names=(), leave_out=FILTER, styles=No
     drops anyway, goes first, so the flags don't rewrite it.
     """
     report, checks = _check(connection, schema, examples=examples,
-                            names=list(leave_out) + list(names), styles=styles, workers=workers)
+                            names=list(leave_out) + list(names), styles=styles, workers=workers,
+                            weigh=weigh)
     mask = sum(checks.bits[name] for name in leave_out)
     table = sql.Identifier(schema)
     with connection.cursor() as cursor:

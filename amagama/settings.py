@@ -65,6 +65,9 @@ UNIT_CHECKS_WORKERS = None
 # Checks whose failures rebuilds leave out, besides printf, braces and script:
 # one whose sampled failures turned out to be broken translations.
 UNIT_CHECKS_LEAVE_OUT = []
+# Whether rebuilds suggest lower weights for blocks failing those checks more
+# than the rest. Only a suggestion: weights are set in the sources file.
+UNIT_CHECKS_SUGGEST_WEIGHTS = False
 
 
 # Levenshtein config
