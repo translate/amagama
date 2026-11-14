@@ -16,7 +16,7 @@ import os
 
 from flask import Blueprint, current_app, make_response, render_template, request
 
-from amagama import languagenames, stats, titles, unit_checks, webtext
+from amagama import charts, languagenames, stats, titles, unit_checks, webtext
 
 
 web_ui = Blueprint('web_ui', __name__, static_folder='static')
@@ -60,10 +60,9 @@ def translate():
     return response
 
 
-# Days of lookups the page shows, and the languages and blocks it names for
-# each check.
-USE_DAYS = 31
+# The languages and blocks the page names for each check.
 TOP = 10
+KINDS = ("ordinary", "prefetch", "bulk")
 
 
 def number(value):
@@ -92,6 +91,10 @@ def _source_language(slang, figures, _, names):
 
     # The figures are cached for every request: the page's copies are its own.
     history = [dict(entry) for entry in reversed(figures.get("history", []))]
+    built = [(datetime.datetime.fromisoformat(entry["built"]), entry)
+             for entry in reversed(history) if entry.get("built")]
+    volume = [(key, charts.line([(when, entry[key]) for when, entry in built]))
+              for key in ("targets", "sources", "languages")]
     most = max((entry["targets"] for entry in history), default=0)
     for entry in history:
         entry["bar"] = _share(entry["targets"], most)
@@ -134,6 +137,7 @@ def _source_language(slang, figures, _, names):
         "name": language(slang),
         "figures": figures,
         "history": history,
+        "charts": [(key, chart) for key, chart in volume if chart],
         "languages": languages,
         "blocks": blocks,
         "blocksDir": direction,
@@ -146,18 +150,16 @@ def _source_language(slang, figures, _, names):
 
 
 def _use(use):
-    """What the page shows of the lookups: the last USE_DAYS days, newest first."""
+    """What the page shows of the lookups: a chart, and the days newest first."""
     if not use or not use.get("days"):
         return None
-    days = [dict(day, total=sum(day.get(kind, 0) for kind in ("ordinary", "prefetch", "bulk")))
-            for day in use["days"][-USE_DAYS:]]
+    days = [dict(day, total=sum(day.get(kind, 0) for kind in KINDS)) for day in use["days"]]
     most = max(day["total"] for day in days)
     for day in days:
-        day["bars"] = [(kind, _share(day.get(kind, 0), most))
-                       for kind in ("ordinary", "prefetch", "bulk")]
-    totals = {kind: sum(day.get(kind, 0) for day in days)
-              for kind in ("ordinary", "prefetch", "bulk", "total")}
-    return {"days": list(reversed(days)), "totals": totals, "computed": use.get("computed")}
+        day["bars"] = [(kind, _share(day.get(kind, 0), most)) for kind in KINDS]
+    totals = {kind: sum(day.get(kind, 0) for day in days) for kind in KINDS + ("total", "limited")}
+    return {"days": list(reversed(days)), "totals": totals, "computed": use.get("computed"),
+            "chart": charts.columns(days, KINDS, "limited")}
 
 
 @web_ui.route('/stats/', methods=('GET', ))

@@ -1,3 +1,17 @@
+{% macro axes(chart) -%}
+      <g class="stats-grid">
+        {% for y, value in chart.yTicks %}
+        <line x1="{{ chart.left }}" x2="{{ chart.right }}" y1="{{ y }}" y2="{{ y }}"/>
+        <text x="{{ chart.left - 4 }}" y="{{ y }}" text-anchor="end" dominant-baseline="middle">{{ number(value) }}</text>
+        {% endfor %}
+      </g>
+      <g class="stats-x-axis">
+        {% for x, label, anchor in chart.xTicks %}
+        <line x1="{{ x }}" x2="{{ x }}" y1="{{ chart.bottom }}" y2="{{ chart.bottom + 4 }}"/>
+        <text x="{{ x }}" y="{{ chart.height - 2 }}" text-anchor="{{ anchor }}">{{ label }}</text>
+        {% endfor %}
+      </g>
+{%- endmacro -%}
 <!DOCTYPE html>
 <html lang="{{ _.tag }}" dir="{{ _.dir }}">
   <head>
@@ -75,10 +89,37 @@
             <dt>{{ _("Translations") }}</dt><dd>{{ number(figures.targets) }}</dd>
             <dt>{{ _("Languages") }}</dt><dd>{{ number(figures.languages|length) }}</dd>
           </dl>
+          {% if source.charts %}
+          {% set labels = {"targets": _("Translations"), "sources": _("Source strings"),
+                           "languages": _("Languages")} %}
+          <div class="row">
+            {% for key, chart in source.charts %}
+            {% set id = "chart-" ~ source.code ~ "-" ~ key %}
+            <div class="col-sm-4">
+              <h3 class="stats-chart-title" aria-hidden="true">{{ labels[key] }}</h3>
+              <svg class="stats-chart" viewBox="0 0 {{ chart.width }} {{ chart.height }}" role="img" aria-labelledby="{{ id }}-title {{ id }}-desc">
+                <title id="{{ id }}-title">{{ labels[key] }}</title>
+                {# Translators: Describes a chart of the translation memory over time. {first} and {last} are numbers; {start} and {end} are dates, such as 2026-11-01. #}
+                <desc id="{{ id }}-desc">{{ _("From {first} on {start} to {last} on {end}.",
+                    first=number(chart.first[1]), start=chart.first[0].date().isoformat(),
+                    last=number(chart.last[1]), end=chart.last[0].date().isoformat()) }}</desc>
+                {{ axes(chart) }}
+                <path class="stats-line" d="{{ chart.path }}"/>
+                {% for x, y in chart.dots %}<circle class="stats-dot" cx="{{ x }}" cy="{{ y }}" r="2.5"/>{% endfor %}
+              </svg>
+            </div>
+            {% endfor %}
+          </div>
+          {% elif source.history|length == 1 %}
+          {# Translators: Shown instead of charts while the translation memory has been built only once. #}
+          <p>{{ _("The charts of how the translation memory grows start after its next rebuild.") }}</p>
+          {% endif %}
           {% if source.history %}
+          <details class="stats-details">
+          <summary>{{ _("The translation memory at each rebuild, newest first") }}</summary>
           <div class="table-responsive">
           <table class="table table-condensed stats-table">
-            <caption>{{ _("The translation memory at each rebuild, newest first") }}</caption>
+            <caption class="sr-only">{{ _("The translation memory at each rebuild, newest first") }}</caption>
             <thead>
               <tr>
                 {# Translators: Column of the date the translation memory was rebuilt. #}
@@ -104,6 +145,7 @@
             </tbody>
           </table>
           </div>
+          </details>
           {% endif %}
         </section>
 
@@ -271,12 +313,40 @@
           <h2 id="use">{{ _("Use") }}</h2>
           {% if page.use %}
           <p>{{ _("Lookups per day. Prefetches are lookups a translation tool makes ahead of need; bulk fetches look up a whole file at once.") }}</p>
+          {# Translators: Lookups refused because a client made too many too fast (HTTP status 429). #}
+          {% set refused = _("Refused (429)") %}
           <p class="stats-legend" aria-hidden="true">
             <span><span class="stats-swatch ordinary"></span> {{ _("Ordinary") }}</span>
             <span><span class="stats-swatch prefetch"></span> {{ _("Prefetch") }}</span>
             <span><span class="stats-swatch bulk"></span> {{ _("Bulk") }}</span>
+            {% if page.use.chart and page.use.chart.line %}<span><span class="stats-swatch limited"></span> {{ refused }}</span>{% endif %}
           </p>
-          <div class="table-responsive">
+          {% set chart = page.use.chart %}
+          {% if chart %}
+          {% if chart.weekly %}
+          {# Translators: Title of a chart of the lookups per day, averaged over each week. #}
+          {% set title = _("Average lookups per day, by week") %}
+          {% else %}
+          {% set title = _("Lookups per day") %}
+          {% endif %}
+          <svg class="stats-chart stats-chart-wide" viewBox="0 0 {{ chart.width }} {{ chart.height }}" role="img" aria-labelledby="chart-use-title chart-use-desc">
+            <title id="chart-use-title">{{ title }}</title>
+            {# Translators: Describes a chart of the lookups. {total} and {average} are numbers; {start} and {end} are dates, such as 2026-11-01. #}
+            <desc id="chart-use-desc">{{ _("{total} lookups from {start} to {end}, {average} a day on average.",
+                total=number(chart.total), start=chart.start.isoformat(), end=chart.end.isoformat(),
+                average=number(chart.average)) }}</desc>
+            {{ axes(chart) }}
+            {% for stacked in chart.columns %}{% for kind, x, y, w, h in stacked %}<rect class="{{ kind }}" x="{{ x }}" y="{{ y }}" width="{{ w }}" height="{{ h }}"/>{% endfor %}
+            {% endfor %}
+            {% if chart.line %}
+            <path class="stats-line limited" d="{{ chart.line }}"/>
+            {% for x, y in chart.dots %}<circle class="stats-dot limited" cx="{{ x }}" cy="{{ y }}" r="2.5"/>{% endfor %}
+            {% endif %}
+          </svg>
+          {% endif %}
+          <details class="stats-details"{% if not chart %} open{% endif %}>
+          <summary>{{ _("Lookups per day") }}</summary>
+          <div class="table-responsive stats-scroll">
           <table class="table table-condensed stats-table">
             <caption class="sr-only">{{ _("Lookups per day") }}</caption>
             <thead>
@@ -287,6 +357,7 @@
                 <th scope="col" class="number">{{ _("Prefetch") }}</th>
                 <th scope="col" class="number">{{ _("Bulk") }}</th>
                 <th scope="col" class="number">{{ _("Total") }}</th>
+                <th scope="col" class="number">{{ refused }}</th>
                 <th scope="col" class="bar-column"><span class="sr-only">{{ _("Total") }}</span></th>
               </tr>
             </thead>
@@ -298,6 +369,7 @@
                 <td class="number">{{ number(day.prefetch) }}</td>
                 <td class="number">{{ number(day.bulk) }}</td>
                 <td class="number">{{ number(day.total) }}</td>
+                <td class="number">{{ number(day.get("limited", 0)) }}</td>
                 <td class="bar-column" aria-hidden="true">{% for kind, width in day.bars %}<span class="stats-bar {{ kind }}" style="width: {{ width }}%"></span>{% endfor %}</td>
               </tr>
               {% endfor %}
@@ -309,11 +381,13 @@
                 <td class="number">{{ number(page.use.totals.prefetch) }}</td>
                 <td class="number">{{ number(page.use.totals.bulk) }}</td>
                 <td class="number">{{ number(page.use.totals.total) }}</td>
+                <td class="number">{{ number(page.use.totals.limited) }}</td>
                 <td></td>
               </tr>
             </tfoot>
           </table>
           </div>
+          </details>
           {% else %}
           <p>{{ _("Lookups haven't been counted yet.") }}</p>
           {% endif %}
