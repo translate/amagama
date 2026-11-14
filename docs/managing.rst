@@ -553,6 +553,10 @@ For each source language it keeps:
 - for each check that flags translations, how many fail it, by language and by
   block, and what the last rebuild left out (only a rebuild knows that; run
   here, the figures of the same rebuild are kept);
+- each check's category, translate-toolkit's: critical, functional, cosmetic
+  or extraction. amaGama's printf, braces, tags, escapes and script are
+  critical, its unchanged and length functional. The page lists the checks by
+  category, most serious first;
 - the same totals at each of the last 52 rebuilds.
 
 ``--logs`` also counts the lookups (``GET`` requests of ``.../unit/...``) in

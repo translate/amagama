@@ -415,7 +415,10 @@ Each source language has:
 |                 | ``leftOutChecks``: the checks whose failures    |
 |                 | rebuilds leave out; ``leftOut``: what the last  |
 |                 | rebuild left out (``targets``, and ``checks``   |
-|                 | by check), or null if unknown                   |
+|                 | by check), or null if unknown; ``categories``:  |
+|                 | each check's category, as translate-toolkit's   |
+|                 | ``critical``, ``functional``, ``cosmetic`` or   |
+|                 | ``extraction``                                  |
 +-----------------+-------------------------------------------------+
 | history         | ``built``, ``sources``, ``words``, ``targets``  |
 |                 | and ``languages`` (how many) at each of the     |
@@ -454,7 +457,9 @@ were refused with a 429. They are totals only.
             "flagged": ["tags"],
             "failures": {"tags": 10},
             "leftOutChecks": ["printf", "braces", "script"],
-            "leftOut": {"targets": 5, "checks": {"printf": 5, "braces": 0, "script": 0}}
+            "leftOut": {"targets": 5, "checks": {"printf": 5, "braces": 0, "script": 0}},
+            "categories": {"tags": "critical", "printf": "critical", "braces": "critical",
+                           "script": "critical"}
           },
           "history": [
             {"built": "2026-11-01T12:00:00.000000Z", "sources": 1000, "words": 5000,

@@ -12,7 +12,7 @@ import os
 import pytest
 from click.testing import CliRunner
 
-from amagama import stats
+from amagama import stats, unit_checks
 from amagama.application import amagama_server_factory
 from amagama.cli import manage
 from amagama.tests.test_update import run, site, write_gnome  # noqa: F401 - fixtures
@@ -65,6 +65,9 @@ class TestRebuild(object):
         assert en["languages"][0]["checks"]["unchanged"] == 1
         assert en["blocks"][0]["checks"] == {"unchanged": 1}
         assert checks["leftOutChecks"] == ["printf", "braces", "script"]
+        assert sorted(checks["categories"]) == sorted(checks["flagged"] + checks["leftOutChecks"])
+        assert checks["categories"]["printf"] == "critical"
+        assert checks["categories"]["unchanged"] == "functional"
         assert checks["leftOut"] == {"targets": 1, "checks": {"printf": 1, "braces": 0,
                                                              "script": 0}}
         assert en["history"] == [{"built": en["built"], "sources": 4, "targets": 4, "words": 10,
@@ -151,6 +154,62 @@ class TestAbsent(object):
         amagama_config(ENABLE_WEB_UI=True)
         page = get("/?lang=af").get_data(as_text=True)
         assert '<a href="/stats/?lang=af">' in page
+
+
+def write_figures(filename, failures, categories=True):
+    """A figures file of one source language whose af targets fail failures,
+    {check: failures}."""
+    checks = {"flagged": sorted(failures), "failures": failures, "leftOutChecks": ["printf"],
+              "leftOut": {"targets": 1, "checks": {"printf": 1}}}
+    if categories:
+        checks["categories"] = stats.categories(checks["flagged"] + ["printf"])
+    figures = {"version": stats.VERSION, "computed": "2026-11-14T00:00:00Z", "use": None,
+               "sourceLanguages": {"en": {
+                   "built": None, "sources": 10, "targets": 100, "words": 20, "history": [],
+                   "languages": [{"code": "af", "targets": 100, "sources": 10, "words": 20,
+                                  "coverage": 1.0, "checks": failures}],
+                   "blocks": [], "checks": checks}}}
+    with open(filename, "w", encoding="utf-8") as f:
+        json.dump(figures, f)
+
+
+class TestCategories(object):
+
+    def test_every_check_has_one(self):
+        names = (list(unit_checks.CHECKS) + list(unit_checks.MEASURES)
+                 + sorted(unit_checks.ttk_names()))
+        assert {name: unit_checks.category(name) in unit_checks.CATEGORIES
+                for name in names} == dict.fromkeys(names, True)
+
+    def test_translate_toolkits(self):
+        assert unit_checks.category("xmltags") == "critical"
+        assert unit_checks.category("accelerators") == "functional"
+        assert unit_checks.category("startcaps") == "cosmetic"
+        assert unit_checks.category("untranslated") == "extraction"
+        assert unit_checks.category("nonexistent") is None
+
+    def test_page_groups_by_category(self, amagama_config, tmp_path):
+        filename = tmp_path / "stats.json"
+        amagama_config(ENABLE_WEB_UI=True, STATS_FILE=str(filename))
+        write_figures(filename, {"startcaps": 50, "simplecaps": 60, "unchanged": 5, "tags": 1,
+                                 "xmltags": 2, "urls": 0})
+        page = get("/stats/").get_data(as_text=True)
+        table = page[page.index("Critical: likely broken"):page.index("</table>",
+                                                                       page.index("Critical"))]
+        found = [line.split("<code>")[1].split("</code>")[0] for line in table.splitlines()
+                 if "<code>" in line]
+        assert found == ["xmltags", "tags", "unchanged", "simplecaps", "startcaps"]
+        assert table.index("Critical: likely broken") < table.index("Functional: may not") \
+            < table.index("Cosmetic: style")
+        assert "Extraction" not in table
+        assert "No translation fails these checks:" in page
+        assert "printf 1" in page
+
+    def test_file_without_categories(self, tmp_path):
+        filename = tmp_path / "stats.json"
+        write_figures(filename, {"startcaps": 5}, categories=False)
+        checks = stats.load(str(filename))["sourceLanguages"]["en"]["checks"]
+        assert checks["categories"] == {"startcaps": "cosmetic", "printf": "critical"}
 
 
 def test_path():

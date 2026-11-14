@@ -19,6 +19,7 @@ failing FILTER.
 
 import collections
 import concurrent.futures
+import contextlib
 import functools
 import io
 import itertools
@@ -32,6 +33,7 @@ import unicodedata
 from psycopg2 import sql
 from translate.filters import checks
 from translate.filters.checks import CheckerConfig, projectcheckers
+from translate.filters.decorators import Category
 
 from amagama.tmdb import TMDB
 
@@ -193,6 +195,41 @@ def check_names(names):
     if len(names) > MAX_CHECKS:
         raise ValueError("At most %d checks can run at once." % MAX_CHECKS)
     return [name for name in known if name in names] + sorted(set(names) - set(known))
+
+
+# Check categories, most serious first, as translate-toolkit's Category.
+CATEGORIES = ("critical", "functional", "cosmetic", "extraction")
+_CATEGORY_NAMES = {Category.CRITICAL: "critical", Category.FUNCTIONAL: "functional",
+                   Category.COSMETIC: "cosmetic", Category.EXTRACTION: "extraction"}
+# amaGama's checks and measures, as translate-toolkit would have them: a
+# placeholder, tag, escape or script that doesn't match breaks the
+# translation; a sentence left in English, or a length far from the usual,
+# is likely the wrong text, like translate-toolkit's unchanged, long and short.
+OWN_CATEGORIES = {"printf": "critical", "braces": "critical", "tags": "critical",
+                  "escapes": "critical", "script": "critical", "unchanged": "functional",
+                  "length": "functional"}
+
+
+@functools.lru_cache(maxsize=1)
+def _ttk_categories():
+    # A checker records a check's category the first time the check runs.
+    found = {}
+    for checker in [checks.StandardChecker] + [projectcheckers[style]
+                                               for style in sorted(projectcheckers)]:
+        checker = checker()
+        for name in checker.defaultfilters:
+            with contextlib.suppress(Exception):
+                getattr(checker, name)("", "")
+        for name, found_category in checker.categories.items():
+            found.setdefault(name, _CATEGORY_NAMES.get(found_category))
+    return found
+
+
+def category(name):
+    """The category of check name (one of CATEGORIES), or None if unknown.
+    A translate-toolkit check's is the standard checker's, else the first
+    project checker's that has it."""
+    return OWN_CATEGORIES.get(name) or _ttk_categories().get(name)
 
 
 def failed_checks(source, target, lang, names=None):

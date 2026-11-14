@@ -196,6 +196,13 @@ body {
     caption-side: top;
 }
 
+.stats-table .stats-group th
+{
+    padding-top: 1em;
+    font-weight: normal;
+    font-style: italic;
+}
+
 .stats-table .bar-column
 {
     width: 25%;
