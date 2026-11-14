@@ -167,6 +167,22 @@ msgid ""
 "fail. A translation can fail several."
 msgstr ""
 
+#. Heading of the checks whose failures likely break the translation.
+msgid "Critical: likely broken"
+msgstr ""
+
+#. Heading of the checks whose failures may make the program work wrongly.
+msgid "Functional: may not work as meant"
+msgstr ""
+
+#. Heading of the checks of style: punctuation, spacing, capitals.
+msgid "Cosmetic: style"
+msgstr ""
+
+#. Heading of the checks of how the text was taken from its file.
+msgid "Extraction"
+msgstr ""
+
 msgid "Check"
 msgstr ""
 

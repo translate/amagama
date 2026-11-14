@@ -23,7 +23,7 @@ import tempfile
 
 from psycopg2 import sql
 
-from amagama import logsummary
+from amagama import logsummary, unit_checks
 
 VERSION = 1
 # Rebuilds kept in each source language's history, and days of use.
@@ -48,7 +48,20 @@ def load(filename):
             figures = json.load(f)
     except (OSError, ValueError):
         return None
-    return figures if isinstance(figures, dict) and figures.get("version") == VERSION else None
+    if not isinstance(figures, dict) or figures.get("version") != VERSION:
+        return None
+    # Figures computed before checks had categories.
+    for source in figures.get("sourceLanguages", {}).values():
+        checks = source.get("checks") or {}
+        if "categories" not in checks:
+            checks["categories"] = categories(checks.get("flagged", []) +
+                                              checks.get("leftOutChecks", []))
+    return figures
+
+
+def categories(names):
+    """{name: its unit_checks.category()} of check names."""
+    return {name: unit_checks.category(name) for name in names}
 
 
 @functools.lru_cache(maxsize=4)
@@ -199,7 +212,8 @@ def compute(tmdb, slang):
         "languages": languages,
         "blocks": blocks,
         "checks": {"flagged": sorted(flagged.values()), "failures": totals,
-                   "leftOutChecks": left_out_names, "leftOut": None},
+                   "leftOutChecks": left_out_names, "leftOut": None,
+                   "categories": categories(list(flagged.values()) + left_out_names)},
     }
 
 

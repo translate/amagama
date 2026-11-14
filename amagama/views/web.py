@@ -11,11 +11,12 @@
 import datetime
 import functools
 import hashlib
+import itertools
 import os
 
 from flask import Blueprint, current_app, make_response, render_template, request
 
-from amagama import languagenames, stats, titles, webtext
+from amagama import languagenames, stats, titles, unit_checks, webtext
 
 
 web_ui = Blueprint('web_ui', __name__, static_folder='static')
@@ -117,13 +118,17 @@ def _source_language(slang, figures, _, names):
                             key=lambda item: (-item[0], item[1]["displayTitle"].lower()))
         checks.append({
             "name": name, "failures": failures,
+            "category": figures["checks"]["categories"].get(name),
             "share": percent(failures, figures["targets"]),
             "languages": [(lang["name"], n, percent(n, lang["targets"]))
                           for n, lang in worst[:TOP]],
             "blocks": [(block["displayTitle"], n, percent(n, block["targets"] or 0))
                        for n, block in bad_blocks[:TOP]],
         })
-    checks.sort(key=lambda check: (-check["failures"], check["name"]))
+    order = {name: n for n, name in enumerate(unit_checks.CATEGORIES)}
+    checks.sort(key=lambda check: (order.get(check["category"], len(order)), -check["failures"],
+                                   check["name"]))
+    failing = [check for check in checks if check["failures"]]
     return {
         "code": slang,
         "name": language(slang),
@@ -132,8 +137,10 @@ def _source_language(slang, figures, _, names):
         "languages": languages,
         "blocks": blocks,
         "blocksDir": direction,
-        "checks": [check for check in checks if check["failures"]],
-        "passed": [check["name"] for check in checks if not check["failures"]],
+        "checks": failing,
+        "groups": [(key, list(group))
+                   for key, group in itertools.groupby(failing, lambda check: check["category"])],
+        "passed": sorted(check["name"] for check in checks if not check["failures"]),
         "leftOut": figures["checks"].get("leftOut"),
     }
 

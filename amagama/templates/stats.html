@@ -180,6 +180,16 @@
           <p>{{ _("The translations kept are checked too, and suggestions say which checks they fail. A translation can fail several.") }}</p>
           {% endif %}
           {% if source.checks %}
+          {# Translators: Heading of the checks whose failures likely break the translation. #}
+          {% set critical = _("Critical: likely broken") %}
+          {# Translators: Heading of the checks whose failures may make the program work wrongly. #}
+          {% set functional = _("Functional: may not work as meant") %}
+          {# Translators: Heading of the checks of style: punctuation, spacing, capitals. #}
+          {% set cosmetic = _("Cosmetic: style") %}
+          {# Translators: Heading of the checks of how the text was taken from its file. #}
+          {% set extraction = _("Extraction") %}
+          {% set headings = {"critical": critical, "functional": functional,
+                             "cosmetic": cosmetic, "extraction": extraction} %}
           <div class="table-responsive">
           <table class="table table-condensed stats-table">
             <caption class="sr-only">{{ _("Checks") }}</caption>
@@ -192,8 +202,12 @@
                 <th scope="col" class="number">{{ _("Share") }}</th>
               </tr>
             </thead>
+            {% for key, group in source.groups %}
             <tbody>
-              {% for check in source.checks %}
+              <tr class="stats-group">
+                <th scope="colgroup" colspan="3">{{ headings.get(key) or _("Checks") }}</th>
+              </tr>
+              {% for check in group %}
               <tr>
                 <th scope="row"><code>{{ check.name }}</code></th>
                 <td class="number">{{ number(check.failures) }}</td>
@@ -201,6 +215,7 @@
               </tr>
               {% endfor %}
             </tbody>
+            {% endfor %}
           </table>
           </div>
           {% for check in source.checks %}
