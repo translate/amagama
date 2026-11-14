@@ -427,7 +427,8 @@ The live and build schemas are renamed in one transaction, so lookups switch
 to the new data at once, without a restart. The replaced data stays in
 ``_old_<lang>``: ``swap_db --rollback`` puts it back, and ``dropdb --old``
 removes it. The language list served by the API refreshes when amaGama is
-restarted.
+restarted, and the statistics page with :ref:`update_stats
+<managing#update-stats>`.
 
 
 .. _managing#tmdb-stats:
@@ -493,7 +494,9 @@ processes. A database error stops it before the swap, leaving the live data
 as it was. So does an import worker dying (killed for lack of memory, say):
 the error names the files being imported, and if the whole update is killed,
 the next one names them. The previous copy is kept as ``_old_<lang>`` until
-the next update (``swap_db --rollback`` restores it).
+the next update (``swap_db --rollback`` restores it). After the swap it
+computes the :ref:`statistics <managing#update-stats>` of the new data; a
+failure there is reported and doesn't fail the update.
 
 Like ``fetch_sources``, an update fetches at most
 :setting:`UPDATER_FIRST_FETCHES` blocks for the first time; the others are left
@@ -520,6 +523,61 @@ from a timer: :file:`deploy/` has systemd units for a daily ``fetch_sources``
 and a weekly ``update`` (see :file:`deploy/README.rst`). It refuses to run while a snapshot block's snapshot is missing
 and the live data holds anything the blocks don't re-import, such as a
 migrated database: run :ref:`snapshot_db <managing#snapshot-db>` first.
+
+
+.. _managing#update-stats:
+
+update_stats
+------------
+
+This subcommand computes the figures of the statistics page (``/stats/``) and
+:ref:`its JSON <api#stats>`, from the live data, into :setting:`STATS_FILE`.
+Each :ref:`update <managing#update>` that swaps in a rebuild does the same for
+its source language, so it is only needed after a ``swap_db``, or to fill the
+page on a server rebuilt before it existed:
+
+.. code-block:: bash
+
+    $ amagama-manage update_stats
+    en: 1000 sources, 5000 targets in 20 languages, 3 blocks.
+    Updated the statistics in /srv/amagama/cache/stats.json.
+
+For each source language it keeps:
+
+- the source strings, their words (split on white space) and the translations;
+- for each target language, its translations, the source strings it has a
+  translation for and their words, and its coverage: that share of all the
+  source strings;
+- for each block, its languages, the translations it supplied and when it was
+  last imported;
+- for each check that flags translations, how many fail it, by language and by
+  block, and what the last rebuild left out (only a rebuild knows that; run
+  here, the figures of the same rebuild are kept);
+- each check's category, translate-toolkit's: critical, functional, cosmetic
+  or extraction. amaGama's printf, braces, tags, escapes and script are
+  critical, its unchanged and length functional. The page lists the checks by
+  category, most serious first;
+- the same totals at each of the last 52 rebuilds.
+
+``--logs`` also counts the lookups (``GET`` requests of ``.../unit/...``) in
+nginx access logs, per day and by kind, as :ref:`log_summary
+<managing#log-summary>` tells them apart: ordinary, prefetch and bulk, with
+how many were refused (429). Lookups by Virtaal test instances (a user agent
+ending in ``Test/instance``) are left out, and nothing about a client is kept.
+It takes glob patterns and may be repeated. A day split between two logs
+keeps the highest count seen for it, so reading only the newest logs every day
+never lowers a day counted before; the last 366 days are kept.
+``--only-use`` counts the lookups without the translation figures:
+
+.. code-block:: bash
+
+    $ amagama-manage update_stats --only-use --logs '/srv/amagama/logs/live-nginx.access.log*'
+    Lookups counted on 30 days from 2 logs.
+    Updated the statistics in /srv/amagama/cache/stats.json.
+
+The web app reads the file when it changes, so neither needs a restart. Until
+the figures exist the page says they haven't been computed yet. :file:`deploy/`
+has a daily timer counting the lookups (see :file:`deploy/README.rst`).
 
 
 .. _managing#weblate-sources:

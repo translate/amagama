@@ -366,6 +366,117 @@ or else the best of ``Accept-Language``, among the :ref:`translated ones
     }
 
 
+.. _api#stats:
+
+Statistics
+==========
+
+``GET <SERVER>/api/v1/stats/`` returns the figures of the statistics page
+(``/stats/``), as :ref:`update_stats <managing#update-stats>` last computed
+them; until it has, the reply is a 404 with an ``error``. Times are in UTC.
+
++-----------------+-------------------------------------------------+
+| Field           | Description                                     |
++=================+=================================================+
+| version         | The format's version, 1                         |
++-----------------+-------------------------------------------------+
+| computed        | When the translation figures were last computed |
++-----------------+-------------------------------------------------+
+| sourceLanguages | The figures of each source language, by code    |
++-----------------+-------------------------------------------------+
+| use             | The lookups per day, or null                    |
++-----------------+-------------------------------------------------+
+
+Each source language has:
+
++-----------------+-------------------------------------------------+
+| Field           | Description                                     |
++=================+=================================================+
+| built           | When the data was rebuilt (its last import)     |
++-----------------+-------------------------------------------------+
+| sources         | Source strings                                  |
++-----------------+-------------------------------------------------+
+| words           | Their words                                     |
++-----------------+-------------------------------------------------+
+| targets         | Translations                                    |
++-----------------+-------------------------------------------------+
+| languages       | Per target language: ``code``, ``targets``,     |
+|                 | ``sources`` (the source strings it translates), |
+|                 | ``words`` (theirs), ``coverage`` (``sources``   |
+|                 | as a share of all, 0 to 1) and ``checks``       |
+|                 | (failures by check)                             |
++-----------------+-------------------------------------------------+
+| blocks          | Per :ref:`block <sources>`: ``name``,           |
+|                 | ``title``, ``version``, ``languages`` (how      |
+|                 | many), ``targets``, ``imported`` and ``checks`` |
++-----------------+-------------------------------------------------+
+| checks          | ``flagged``: the checks that flag translations; |
+|                 | ``failures``: each one's failures;              |
+|                 | ``leftOutChecks``: the checks whose failures    |
+|                 | rebuilds leave out; ``leftOut``: what the last  |
+|                 | rebuild left out (``targets``, and ``checks``   |
+|                 | by check), or null if unknown; ``categories``:  |
+|                 | each check's category, as translate-toolkit's   |
+|                 | ``critical``, ``functional``, ``cosmetic`` or   |
+|                 | ``extraction``                                  |
++-----------------+-------------------------------------------------+
+| history         | ``built``, ``sources``, ``words``, ``targets``  |
+|                 | and ``languages`` (how many) at each of the     |
+|                 | last 52 rebuilds, oldest first                  |
++-----------------+-------------------------------------------------+
+| computed        | When these figures were computed                |
++-----------------+-------------------------------------------------+
+
+``use`` has ``computed`` and ``days``: per day (in the server's time zone),
+``date`` and the lookups by kind, ``ordinary``, ``prefetch`` and ``bulk``
+(see :ref:`Sec-Purpose <api#prefetch>`), with ``limited``, how many of them
+were refused with a 429. They are totals only.
+
+.. code-block:: json
+
+    {
+      "version": 1,
+      "computed": "2026-11-01T18:00:00Z",
+      "sourceLanguages": {
+        "en": {
+          "built": "2026-11-01T12:00:00.000000Z",
+          "computed": "2026-11-01T18:00:00Z",
+          "sources": 1000,
+          "words": 5000,
+          "targets": 2000,
+          "languages": [
+            {"code": "af", "targets": 2000, "sources": 900, "words": 4000,
+             "coverage": 0.9, "checks": {"tags": 10}}
+          ],
+          "blocks": [
+            {"name": "gnome-51", "title": "GNOME", "version": "51", "languages": 1,
+             "targets": 2000, "imported": "2026-11-01T12:00:00Z",
+             "checks": {"tags": 10}}
+          ],
+          "checks": {
+            "flagged": ["tags"],
+            "failures": {"tags": 10},
+            "leftOutChecks": ["printf", "braces", "script"],
+            "leftOut": {"targets": 5, "checks": {"printf": 5, "braces": 0, "script": 0}},
+            "categories": {"tags": "critical", "printf": "critical", "braces": "critical",
+                           "script": "critical"}
+          },
+          "history": [
+            {"built": "2026-11-01T12:00:00.000000Z", "sources": 1000, "words": 5000,
+             "targets": 2000, "languages": 1}
+          ]
+        }
+      },
+      "use": {
+        "computed": "2026-11-02T00:30:00Z",
+        "days": [
+          {"date": "2026-11-01", "ordinary": 1000, "prefetch": 500, "bulk": 100,
+           "limited": 0}
+        ]
+      }
+    }
+
+
 .. _api#write:
 
 Adding translations

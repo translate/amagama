@@ -327,3 +327,19 @@ Settings for Levenshtein algorithm. See :ref:`Levenshtein distance
   the database indexes. It will be detrimental to performance to lower this
   setting after deploying the database, up to the point of possibly enabling
   denial of service attacks.
+
+
+.. _settings#statistics-settings:
+
+Statistics settings
+===================
+
+.. setting:: STATS_FILE
+
+``STATS_FILE``
+  Default: ``None``
+
+  The JSON file holding the :ref:`statistics page's <managing#update-stats>`
+  figures, which rebuilds and ``update_stats`` write and the web app reads.
+  ``None`` is :file:`stats.json` in :setting:`UPDATER_CACHE_DIR`. When the web
+  app and the updater have settings files of their own, set it in both.

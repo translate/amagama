@@ -13,7 +13,7 @@ from json import dumps
 from flask import Blueprint, abort, current_app, request
 from werkzeug.datastructures import Headers
 
-from amagama import titles
+from amagama import stats, titles
 from amagama.source_options import SourceOptions
 from amagama.tmdb import lang_to_table
 
@@ -160,6 +160,18 @@ def get_sources():
     headers['Vary'] = 'Accept-Language'
     return current_app.response_class(response, mimetype='application/json',
                                       headers=headers)
+
+
+@read_api.route('/stats/', methods=('GET', ))
+def get_stats():
+    """Return the statistics page's figures; 404 until they are computed."""
+    figures = stats.cached(stats.path(current_app.config))
+    if figures is None:
+        return current_app.response_class(
+            jsonwrapper({'error': "The statistics haven't been computed yet."}),
+            status=404, mimetype='application/json')
+    return current_app.response_class(jsonwrapper(figures), mimetype='application/json',
+                                      headers=Headers(cache_headers))
 
 
 ###############################################################################

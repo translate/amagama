@@ -165,3 +165,106 @@ body {
   padding-left: 15px;
   padding-right: 15px;
 }
+
+
+/* Statistics page */
+
+.stats-page
+{
+    padding-bottom: 4em;
+}
+
+.stats-page section
+{
+    margin-top: 2em;
+}
+
+.stats-table .number,
+.stats-table .date
+{
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.stats-table .number
+{
+    text-align: end;
+}
+
+.stats-table caption
+{
+    caption-side: top;
+}
+
+.stats-table .stats-group th
+{
+    padding-top: 1em;
+    font-weight: normal;
+    font-style: italic;
+}
+
+.stats-table .bar-column
+{
+    width: 25%;
+    min-width: 6em;
+}
+
+.stats-bar
+{
+    display: inline-block;
+    height: 0.9em;
+    vertical-align: middle;
+    background-color: #0badd1;
+}
+
+.stats-bar.prefetch,
+.stats-swatch.prefetch
+{
+    background-color: #f0a30a;
+}
+
+.stats-bar.bulk,
+.stats-swatch.bulk
+{
+    background-color: #5c3c92;
+}
+
+.stats-swatch
+{
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    vertical-align: middle;
+    background-color: #0badd1;
+}
+
+.stats-legend > span
+{
+    margin-inline-end: 1.5em;
+}
+
+.stats-scroll
+{
+    max-height: 60vh;
+    overflow: auto;
+}
+
+/* The bars only repeat the numbers beside them. */
+@media (max-width: 600px)
+{
+    .stats-table .bar-column
+    {
+        display: none;
+    }
+}
+
+.stats-details
+{
+    margin-bottom: 1em;
+}
+
+.stats-details summary
+{
+    cursor: pointer;
+    font-weight: bold;
+}

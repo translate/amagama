@@ -87,6 +87,161 @@ msgid ""
 msgstr ""
 
 #. {host} is the site's address, such as amagama-live.translatehouse.org.
+msgid "{host} - Statistics"
+msgstr ""
+
+msgid "Search"
+msgstr ""
+
+msgid "Statistics"
+msgstr ""
+
+msgid ""
+"The statistics haven't been computed yet. They are computed each time the "
+"translation memory is rebuilt."
+msgstr ""
+
+#. {date} is when the figures were computed, such as 2026-11-01.
+msgid ""
+"These figures were computed on {date}, after the translation memory was last "
+"rebuilt."
+msgstr ""
+
+msgid "Contents"
+msgstr ""
+
+msgid "Volume"
+msgstr ""
+
+msgid "Languages and coverage"
+msgstr ""
+
+msgid "Data sources"
+msgstr ""
+
+msgid "Checks"
+msgstr ""
+
+msgid "Use"
+msgstr ""
+
+msgid "The translation memory has no translations yet."
+msgstr ""
+
+#. Heading of the figures of one source language, such as Volume: English — en.
+msgid "Volume: {language}"
+msgstr ""
+
+msgid "Source strings"
+msgstr ""
+
+#. How many words the source strings have.
+msgid "Words"
+msgstr ""
+
+msgid "The translation memory at each rebuild, newest first"
+msgstr ""
+
+#. Column of the date the translation memory was rebuilt.
+msgid "Rebuilt"
+msgstr ""
+
+msgid ""
+"Coverage is the share of the source strings a language has a translation "
+"for. Words are those of the source strings it translates."
+msgstr ""
+
+msgid "Language"
+msgstr ""
+
+#. Column of the share of the source strings a language has a translation for.
+msgid "Coverage"
+msgstr ""
+
+#. {count} is how many translations the last rebuild left out.
+msgid "The last rebuild left out {count} translations that look broken:"
+msgstr ""
+
+msgid ""
+"The translations kept are checked too, and suggestions say which checks they "
+"fail. A translation can fail several."
+msgstr ""
+
+#. Heading of the checks whose failures likely break the translation.
+msgid "Critical: likely broken"
+msgstr ""
+
+#. Heading of the checks whose failures may make the program work wrongly.
+msgid "Functional: may not work as meant"
+msgstr ""
+
+#. Heading of the checks of style: punctuation, spacing, capitals.
+msgid "Cosmetic: style"
+msgstr ""
+
+#. Heading of the checks of how the text was taken from its file.
+msgid "Extraction"
+msgstr ""
+
+msgid "Check"
+msgstr ""
+
+#. Column of how many translations fail a check.
+msgid "Failures"
+msgstr ""
+
+#. Column of the share of all translations that fail a check.
+msgid "Share"
+msgstr ""
+
+#. Opens the languages and projects that fail the check {check} most.
+msgid "{check}: where it fails most"
+msgstr ""
+
+msgid "By language"
+msgstr ""
+
+msgid "By project"
+msgstr ""
+
+#. Followed by the names of the checks no translation fails.
+msgid "No translation fails these checks:"
+msgstr ""
+
+msgid ""
+"Lookups per day. Prefetches are lookups a translation tool makes ahead of "
+"need; bulk fetches look up a whole file at once."
+msgstr ""
+
+msgid "Ordinary"
+msgstr ""
+
+msgid "Prefetch"
+msgstr ""
+
+msgid "Bulk"
+msgstr ""
+
+msgid "Lookups per day"
+msgstr ""
+
+msgid "Day"
+msgstr ""
+
+msgid "Total"
+msgstr ""
+
+msgid "Lookups haven't been counted yet."
+msgstr ""
+
+#. {api} is a link to the same figures as JSON, named /api/v1/stats/.
+msgid "The same figures are available as JSON from {api}."
+msgstr ""
+
+msgid "{year} © Translate House"
+msgstr ""
+
+#. {host} is the site's address, such as amagama-live.translatehouse.org.
 msgid "{host} - Translation memory lookup"
 msgstr ""
 
@@ -103,9 +258,6 @@ msgid "FOSS translations gathered together in just one place"
 msgstr ""
 
 msgid "Type word or words to search"
-msgstr ""
-
-msgid "Search"
 msgstr ""
 
 msgid "Find a language"
@@ -141,12 +293,6 @@ msgid "Sources"
 msgstr ""
 
 msgid "About"
-msgstr ""
-
-msgid "Data sources"
-msgstr ""
-
-msgid "{year} © Translate House"
 msgstr ""
 
 #. Heading of the results: the text searched for, then its language and the translations' language.

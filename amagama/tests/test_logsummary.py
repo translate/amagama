@@ -13,8 +13,8 @@ from click.testing import CliRunner
 
 from amagama.cli import manage
 from amagama.logsummary import (
-    BULK, ORDINARY, PREFETCH, classify, lookups_per_second, over_limit, peaks, percentile,
-    summarise)
+    BULK, ORDINARY, PREFETCH, classify, lookups_per_day, lookups_per_second, over_limit, peaks,
+    percentile, summarise)
 
 
 @pytest.mark.parametrize("value, kind", [
@@ -73,6 +73,15 @@ def logs(tmp_path):
 def test_summarise(logs):
     assert summarise([str(p) for p in logs]) == {
         ORDINARY: [2, 0], PREFETCH: [1, 0], BULK: [3, 2]}
+
+
+def test_lookups_per_day(logs, tmp_path):
+    test = tmp_path / "test.log"
+    test.write_text(line().replace("Virtaal/1.1.0", "Virtaal/1.1.0 Test/instance"),
+                    encoding="utf-8")
+    # Bulk fetches and ordinary lookups; the stylesheet and page aren't lookups.
+    assert lookups_per_day([str(p) for p in logs] + [str(test)]) == {
+        "2026-11-07": {ORDINARY: 2, PREFETCH: 1, BULK: 3, "limited": 2}}
 
 
 def test_log_summary_command(logs):

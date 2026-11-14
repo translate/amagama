@@ -1,0 +1,9 @@
+[Unit]
+Description=Count amaGama's lookups daily
+
+[Timer]
+OnCalendar=*-*-* 00:30
+Persistent=true
+
+[Install]
+WantedBy=timers.target
