@@ -575,6 +575,10 @@ never lowers a day counted before; the last 366 days are kept.
     Lookups counted on 30 days from 2 logs.
     Updated the statistics in /srv/amagama/cache/stats.json.
 
+The page charts the totals at each rebuild and the lookups per day, by kind,
+with the refused ones as a line; beyond 92 days the lookups are averaged by
+week. The numbers are in tables below the charts.
+
 The web app reads the file when it changes, so neither needs a restart. Until
 the figures exist the page says they haven't been computed yet. :file:`deploy/`
 has a daily timer counting the lookups (see :file:`deploy/README.rst`).

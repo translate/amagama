@@ -240,7 +240,9 @@ body {
 
 .stats-legend > span
 {
+    display: inline-block;
     margin-inline-end: 1.5em;
+    white-space: nowrap;
 }
 
 .stats-scroll
@@ -267,4 +269,97 @@ body {
 {
     cursor: pointer;
     font-weight: bold;
+}
+
+.stats-bar.limited,
+.stats-swatch.limited
+{
+    background-color: #c62828;
+}
+
+/* Charts: inline SVG, drawn in viewBox units. */
+.stats-chart
+{
+    display: block;
+    width: 100%;
+    height: auto;
+    margin-bottom: 1em;
+    direction: ltr;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+}
+
+.stats-chart-wide
+{
+    max-width: 760px;
+}
+
+.stats-chart-title
+{
+    font-size: 1em;
+    font-weight: bold;
+    margin-bottom: 0.3em;
+}
+
+.stats-chart text
+{
+    fill: #777;
+}
+
+.stats-chart line
+{
+    stroke: #ddd;
+}
+
+.stats-chart .stats-x-axis line
+{
+    stroke: #999;
+}
+
+.stats-chart .stats-line
+{
+    fill: none;
+    stroke: #0badd1;
+    stroke-width: 2;
+    stroke-linejoin: round;
+}
+
+.stats-chart .stats-dot
+{
+    fill: #0badd1;
+}
+
+.stats-chart rect.ordinary
+{
+    fill: #0badd1;
+}
+
+.stats-chart rect.prefetch
+{
+    fill: #f0a30a;
+}
+
+.stats-chart rect.bulk
+{
+    fill: #5c3c92;
+}
+
+.stats-chart .stats-line.limited
+{
+    stroke: #c62828;
+    stroke-width: 1.5;
+}
+
+.stats-chart .stats-dot.limited
+{
+    fill: #c62828;
+}
+
+/* The wide chart shrinks on a phone: its labels grow to stay readable. */
+@media (max-width: 600px)
+{
+    .stats-chart-wide
+    {
+        font-size: 20px;
+    }
 }

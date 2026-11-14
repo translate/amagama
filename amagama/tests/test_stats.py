@@ -6,6 +6,7 @@
 # the AUTHORS.md file for copyright and authorship information.
 
 
+import datetime
 import json
 import os
 
@@ -309,3 +310,57 @@ class TestUse(object):
         result = CliRunner().invoke(manage, ["update_stats", "--logs", str(tmp_path / "x*")])
         assert result.exit_code == 2
         assert "No logs match" in result.output
+
+
+class TestCharts(object):
+
+    def page(self, amagama_config, tmp_path, history, days):
+        filename = tmp_path / "stats.json"
+        amagama_config(ENABLE_WEB_UI=True, STATS_FILE=str(filename))
+        write_figures(filename, {})
+        figures = json.loads(filename.read_text(encoding="utf-8"))
+        figures["sourceLanguages"]["en"]["history"] = [
+            {"built": "2026-11-%02dT05:00:00.000000Z" % day, "sources": sources,
+             "targets": targets, "words": 2 * sources, "languages": languages}
+            for day, sources, targets, languages in history]
+        figures["use"] = {"computed": "2026-11-14T00:00:00Z", "days": days}
+        filename.write_text(json.dumps(figures), encoding="utf-8")
+        return get("/stats/").get_data(as_text=True)
+
+    def test_volume_and_use(self, amagama_config, tmp_path):
+        page = self.page(amagama_config, tmp_path,
+                         [(1, 8, 1000, 2), (8, 9, 1500, 3), (14, 10, 2500, 3)],
+                         [{"date": "2026-11-%02d" % day, "ordinary": 1000, "prefetch": 10,
+                           "bulk": 1, "limited": day % 2} for day in range(1, 15)])
+        for key in ("targets", "sources", "languages"):
+            assert ('role="img" aria-labelledby="chart-en-%s-title chart-en-%s-desc"'
+                    % (key, key)) in page
+        assert '<title id="chart-en-targets-title">Translations</title>' in page
+        assert ('<desc id="chart-en-targets-desc">From 1 000 on 2026-11-01 to 2 500 on '
+                '2026-11-14.</desc>') in page
+        assert '<title id="chart-use-title">Lookups per day</title>' in page
+        assert ('<desc id="chart-use-desc">14 154 lookups from 2026-11-01 to 2026-11-14, '
+                '1 011 a day on average.</desc>') in page
+        assert page.count('<rect class="ordinary"') == 14
+        assert '<path class="stats-line limited"' in page
+        assert "Refused (429)" in page
+        # The numbers stay in the tables.
+        assert '<th scope="row" class="date">2026-11-14</th>' in page
+
+    def test_one_rebuild_and_one_day(self, amagama_config, tmp_path):
+        page = self.page(amagama_config, tmp_path, [(14, 10, 2500, 3)],
+                         [{"date": "2026-11-14", "ordinary": 1, "prefetch": 0, "bulk": 0,
+                           "limited": 0}])
+        assert "<svg" not in page
+        assert "The charts of how the translation memory grows start after its next rebuild." \
+            in page
+        assert '<details class="stats-details" open>' in page
+
+    def test_weeks(self, amagama_config, tmp_path):
+        days = [{"date": (datetime.date(2026, 7, 1) + datetime.timedelta(days=n)).isoformat(),
+                 "ordinary": n, "prefetch": 0, "bulk": 0, "limited": 0} for n in range(120)]
+        page = self.page(amagama_config, tmp_path, [], days)
+        assert '<title id="chart-use-title">Average lookups per day, by week</title>' in page
+        assert page.count('<rect class="ordinary"') == 18
+        assert "stats-line limited" not in page
+        assert "Refused (429)</span>" not in page
