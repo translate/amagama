@@ -219,6 +219,16 @@ for a rebuild, and to count the older logs once::
         /srv/amagama/venv/bin/amagama-manage update_stats \
         --logs '/srv/amagama/logs/live-nginx.access.log*'
 
+A box deployed before the statistics page needs its setting and units once,
+after the upgrade's pull::
+
+    echo 'STATS_FILE = "/srv/amagama/cache/stats.json"' | \
+        sudo tee -a /srv/amagama/local_settings.py
+    sudo cp /srv/amagama/amagama/deploy/amagama-stats.service \
+        /srv/amagama/amagama/deploy/amagama-stats.timer /etc/systemd/system/
+    sudo systemctl daemon-reload && sudo systemctl enable --now amagama-stats.timer
+    sudo systemctl restart amagama.uwsgi
+
 The output goes to the journal (``journalctl -u amagama-update``). A source
 that fails to fetch is listed there, and the unit is marked failed
 (``systemctl --failed``) though the rest was rebuilt and swapped in.
