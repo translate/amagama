@@ -1,0 +1,20 @@
+[Unit]
+Description=Count amaGama's lookups per day for its statistics page
+Documentation=https://docs.translatehouse.org/projects/amagama/en/latest/managing.html#update-stats
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=amagama
+Group=amagama
+Environment=AMAGAMA_CONFIG=/srv/amagama/updater_settings.py
+Environment=PYTHONUNBUFFERED=1
+SyslogIdentifier=amagama-stats
+# The current log and the last rotated one, which logrotate leaves uncompressed.
+ExecStart=/srv/amagama/venv/bin/amagama-manage update_stats --only-use \
+        --logs /srv/amagama/logs/live-nginx.access.log \
+        --logs /srv/amagama/logs/live-nginx.access.log-*[0-9]
+Nice=10
+IOSchedulingClass=idle
+MemoryHigh=256M
