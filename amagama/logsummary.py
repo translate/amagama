@@ -124,10 +124,10 @@ def lookups_per_day(paths):
         if method != "GET" or not LOOKUP.match(path) or \
                 match.group("agent").endswith(TEST_AGENT):
             continue
-        time = TIME.match(match.group("time"))
-        if not time:
+        # Not a time, or not a real one (31/Nov).
+        if _seconds(match.group("time")) is None:
             continue
-        day, month, year = time.groups()[:3]
+        day, month, year = TIME.match(match.group("time")).groups()[:3]
         date = "%s-%02d-%s" % (year, MONTHS.index(month) + 1, day)
         counts = days.setdefault(date, dict.fromkeys(KINDS + ("limited",), 0))
         counts[kind] += 1

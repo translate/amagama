@@ -77,9 +77,10 @@ def test_summarise(logs):
 
 def test_lookups_per_day(logs, tmp_path):
     test = tmp_path / "test.log"
-    test.write_text(line().replace("Virtaal/1.1.0", "Virtaal/1.1.0 Test/instance"),
-                    encoding="utf-8")
-    # Bulk fetches and ordinary lookups; the stylesheet and page aren't lookups.
+    test.write_text(line().replace("Virtaal/1.1.0", "Virtaal/1.1.0 Test/instance")
+                    + line().replace("07/Nov/2026", "31/Nov/2026"), encoding="utf-8")
+    # Bulk fetches and ordinary lookups; the stylesheet and page aren't lookups,
+    # and a time that isn't real is left out.
     assert lookups_per_day([str(p) for p in logs] + [str(test)]) == {
         "2026-11-07": {ORDINARY: 2, PREFETCH: 1, BULK: 3, "limited": 2}}
 
