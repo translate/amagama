@@ -564,3 +564,44 @@ def test_update_suggests_weights(update, amagama_config, tmp_path, monkeypatch):
     assert result.exit_code == 0, result.output
     assert "Suggested weights, by printf, braces, script (33.33% of all targets fail): \n" \
         "  x: 1 -> 0.65 (50.00% fail)" in result.output
+
+
+def suggestions(lang, source, query=""):
+    app = test_pairing.amagama_server_factory()
+    with app.test_client() as client:
+        response = client.get("/api/v1/en/%s/unit/%s%s" % (lang, source, query))
+    return sorted((c["target"], c["checks"]) for c in response.get_json())
+
+
+def test_lookup_checks(update, tmp_path):
+    url = test_pairing.git_repo(tmp_path / "repo", {"po/af.po": po(
+        ('_Close the window', 'Maak die venster toe'),
+        ('Close the windows', 'Maak die vensters toe'))})
+    result = update(block("x", "git", url=url, files=["po/{lang}.po"], checker="gnome"))
+    assert result.exit_code == 0, result.output
+    assert suggestions("af", "Close the window") == [
+        ("Maak die venster toe", ["accelerators"]), ("Maak die vensters toe", [])]
+    assert suggestions("af", "Close the window", "?exclude_checks=*") == [
+        ("Maak die vensters toe", [])]
+    assert suggestions("af", "Close the window", "?exclude_checks=endpunc,tags") == [
+        ("Maak die venster toe", ["accelerators"]), ("Maak die vensters toe", [])]
+    assert suggestions("af", "Close the window", "?exclude_checks=accel*") == [
+        ("Maak die vensters toe", [])]
+    # The old API too.
+    app = test_pairing.amagama_server_factory()
+    with app.test_client() as client:
+        response = client.get("/tmserver/en/af/unit/_Close the window")
+    assert sorted(c["checks"] for c in response.get_json()) == [[], ["accelerators"]]
+
+
+def test_lookup_checks_old_schema(imported, pg_connection):
+    # Made before rebuilds recorded checks, and deployed.
+    imported('gnome', 'af', ('_Close the window', 'Maak die venster toe'))
+    with pg_connection.cursor() as cursor:
+        cursor.execute("ALTER TABLE en.targets DROP COLUMN checks")
+    pg_connection.commit()
+    result = CliRunner().invoke(manage, ('deploy_db',), input='y\n')
+    assert result.exit_code == 0, result.output
+    assert suggestions("af", "Close the window") == [("Maak die venster toe", [])]
+    assert suggestions("af", "Close the window", "?exclude_checks=*") == [
+        ("Maak die venster toe", [])]

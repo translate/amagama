@@ -486,7 +486,8 @@ and left out. Before the swap, targets failing the ``printf``, ``braces`` or
 and listed by check, language and block. The other checks, amaGama's and
 the translate-toolkit ones :setting:`UNIT_CHECKS_TTK` lists, flag the targets
 they keep: each target's failures are recorded as a bit mask (``targets.checks``,
-``NULL`` for none) whose bits ``check_names`` names. Targets added later through the write API have no flags
+``NULL`` for none) whose bits ``check_names`` names, and lookups return them
+(:ref:`checks <api#tm-suggestion-results>`, ``exclude_checks``). Targets added later through the write API have no flags
 until the next rebuild. The checks run in :setting:`UNIT_CHECKS_WORKERS`
 processes. A database error stops it before the swap, leaving the live data
 as it was. So does an import worker dying (killed for lack of memory, say):

@@ -28,6 +28,14 @@ class TestSourceOptions(object):
     def test_none(self):
         assert not SourceOptions.from_args({})
 
+    def test_exclude_checks(self):
+        options = SourceOptions.from_args({'exclude_checks': 'accel*, tags'})
+        assert options and options.exclude_checks == ['accel*', 'tags']
+        results = [{'target': 'a', 'quality': 100, 'sources': ['x'], 'checks': ['accelerators']},
+                   {'target': 'b', 'quality': 90, 'sources': ['x'], 'checks': ['endpunc']},
+                   {'target': 'c', 'quality': 80, 'sources': ['x']}]
+        assert [r['target'] for r in options.choose(results, 5)] == ['b', 'c']
+
     def test_licence_args(self):
         options = SourceOptions.from_args({'licence': 'GPL-*, MIT'})
         assert options and options.licences == ('GPL-*', 'MIT')
