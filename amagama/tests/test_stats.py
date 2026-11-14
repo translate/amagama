@@ -128,7 +128,8 @@ class TestRebuild(object):
         assert "Volume: English — en" in page
         assert '<th scope="row" lang="af">Afrikaans — af</th>' in page
         assert "<code>unchanged</code>" in page
-        assert "The last rebuild left out 1 translations that look broken:" in page
+        assert ("Translations the last rebuild left out because they look broken: 1 "
+                "(braces 0, printf 1, script 0).") in page
         assert "printf 1" in page
         assert "Lookups haven&#39;t been counted yet." in page
         assert response.headers["Vary"] == "Accept-Language"
