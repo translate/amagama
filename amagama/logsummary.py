@@ -33,7 +33,12 @@ MONTHS = "Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split()
 LOG_LINE = re.compile(
     r'^(?P<client>\S+) \S+ \S+ \[(?P<time>[^\]]*)\] "(?P<request>[^"]*)" '
     r'(?P<status>\d{3}) \S+ '
-    r'"[^"]*" "[^"]*"(?: "(?P<purpose>[^"]*)")?')
+    r'"[^"]*" "(?P<agent>[^"]*)"(?: "(?P<purpose>[^"]*)")?')
+
+# A translation lookup: GET <prefix><source>/<target>/unit/...
+LOOKUP = re.compile(r"^/(?:api/v1|tmserver)/[^/]+/[^/]+/unit/")
+# The user agent of a Virtaal test instance, whose lookups aren't use.
+TEST_AGENT = " Test/instance"
 
 
 def _split(value, sep):
@@ -107,6 +112,28 @@ def _seconds(time_local):
     except ValueError:
         return None
     return int(stamp.timestamp())
+
+
+def lookups_per_day(paths):
+    """Count the lookups (GET .../unit/) on each day, in the logs' time zone:
+    {"YYYY-MM-DD": {kind: lookups, "limited": 429s}}. Test instances'
+    lookups are left out; nothing about a client is kept."""
+    days = {}
+    for match, kind in _requests(paths):
+        method, path = match.group("request").split(" ")[:2]
+        if method != "GET" or not LOOKUP.match(path) or \
+                match.group("agent").endswith(TEST_AGENT):
+            continue
+        time = TIME.match(match.group("time"))
+        if not time:
+            continue
+        day, month, year = time.groups()[:3]
+        date = "%s-%02d-%s" % (year, MONTHS.index(month) + 1, day)
+        counts = days.setdefault(date, dict.fromkeys(KINDS + ("limited",), 0))
+        counts[kind] += 1
+        if match.group("status") == "429":
+            counts["limited"] += 1
+    return days
 
 
 def summarise(paths):
