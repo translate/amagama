@@ -55,7 +55,7 @@ def _aligned(start, end, kind, step):
     while day <= end:
         if kind == "day" and day.toordinal() % step == 0 or \
                 kind == "week" and day.weekday() == 0 and day.toordinal() // 7 % step == 0 or \
-                kind == "month" and day.day == 1 and (day.month - 1) % step == 0:
+                kind == "month" and day.day == 1 and (day.year * 12 + day.month - 1) % step == 0:
             yield day
         day += datetime.timedelta(days=1)
 

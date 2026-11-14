@@ -58,6 +58,9 @@ class TestDateTicks(object):
         assert [label for day, label in charts.date_ticks(
             datetime.date(2025, 11, 14), datetime.date(2026, 11, 13), 3)] == [
             "2026-01", "2026-07"]
+        assert [label for day, label in charts.date_ticks(
+            datetime.date(2020, 1, 1), datetime.date(2026, 12, 31), 3)] == [
+            "2022-01", "2025-01"]
 
 
 class TestLine(object):
