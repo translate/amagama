@@ -213,9 +213,10 @@
           <h2 id="checks-{{ source.code }}">{{ _("Checks") }}</h2>
           {% if source.leftOut %}
           <p>
-            {# Translators: {count} is how many translations the last rebuild left out. #}
-            {{ _("The last rebuild left out {count} translations that look broken:", count=number(source.leftOut.targets)) }}
-            {% for name, n in source.leftOut.checks|dictsort %}{{ name }} {{ number(n) }}{% if not loop.last %}, {% endif %}{% endfor %}.
+            {% set failed %}{% for name, n in source.leftOut.checks|dictsort %}{{ name }} {{ number(n) }}{% if not loop.last %}, {% endif %}{% endfor %}{% endset %}
+            {# Translators: {count} is how many translations the last rebuild left out; {checks} lists the checks they fail with how many fail each, such as "braces 2, printf 7". #}
+            {{ _("Translations the last rebuild left out because they look broken: {count} ({checks}).",
+                 count=number(source.leftOut.targets), checks=failed) }}
           </p>
           {% endif %}
           {% if source.checks or source.passed %}
