@@ -247,7 +247,7 @@
             {% for key, group in source.groups %}
             <tbody>
               <tr class="stats-group">
-                <th scope="colgroup" colspan="3">{{ headings.get(key) or _("Checks") }}</th>
+                <th scope="rowgroup" colspan="3">{{ headings.get(key) or _("Checks") }}</th>
               </tr>
               {% for check in group %}
               <tr>
