@@ -427,6 +427,8 @@ class TestCharts(object):
                  "ordinary": n, "prefetch": 0, "bulk": 0, "limited": 0} for n in range(120)]
         page = self.page(amagama_config, tmp_path, [], days)
         assert '<title id="chart-use-title">Average lookups per day, by week</title>' in page
+        assert ('<h3 class="stats-chart-title" aria-hidden="true">Average lookups per day, '
+                'by week</h3>') in page
         assert page.count('<rect class="ordinary"') == 18
         assert "stats-line limited" not in page
         assert "Refused (429)</span>" not in page
