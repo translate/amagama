@@ -314,14 +314,6 @@
           <h2 id="use">{{ _("Use") }}</h2>
           {% if page.use %}
           <p>{{ _("Lookups per day. Prefetches are lookups a translation tool makes ahead of need; bulk fetches look up a whole file at once.") }}</p>
-          {# Translators: Lookups refused because a client made too many too fast (HTTP status 429). #}
-          {% set refused = _("Refused (429)") %}
-          <p class="stats-legend" aria-hidden="true">
-            <span><span class="stats-swatch ordinary"></span> {{ _("Ordinary") }}</span>
-            <span><span class="stats-swatch prefetch"></span> {{ _("Prefetch") }}</span>
-            <span><span class="stats-swatch bulk"></span> {{ _("Bulk") }}</span>
-            {% if page.use.chart and page.use.chart.line %}<span><span class="stats-swatch limited"></span> {{ refused }}</span>{% endif %}
-          </p>
           {% set chart = page.use.chart %}
           {% if chart %}
           {% if chart.weekly %}
@@ -330,6 +322,17 @@
           {% else %}
           {% set title = _("Lookups per day") %}
           {% endif %}
+          <h3 class="stats-chart-title" aria-hidden="true">{{ title }}</h3>
+          {% endif %}
+          {# Translators: Lookups refused because a client made too many too fast (HTTP status 429). #}
+          {% set refused = _("Refused (429)") %}
+          <p class="stats-legend" aria-hidden="true">
+            <span><span class="stats-swatch ordinary"></span> {{ _("Ordinary") }}</span>
+            <span><span class="stats-swatch prefetch"></span> {{ _("Prefetch") }}</span>
+            <span><span class="stats-swatch bulk"></span> {{ _("Bulk") }}</span>
+            {% if page.use.chart and page.use.chart.line %}<span><span class="stats-swatch limited"></span> {{ refused }}</span>{% endif %}
+          </p>
+          {% if chart %}
           <svg class="stats-chart stats-chart-wide" viewBox="0 0 {{ chart.width }} {{ chart.height }}" role="img" aria-labelledby="chart-use-title chart-use-desc">
             <title id="chart-use-title">{{ title }}</title>
             {# Translators: Describes a chart of the lookups. {total} and {average} are numbers; {start} and {end} are dates, such as 2026-11-01. #}

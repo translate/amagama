@@ -224,6 +224,13 @@ msgid ""
 "need; bulk fetches look up a whole file at once."
 msgstr ""
 
+#. Title of a chart of the lookups per day, averaged over each week.
+msgid "Average lookups per day, by week"
+msgstr ""
+
+msgid "Lookups per day"
+msgstr ""
+
 #. Lookups refused because a client made too many too fast (HTTP status 429).
 msgid "Refused (429)"
 msgstr ""
@@ -235,13 +242,6 @@ msgid "Prefetch"
 msgstr ""
 
 msgid "Bulk"
-msgstr ""
-
-#. Title of a chart of the lookups per day, averaged over each week.
-msgid "Average lookups per day, by week"
-msgstr ""
-
-msgid "Lookups per day"
 msgstr ""
 
 #. Describes a chart of the lookups. {total} and {average} are numbers; {start} and {end} are dates, such as 2026-11-01.
