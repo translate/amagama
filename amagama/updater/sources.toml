@@ -291,6 +291,18 @@ languages.qq = ""
 licence = "GPL-3.0-or-later"
 
 [[block]]
+name = "kiwix-apple"
+title = "Kiwix for iOS and macOS"
+source = "git"
+min_age_days = 7
+url = "https://github.com/kiwix/kiwix-apple"
+files = ["Support/{lang}.lproj/Localizable.strings"]
+exclude = ["Support/qqq.lproj/Localizable.strings"]
+format = "strings"
+template = "Support/en.lproj/Localizable.strings"
+licence = "GPL-3.0-or-later"
+
+[[block]]
 name = "scribus"
 title = "Scribus"
 source = "git"
