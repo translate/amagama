@@ -534,7 +534,10 @@ This subcommand computes the figures of the statistics page (``/stats/``) and
 :ref:`its JSON <api#stats>`, from the live data, into :setting:`STATS_FILE`.
 Each :ref:`update <managing#update>` that swaps in a rebuild does the same for
 its source language, so it is only needed after a ``swap_db``, or to fill the
-page on a server rebuilt before it existed:
+page on a server rebuilt before it existed. It reads the whole database, which
+can take a long while (over 10 minutes for 36 million targets); ``--only-use``
+(below) counts only the lookups, without reading the database, and leaves the
+translation figures to the next rebuild:
 
 .. code-block:: bash
 
