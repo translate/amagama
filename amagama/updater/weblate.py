@@ -59,8 +59,8 @@ COLLAPSE = 10
 
 
 # Instances weblate_sources has generated blocks for.
-GENERATED = {"hosted.weblate.org", "translate.fedoraproject.org", "l10n.opensuse.org",
-             "translate.lxqt-project.org", "l10n.xwiki.org"}
+GENERATED = {"hosted.weblate.org", "translate.fedoraproject.org", "translate.inkscape.org",
+             "l10n.opensuse.org", "translate.lxqt-project.org", "l10n.xwiki.org"}
 
 
 def components(url, pause=None, project=None):

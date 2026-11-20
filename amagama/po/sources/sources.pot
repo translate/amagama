@@ -3604,6 +3604,10 @@ msgid "Zusam"
 msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "Inkscape"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
 msgid "agama"
 msgstr ""
 
