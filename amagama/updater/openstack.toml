@@ -1,0 +1,98 @@
+# OpenStack's dashboard (Horizon) and its plugins, from opendev.org: the
+# repositories that commit their translations, on the maintained stable
+# releases. Chosen by hand.
+
+[defaults]
+source = "git"
+min_age_days = 7
+tags = ["core"]
+ref = "stable/{version}"
+# Each Python package's catalogs; not doc/ or releasenotes/.
+files = ["*/locale/{lang}/LC_MESSAGES/*.po"]
+# Regions the codes always add.
+languages.fi_FI = "fi"
+languages.ka_GE = "ka"
+languages.ko_KR = "ko"
+languages.nl_NL = "nl"
+languages.pl_PL = "pl"
+languages.sl_SI = "sl"
+languages.tr_TR = "tr"
+licence = "Apache-2.0"
+
+[[block]]
+name = "openstack-horizon-{version}"
+title = "OpenStack Dashboard"
+url = "https://opendev.org/openstack/horizon"
+versions = ["2025.2", "2026.1", "2026.2"]
+
+[[block]]
+name = "openstack-cloudkitty-dashboard-{version}"
+title = "OpenStack CloudKitty Dashboard"
+url = "https://opendev.org/openstack/cloudkitty-dashboard"
+versions = ["2025.2", "2026.1", "2026.2"]
+
+[[block]]
+name = "openstack-freezer-web-ui-{version}"
+title = "OpenStack Freezer Dashboard"
+url = "https://opendev.org/openstack/freezer-web-ui"
+versions = ["2025.2", "2026.1", "2026.2"]
+
+[[block]]
+name = "openstack-heat-dashboard-{version}"
+title = "OpenStack Heat Dashboard"
+url = "https://opendev.org/openstack/heat-dashboard"
+versions = ["2025.2", "2026.1", "2026.2"]
+
+[[block]]
+name = "openstack-ironic-ui-{version}"
+title = "OpenStack Ironic Dashboard"
+url = "https://opendev.org/openstack/ironic-ui"
+versions = ["2025.2", "2026.1", "2026.2"]
+
+[[block]]
+name = "openstack-magnum-ui-{version}"
+title = "OpenStack Magnum Dashboard"
+url = "https://opendev.org/openstack/magnum-ui"
+versions = ["2025.2", "2026.1", "2026.2"]
+
+[[block]]
+name = "openstack-manila-ui-{version}"
+title = "OpenStack Manila Dashboard"
+url = "https://opendev.org/openstack/manila-ui"
+versions = ["2025.2", "2026.1", "2026.2"]
+
+[[block]]
+name = "openstack-networking-bgpvpn-{version}"
+title = "OpenStack BGP VPN"
+url = "https://opendev.org/openstack/networking-bgpvpn"
+versions = ["2025.2", "2026.1", "2026.2"]
+
+[[block]]
+name = "openstack-neutron-fwaas-dashboard-{version}"
+title = "OpenStack FWaaS Dashboard"
+url = "https://opendev.org/openstack/neutron-fwaas-dashboard"
+versions = ["2025.2", "2026.1", "2026.2"]
+
+[[block]]
+name = "openstack-neutron-vpnaas-dashboard-{version}"
+title = "OpenStack VPNaaS Dashboard"
+url = "https://opendev.org/openstack/neutron-vpnaas-dashboard"
+versions = ["2025.2", "2026.1", "2026.2"]
+
+[[block]]
+name = "openstack-octavia-dashboard-{version}"
+title = "OpenStack Octavia Dashboard"
+url = "https://opendev.org/openstack/octavia-dashboard"
+versions = ["2025.2", "2026.1", "2026.2"]
+
+[[block]]
+name = "openstack-trove-dashboard-{version}"
+title = "OpenStack Trove Dashboard"
+url = "https://opendev.org/openstack/trove-dashboard"
+versions = ["2025.2", "2026.1", "2026.2"]
+
+[[block]]
+name = "openstack-zun-ui-{version}"
+title = "OpenStack Zun Dashboard"
+url = "https://opendev.org/openstack/zun-ui"
+versions = ["2025.2", "2026.1", "2026.2"]
