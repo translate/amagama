@@ -7,7 +7,7 @@ min_age_days = 60
 tags = ["platform"]
 
 [[block]]
-name = "inkscape-inkscape-1.4.x-keys"
+name = "inkscape-docs-1.4.x"
 title = "Inkscape"
 url = "https://gitlab.com/inkscape/inkscape-docs/documentation.git"
 version = "1.4.x"
@@ -18,7 +18,7 @@ segment = true
 licence = "GPL-2.0-or-later"
 
 [[block]]
-name = "inkscape-inkscape-master-keys"
+name = "inkscape-docs-master"
 title = "Inkscape"
 url = "https://gitlab.com/inkscape/inkscape-docs/documentation.git"
 ref = "master"
@@ -28,7 +28,7 @@ segment = true
 licence = "GPL-2.0-or-later"
 
 [[block]]
-name = "inkscape-inkscape-1.4.x-inkscape"
+name = "inkscape-1.4.x"
 title = "Inkscape"
 url = "https://gitlab.com/inkscape/translations.git"
 version = "1.4.x"
@@ -38,7 +38,7 @@ sparse = ["*.po"]
 licence = "GPL-2.0-or-later"
 
 [[block]]
-name = "inkscape-inkscape-master-inkscape"
+name = "inkscape-master"
 title = "Inkscape"
 url = "https://gitlab.com/inkscape/translations.git"
 ref = "master"
