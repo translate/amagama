@@ -59,7 +59,7 @@ def _short(lang):
 USUAL_SCRIPTS = {
     "az": "latn", "be": "cyrl", "bs": "latn", "ckb": "arab", "ff": "latn", "ha": "latn",
     "kk": "cyrl", "kmr": "latn", "ks": "arab", "ku": "latn", "ky": "cyrl", "mn": "cyrl",
-    "ms": "latn", "pa": "guru", "sd": "arab", "shi": "tfng", "sr": "cyrl",
+    "ms": "latn", "pa": "guru", "sd": "arab", "shi": "tfng", "skr": "arab", "sr": "cyrl",
     "tg": "cyrl", "tt": "cyrl", "ug": "arab", "uz": "latn", "yue": "hant",
 }
 
