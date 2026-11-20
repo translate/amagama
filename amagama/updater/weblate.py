@@ -45,10 +45,13 @@ FORMATS = {
     "ruby-yaml": "ruby-yaml",
     "xwiki-java-properties": "xwiki-properties",
     "xwiki-page-properties": "xwiki-page",
+    "strings": "strings",
+    "strings-utf8": "strings",
 }
 MONOLINGUAL = {"aresource", "json", "json-nested", "fluent", "properties", "properties-utf8",
                "properties-utf16", "joomla", "php", "i18next", "i18nextv4", "xliff-template",
-               "yaml", "ruby-yaml", "xwiki-java-properties", "xwiki-page-properties"}
+               "yaml", "ruby-yaml", "xwiki-java-properties", "xwiki-page-properties",
+               "strings", "strings-utf8"}
 
 # Hosts that no longer serve their repositories, though Weblate still lists them.
 DEAD_HOSTS = {"pagure.io": "archived"}

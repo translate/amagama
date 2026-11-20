@@ -50,6 +50,7 @@ TYPES = {
     "properties": "properties",
     "php": "php",
     "ftl": "fluent",
+    "macosx": "strings",
 }
 
 

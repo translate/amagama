@@ -38,6 +38,7 @@ TYPES = {
     "KEYVALUEJSON": "json",
     "PHP_ARRAY": "php",
     "PHP_ALT_ARRAY": "php",
+    "STRINGS": "strings",
 }
 
 CONFIG = re.compile(r"(?:^|/)\.tx/config\Z")

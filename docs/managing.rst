@@ -766,7 +766,7 @@ the language, and ``%original_file_name%``, ``%file_name%``,
 monolingual source is the template. ``languages_mapping`` gives the block's
 ``languages``; ``type``, else the extension, the format. Bilingual files of a
 repository share a block, and a monolingual file has its own. Left out, and
-counted: files of a type amaGama doesn't read (Apple :file:`.strings`), with
+counted: files of a type amaGama doesn't read (:file:`.stringsdict`), with
 a placeholder it can't (``%language%``) or none, and patterns matching no
 file, such as a configuration whose translations aren't committed. Units
 aren't counted, so ``--min-units`` doesn't apply.
