@@ -222,6 +222,9 @@ languages.nl-informal = "nl"
 languages.kk-cyrl = "kk"
 languages.mo = "ro"
 languages.nan-latn-tailo = "nan@latin"
+# MediaWiki's codes for Serbian in Cyrillic and in Latin, not regions.
+languages.sr-ec = "sr"
+languages.sr-el = "sr@latin"
 licence = "GPL-2.0-or-later"
 versions = [
   { version = "1.43", ref = "REL1_43" },
