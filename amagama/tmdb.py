@@ -20,6 +20,7 @@ except ImportError:
 
 from collections import defaultdict
 import datetime
+import json
 import logging
 import math
 
@@ -33,7 +34,7 @@ from amagama import postgres
 from amagama.mojibake import CANDIDATE_REGEX, unmangle
 from amagama.source_options import SourceOptions
 from amagama.normalise import indexing_version
-from amagama.updater.languages import normalise_language
+from amagama.updater.languages import COUNTRY_CODES, normalise_language
 
 # Shorter strings always fit a btree index row (2704 bytes, with the row's
 # other columns); a longer one may not, however it compresses.
@@ -86,6 +87,18 @@ def lang_to_table(code):
         return table_name
     # Illegal language name.
     return None
+
+
+# Directory names the 2019 database stored as target languages that happen
+# to be ISO 639 codes (mac is Macedonian's bibliographic code, bad the Banda
+# languages').
+SNAPSHOT_NOT_LANGUAGES = {"bad", "mac"}
+
+
+def _is_language_table(name):
+    """Whether a stored target language's name starts with a language code."""
+    return (name not in SNAPSHOT_NOT_LANGUAGES
+            and normalise_language(name.partition("_")[0]) is not None)
 
 
 CODE_CONFIG_MAP = {
@@ -449,8 +462,9 @@ ORDER BY rank DESC{order};
         """Copy _<name>_<slang> into the empty slang schema, keeping sids.
 
         Skips what an import would also refuse: sources longer than
-        MAX_LENGTH, and text too long for the unique indexes. Records an
-        import per target language. Returns the number of sources and
+        MAX_LENGTH, text too long for the unique indexes, and targets
+        stored under codes that aren't languages. Records an import per
+        target language. Returns the number of sources and
         targets loaded and skipped.
         """
         slang = lang_to_table(slang)
@@ -485,6 +499,15 @@ ORDER BY rank DESC{order};
             cursor.execute("""SELECT setval(pg_get_serial_sequence('sources', 'sid'),
                 COALESCE(MAX(sid), 0) + 1, false) FROM sources""")
 
+            cursor.execute(sql.SQL("SELECT lang, COUNT(*) FROM {} GROUP BY lang ORDER BY lang")
+                           .format(snap_targets))
+            totals = cursor.fetchall()
+            snapshot_targets = sum(total for lang, total in totals)
+            langs = [lang for lang, total in totals if _is_language_table(lang)]
+            # Stored under a country's code (gr): the language's (el).
+            renamed = {lang: lang_to_table(lang) for lang in langs
+                       if lang.lower() in COUNTRY_CODES}
+
             # Keeping tids keeps the import order that equal matches are
             # returned in; the snapshot's physical order is deploy_db's.
             cursor.execute("""SELECT COUNT(*) = 2 FROM information_schema.columns
@@ -492,14 +515,17 @@ ORDER BY rank DESC{order};
                 AND table_schema IN (current_schema(), %s)""", (snapshot,))
             keep_tid = cursor.fetchone()[0]
             columns = "tid, sid, text, lang" if keep_tid else "sid, text, lang"
-            picked = "t.tid, t.sid, t.text, t.lang" if keep_tid else "t.sid, t.text, t.lang"
+            picked = ("t.tid, t.sid, t.text" if keep_tid else "t.sid, t.text") + \
+                ", COALESCE(%s::jsonb ->> t.lang, t.lang) AS lang"
             cursor.execute(sql.SQL("""INSERT INTO targets (%s)
                 SELECT %s FROM {} t JOIN sources s ON s.sid = t.sid
-                WHERE length(t.text) < 1000
-                ON CONFLICT DO NOTHING""" % (columns, picked)).format(snap_targets))
+                WHERE length(t.text) < 1000 AND t.lang = ANY(%%s)
+                ON CONFLICT DO NOTHING""" % (columns, picked)).format(snap_targets),
+                (json.dumps(renamed), langs))
             cursor.execute(sql.SQL("""SELECT %s FROM {} t
                 JOIN sources s ON s.sid = t.sid
-                WHERE length(t.text) >= 1000""" % picked).format(snap_targets))
+                WHERE length(t.text) >= 1000 AND t.lang = ANY(%%s)""" % picked).format(
+                snap_targets), (json.dumps(renamed), langs))
             insert = "INSERT INTO targets (%s) VALUES (%s) ON CONFLICT DO NOTHING" % (
                 columns, ", ".join(["%s"] * len(columns.split(", "))))
             for row in cursor.fetchall():
@@ -513,11 +539,15 @@ ORDER BY rank DESC{order};
                 (SELECT COUNT(*) FROM sources), (SELECT COUNT(*) FROM {})""").format(
                 snap_sources))
             sources, snapshot_sources = cursor.fetchone()
-            cursor.execute(sql.SQL("""SELECT s.lang, s.total, COALESCE(t.loaded, 0)
-                FROM (SELECT lang, COUNT(*) AS total FROM {} GROUP BY lang) s
-                LEFT JOIN (SELECT lang, COUNT(*) AS loaded FROM targets GROUP BY lang) t
-                ON s.lang = t.lang ORDER BY s.lang""").format(snap_targets))
-            per_lang = cursor.fetchall()
+            cursor.execute("SELECT lang, COUNT(*) FROM targets GROUP BY lang")
+            loaded_by_lang = dict(cursor.fetchall())
+            per_lang = {}
+            for lang, total in totals:
+                if lang in langs:
+                    lang = renamed.get(lang, lang)
+                    per_lang[lang] = per_lang.get(lang, 0) + total
+            per_lang = [(lang, total, loaded_by_lang.get(lang, 0))
+                        for lang, total in sorted(per_lang.items())]
             iids = []
             for lang, total, loaded in per_lang:
                 cursor.execute("""INSERT INTO imports
@@ -535,7 +565,6 @@ ORDER BY rank DESC{order};
             self.rollback(cursor.connection)
             raise
         targets = sum(row[2] for row in per_lang)
-        snapshot_targets = sum(row[1] for row in per_lang)
         return (sources, snapshot_sources - sources,
                 targets, snapshot_targets - targets)
 

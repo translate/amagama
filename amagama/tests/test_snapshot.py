@@ -194,3 +194,22 @@ class TestLoadSnapshot(object):
         result = run('load_snapshot', '-s', 'en', '--name', 'legacy')
         assert result.exit_code == 1
         assert "Schema _build_en was deployed; load snapshots before deploy_db." in result.output
+
+    def test_skips_codes_that_are_not_languages(self, run, live, pg_connection):
+        # The 2019 database stored some directory names and countries' codes as languages.
+        with pg_connection.cursor() as cursor:
+            for lang in ('po', 'mac', 'ber', 'gr'):
+                cursor.execute("""INSERT INTO en.targets (sid, text, lang)
+                    SELECT sid, 'x', %s FROM en.sources WHERE text = 'Open file'""", (lang,))
+        pg_connection.commit()
+        run('snapshot_db', '-s', 'en', '--name', 'legacy')
+        run('initdb', '-s', 'en', '--build')
+        result = run('load_snapshot', '-s', 'en', '--name', 'legacy')
+        assert result.exit_code == 0, result.output
+        assert ("Loaded _legacy_en into _build_en: 1 sources (0 skipped), "
+                "4 targets (2 skipped).") in result.output
+        # A country's code is its language's; a collective code is kept.
+        assert query(pg_connection, "SELECT DISTINCT lang FROM _build_en.targets ORDER BY lang") \
+            == [('af',), ('ber',), ('el',), ('zu',)]
+        assert query(pg_connection, """SELECT lang, units FROM _build_en.imports
+            ORDER BY lang""") == [('af', 1), ('ber', 1), ('el', 1), ('zu', 1)]
