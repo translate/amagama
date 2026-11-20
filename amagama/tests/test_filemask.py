@@ -33,6 +33,9 @@ from amagama.updater.filemask import Selection, compile_mask, fill, wildcards
     (["res/values-{lang}/strings.xml"], "res/values-pt-rBR/strings.xml", "pt-rBR"),
     (["res/values-{lang}/strings.xml"], "res/values-b+sr+Latn/strings.xml", "b+sr+Latn"),
     (["res/values-{lang}/strings.xml"], "res/values-night/strings.xml", None),
+    # Apple: Base.lproj is the template's, not a language.
+    (["{lang}.lproj/Localizable.strings"], "zh-Hans.lproj/Localizable.strings", "zh-Hans"),
+    (["{lang}.lproj/Localizable.strings"], "Base.lproj/Localizable.strings", None),
     (["po/{lang}.po"], "po/af.mo", None),
     (["po/{lang}.po"], "src/po/af.po", None),
     (["po/*.po"], "po/af.po", "fallback"),

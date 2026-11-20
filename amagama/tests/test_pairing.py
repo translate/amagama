@@ -319,3 +319,58 @@ def test_xwiki_page(tmp_path):
     french = opened(tmp_path, "Translations.fr.xml", "xwiki-page",
                     xwiki_page("fr", "tour.next=Étape suivante"))
     assert pairs(paired_store(french, english)) == [("Next step", "Étape suivante")]
+
+
+STRINGS = ('/* Shown on the save button. */\n'
+           '"save" = "%s";\n'
+           '// A line comment.\n'
+           '"quote" = "%s";\n')
+
+
+@pytest.mark.parametrize("encoding, bom", [
+    ("utf-8", b""), ("utf-8", b"\xef\xbb\xbf"), ("utf-16-le", b"\xff\xfe"),
+    ("utf-16-be", b"\xfe\xff"), ("utf-16-le", b""), ("utf-16-be", b"")])
+def test_strings_encodings(tmp_path, encoding, bom):
+    path = tmp_path / "Localizable.strings"
+    path.write_bytes(bom + (STRINGS % ("Сохранить файл", 'Скажи \\"да\\"\\nсейчас'))
+                     .encode(encoding))
+    store = open_store(str(path), "strings")
+    assert [(unit.getid(), str(unit.source)) for unit in store.units] == [
+        ("save", "Сохранить файл"), ("quote", 'Скажи "да"\nсейчас')]
+
+
+def test_strings_paired(tmp_path):
+    english, german = tmp_path / "en.strings", tmp_path / "de.strings"
+    english.write_text(STRINGS % ("Save file", "Open") + '"untranslated" = "Close";\n',
+                       encoding="utf-8")
+    german.write_text(STRINGS % ("Datei speichern", "Öffnen") + '"gone" = "Weg";\n',
+                      encoding="utf-8")
+    # "gone" has no English; "untranslated" isn't in the translation.
+    assert pairs(paired_store(open_store(str(german), "strings"),
+                              open_store(str(english), "strings"))) == [
+        ("Save file", "Datei speichern"), ("Open", "Öffnen")]
+
+
+def test_update_strings(update, tmp_path):
+    repo = tmp_path / "repo"
+    (repo / "App/de.lproj").mkdir(parents=True)
+    (repo / "App/de.lproj/Localizable.strings").write_bytes(
+        b"\xff\xfe" + (STRINGS % ("Datei speichern", "Öffnen")).encode("utf-16-le"))
+    url = git_repo(repo, {
+        "App/Base.lproj/Localizable.strings": STRINGS % ("Save file", "Open"),
+        "App/en.lproj/Localizable.strings": STRINGS % ("Save file", "Open"),
+        "App/zh-Hans.lproj/Localizable.strings": STRINGS % ("保存文件", "打开"),
+        "App/pt-BR.lproj/Localizable.strings": STRINGS % ("Salvar arquivo", "Abrir"),
+        "App/sr-Latn.lproj/Localizable.strings": STRINGS % ("Sačuvaj datoteku", "Otvori"),
+    })
+    result = update(block("app", "git", url=url, format="strings",
+                          files=["App/{lang}.lproj/Localizable.strings"],
+                          template="App/Base.lproj/Localizable.strings"))
+    assert result.exit_code == 0, result.output
+    # Base.lproj is the template, and en.lproj English too.
+    assert "Imported 4 files: 8 units (0 skipped)." in result.output
+    assert lookup("de", "Save file") == ["Datei speichern"]
+    assert lookup("zh_CN", "Save file") == ["保存文件"]
+    assert lookup("pt_BR", "Open") == ["Abrir"]
+    assert lookup("sr@latin", "Open") == ["Otvori"]
+    assert lookup("en", "Save file") == []

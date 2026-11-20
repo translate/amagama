@@ -136,6 +136,12 @@ files it includes); a block's own settings take precedence. ``name`` and
   ``xliff-monolingual``, XLIFF whose ``<source>`` is the message's id and
   whose template's ``<target>`` is the English (Symfony's).
 
+  ``strings`` is Apple's :file:`.strings`, in UTF-16 or UTF-8, usually as
+  :file:`<lang>.lproj/Localizable.strings` with :file:`en.lproj` or
+  :file:`Base.lproj` as the template; beside a :file:`Base.lproj` template,
+  :file:`en.lproj` isn't imported. Plurals (:file:`.stringsdict`) and String
+  Catalogs (:file:`.xcstrings`) aren't read.
+
   For ``android``, ``{lang}`` must be a locale qualifier alone (``af``,
   ``pt-rBR``, ``b+sr+Latn``): directories that add another qualifier, such
   as :file:`values-af-watch` or :file:`values-fr-feminine`, and the

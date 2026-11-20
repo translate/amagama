@@ -376,6 +376,10 @@ class Block(object):
                 if path in templates or any(mask.match(path.replace("\\", "/"))
                                             for mask in self.keep):
                     continue
+                if self.format == "strings" and code == "en":
+                    # English isn't a translation (en.lproj beside a Base.lproj template).
+                    os.remove(os.path.join(new, path))
+                    continue
                 if code is None:
                     if lang and lang not in self.languages:
                         unknown.add(lang)
