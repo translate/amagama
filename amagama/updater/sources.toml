@@ -6,11 +6,11 @@
 
 # Blocks written by weblate_sources and discover_sources, then more chosen
 # by hand.
-include = ["weblate-fedora.toml", "weblate-hosted.toml", "weblate-lxqt.toml",
-           "weblate-xwiki.toml", "linguas-github.toml", "transifex-github.toml",
-           "crowdin-github.toml", "l10n-toml-github.toml", "lingui-github.toml",
-           "inlang-github.toml", "wlc-github.toml", "mediawiki-bundled.toml",
-           "openstack.toml"]
+include = ["weblate-fedora.toml", "weblate-hosted.toml", "weblate-opensuse.toml",
+           "weblate-lxqt.toml", "weblate-xwiki.toml", "linguas-github.toml",
+           "transifex-github.toml", "crowdin-github.toml", "l10n-toml-github.toml",
+           "lingui-github.toml", "inlang-github.toml", "wlc-github.toml",
+           "mediawiki-bundled.toml", "openstack.toml"]
 
 # The blocks here are chosen by hand.
 [defaults]
