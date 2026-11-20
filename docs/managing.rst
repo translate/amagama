@@ -290,8 +290,10 @@ A target fails:
   source's, in any order. Date formats are left out, and a placeholder of a
   kind the source doesn't use is ignored (Basque writes 95% as ``%95``).
 - ``braces`` when its brace placeholders don't: Moodle's ``{$a}``, numbered
-  ``{0}``, empty ``{}`` and ``%{name}``. Other braces, and TeX, are often text
-  to translate.
+  ``{0}``, empty ``{}`` and ``%{name}``. Java's choice format
+  (``{0,choice,1#one file|1<{0} files}``) is compared by its argument and the
+  placeholders its branches use, not by its branches. Other braces, and TeX,
+  are often text to translate.
 - ``tags`` when its XML tags don't, by name; attributes may be translated.
 - ``escapes`` when its backslash escapes don't.
 - ``unchanged`` when it is a source of three words or more left in English,
