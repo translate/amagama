@@ -219,6 +219,11 @@ for a rebuild, and to count the older logs once::
         /srv/amagama/venv/bin/amagama-manage update_stats \
         --logs '/srv/amagama/logs/live-nginx.access.log*'
 
+That reads the whole database and can take a long while: over 10 minutes for
+2,099,307 sources and 36,408,695 targets in 636 languages. With
+``--only-use`` it counts only the lookups, without reading the database, and
+the translation figures come with the next rebuild.
+
 A box deployed before the statistics page needs its setting and units once,
 after the upgrade's pull::
 
