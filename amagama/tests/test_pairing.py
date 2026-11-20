@@ -16,6 +16,7 @@ from translate.storage import aresource, jsonl10n, php, properties, tmx, xliff
 from amagama.application import amagama_server_factory
 from amagama.cli import manage
 from amagama.tests.test_updater import block
+from amagama.updater.formats import open_store
 from amagama.updater.pairing import paired_store, without_ids
 
 
@@ -271,3 +272,50 @@ def test_template_reread_when_changed(tmp_path):
     os.utime(path, ns=(path.stat().st_atime_ns, path.stat().st_mtime_ns + 10**9))
     assert [u.target or u.source for u in template_store(str(path), "json").units] == [
         "Save file", "Open"]
+
+
+def opened(tmp_path, name, format, text):
+    path = tmp_path / name
+    path.write_bytes(text if isinstance(text, bytes) else text.encode("utf-8"))
+    return open_store(str(path), format)
+
+
+def test_rails_yaml(tmp_path):
+    english = opened(tmp_path, "en.yml", "ruby-yaml",
+                     "en:\n  site:\n    save: Save file\n    edits:\n      one: 1 edit\n"
+                     "      other: '%{count} edits'\n")
+    afrikaans = opened(tmp_path, "af.yml", "ruby-yaml",
+                       "af:\n  site:\n    save: Stoor lêer\n    edits:\n      one: 1 wysiging\n"
+                       "      other: '%{count} wysigings'\n")
+    store = paired_store(afrikaans, english)
+    assert pairs(store) == [("Save file", "Stoor lêer")]
+    assert store.plurals == 1
+
+
+def test_yaml(tmp_path):
+    english = opened(tmp_path, "app.desktop.yaml", "yaml", "Desktop Entry:\n  Name: Files\n")
+    afrikaans = opened(tmp_path, "app_af.desktop.yaml", "yaml", "Desktop Entry:\n  Name: Lêers\n")
+    assert pairs(paired_store(afrikaans, english)) == [("Files", "Lêers")]
+
+
+def test_xwiki_properties(tmp_path):
+    english = opened(tmp_path, "ApplicationResources.properties", "xwiki-properties",
+                     "core.save=Save ''{0}''\n")
+    russian = opened(tmp_path, "ApplicationResources_ru.properties", "xwiki-properties",
+                     b"core.save=\\u0421\\u043e\\u0445\\u0440\\u0430\\u043d\\u0438\\u0442\\u044c"
+                     b" ''{0}''\n")
+    assert pairs(paired_store(russian, english)) == [("Save '{0}'", "Сохранить '{0}'")]
+
+
+def xwiki_page(language, content):
+    return ('<?xml version="1.1" encoding="UTF-8"?>\n<xwikidoc locale="%s"><translation>1'
+            '</translation><language>%s</language><title/><content>%s\n</content></xwikidoc>\n'
+            % (language, language, content))
+
+
+def test_xwiki_page(tmp_path):
+    english = opened(tmp_path, "Translations.xml", "xwiki-page",
+                     xwiki_page("", "tour.next=Next step"))
+    french = opened(tmp_path, "Translations.fr.xml", "xwiki-page",
+                    xwiki_page("fr", "tour.next=Étape suivante"))
+    assert pairs(paired_store(french, english)) == [("Next step", "Étape suivante")]

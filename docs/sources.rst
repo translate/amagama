@@ -129,9 +129,12 @@ files it includes); a block's own settings take precedence. ``name`` and
   Monolingual formats hold one language per file, keyed by an id, and need a
   ``template``: ``android`` (:file:`strings.xml`), ``php``, ``properties``
   (Java's ISO-8859-1; ``properties-utf8`` and ``properties-utf16`` for files in
-  those encodings), ``joomla-ini``, ``json`` (key to message), ``fluent`` and
-  ``dtd``; and ``xliff-monolingual``, XLIFF whose ``<source>`` is the
-  message's id and whose template's ``<target>`` is the English (Symfony's).
+  those encodings), ``joomla-ini``, ``json`` (key to message), ``fluent``,
+  ``dtd``, ``yaml`` (key to message), ``ruby-yaml`` (Rails' locale files,
+  each under its language's key, which ids leave out); ``xwiki-properties`` and
+  ``xwiki-page`` (XWiki's properties, and its wiki pages holding them); and
+  ``xliff-monolingual``, XLIFF whose ``<source>`` is the message's id and
+  whose template's ``<target>`` is the English (Symfony's).
 
   For ``android``, ``{lang}`` must be a locale qualifier alone (``af``,
   ``pt-rBR``, ``b+sr+Latn``): directories that add another qualifier, such
