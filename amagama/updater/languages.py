@@ -48,6 +48,16 @@ def _special_codes():
             if getattr(language, "type", None) == "S"}
 
 
+@functools.cache
+def _iso_codes():
+    """ISO 639's two- and three-letter codes: ISO 639-3's languages and
+    ISO 639-5's collective codes (son, Songhai languages), which translators
+    use too."""
+    return ({language.alpha_3 for language in pycountry.languages}
+            | {family.alpha_3 for family in pycountry.language_families}
+            | set(_two_letter_codes().values()))
+
+
 def _short(lang):
     """lang's current code, two letters where ISO 639-1 has one."""
     lang = RENAMED.get(lang, lang)
@@ -83,7 +93,7 @@ def normalise_language(code):
     match = _POSIX.match(code)
     if match:
         lang = _short(match["lang"].lower())
-        if lang in _special_codes():
+        if lang not in _iso_codes() or lang in _special_codes():
             return None
         region = "_" + match["region"].upper() if match["region"] else ""
         modifier = match["modifier"].lower() if match["modifier"] else ""
@@ -97,7 +107,7 @@ def normalise_language(code):
     if not re.fullmatch(r"[a-z]{2,3}", lang):
         return None
     lang = _short(lang)
-    if lang in _special_codes():
+    if lang not in _iso_codes() or lang in _special_codes():
         return None
     script = region = modifier = ""
     for part in parts:

@@ -11,6 +11,7 @@ import pytest
 from amagama.tests import test_pairing
 from amagama.tests.test_updater import block
 from amagama.updater.languages import is_android_locale, map_language, normalise_language
+from amagama.updater.sources import load_sources
 
 
 @pytest.mark.parametrize("code, expected", [
@@ -73,7 +74,15 @@ from amagama.updater.languages import is_android_locale, map_language, normalise
     ("x!", None),
     ("pt-!!", None),
     ("", None),
-    ("po", "po"),
+    ("po", None),
+    ("fu", None),
+    ("xx", None),
+    ("qpv", None),
+    # Collective codes are kept; retired ones aren't languages.
+    ("ber", "ber"),
+    ("son", "son"),
+    ("nah", "nah"),
+    ("eml", None),
     # ISO 639's two-letter code where there is one.
     ("arg", "an"),
     ("bel", "be"),
@@ -99,6 +108,23 @@ def test_overrides():
     assert map_language("pt", overrides) == "pt_PT"
     assert map_language("pt-rBR", overrides) == "pt_BR"
     assert map_language("de") == "de"
+
+
+@pytest.fixture(scope="module")
+def shipped():
+    return load_sources()
+
+
+@pytest.mark.parametrize("code, expected", [
+    ("eml", "egl"),
+    ("map-bms", "jv@bms"),
+    ("roa-tara", "nap@tara"),
+    ("nah", "nah"),
+])
+def test_mediawiki_codes(code, expected, shipped):
+    blocks = {b.name: b for b in shipped}
+    for name in ("mediawiki-1.46", "mediawiki-abusefilter-1.46"):
+        assert map_language(code, blocks[name].languages) == expected
 
 
 @pytest.mark.parametrize("qualifier, expected", [

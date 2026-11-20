@@ -21,6 +21,10 @@ languages.mo = "ro"
 languages.nan-latn-tailo = "nan@latin"
 languages.sr-ec = "sr"
 languages.sr-el = "sr@latin"
+# Retired and collective codes, as MediaWiki's own LanguageCode maps them.
+languages.eml = "egl"
+languages.map-bms = "jv@bms"
+languages.roa-tara = "nap@tara"
 
 [[block]]
 name = "mediawiki-abusefilter-{version}"

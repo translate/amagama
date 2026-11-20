@@ -312,8 +312,11 @@ become ``zh_CN`` and ``zh_TW``; ``ca-valencia`` becomes ``ca@valencia``;
 replaced codes such as ``iw`` become ``he``; a country's code used for its
 language (``cn``, ``ua``) becomes the language's (``zh_CN``, ``uk``); and a
 three-letter ISO 639 code with a two-letter one becomes it (``arg`` and
-``deu`` become ``an`` and ``de``). Codes that aren't languages are left out
-and listed by ``fetch_sources`` and ``update``.
+``deu`` become ``an`` and ``de``). ISO 639-3's languages and ISO 639-5's
+collective codes (``son``, Songhai languages) are languages; codes in
+neither, such as ``eml``, aren't: a block's ``languages`` table can map
+them to a specific language. Codes that aren't languages are left out and
+listed by ``fetch_sources`` and ``update``.
 
 :ref:`fetch_sources <managing#fetch-sources>` downloads the blocks into
 :setting:`UPDATER_CACHE_DIR`, and :ref:`update <managing#update>` rebuilds the
