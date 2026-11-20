@@ -2291,6 +2291,7 @@ licence = "MIT"
 
 [[block]]
 name = "crowdin-N-Zik-strings"
+disabled = "the translations moved to ComposeN-Zik/src/androidMain/localization/translations/{lang}/*.xml, which crowdin.yml gives no type for, so no reader is chosen"
 title = "N-Zik"
 url = "https://github.com/N-Zik-Group/N-Zik"
 files = ["ComposeN-Zik/src/androidMain/res/values-{lang}/strings.xml"]
@@ -2824,6 +2825,7 @@ licence = "GPL-3.0-only"
 
 [[block]]
 name = "crowdin-RivoPhoneApp-strings"
+disabled = "the app is no longer in the repository"
 title = "RivoPhoneApp"
 url = "https://github.com/user-grinch/RivoPhoneApp"
 files = ["app/src/main/res/values-{lang}/strings.xml"]
@@ -5542,6 +5544,7 @@ licence = "AGPL-3.0-only"
 
 [[block]]
 name = "crowdin-grafana-grafana-azure-monitor-datasource"
+disabled = "the Azure Monitor plugin is no longer in the repository"
 title = "grafana"
 url = "https://github.com/grafana/grafana"
 files = ["public/app/plugins/datasource/azuremonitor/locales/{lang}/grafana-azure-monitor-datasource.json"]
@@ -8039,6 +8042,7 @@ licence = "GPL-3.0-only"
 
 [[block]]
 name = "crowdin-san-andreas-online"
+disabled = "the translations are .pot files, which are taken for templates"
 title = "san-andreas-online"
 url = "https://github.com/Dryxio/san-andreas-online"
 files = ["Shared/installer/locale/{lang}.pot"]

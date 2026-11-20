@@ -2145,6 +2145,7 @@ licence = "GPL-3.0-or-later"
 
 [[block]]
 name = "hosted-diohub"
+disabled = "the translations are only on the weblate-translations branch"
 title = "DioHub"
 url = "https://github.com/namanshergill/diohub.git"
 ref = "main"
@@ -6712,6 +6713,7 @@ licence = "Apache-2.0"
 
 [[block]]
 name = "hosted-keycloak-4"
+disabled = "this theme is no longer in the repository"
 title = "Keycloak"
 url = "https://github.com/keycloak/keycloak"
 ref = "main"
@@ -6723,6 +6725,7 @@ licence = "Apache-2.0"
 
 [[block]]
 name = "hosted-keycloak-5"
+disabled = "this theme is no longer in the repository"
 title = "Keycloak"
 url = "https://github.com/keycloak/keycloak"
 ref = "main"
@@ -6734,6 +6737,7 @@ licence = "Apache-2.0"
 
 [[block]]
 name = "hosted-keycloak-6"
+disabled = "this theme is no longer in the repository"
 title = "Keycloak"
 url = "https://github.com/keycloak/keycloak"
 ref = "main"
