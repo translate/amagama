@@ -7682,3 +7682,55 @@ msgstr ""
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
 msgid "MediaWiki Vector"
 msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "OpenStack Dashboard"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "OpenStack CloudKitty Dashboard"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "OpenStack Freezer Dashboard"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "OpenStack Heat Dashboard"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "OpenStack Ironic Dashboard"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "OpenStack Magnum Dashboard"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "OpenStack Manila Dashboard"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "OpenStack BGP VPN"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "OpenStack FWaaS Dashboard"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "OpenStack VPNaaS Dashboard"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "OpenStack Octavia Dashboard"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "OpenStack Trove Dashboard"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "OpenStack Zun Dashboard"
+msgstr ""
