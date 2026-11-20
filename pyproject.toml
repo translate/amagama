@@ -39,8 +39,8 @@ recommended = [
     # discover_sources crowdin reads crowdin.yml
     "PyYAML>=6",
     "spdx-license-list>=3.29",
-    # Monolingual sources: PHP and Fluent readers
-    "translate-toolkit[fluent,php]>=3.0",
+    # Monolingual sources: PHP, Fluent and YAML readers
+    "translate-toolkit[fluent,php,yaml]>=3.0",
 ]
 dev = [
     "amagama[recommended]",

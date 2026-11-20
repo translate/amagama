@@ -19,6 +19,7 @@ pycountry==26.2.16
 python-Levenshtein==0.27.5
 PyYAML==6.0.3
 RapidFuzz==3.14.6
+ruamel.yaml==0.19.1
 spdx-license-list==3.29.0
 translate-toolkit==3.20.4
 typing_extensions==4.16.0

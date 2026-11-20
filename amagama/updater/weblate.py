@@ -41,9 +41,14 @@ FORMATS = {
     "i18next": "json",
     "i18nextv4": "json",
     "xliff-template": "xliff-monolingual",
+    "yaml": "yaml",
+    "ruby-yaml": "ruby-yaml",
+    "xwiki-java-properties": "xwiki-properties",
+    "xwiki-page-properties": "xwiki-page",
 }
 MONOLINGUAL = {"aresource", "json", "json-nested", "fluent", "properties", "properties-utf8",
-               "properties-utf16", "joomla", "php", "i18next", "i18nextv4", "xliff-template"}
+               "properties-utf16", "joomla", "php", "i18next", "i18nextv4", "xliff-template",
+               "yaml", "ruby-yaml", "xwiki-java-properties", "xwiki-page-properties"}
 
 # Hosts that no longer serve their repositories, though Weblate still lists them.
 DEAD_HOSTS = {"pagure.io": "archived"}

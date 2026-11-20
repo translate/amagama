@@ -48,6 +48,12 @@ MONOLINGUAL = {
     "joomla-ini": ("translate.storage.properties", "propfile", {"personality": "joomla"}),
     "json": ("translate.storage.jsonl10n", "JsonFile", {}),
     "fluent": ("translate.storage.fluent", "FluentFile", {}),
+    "yaml": ("translate.storage.yaml", "YAMLFile", {}),
+    # Rails' locale files: each under its language's key, left out of ids.
+    "ruby-yaml": ("translate.storage.yaml", "RubyYAMLFile", {}),
+    # XWiki's ISO-8859-1 properties, and its wiki pages holding them.
+    "xwiki-properties": ("translate.storage.properties", "xwikifile", {}),
+    "xwiki-page": ("translate.storage.properties", "XWikiPageProperties", {}),
     "dtd": ("translate.storage.dtd", "dtdfile", {}),
     # Symfony's: each <source> is the message's id, the English is the
     # template's <target>.

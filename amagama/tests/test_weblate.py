@@ -140,13 +140,13 @@ def test_repositories():
 def test_skipped():
     found, skipped = generated([
         component("fr", "ui", "https://git.example/fr", "po/*.po", source="fr"),
-        component("yaml", "ui", "https://git.example/yaml", "*.yml", file_format="yaml"),
+        component("toml", "ui", "https://git.example/toml", "*.toml", file_format="toml"),
         component("noderiv", "docs", "https://git.example/noderiv", "po/*.po", license="CC-BY-ND-3.0"),
         component("bad", "ui", "https://git.example/bad", "po/*.po", license="proprietary"),
         component("known", "ui", "https://git.example/known.git/", "po/*.po"),
     ], covered=["https://git.example/known"])
     assert found == {}
-    assert sorted(skipped) == ["format yaml", "no-derivatives licence",
+    assert sorted(skipped) == ["format toml", "no-derivatives licence",
                                "not a valid block: Unknown license key(s): proprietary",
                                "repository imported by another block", "source not English"]
 
@@ -524,6 +524,18 @@ def test_linked_component_branch():
     ])
     assert {name: (b["ref"], b["files"]) for name, b in found.items()} == {
         "test-panel": ("master", ["clock/{lang}.ts", "panel/{lang}.ts"])}
+
+
+@pytest.mark.parametrize("weblate_format, format", [
+    ("xwiki-java-properties", "xwiki-properties"), ("xwiki-page-properties", "xwiki-page"),
+    ("yaml", "yaml"), ("ruby-yaml", "ruby-yaml")])
+def test_monolingual_formats(weblate_format, format):
+    found, skipped = generated([component("wiki", "ui", "https://git.example/wiki",
+                                          "res/App_*.properties", file_format=weblate_format,
+                                          template="res/App.properties")])
+    assert found["test-wiki"]["format"] == format
+    assert found["test-wiki"]["template"] == "res/App.properties"
+    check_format(format)
 
 
 def test_linked_component_branch_scp_repository():
