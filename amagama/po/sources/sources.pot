@@ -92,6 +92,10 @@ msgid "Kiwix for Android"
 msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "Scribus"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
 msgid "Signal Desktop"
 msgstr ""
 

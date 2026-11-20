@@ -290,6 +290,35 @@ languages.qq = ""
 licence = "GPL-3.0-or-later"
 
 [[block]]
+name = "scribus"
+title = "Scribus"
+source = "git"
+min_age_days = 7
+url = "https://github.com/scribusproject/scribus"
+files = ["resources/translations/scribus.{lang}.ts"]
+# Regions the codes always add.
+languages.cs_CZ = "cs"
+languages.da_DK = "da"
+languages.es_ES = "es"
+languages.fa_IR = "fa"
+languages.he_IL = "he"
+languages.hi_IN = "hi"
+languages.hr_HR = "hr"
+languages.kn_IN = "kn"
+languages.lt_LT = "lt"
+languages.mn_MN = "mn"
+languages.ms_MY = "ms"
+languages.nb_NO = "nb"
+languages.nn_NO = "nn"
+languages.pl_PL = "pl"
+languages.sk_SK = "sk"
+languages.th_TH = "th"
+# German's old orthography; en_US is the source.
+languages.de_1901 = ""
+languages.en_US = ""
+licence = "GPL-2.0-or-later"
+
+[[block]]
 name = "signal-desktop"
 title = "Signal Desktop"
 source = "git"
