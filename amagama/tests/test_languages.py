@@ -30,6 +30,7 @@ from amagama.updater.languages import is_android_locale, map_language, normalise
     ("sr-Latn-RS", "sr_RS@latin"),
     ("sr-Cyrl", "sr"),
     ("kmr-Latn", "kmr"),
+    ("skr-arab", "skr"),
     # A script that isn't the usual one stays, so two scripts don't merge.
     ("aeb-arab", "aeb@arabic"),
     ("aeb-latn", "aeb@latin"),
