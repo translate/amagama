@@ -52,6 +52,9 @@ _STRFTIME = re.compile(r"%[-_0^#]?[HMSYyBbPIklZjUWVCRT]")
 # Placeholders in braces: Moodle's {$a}, numbered {0}, empty {} and Ruby's
 # %{name}. Other braces are often text to translate.
 _BRACES = re.compile(r"%\{\w+\}|\{\$[^{}]*\}|\{\d+\}|\{\}")
+# Java MessageFormat's choice format, {0,choice,1#one file|1<{0} files}: its
+# branches' text is translated, and their number follows the language.
+_CHOICE = re.compile(r"\{(\d+)\s*,\s*choice\s*,")
 # TeX, whose braces hold text.
 _TEX = re.compile(r"\\[A-Za-z]+")
 # Tag names only: an attribute such as alt may be translated.
@@ -122,9 +125,27 @@ def _printf_differs(source, target):
     return found != wanted
 
 
+def _braces(text):
+    """text's placeholders in braces. A choice format counts as its argument
+    and the placeholders its branches use, but not its own argument again."""
+    found = []
+    pos = 0
+    while match := _CHOICE.search(text, pos):
+        depth, end = 1, match.end()
+        while end < len(text) and depth:
+            depth += {"{": 1, "}": -1}.get(text[end], 0)
+            end += 1
+        if depth:
+            break
+        found += _BRACES.findall(text[pos:match.start()])
+        found.append("{%s,choice}" % match[1])
+        found += sorted(set(_braces(text[match.end():end - 1])) - {"{%s}" % match[1]})
+        pos = end
+    return sorted(found + _BRACES.findall(text[pos:]))
+
+
 def _braces_differ(source, target):
-    return not _TEX.search(source) and \
-        sorted(_BRACES.findall(source)) != sorted(_BRACES.findall(target))
+    return not _TEX.search(source) and _braces(source) != _braces(target)
 
 
 def tags(text):

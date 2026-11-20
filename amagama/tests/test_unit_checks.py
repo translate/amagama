@@ -48,6 +48,16 @@ from amagama.unit_checks import Report, failed_checks, length_step, script, targ
     # ICU message format translates the text inside its braces.
     ("{count, plural, one {# file} other {# files}}",
      "{count, plural, one {# lêer} other {# lêers}}", "af", []),
+    # Java's choice format translates its branches, as many as the language needs.
+    ("{0,choice,0#No pages|1#One page|1<{0} pages}",
+     "{0,choice,0#Нет страниц|1#{0} страница|2#{0} страницы|5#{0} страниц}", "ru", []),
+    ("Found {0,choice,1#one page|1<{0} pages} in {1}",
+     "{1}: {0,choice,1#een bladsy|1<{0} bladsye} gevind", "af", []),
+    ("{0,choice,1#one page by {1}|1<{0} pages by {1}}",
+     "{0,choice,1#een bladsy|1<{0} bladsye}", "af", ["braces"]),
+    ("{0,choice,1#one page|1<{0} pages}", "{0} bladsye", "af", ["braces"]),
+    ("{0,choice,1#one page|1<{0} pages}", "{1,choice,1#een bladsy|1<{1} bladsye}", "af",
+     ["braces"]),
     ("<b>Bold</b> text", "<b>Vet</b> teks", "af", []),
     ("<b>Bold</b> text", "Vet teks", "af", ["tags"]),
     # An attribute may be translated.
