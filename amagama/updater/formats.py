@@ -55,6 +55,8 @@ MONOLINGUAL = {
     "xwiki-properties": ("translate.storage.properties", "xwikifile", {}),
     "xwiki-page": ("translate.storage.properties", "XWikiPageProperties", {}),
     "dtd": ("translate.storage.dtd", "dtdfile", {}),
+    # Apple's .strings, in UTF-16 or UTF-8: read as UTF-8 once decoded.
+    "strings": ("translate.storage.properties", "stringsutf8file", {}),
     # Symfony's: each <source> is the message's id, the English is the
     # template's <target>.
     "xliff-monolingual": ("translate.storage.xliff", "xlifffile", {}),
@@ -252,6 +254,9 @@ def open_store(path, format=None, columns=None, header_row=False, xliff_states=N
     if format in (None, "po") and path.endswith(".po"):
         with open(path, "rb") as f:
             store = _read_po(path, f.read())
+    elif format == "strings":
+        with open(path, "rb") as f:
+            store = _read_strings(path, f.read())
     elif format is None:
         store = factory.getobject(path)
     else:
@@ -265,6 +270,26 @@ def open_store(path, format=None, columns=None, header_row=False, xliff_states=N
         return _accepted_xliff(store, xliff_states)
     if format == "nextcloud-json":
         return _nextcloud_singulars(store)
+    return store
+
+
+def _strings_text(data):
+    """A .strings file's text: UTF-16 with a byte order mark, or without one
+    (NUL bytes say which order), else UTF-8."""
+    if data.startswith((codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE)):
+        return data.decode("utf-16")
+    if b"\0" in data[:2]:
+        return data.decode("utf-16-be" if data[:1] == b"\0" else "utf-16-le")
+    return data.decode("utf-8-sig")
+
+
+def _read_strings(path, data):
+    # Translate Toolkit's reader guesses the encoding, and takes UTF-8 for
+    # UTF-16 when it guesses wrong.
+    module, name, kwargs = MONOLINGUAL["strings"]
+    store = getattr(_reader(module), name)(**kwargs)
+    store.filename = path
+    store.parse(_strings_text(data).encode("utf-8"))
     return store
 
 
