@@ -24,7 +24,7 @@ from amagama.updater.languages import normalise_language
 from amagama.updater.sources import sparse_patterns
 from amagama.updater.repositories import VENDORED
 from amagama.updater.repositories import blocks as repository_blocks
-from amagama.updater.generate import clone
+from amagama.updater.generate import checkout_only, clone
 
 LINGUAS = re.compile(r"(?:^|/)po/LINGUAS\Z")
 
@@ -54,10 +54,7 @@ def candidates(tree):
 def translated(directory, paths):
     """Translated units, not fuzzy, in the files at paths of a clone made
     without a checkout; only those files are checked out."""
-    patterns = ["/" + re.sub(r"([*?\[\\])", r"\\\1", path) for path in paths]
-    run_tool("git", "-C", directory, "sparse-checkout", "set", "--no-cone", *patterns,
-             trusted=directory)
-    run_tool("git", "-C", directory, "checkout", "--quiet", "HEAD", trusted=directory)
+    checkout_only(directory, paths)
     count = 0
     for path in paths:
         try:
