@@ -7510,3 +7510,159 @@ msgstr ""
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
 msgid "zotlit"
 msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "MediaWiki AbuseFilter"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "MediaWiki CategoryTree"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "MediaWiki CheckUser"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "MediaWiki Cite"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "MediaWiki CiteThisPage"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "MediaWiki CodeEditor"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "MediaWiki ConfirmEdit"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "MediaWiki DiscussionTools"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "MediaWiki Echo"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "MediaWiki Gadgets"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "MediaWiki ImageMap"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "MediaWiki InputBox"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "MediaWiki Interwiki"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "MediaWiki Linter"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "MediaWiki LoginNotify"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "MediaWiki Math"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "MediaWiki MultimediaViewer"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "MediaWiki Nuke"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "MediaWiki OATHAuth"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "MediaWiki PageImages"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "MediaWiki ParserFunctions"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "MediaWiki PdfHandler"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "MediaWiki Poem"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "MediaWiki ReplaceText"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "MediaWiki Scribunto"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "MediaWiki SecureLinkFixer"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "MediaWiki SpamBlacklist"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "MediaWiki SyntaxHighlight GeSHi"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "MediaWiki TemplateData"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "MediaWiki TemplateStyles"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "MediaWiki TextExtracts"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "MediaWiki Thanks"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "MediaWiki TitleBlacklist"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "MediaWiki VisualEditor"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "MediaWiki WikiEditor"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "MediaWiki MinervaNeue"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "MediaWiki MonoBook"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "MediaWiki Timeless"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "MediaWiki Vector"
+msgstr ""

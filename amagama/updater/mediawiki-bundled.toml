@@ -1,0 +1,448 @@
+# MediaWiki's extensions and skins bundled in its release tarballs (the
+# extensions/ and skins/ submodules of each core release branch), on the
+# releases the mediawiki-{version} block imports. Chosen by hand.
+
+[defaults]
+source = "git"
+min_age_days = 7
+tags = ["core"]
+files = ["**/i18n/**/{lang}.json"]
+exclude = ["**/i18n/**/qqq.json"]
+format = "json"
+template = "**/i18n/**/en.json"
+exclude_ids = ["@metadata*"]
+# As the mediawiki-{version} block.
+languages.de-formal = "de"
+languages.es-formal = "es"
+languages.hu-formal = "hu"
+languages.nl-informal = "nl"
+languages.kk-cyrl = "kk"
+languages.mo = "ro"
+languages.nan-latn-tailo = "nan@latin"
+languages.sr-ec = "sr"
+languages.sr-el = "sr@latin"
+
+[[block]]
+name = "mediawiki-abusefilter-{version}"
+title = "MediaWiki AbuseFilter"
+url = "https://github.com/wikimedia/mediawiki-extensions-AbuseFilter"
+licence = "GPL-2.0-or-later"
+versions = [
+  { version = "1.43", ref = "REL1_43" },
+  { version = "1.45", ref = "REL1_45" },
+  { version = "1.46", ref = "REL1_46" },
+]
+
+[[block]]
+name = "mediawiki-categorytree-{version}"
+title = "MediaWiki CategoryTree"
+url = "https://github.com/wikimedia/mediawiki-extensions-CategoryTree"
+licence = "GPL-2.0-or-later"
+versions = [
+  { version = "1.43", ref = "REL1_43" },
+  { version = "1.45", ref = "REL1_45" },
+  { version = "1.46", ref = "REL1_46" },
+]
+
+[[block]]
+name = "mediawiki-checkuser-{version}"
+title = "MediaWiki CheckUser"
+url = "https://github.com/wikimedia/mediawiki-extensions-CheckUser"
+licence = "GPL-2.0-or-later"
+versions = [
+  { version = "1.45", ref = "REL1_45" },
+  { version = "1.46", ref = "REL1_46" },
+]
+
+[[block]]
+name = "mediawiki-cite-{version}"
+title = "MediaWiki Cite"
+url = "https://github.com/wikimedia/mediawiki-extensions-Cite"
+licence = "GPL-2.0-or-later"
+versions = [
+  { version = "1.43", ref = "REL1_43" },
+  { version = "1.45", ref = "REL1_45" },
+  { version = "1.46", ref = "REL1_46" },
+]
+
+[[block]]
+name = "mediawiki-citethispage-{version}"
+title = "MediaWiki CiteThisPage"
+url = "https://github.com/wikimedia/mediawiki-extensions-CiteThisPage"
+licence = "GPL-2.0-or-later"
+versions = [
+  { version = "1.43", ref = "REL1_43" },
+  { version = "1.45", ref = "REL1_45" },
+  { version = "1.46", ref = "REL1_46" },
+]
+
+[[block]]
+name = "mediawiki-codeeditor-{version}"
+title = "MediaWiki CodeEditor"
+url = "https://github.com/wikimedia/mediawiki-extensions-CodeEditor"
+licence = "GPL-2.0-or-later AND BSD-3-Clause"
+versions = [
+  { version = "1.43", ref = "REL1_43" },
+  { version = "1.45", ref = "REL1_45" },
+  { version = "1.46", ref = "REL1_46" },
+]
+
+[[block]]
+name = "mediawiki-confirmedit-{version}"
+title = "MediaWiki ConfirmEdit"
+url = "https://github.com/wikimedia/mediawiki-extensions-ConfirmEdit"
+licence = "GPL-2.0-or-later"
+versions = [
+  { version = "1.43", ref = "REL1_43" },
+  { version = "1.45", ref = "REL1_45" },
+  { version = "1.46", ref = "REL1_46" },
+]
+
+[[block]]
+name = "mediawiki-discussiontools-{version}"
+title = "MediaWiki DiscussionTools"
+url = "https://github.com/wikimedia/mediawiki-extensions-DiscussionTools"
+licence = "MIT"
+versions = [
+  { version = "1.43", ref = "REL1_43" },
+  { version = "1.45", ref = "REL1_45" },
+  { version = "1.46", ref = "REL1_46" },
+]
+
+[[block]]
+name = "mediawiki-echo-{version}"
+title = "MediaWiki Echo"
+url = "https://github.com/wikimedia/mediawiki-extensions-Echo"
+licence = "MIT"
+versions = [
+  { version = "1.43", ref = "REL1_43" },
+  { version = "1.45", ref = "REL1_45" },
+  { version = "1.46", ref = "REL1_46" },
+]
+
+[[block]]
+name = "mediawiki-gadgets-{version}"
+title = "MediaWiki Gadgets"
+url = "https://github.com/wikimedia/mediawiki-extensions-Gadgets"
+licence = "GPL-2.0-or-later"
+versions = [
+  { version = "1.43", ref = "REL1_43" },
+  { version = "1.45", ref = "REL1_45" },
+  { version = "1.46", ref = "REL1_46" },
+]
+
+[[block]]
+name = "mediawiki-imagemap-{version}"
+title = "MediaWiki ImageMap"
+url = "https://github.com/wikimedia/mediawiki-extensions-ImageMap"
+licence = "GPL-2.0-or-later"
+versions = [
+  { version = "1.43", ref = "REL1_43" },
+  { version = "1.45", ref = "REL1_45" },
+  { version = "1.46", ref = "REL1_46" },
+]
+
+[[block]]
+name = "mediawiki-inputbox-{version}"
+title = "MediaWiki InputBox"
+url = "https://github.com/wikimedia/mediawiki-extensions-InputBox"
+licence = "MIT"
+versions = [
+  { version = "1.43", ref = "REL1_43" },
+  { version = "1.45", ref = "REL1_45" },
+  { version = "1.46", ref = "REL1_46" },
+]
+
+[[block]]
+name = "mediawiki-interwiki-{version}"
+title = "MediaWiki Interwiki"
+url = "https://github.com/wikimedia/mediawiki-extensions-Interwiki"
+licence = "GPL-2.0-or-later"
+versions = [
+  { version = "1.43", ref = "REL1_43" },
+]
+
+[[block]]
+name = "mediawiki-linter-{version}"
+title = "MediaWiki Linter"
+url = "https://github.com/wikimedia/mediawiki-extensions-Linter"
+licence = "GPL-2.0-or-later"
+versions = [
+  { version = "1.43", ref = "REL1_43" },
+  { version = "1.45", ref = "REL1_45" },
+  { version = "1.46", ref = "REL1_46" },
+]
+
+[[block]]
+name = "mediawiki-loginnotify-{version}"
+title = "MediaWiki LoginNotify"
+url = "https://github.com/wikimedia/mediawiki-extensions-LoginNotify"
+licence = "MIT"
+versions = [
+  { version = "1.43", ref = "REL1_43" },
+  { version = "1.45", ref = "REL1_45" },
+  { version = "1.46", ref = "REL1_46" },
+]
+
+[[block]]
+name = "mediawiki-math-{version}"
+title = "MediaWiki Math"
+url = "https://github.com/wikimedia/mediawiki-extensions-Math"
+licence = "GPL-2.0-or-later"
+versions = [
+  { version = "1.43", ref = "REL1_43" },
+  { version = "1.45", ref = "REL1_45" },
+  { version = "1.46", ref = "REL1_46" },
+]
+
+[[block]]
+name = "mediawiki-multimediaviewer-{version}"
+title = "MediaWiki MultimediaViewer"
+url = "https://github.com/wikimedia/mediawiki-extensions-MultimediaViewer"
+licence = "GPL-2.0-or-later"
+versions = [
+  { version = "1.43", ref = "REL1_43" },
+  { version = "1.45", ref = "REL1_45" },
+  { version = "1.46", ref = "REL1_46" },
+]
+
+[[block]]
+name = "mediawiki-nuke-{version}"
+title = "MediaWiki Nuke"
+url = "https://github.com/wikimedia/mediawiki-extensions-Nuke"
+licence = "GPL-2.0-or-later"
+versions = [
+  { version = "1.43", ref = "REL1_43" },
+  { version = "1.45", ref = "REL1_45" },
+  { version = "1.46", ref = "REL1_46" },
+]
+
+[[block]]
+name = "mediawiki-oathauth-{version}"
+title = "MediaWiki OATHAuth"
+url = "https://github.com/wikimedia/mediawiki-extensions-OATHAuth"
+licence = "GPL-2.0-or-later AND GPL-3.0-or-later"
+versions = [
+  { version = "1.43", ref = "REL1_43" },
+  { version = "1.45", ref = "REL1_45" },
+  { version = "1.46", ref = "REL1_46" },
+]
+
+[[block]]
+name = "mediawiki-pageimages-{version}"
+title = "MediaWiki PageImages"
+url = "https://github.com/wikimedia/mediawiki-extensions-PageImages"
+licence = "WTFPL"
+versions = [
+  { version = "1.43", ref = "REL1_43" },
+  { version = "1.45", ref = "REL1_45" },
+  { version = "1.46", ref = "REL1_46" },
+]
+
+[[block]]
+name = "mediawiki-parserfunctions-{version}"
+title = "MediaWiki ParserFunctions"
+url = "https://github.com/wikimedia/mediawiki-extensions-ParserFunctions"
+licence = "GPL-2.0-or-later"
+versions = [
+  { version = "1.43", ref = "REL1_43" },
+  { version = "1.45", ref = "REL1_45" },
+  { version = "1.46", ref = "REL1_46" },
+]
+
+[[block]]
+name = "mediawiki-pdfhandler-{version}"
+title = "MediaWiki PdfHandler"
+url = "https://github.com/wikimedia/mediawiki-extensions-PdfHandler"
+licence = "GPL-2.0-or-later"
+versions = [
+  { version = "1.43", ref = "REL1_43" },
+  { version = "1.45", ref = "REL1_45" },
+  { version = "1.46", ref = "REL1_46" },
+]
+
+[[block]]
+name = "mediawiki-poem-{version}"
+title = "MediaWiki Poem"
+url = "https://github.com/wikimedia/mediawiki-extensions-Poem"
+licence = "CC0-1.0"
+versions = [
+  { version = "1.43", ref = "REL1_43" },
+  { version = "1.45", ref = "REL1_45" },
+  { version = "1.46", ref = "REL1_46" },
+]
+
+[[block]]
+name = "mediawiki-replacetext-{version}"
+title = "MediaWiki ReplaceText"
+url = "https://github.com/wikimedia/mediawiki-extensions-ReplaceText"
+licence = "GPL-2.0-or-later"
+versions = [
+  { version = "1.43", ref = "REL1_43" },
+  { version = "1.45", ref = "REL1_45" },
+  { version = "1.46", ref = "REL1_46" },
+]
+
+[[block]]
+name = "mediawiki-scribunto-{version}"
+title = "MediaWiki Scribunto"
+url = "https://github.com/wikimedia/mediawiki-extensions-Scribunto"
+licence = "GPL-2.0-or-later AND MIT"
+versions = [
+  { version = "1.43", ref = "REL1_43" },
+  { version = "1.45", ref = "REL1_45" },
+  { version = "1.46", ref = "REL1_46" },
+]
+
+[[block]]
+name = "mediawiki-securelinkfixer-{version}"
+title = "MediaWiki SecureLinkFixer"
+url = "https://github.com/wikimedia/mediawiki-extensions-SecureLinkFixer"
+licence = "GPL-3.0-or-later"
+versions = [
+  { version = "1.43", ref = "REL1_43" },
+  { version = "1.45", ref = "REL1_45" },
+  { version = "1.46", ref = "REL1_46" },
+]
+
+[[block]]
+name = "mediawiki-spamblacklist-{version}"
+title = "MediaWiki SpamBlacklist"
+url = "https://github.com/wikimedia/mediawiki-extensions-SpamBlacklist"
+licence = "GPL-2.0-or-later"
+versions = [
+  { version = "1.43", ref = "REL1_43" },
+  { version = "1.45", ref = "REL1_45" },
+  { version = "1.46", ref = "REL1_46" },
+]
+
+[[block]]
+name = "mediawiki-syntaxhighlight-geshi-{version}"
+title = "MediaWiki SyntaxHighlight GeSHi"
+url = "https://github.com/wikimedia/mediawiki-extensions-SyntaxHighlight_GeSHi"
+licence = "GPL-2.0-or-later"
+versions = [
+  { version = "1.43", ref = "REL1_43" },
+  { version = "1.45", ref = "REL1_45" },
+  { version = "1.46", ref = "REL1_46" },
+]
+
+[[block]]
+name = "mediawiki-templatedata-{version}"
+title = "MediaWiki TemplateData"
+url = "https://github.com/wikimedia/mediawiki-extensions-TemplateData"
+licence = "GPL-2.0-or-later"
+versions = [
+  { version = "1.43", ref = "REL1_43" },
+  { version = "1.45", ref = "REL1_45" },
+  { version = "1.46", ref = "REL1_46" },
+]
+
+[[block]]
+name = "mediawiki-templatestyles-{version}"
+title = "MediaWiki TemplateStyles"
+url = "https://github.com/wikimedia/mediawiki-extensions-TemplateStyles"
+licence = "GPL-2.0-or-later"
+versions = [
+  { version = "1.45", ref = "REL1_45" },
+  { version = "1.46", ref = "REL1_46" },
+]
+
+[[block]]
+name = "mediawiki-textextracts-{version}"
+title = "MediaWiki TextExtracts"
+url = "https://github.com/wikimedia/mediawiki-extensions-TextExtracts"
+licence = "GPL-2.0-or-later"
+versions = [
+  { version = "1.43", ref = "REL1_43" },
+  { version = "1.45", ref = "REL1_45" },
+  { version = "1.46", ref = "REL1_46" },
+]
+
+[[block]]
+name = "mediawiki-thanks-{version}"
+title = "MediaWiki Thanks"
+url = "https://github.com/wikimedia/mediawiki-extensions-Thanks"
+licence = "MIT"
+versions = [
+  { version = "1.43", ref = "REL1_43" },
+  { version = "1.45", ref = "REL1_45" },
+  { version = "1.46", ref = "REL1_46" },
+]
+
+[[block]]
+name = "mediawiki-titleblacklist-{version}"
+title = "MediaWiki TitleBlacklist"
+url = "https://github.com/wikimedia/mediawiki-extensions-TitleBlacklist"
+licence = "GPL-2.0-or-later"
+versions = [
+  { version = "1.43", ref = "REL1_43" },
+  { version = "1.45", ref = "REL1_45" },
+  { version = "1.46", ref = "REL1_46" },
+]
+
+[[block]]
+name = "mediawiki-visualeditor-{version}"
+title = "MediaWiki VisualEditor"
+url = "https://github.com/wikimedia/mediawiki-extensions-VisualEditor"
+licence = "MIT"
+versions = [
+  { version = "1.43", ref = "REL1_43" },
+  { version = "1.45", ref = "REL1_45" },
+  { version = "1.46", ref = "REL1_46" },
+]
+
+[[block]]
+name = "mediawiki-wikieditor-{version}"
+title = "MediaWiki WikiEditor"
+url = "https://github.com/wikimedia/mediawiki-extensions-WikiEditor"
+licence = "GPL-2.0-or-later"
+versions = [
+  { version = "1.43", ref = "REL1_43" },
+  { version = "1.45", ref = "REL1_45" },
+  { version = "1.46", ref = "REL1_46" },
+]
+
+[[block]]
+name = "mediawiki-skin-minervaneue-{version}"
+title = "MediaWiki MinervaNeue"
+url = "https://github.com/wikimedia/mediawiki-skins-MinervaNeue"
+licence = "GPL-2.0-or-later"
+versions = [
+  { version = "1.43", ref = "REL1_43" },
+  { version = "1.45", ref = "REL1_45" },
+  { version = "1.46", ref = "REL1_46" },
+]
+
+[[block]]
+name = "mediawiki-skin-monobook-{version}"
+title = "MediaWiki MonoBook"
+url = "https://github.com/wikimedia/mediawiki-skins-MonoBook"
+licence = "GPL-2.0-or-later"
+versions = [
+  { version = "1.43", ref = "REL1_43" },
+  { version = "1.45", ref = "REL1_45" },
+  { version = "1.46", ref = "REL1_46" },
+]
+
+[[block]]
+name = "mediawiki-skin-timeless-{version}"
+title = "MediaWiki Timeless"
+url = "https://github.com/wikimedia/mediawiki-skins-Timeless"
+licence = "GPL-2.0-or-later"
+versions = [
+  { version = "1.43", ref = "REL1_43" },
+  { version = "1.45", ref = "REL1_45" },
+  { version = "1.46", ref = "REL1_46" },
+]
+
+[[block]]
+name = "mediawiki-skin-vector-{version}"
+title = "MediaWiki Vector"
+url = "https://github.com/wikimedia/mediawiki-skins-Vector"
+licence = "GPL-2.0-or-later"
+versions = [
+  { version = "1.43", ref = "REL1_43" },
+  { version = "1.45", ref = "REL1_45" },
+  { version = "1.46", ref = "REL1_46" },
+]
