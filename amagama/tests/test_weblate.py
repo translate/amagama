@@ -501,3 +501,39 @@ def test_project_components(monkeypatch):
     found = weblate.components("https://w.example", project="a b")
     assert [c["slug"] for c in found] == ["ui"]
     assert pages == ["https://w.example/api/projects/a%20b/components/?page_size=1000"]
+
+
+def test_project_source_language():
+    # Older Weblate gives the source language only with the project.
+    english, german = (component("app", slug, "https://git.example/%s" % slug, "po/*.po")
+                       for slug in ("en", "de"))
+    for found, code in ((english, "en"), (german, "de")):
+        del found["source_language"]
+        found["project"]["source_language"] = {"code": code}
+    assert weblate.readable(english) is None
+    assert weblate.readable(german) == "source not English"
+
+
+def test_linked_component_branch():
+    # Older Weblate shows a linked component's repository but no branch.
+    found, skipped = generated([
+        component("panel", "panel", "https://git.example/panel", "panel/*.ts", branch="master",
+                  file_format="ts"),
+        component("panel", "clock", "https://git.example/panel", "clock/*.ts", branch="",
+                  file_format="ts"),
+    ])
+    assert {name: (b["ref"], b["files"]) for name, b in found.items()} == {
+        "test-panel": ("master", ["clock/{lang}.ts", "panel/{lang}.ts"])}
+
+
+def test_linked_component_branch_scp_repository():
+    # The branch is found for a repository written scp-style, too.
+    found, skipped = generated([
+        component("panel", "panel", "git@git.example:panel.git", "panel/*.ts", branch="master",
+                  file_format="ts"),
+        component("panel", "clock", "https://git.example/panel.git", "clock/*.ts", branch="",
+                  file_format="ts"),
+    ])
+    assert {name: (b["url"], b["ref"], b["files"]) for name, b in found.items()} == {
+        "test-panel": ("https://git.example/panel.git", "master",
+                       ["clock/{lang}.ts", "panel/{lang}.ts"])}

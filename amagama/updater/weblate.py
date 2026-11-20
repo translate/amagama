@@ -96,21 +96,32 @@ def _with_encoding(component):
     return weblate_format
 
 
-def _repository(component, by_url):
+def _https(repo):
+    """repo, an scp-style git@host:path as https."""
+    match = re.fullmatch(r"[\w.-]+@([\w.-]+):(?!//)(.+)", repo)
+    return "https://%s/%s" % match.groups() if match else repo
+
+
+def _repository(component, by_url, branches=None):
     """(repo, branch) of a component, or (None, None).
 
     Follows a weblate:// link; an scp-style git@host:path becomes https; a
-    repository only in Weblate (local:) is Weblate's git export of it.
+    repository only in Weblate (local:) is Weblate's git export of it. An
+    empty branch is the one other components of the repository name, if
+    they name one (older Weblate's linked components show none).
     """
     if (component.get("repo") or "").startswith("weblate://"):
         component = by_url.get(component.get("linked_component") or "", {})
-    repo = component.get("repo") or ""
-    match = re.fullmatch(r"[\w.-]+@([\w.-]+):(?!//)(.+)", repo)
-    if match:
-        repo = "https://%s/%s" % match.groups()
-    elif repo.startswith("local:"):
+    repo = _https(component.get("repo") or "")
+    if repo.startswith("local:"):
         return (component.get("git_export") or None), None
-    return (repo, component.get("branch") or "") if "://" in repo else (None, None)
+    if "://" not in repo:
+        return None, None
+    branch = component.get("branch") or ""
+    named = (branches or {}).get(repo, set())
+    if not branch and len(named) == 1:
+        branch = next(iter(named))
+    return repo, branch
 
 
 def _mask(filemask):
@@ -134,7 +145,9 @@ def readable(component):
     licence = (component.get("license") or "").strip()
     if component.get("is_glossary") or weblate_format == "tbx":
         return "glossary (terminology)"
-    if (component.get("source_language") or {}).get("code") != "en":
+    # Older Weblate gives the source language per project only.
+    source = component.get("source_language") or component["project"].get("source_language")
+    if (source or {}).get("code") != "en":
         return "source not English"
     if weblate_format not in FORMATS:
         return "format %s" % weblate_format
@@ -166,6 +179,11 @@ def blocks(components, prefix, projects=("*",), docs=(), covered=(), names=None)
     sources file would check it.
     """
     by_url = {component.get("url"): component for component in components}
+    named = {}
+    for component in components:
+        repo = _https(component.get("repo") or "")
+        if component.get("branch") and "://" in repo:
+            named.setdefault(repo, set()).add(component["branch"])
     covered = {normal_url(repo) for repo in covered}
     groups, skipped = {}, {}
 
@@ -181,7 +199,7 @@ def blocks(components, prefix, projects=("*",), docs=(), covered=(), names=None)
         if readable(component):
             skip(readable(component))
         else:
-            repo, branch = _repository(component, by_url)
+            repo, branch = _repository(component, by_url, named)
             if not repo:
                 skip("no repository")
             elif normal_url(repo) in covered:
