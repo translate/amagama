@@ -61,6 +61,7 @@ jobs:
         run: >-
           devsupport/regenerate-sources.sh "$RUNNER_TEMP/reports"
           amagama/updater/weblate-fedora.toml
+          amagama/updater/weblate-opensuse.toml
           amagama/updater/weblate-lxqt.toml
           amagama/updater/weblate-xwiki.toml
           amagama/updater/linguas-github.toml
