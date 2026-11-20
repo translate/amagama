@@ -528,7 +528,8 @@ def test_linked_component_branch():
 
 @pytest.mark.parametrize("weblate_format, format", [
     ("xwiki-java-properties", "xwiki-properties"), ("xwiki-page-properties", "xwiki-page"),
-    ("yaml", "yaml"), ("ruby-yaml", "ruby-yaml")])
+    ("yaml", "yaml"), ("ruby-yaml", "ruby-yaml"), ("strings", "strings"),
+    ("strings-utf8", "strings")])
 def test_monolingual_formats(weblate_format, format):
     found, skipped = generated([component("wiki", "ui", "https://git.example/wiki",
                                           "res/App_*.properties", file_format=weblate_format,

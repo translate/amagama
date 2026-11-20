@@ -41,6 +41,7 @@ EXTENSIONS = {
     ".php": "php",
     ".ftl": "fluent",
     ".dtd": "dtd",
+    ".strings": "strings",
 }
 
 

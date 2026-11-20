@@ -65,13 +65,22 @@ def test_resources():
     ("file_filter = po/af.po\nsource_lang = en\ntype = PO", "file_filter without <lang>"),
     ("file_filter = po/<lang>.po\nsource_lang = de\ntype = PO", "source not English"),
     ("file_filter = po/<lang>.po\ntype = PO", "source not English"),
-    ("file_filter = <lang>.strings\nsource_lang = en\ntype = STRINGS", "type STRINGS"),
+    ("file_filter = <lang>.stringsdict\nsource_lang = en\ntype = STRINGSDICT",
+     "type STRINGSDICT"),
     ("file_filter = <lang>.po\nsource_lang = en", "type not given"),
     ("file_filter = <lang>.json\nsource_lang = en\ntype = KEYVALUEJSON",
      "monolingual without a source_file"),
 ])
 def test_resources_skipped(section, reason):
     assert transifex.resources("[p.r]\n" + section) == ([], {reason: 1})
+
+
+def test_resources_strings():
+    found, _ = transifex.resources("[p.r]\nfile_filter = App/<lang>.lproj/Localizable.strings\n"
+                                   "source_file = App/en.lproj/Localizable.strings\n"
+                                   "source_lang = en\ntype = STRINGS\n")
+    assert [(r["mask"], r["format"], r["template"]) for r in found] == [
+        ("App/{lang}.lproj/Localizable.strings", "strings", "App/en.lproj/Localizable.strings")]
 
 
 def test_resources_main_settings():

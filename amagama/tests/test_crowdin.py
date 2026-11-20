@@ -79,12 +79,23 @@ def test_languages():
 
 @pytest.mark.parametrize("config, reason", [
     ("files: [{source: a.json}]", "file without source or translation"),
-    ("files: [{source: a.strings, translation: '%locale%/a.strings'}]", "type .strings"),
+    ("files: [{source: a.stringsdict, translation: '%locale%/a.stringsdict'}]",
+     "type .stringsdict"),
     ("files: [{source: a.yml, translation: '%locale%/a.yml', type: yaml}]", "type yaml"),
     ("files: [{source: a.json, translation: '%language%.json'}]", "placeholder %language%"),
 ])
 def test_files_skipped(config, reason):
     assert crowdin.files(config) == ([], {reason: 1})
+
+
+def test_files_strings():
+    config = ("files:\n  - source: /App/en.lproj/Localizable.strings\n"
+              "    translation: /App/%osx_code%/%original_file_name%\n"
+              "  - source: /App/en.lproj/Main.txt\n    type: macosx\n"
+              "    translation: /App/%osx_code%/Main.txt\n")
+    assert [(f["mask"], f["format"], f["template"]) for f in crowdin.files(config)[0]] == [
+        ("App/{lang}.lproj/Localizable.strings", "strings", "App/en.lproj/Localizable.strings"),
+        ("App/{lang}.lproj/Main.txt", "strings", "App/en.lproj/Main.txt")]
 
 
 @pytest.mark.parametrize("config", ["files: [", "project_id: 1", "files: nothing"])
