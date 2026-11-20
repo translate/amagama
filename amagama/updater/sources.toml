@@ -245,6 +245,50 @@ format = "ruby-yaml"
 template = "config/locales/en.yml"
 licence = "GPL-2.0-only"
 
+# Kiwix's apps translated on translatewiki.net.
+[[block]]
+name = "kiwix-desktop"
+title = "Kiwix Desktop"
+source = "git"
+min_age_days = 7
+url = "https://github.com/kiwix/kiwix-desktop"
+files = ["resources/i18n/{lang}.json"]
+exclude = ["resources/i18n/qqq.json"]
+format = "json"
+template = "resources/i18n/en.json"
+exclude_ids = ["@metadata*"]
+# translatewiki.net's code for Serbian in Cyrillic, not a region.
+languages.sr-ec = "sr"
+licence = "GPL-3.0-or-later"
+
+[[block]]
+name = "libkiwix"
+title = "Kiwix Server"
+source = "git"
+min_age_days = 7
+url = "https://github.com/kiwix/libkiwix"
+files = ["static/skin/i18n/{lang}.json"]
+exclude = ["static/skin/i18n/qqq.json"]
+format = "json"
+template = "static/skin/i18n/en.json"
+exclude_ids = ["@metadata*"]
+licence = "GPL-3.0-or-later"
+
+[[block]]
+name = "kiwix-android"
+title = "Kiwix for Android"
+source = "git"
+min_age_days = 7
+url = "https://github.com/kiwix/kiwix-android"
+files = ["*/src/main/res/values-{lang}/strings.xml"]
+format = "android"
+template = "*/src/main/res/values/strings.xml"
+# An older, smaller copy of b+be+tarask's strings.
+languages."b+be+tarask+old" = ""
+# translatewiki.net's message documentation, not a translation.
+languages.qq = ""
+licence = "GPL-3.0-or-later"
+
 [[block]]
 name = "signal-desktop"
 title = "Signal Desktop"
