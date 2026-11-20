@@ -235,6 +235,17 @@ versions = [
 ]
 
 [[block]]
+name = "openstreetmap-website"
+title = "OpenStreetMap"
+source = "git"
+min_age_days = 7
+url = "https://github.com/openstreetmap/openstreetmap-website"
+files = ["config/locales/{lang}.yml"]
+format = "ruby-yaml"
+template = "config/locales/en.yml"
+licence = "GPL-2.0-only"
+
+[[block]]
 name = "signal-desktop"
 title = "Signal Desktop"
 source = "git"
