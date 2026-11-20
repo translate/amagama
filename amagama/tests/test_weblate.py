@@ -490,6 +490,68 @@ def test_check_importable(tmp_path):
                         "filemask matches nothing": 1, "repository or branch not found": 1}
 
 
+def test_check_reads_a_sample(tmp_path, monkeypatch):
+    # openSUSE's documentation: thousands of files hold only a header.
+    repo = tmp_path / "repo"
+    empty = 'msgid ""\nmsgstr "Language: af\\n"\n\nmsgid "Save"\nmsgstr ""\n'
+    files = {"late/m%03d/af.po" % n: empty for n in range(200)}
+    files.update({"late/m%03d/af.po" % n: 'msgid "Save"\nmsgstr "Stoor"\n' for n in range(200, 250)})
+    files.update({"none/m%03d/af.po" % n: empty for n in range(150)})
+    files.update({"few/m%03d/af.po" % n: empty for n in range(101)})
+    # An empty template: its files aren't downloaded.
+    files["moved/values/strings.xml"] = "<resources></resources>"
+    files.update({"moved/values-%s/strings.xml" % lang: '<resources><string name="a">A</string>'
+                  '</resources>' for lang in ("af", "de", "nl")})
+    for name, text in files.items():
+        (repo / name).parent.mkdir(parents=True, exist_ok=True)
+        (repo / name).write_text(text, encoding="utf-8")
+    subprocess.run(["sh", "-c", "git init -q -b main && git add . && git -c user.name=t "
+                    "-c user.email=t@example.org commit -q -m l10n"], cwd=repo, check=True)
+    checkouts = []
+    checkout_only = generate.checkout_only
+
+    def counted(directory, paths):
+        checkouts.append(len(paths))
+        return checkout_only(directory, paths)
+    monkeypatch.setattr(generate, "checkout_only", counted)
+    url = repo.as_uri()
+    blocks = [{"name": "late", "url": url, "files": ["late/**/{lang}.po"]},
+              {"name": "none", "url": url, "files": ["none/**/{lang}.po"]},
+              {"name": "few", "url": url, "files": ["few/**/{lang}.po"]},
+              {"name": "moved", "url": url, "files": ["moved/values-{lang}/strings.xml"],
+               "format": "android", "template": "moved/values/strings.xml"}]
+    kept, problems = generate.check(blocks, pause=0)
+    assert [b["name"] for b in kept] == ["late"]
+    assert problems == {"no translations in 75 of its files": 1,
+                        "no translations in 51 of its files": 1, "template has no units": 1}
+    # One checkout a block, of at most EMPTY_SAMPLE files; the template first.
+    assert checkouts == [84, 75, 51, 1]
+
+
+def test_checkout_only_fetches_once(tmp_path):
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    for n in range(20):
+        (repo / ("%d.po" % n)).write_text(str(n))
+    (repo / "[a].po").write_text("a")
+    log = tmp_path / "fetches"
+    upload_pack = tmp_path / "upload-pack"
+    upload_pack.write_text('#!/bin/sh\necho fetch >> "%s"\nexec git-upload-pack "$@"\n' % log)
+    upload_pack.chmod(0o755)
+    subprocess.run(["sh", "-c", "git init -q -b main && git add . && git -c user.name=t "
+                    "-c user.email=t@example.org commit -q -m l10n && "
+                    "git config uploadpack.allowFilter true"], cwd=repo, check=True)
+    clone = tmp_path / "clone"
+    subprocess.run(["git", "clone", "-q", "--filter=blob:none", "--no-checkout", repo.as_uri(),
+                    str(clone)], check=True)
+    subprocess.run(["git", "-C", str(clone), "config", "remote.origin.uploadpack",
+                    str(upload_pack)], check=True)
+    paths = ["%d.po" % n for n in range(0, 20, 2)] + ["[a].po"]
+    generate.checkout_only(str(clone), paths)
+    assert sorted(p.name for p in clone.iterdir() if p.name != ".git") == sorted(paths)
+    assert log.read_text() == "fetch\n"
+
+
 def test_project_components(monkeypatch):
     pages = []
 

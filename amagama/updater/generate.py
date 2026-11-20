@@ -412,10 +412,22 @@ def matching(masks, paths, template=None, sources=()):
                   if any(matches(mask, path) for path in paths if path not in sources))
 
 
+# Files a block's check reads at most, spread over its files.
+EMPTY_SAMPLE = 100
+
+
+def checkout_only(directory, paths):
+    """Check out only paths in a clone made without a checkout. A partial
+    clone fetches them in one request; checking out paths by name would
+    fetch them one at a time."""
+    patterns = ["/" + re.sub(r"([*?\[\\])", r"\\\1", path) for path in paths]
+    run_tool("git", "-C", directory, "sparse-checkout", "set", "--no-cone", *patterns,
+             trusted=directory)
+    run_tool("git", "-C", directory, "checkout", "--quiet", "HEAD", trusted=directory)
+
+
 def _store(directory, path, format):
-    """The store of path in a clone made without a checkout, or None if it
-    can't be read; only that file is checked out."""
-    run_tool("git", "-C", directory, "checkout", "--quiet", "HEAD", "--", path, trusted=directory)
+    """The store of a checked-out path, or None if it can't be read."""
     try:
         return open_store(os.path.join(directory, path), format)
     except Exception:
@@ -434,14 +446,21 @@ def _empty(block, directory, paths):
     """Why block would import nothing, or None."""
     format = block.get("format")
     template = block.get("template")
-    if template and not _has_translations(_store(directory, template, format), True):
-        return "template has no units"
+    if template:
+        checkout_only(directory, [template])
+        if not _has_translations(_store(directory, template, format), True):
+            return "template has no units"
+    files = [path for path in paths
+             if path != template and any(matches(mask, path) for mask in block["files"])]
+    sample = files[::-(-len(files) // EMPTY_SAMPLE)] if files else []
+    if not sample:
+        return "no translations"
+    checkout_only(directory, sample)
     monolingual = is_monolingual(format)
-    for path in paths:
-        if path != template and any(matches(mask, path) for mask in block["files"]) \
-                and _has_translations(_store(directory, path, format), monolingual):
-            return None
-    return "no translations"
+    if any(_has_translations(_store(directory, path, format), monolingual) for path in sample):
+        return None
+    return "no translations" if len(sample) == len(files) else \
+        "no translations in %d of its files" % len(sample)
 
 
 def check(blocks, pause=None, clone=clone):
@@ -451,8 +470,9 @@ def check(blocks, pause=None, clone=clone):
     A generator's data can be out of date. A missing branch falls back to
     the default branch; masks matching nothing are dropped; a block left
     with none, or whose template is missing, is left out. Then a block's
-    template and files are read until one has a translation; one whose files
-    can't be read is kept. One clone per repository and ref, spaced as
+    template and files are read until one has a translation, at most
+    EMPTY_SAMPLE files spread over its files; one whose files can't be read
+    is kept. One clone per repository and ref, spaced as
     Pacer.of(pause).
     """
     pacer = Pacer.of(pause)

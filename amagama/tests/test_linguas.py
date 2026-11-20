@@ -187,4 +187,7 @@ def test_repository_git_fails(repository, monkeypatch, failing, expected):
         return run_tool(tool, *args, **kwargs)
 
     monkeypatch.setattr(linguas, "run_tool", failing_tool)
+    if failing == "sparse-checkout":
+        # The checkout is generate's; its clone also reads the tree.
+        monkeypatch.setattr(generate, "run_tool", failing_tool)
     assert linguas.repository(repository.as_uri()) == expected
