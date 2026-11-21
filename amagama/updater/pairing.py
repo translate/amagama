@@ -19,10 +19,14 @@ import re
 
 from translate.storage.base import TranslationStore, TranslationUnit
 from translate.storage.po import pounit
+from translate.storage.xliff import xliffunit
 
 
 def text(unit):
-    """A monolingual unit's text: some readers put it in target, some in source."""
+    """A monolingual unit's text: some readers put it in target, some in
+    source. XLIFF's source is the id, so a unit without a target has none."""
+    if isinstance(unit, xliffunit):
+        return unit.target or ""
     return unit.target or unit.source
 
 
