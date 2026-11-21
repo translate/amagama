@@ -111,6 +111,8 @@ class TestURLs(object):
         ('.', '.', '/unit/'),
         ('..', '..', '/'),
         ('a//b', 'a//b', '/unit/a/b'),
+        ('/usr/bin', '%2Fusr%2Fbin', '/unit/usr/bin'),
+        ('/', '%2F', '/unit/'),
         ('Lêer/oop', 'L%C3%AAer%2Foop', '/unit/L\xc3\xaaer/oop'),
         # Not quoted by the client: bytes, as Latin-1, like PATH_INFO.
         ('Lêer//oop', 'L\xc3\xaaer//oop', '/unit/L\xc3\xaaer/oop'),
@@ -129,7 +131,7 @@ class TestURLs(object):
         assert response.status_code == 200
         assert response.json == client.get(prefix + '/unit/', query_string={
             'source': source, 'max_candidates': 1}).json
-        if source != '.':  # Not a word to look up.
+        if source not in ('.', '/'):  # Not words to look up.
             assert [(c['source'], c['quality']) for c in response.json] == [(source, 100)]
 
     def test_limits(self, amagama):
