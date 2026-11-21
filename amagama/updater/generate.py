@@ -195,7 +195,8 @@ def context(blocks, prefix):
     of loaded blocks whose names start with prefix.
 
     Those blocks keep their names and don't count as imported elsewhere.
-    covered are the repositories other enabled blocks import; disabled maps
+    covered are the repositories other enabled blocks import, or read as
+    their mirror; disabled maps
     the prefix's disabled blocks' names to their settings as written.
     """
     own = [block for block in blocks if block.name.startswith(prefix + "-")]
@@ -206,8 +207,8 @@ def context(blocks, prefix):
             written = {entry.get("name"): entry for entry in tomllib.load(f).get("block", [])}
         disabled.update((block.name, dict(written[block.name], disabled=block.disabled))
                         for block in own if not block.enabled and block.path == path)
-    covered = [block.fetcher.settings["url"] for block in others
-               if block.enabled and block.source in ("git", "svn")]
+    covered = [url for block in others if block.enabled and block.source in ("git", "svn")
+               for url in (block.fetcher.settings["url"], block.mirror) if url]
     return (Names({block.name for block in others}, previous_names(own),
                   {block.name for block in own}), covered, disabled)
 
