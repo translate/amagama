@@ -64,6 +64,17 @@ from amagama.unit_checks import Report, failed_checks, length_step, script, targ
     ("{0,choice,1#one page by {1}|1<{0} pages by {1}}",
      "{0,choice,1#een bladsy|1<{0} bladsye}", "af", ["braces"]),
     ("{0,choice,1#one page|1<{0} pages}", "{0} bladsye", "af", ["braces"]),
+    # ICU's plural and select, by number, translate their branches too.
+    ("{0, plural, one {{0} file} other {{0} files}}",
+     "{0, plural, one {{0} файл} few {{0} файла} many {{0} файлов} other {{0} файла}}", "ru", []),
+    ("{0, select, male {He} other {They}} left", "{0, select, male {Hy} other {Hulle}} het gery",
+     "af", []),
+    ("{0, plural, one {{0} file} other {{0} files}}", "{0} lêers", "af", ["braces"]),
+    # A typed argument is its argument; a numbered one may be used again.
+    ("{0} files", "{0,number} lêers", "af", []),
+    ("Saved {0,date,short}", "{0} gestoor", "af", []),
+    ("{0} file", "{0} файл, {0}", "ru", []),
+    ("{0} of {1}", "{0} van {0}", "af", ["braces"]),
     ("{0,choice,1#one page|1<{0} pages}", "{1,choice,1#een bladsy|1<{1} bladsye}", "af",
      ["braces"]),
     ("<b>Bold</b> text", "<b>Vet</b> teks", "af", []),
