@@ -159,14 +159,22 @@ _PO_CHARSET = re.compile(rb"charset=([A-Za-z0-9._:-]+)")
 
 
 def _po_entries(lines):
-    """The entries of a PO file's lines, split at the blank lines between them."""
-    entry = []
+    """The entries of a PO file's lines, split at the blank lines between them,
+    and where a comment, msgctxt or msgid follows a msgstr."""
+    entry, translated = [], False
     for line in lines:
+        # An obsolete entry's lines are its keywords behind "#~".
+        keyword = line[2:].lstrip() if line.startswith(b"#~") else line
+        comment = line.startswith(b"#") and not keyword.startswith((b"msg", b'"'))
+        if translated and (comment or keyword.startswith((b"msgctxt", b"msgid"))):
+            yield entry
+            entry, translated = [], False
         if line.strip():
             entry.append(line)
+            translated = translated or keyword.startswith(b"msgstr")
         elif entry:
             yield entry
-            entry = []
+            entry, translated = [], False
     if entry:
         yield entry
 
@@ -315,7 +323,7 @@ def _is_header(entry):
 def po_pieces(path, size=None):
     """path in PO files of about size bytes, each starting with path's header.
 
-    Entries are split at the blank lines between them.
+    Entries are split where _po_entries() splits them.
     """
     size = size or PIECE_SIZE
     header, piece, length = b"", [], 0
