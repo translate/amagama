@@ -21,6 +21,9 @@ requirements/min-versions.txt
 .coverage
 coverage.xml
 
+# Hypothesis' example database
+.hypothesis/
+
 # Packaging / venvs
 .venv*
 build/
