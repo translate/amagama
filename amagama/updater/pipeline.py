@@ -102,8 +102,8 @@ def _import_file(path, recorded, slang, tlang, block, licence, format, template,
         translatable = sum(1 for u in store.units if u.istranslatable()) + sum(
             getattr(store, left_out, 0) for left_out in ("undecodable", "plurals"))
         if segment:
-            whole = sum(1 for u in store.units if tmdb._usable_unit(u))
-            store = segmented(store, slang, tlang, tmdb._usable_unit)
+            whole = sum(1 for u in store.units if tmdb._usable_unit(u, tlang))
+            store = segmented(store, slang, tlang, lambda u: tmdb._usable_unit(u, tlang))
         added = tmdb.add_store(store, slang, tlang, commit=in_pieces, iid=iid)
         units += added
         # Sentence pairs add units; skipped counts the file's own.

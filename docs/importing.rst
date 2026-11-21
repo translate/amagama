@@ -62,7 +62,13 @@ Recording imports
 Every imported file is recorded in the ``imports`` table of its source
 language: the file name, its SHA-256 checksum (none for a :ref:`snapshot
 <managing#load-snapshot>`), the target language, how many
-units were loaded and how many were skipped (untranslated or fuzzy), and when.
+units were loaded and how many were skipped, and when. Untranslated and fuzzy
+units are skipped, and so is a target identical to its English source of two
+words or more, not all in capitals (a source left untranslated, as Crowdin and
+others export them), unless the target language is a variant of English.
+Placeholders, numbers and URLs aren't counted as words: a single word, an
+acronym or a string of placeholders is often the same in every language, and
+is kept, while ``Open %s file`` left in English is skipped.
 Name the set of files with ``--block`` and give their licence as an `SPDX
 licence expression <https://spdx.org/licenses/>`_ with ``--licence``, such as
 ``MPL-2.0 OR LGPL-3.0-or-later``. Identifiers must be current ones from the

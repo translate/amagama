@@ -37,7 +37,7 @@ def checked(run, site):  # noqa: F811 - fixture
     """A rebuild with one translation left out (printf) and one flagged (unchanged)."""
     root, url = site
     write_gnome(root, "af", ("Open file", "Maak lêer oop"), ("Open %s", "Maak oop"),
-                ("Open the file now", "Open the file now"))
+                ("OPEN THE FILE NOW", "OPEN THE FILE NOW"))
     result = run("update", "-s", "en", ENABLE_WEB_UI=True)
     assert result.exit_code == 0, result.output
     return result
