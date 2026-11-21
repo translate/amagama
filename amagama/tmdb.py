@@ -34,7 +34,7 @@ from amagama import postgres
 from amagama.mojibake import CANDIDATE_REGEX, unmangle
 from amagama.source_options import SourceOptions
 from amagama.normalise import indexing_version
-from amagama.updater.languages import COUNTRY_CODES, normalise_language
+from amagama.updater.languages import COUNTRY_CODES, normalise_language, not_language
 
 # Shorter strings always fit a btree index row (2704 bytes, with the row's
 # other columns); a longer one may not, however it compresses.
@@ -89,16 +89,25 @@ def lang_to_table(code):
     return None
 
 
-# Directory names the 2019 database stored as target languages that happen
-# to be ISO 639 codes (mac is Macedonian's bibliographic code, bad the Banda
-# languages').
-SNAPSHOT_NOT_LANGUAGES = {"bad", "mac"}
+# Names the 2019 database stored as target languages that are ISO 639 codes
+# but weren't languages there.
+SNAPSHOT_NOT_LANGUAGES = {
+    "bad": "a directory name, though the Banda languages' code",
+    "mac": "a directory name, though Macedonian's bibliographic code",
+}
 
 
-def _is_language_table(name):
-    """Whether a stored target language's name starts with a language code."""
-    return (name not in SNAPSHOT_NOT_LANGUAGES
-            and normalise_language(name.partition("_")[0]) is not None)
+def _not_language_table(name):
+    """Why a stored target language's name isn't a language's, or None."""
+    if name in SNAPSHOT_NOT_LANGUAGES:
+        return SNAPSHOT_NOT_LANGUAGES[name]
+    return not_language(name.partition("_")[0])
+
+
+def snapshot_left_out(left_out):
+    """load_snapshot()'s target languages left out, each with why."""
+    return ", ".join("%s (%s; %d targets)" % (name, why, targets)
+                     for name, targets, why in left_out)
 
 
 CODE_CONFIG_MAP = {
@@ -464,8 +473,8 @@ ORDER BY rank DESC{order};
         Skips what an import would also refuse: sources longer than
         MAX_LENGTH, text too long for the unique indexes, and targets
         stored under codes that aren't languages. Records an import per
-        target language. Returns the number of sources and
-        targets loaded and skipped.
+        target language. Returns the number of sources and targets loaded
+        and skipped, and the target languages left out: (name, targets, why).
         """
         slang = lang_to_table(slang)
         snapshot = '_%s_%s' % (name, slang)
@@ -503,7 +512,9 @@ ORDER BY rank DESC{order};
                            .format(snap_targets))
             totals = cursor.fetchall()
             snapshot_targets = sum(total for lang, total in totals)
-            langs = [lang for lang, total in totals if _is_language_table(lang)]
+            left_out = [(lang, total, _not_language_table(lang)) for lang, total in totals
+                        if _not_language_table(lang)]
+            langs = [lang for lang, total in totals if not _not_language_table(lang)]
             # Stored under a country's code (gr): the language's (el).
             renamed = {lang: lang_to_table(lang) for lang in langs
                        if lang.lower() in COUNTRY_CODES}
@@ -566,7 +577,7 @@ ORDER BY rank DESC{order};
             raise
         targets = sum(row[2] for row in per_lang)
         return (sources, snapshot_sources - sources,
-                targets, snapshot_targets - targets)
+                targets, snapshot_targets - targets, left_out)
 
     def import_summary(self, slang):
         """Files, target languages and units per block, oldest block first."""

@@ -179,9 +179,11 @@ that a rebuild keeps data that can't be imported from files again:
     $ amagama-manage initdb -s en --build
     $ amagama-manage load_snapshot -s en --name legacy --block legacy-2019
     Loaded _legacy_en into _build_en: 1000 sources (2 skipped), 5000 targets (3 skipped).
+    Not language codes, skipped: po (not an ISO 639 code; 3 targets)
 
 Source ids are kept. Text that an import would also refuse is skipped: sources
-longer than ``MAX_LENGTH``, and text too long for the database indexes. Each
+longer than ``MAX_LENGTH``, text too long for the database indexes, and
+targets stored under a code that isn't a language's, listed with why. Each
 target language is recorded as an :ref:`import <importing#record>` under the
 given ``--block`` and optional ``--licence``.
 

@@ -37,9 +37,10 @@ from amagama.source_options import MAX_WEIGHT
 from amagama.updater import discovery, generate, status, transifex, weblate
 from amagama.updater.fetchers import VCS_DIRECTORIES, FetchError, remembered_commits
 from amagama.updater.formats import open_pieces
+from amagama.updater.languages import described
 from amagama.updater.sources import (FAILURES_TO_REPORT, REPOSITORIES, TAGS, limit_first_fetches,
                                      load_sources, select, unused_repositories)
-from amagama.tmdb import BUILD_PREFIX, OLD_PREFIX, lang_to_table
+from amagama.tmdb import BUILD_PREFIX, OLD_PREFIX, lang_to_table, snapshot_left_out
 
 def ensure_source_exists():
     db_name = current_app.config.get("DB_NAME")
@@ -589,12 +590,14 @@ def load_snapshot(source_langs, name, block, licence):
     current_app.tmdb.use_schemas(BUILD_PREFIX)
     for slang in source_langs:
         try:
-            counts = current_app.tmdb.load_snapshot(slang, name, block, licence)
+            *counts, left_out = current_app.tmdb.load_snapshot(slang, name, block, licence)
         except ValueError as e:
             print(e)
             raise SystemExit(1)
         print("Loaded _%s_%s into %s%s: %d sources (%d skipped), %d targets (%d skipped)."
-              % ((name, slang, BUILD_PREFIX, slang) + counts))
+              % ((name, slang, BUILD_PREFIX, slang) + tuple(counts)))
+        if left_out:
+            print("Not language codes, skipped: %s" % snapshot_left_out(left_out))
 
 
 def configured_blocks(tags=()):
@@ -654,7 +657,7 @@ def fetch_sources(block_names, tags, check):
                     print("%s: codes merged: %s -> %s" % (block.name, ", ".join(sources), code))
                 if state['unknown_languages']:
                     print("%s: not language codes, skipped: %s" % (
-                        block.name, ", ".join(state['unknown_languages'])))
+                        block.name, described(state['unknown_languages'])))
                 if state.get('outside_links'):
                     print("%s: symlinks leading outside the block, skipped: %s" % (
                         block.name, ", ".join(state['outside_links'])))
