@@ -77,6 +77,10 @@ def http_fingerprint(url):
 def download(url, path):
     with _request(url) as response, open(path, "wb") as f:
         shutil.copyfileobj(response, f)
+        # A connection that drops early ends the body without an error.
+        length = response.headers.get("Content-Length", "")
+        if length.isdigit() and f.tell() != int(length):
+            raise FetchError("%s: got %d of %s bytes" % (url, f.tell(), length))
 
 
 def extract_tarball(path, dest):

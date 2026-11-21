@@ -7,6 +7,8 @@
 
 
 import os
+import socket
+import threading
 
 import pytest
 
@@ -83,3 +85,39 @@ def test_block_refuses_path_outside_fetch(monkeypatch, tmp_path):
     with pytest.raises(FetchError, match="not a path in the fetch"):
         block.fetch(str(tmp_path))
     assert (victim / "notes.txt").read_text() == "keep"
+
+
+@pytest.fixture
+def server():
+    """A local HTTP server sending replies[path] as raw bytes, then closing."""
+    replies = {}
+    listener = socket.socket()
+    listener.bind(("127.0.0.1", 0))
+    listener.listen(5)
+
+    def serve():
+        while True:
+            try:
+                connection, _ = listener.accept()
+            except OSError:
+                return
+            with connection:
+                request = connection.recv(4096).decode("latin-1")
+                connection.sendall(replies[request.split()[1]])
+    threading.Thread(target=serve, daemon=True).start()
+    yield "http://127.0.0.1:%d" % listener.getsockname()[1], replies
+    listener.close()
+
+
+def test_download(server, tmp_path):
+    url, replies = server
+    replies["/fr.po"] = b"HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nfr po"
+    fetchers.download(url + "/fr.po", str(tmp_path / "fr.po"))
+    assert (tmp_path / "fr.po").read_bytes() == b"fr po"
+
+
+def test_short_download_fails(server, tmp_path):
+    url, replies = server
+    replies["/fr.po"] = b"HTTP/1.1 200 OK\r\nContent-Length: 1000\r\n\r\n" + b"x" * 10
+    with pytest.raises(FetchError, match="got 10 of 1000 bytes"):
+        fetchers.download(url + "/fr.po", str(tmp_path / "fr.po"))
