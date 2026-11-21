@@ -279,6 +279,15 @@ def test_po_undecodable_entries_left_out(tmp_path, size):
     assert sum(store.undecodable for store in stores) == 1
 
 
+@pytest.mark.parametrize("size", [None, 40])
+def test_po_undecodable_crlf(tmp_path, size):
+    path = tmp_path / "af.po"
+    path.write_bytes(MIXED_PO.replace(b"\n", b"\r\n"))
+    stores = list(open_pieces(str(path), size=size)) if size else [open_store(str(path))]
+    assert sources(stores) == ["Save file", "Quit"]
+    assert sum(store.undecodable for store in stores) == 1
+
+
 def test_po_latin1_declared_nothing_left_out(tmp_path):
     path = tmp_path / "af.po"
     path.write_bytes(MIXED_PO.replace(b"charset=UTF-8", b"charset=ISO-8859-1"))
