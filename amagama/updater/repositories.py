@@ -103,7 +103,7 @@ def blocks(repositories, prefix, resolve, what, covered=(), names=None, pause=No
     found, skipped = [], collections.Counter()
     pacer = Pacer.of(pause)
     for url in repositories:
-        if normal_url(url) in covered:
+        if {normal_url(url), normal_url((mirrors or {}).get(url, url))} & covered:
             skipped["repositories", "imported by another block"] += 1
             continue
         pacer.wait((mirrors or {}).get(url, url))

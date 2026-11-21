@@ -72,6 +72,15 @@ def test_context(tmp_path):
     assert disabled["t-off"]["disabled"] == "duplicates other"
 
 
+
+def test_context_mirror(tmp_path):
+    path = tmp_path / "sources.toml"
+    path.write_text(block("other", "git", url="https://codeberg.org/o/app",
+                          mirror="https://github.com/o/app", files=["po/{lang}.po"]),
+                    encoding="utf-8")
+    _, covered, _ = generate.context(load_sources(str(path), disabled=True), "t")
+    assert covered == ["https://codeberg.org/o/app", "https://github.com/o/app"]
+
 def test_context_same_identity(tmp_path):
     path = tmp_path / "sources.toml"
     # Two blocks reading the same repository, with no template, share an

@@ -109,3 +109,13 @@ def test_format_of():
     assert repositories.format_of("res/values-de/strings.xml") == "android"
     assert repositories.format_of("x/strings.xml") is None
     assert repositories.format_of("a/b.FTL") == "fluent"
+
+
+def test_blocks_mirror_covered():
+    """A repository whose mirror another block imports is left out."""
+    url = "https://codeberg.org/o/app"
+    found, skipped, read = generated({"https://github.com/o/app": ([dict(PO, suffix=None)], {})},
+                                     urls=[url], mirrors={url: "https://github.com/o/app"},
+                                     covered=["https://github.com/O/app.git"])
+    assert found == [] and read == []
+    assert skipped == {("repositories", "imported by another block"): 1}
