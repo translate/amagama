@@ -1037,6 +1037,20 @@ class TestRotation(object):
         assert sorted(lang for path, lang in fetched(run.cache, "tp")) == ["af", "nso", "st", "xh"]
         assert not (run.cache / "tp/zu").exists()
 
+    def test_carried_file_missing(self, run, site, tmp_path):
+        """A language not due whose file is gone from the cache is fetched again."""
+        root, url = site
+        for lang in self.LANGS:
+            self.write(root, lang, "one")
+        text = block("tp", "translationproject", base_url=url + "/backups/last/", max_age_days=4)
+        self.fill(run, text)
+        (run.cache / "tp/zu/bash.zu.po.zst").unlink()
+        self.age(run.cache, 1)
+        result = run(text)
+        assert result.exit_code == 0, result.output
+        assert self.cached(run.cache, "zu", tmp_path) == "one"
+        assert sorted(lang for path, lang in fetched(run.cache, "tp")) == list(self.LANGS)
+
     def test_rotating_after_whole_fetches(self, run, site, tmp_path):
         root, url = site
         for lang in self.LANGS:

@@ -152,7 +152,7 @@ def test_rotation_fetches_english(run, moodle):
     assert lookup("af", "Save changes") == ["Stoor veranderinge"]
 
 
-def test_missing_carried_file_fails_the_block(run, moodle):
+def test_missing_carried_file_is_fetched_again(run, moodle):
     root, url = moodle
     text = moodle_block(url, max_age_days=3)
     assert run(text).exit_code == 0
@@ -167,8 +167,9 @@ def test_missing_carried_file_fails_the_block(run, moodle):
     fetched_state["language_fetched"]["af"] = "2030-01-01T00:00:00+00:00"
     state.write_text(json.dumps(fetched_state))
     result = run(text)
-    assert result.exit_code == 1
-    assert "moodle: failed: af/moodle.php.zst is missing from the last fetch" in result.output
+    assert result.exit_code == 0, result.output
+    assert os.path.exists(run.cache / "moodle/af/moodle.php.zst")
+    assert json.loads(state.read_text())["language_fetched"]["af"] < "2030"
 
 
 def test_file_without_template_is_skipped(run, moodle):
