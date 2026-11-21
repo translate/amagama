@@ -693,6 +693,21 @@ class TestFetch(object):
         assert result.exit_code == 1
         assert "x: failed: git ls-remote" in result.output
 
+    def test_git_gc_failure(self, run, git_repo, monkeypatch, caplog):
+        """The fetch is kept; the gc error is logged."""
+        repo, git = git_repo
+        real = Git._git
+
+        def failing_gc(self, *args, clone=None):
+            if "gc" in args:
+                raise FetchError("git -C: gc failed")
+            return real(self, *args, clone=clone)
+        monkeypatch.setattr(Git, "_git", failing_gc)
+        result = run(block("ui", "git", url=repo.as_uri(), files=["po/{lang}.po"]))
+        assert result.exit_code == 0, result.output
+        assert fetched(run.cache, "ui") == [("po/af.po", "af"), ("po/zu.po", "zu")]
+        assert "gc failed" in caplog.text
+
     def test_corrupt_tarball(self, run, site):
         root, url = site
         (root / "languages/zu/gnome-51/ui.tar.gz").write_bytes(b"not a tarball")

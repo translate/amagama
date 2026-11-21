@@ -573,7 +573,11 @@ class Git(Fetcher):
             if os.path.exists(os.path.join(dest, ".git")):
                 os.remove(os.path.join(dest, ".git"))
             self._git("-C", repo, "worktree", "prune", clone=trusted)
-        self._git("-C", repo, "gc", "--auto", "--quiet", clone=trusted)
+        # The fetch is done; a gc that fails (another's lock) can wait.
+        try:
+            self._git("-C", repo, "gc", "--auto", "--quiet", clone=trusted)
+        except FetchError as e:
+            logging.warning("%s", e)
 
     def _clone(self, dest):
         args = ["clone", "--quiet", "--depth", "1"]
