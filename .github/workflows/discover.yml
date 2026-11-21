@@ -97,7 +97,12 @@ jobs:
               -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
               commit -qam "Regenerate the discovered sources files"
           gh auth setup-git
-          number=$(gh pr list --head "$branch" --state open --json number --jq '.[].number')
+          # The push replaces only the branch as it was before the check.
+          git fetch -q --depth=1 origin "+refs/heads/$branch:refs/remotes/origin/$branch" || true
+          lease=$(git rev-parse -q --verify "refs/remotes/origin/$branch" || true)
+          # Only this repository's branch, not a fork's of the same name.
+          number=$(gh api -X GET "repos/$GITHUB_REPOSITORY/pulls" -f state=open \
+              -f base="$GITHUB_REF_NAME" -f head="$GITHUB_REPOSITORY_OWNER:$branch" --jq '.[].number')
           if [ -n "$number" ]; then
             # Commits added in review aren't replaced: leave that pull request be.
             others=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$number/commits" --paginate \
@@ -107,8 +112,7 @@ jobs:
               exit 1
             fi
           fi
-          git fetch -q --depth=1 origin "+refs/heads/$branch:refs/remotes/origin/$branch" || true
-          git push --force-with-lease origin "$branch"
+          git push --force-with-lease="$branch:$lease" origin "$branch"
           title="Discovered sources, $(date -u +%Y-%m-%d)"
           if [ -n "$number" ]; then
             # gh pr edit fails on the retired Projects (classic) query.
