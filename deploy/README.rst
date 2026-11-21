@@ -245,9 +245,11 @@ once, after the upgrade's pull::
         sudo tee -a /srv/amagama/local_settings.py
     sudo systemctl restart amagama.uwsgi
 
-The output goes to the journal (``journalctl -u amagama-update``). A source
-that fails to fetch is listed there, and the unit is marked failed
-(``systemctl --failed``) though the rest was rebuilt and swapped in.
+The output goes to the journal. A source that fails to fetch is listed by the
+fetch (``journalctl -u amagama-fetch``), and that unit is marked failed
+(``systemctl --failed``) though the rest was fetched. The update
+(``journalctl -u amagama-update``) doesn't fetch, so its unit fails only when
+a rebuild stops.
 
 
 Upgrading
