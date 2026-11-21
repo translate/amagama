@@ -37,6 +37,10 @@ jobs:
           --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
     steps:
       - uses: actions/checkout@v7
+        with:
+          # Kept from the steps reading other repositories: only the pull
+          # request step pushes.
+          persist-credentials: false
       - uses: actions/setup-python@v7
         with:
           python-version: "3.14"
@@ -90,6 +94,7 @@ jobs:
           git -c user.name="github-actions[bot]" \
               -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
               commit -qam "Regenerate the discovered sources files"
+          gh auth setup-git
           git push origin "$branch"
           gh pr create --base "$GITHUB_REF_NAME" --head "$branch" --body-file "$RUNNER_TEMP/body.md" \
             --title "Discovered sources, $(date -u +%Y-%m-%d)"
