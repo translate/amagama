@@ -18,6 +18,7 @@ from flask.cli import with_appcontext
 from translate.storage import factory
 
 from amagama.commands import ensure_source_exists
+from amagama.updater.fetchers import VCS_DIRECTORIES
 
 
 class BenchmarkTMDB(object):
@@ -51,7 +52,7 @@ class BenchmarkTMDB(object):
 
     def handledir(self, dirname):
         path, name = os.path.split(dirname)
-        if name in ["CVS", ".svn", "_darcs", ".git", ".hg", ".bzr"]:
+        if name in VCS_DIRECTORIES:
             return
         entries = os.listdir(dirname)
         self.handlefiles(dirname, entries)
