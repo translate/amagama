@@ -73,6 +73,12 @@ from amagama.updater.sources import load_sources
     ("i-klingon", "tlh"),
     ("zh-und", "zh"),
     ("zh-mac", "zh"),
+    # A POSIX codeset is left out.
+    ("de_DE.UTF-8", "de_DE"),
+    ("pt_BR.UTF-8", "pt_BR"),
+    ("de_DE.utf8", "de_DE"),
+    ("de.UTF-8", "de"),
+    ("sr_RS.UTF-8@latin", "sr_RS@latin"),
     # Chinese scripts stand for their usual region.
     ("zh-Hans", "zh_CN"),
     ("zh_Hans", "zh_CN"),

@@ -137,8 +137,10 @@ CHINESE = {"hans": "CN", "hant": "TW"}
 
 VARIANTS = {"valencia": "@valencia", "tarask": "@tarask"}
 
+# language[_territory][.codeset][@modifier]; the codeset (de_DE.UTF-8) is
+# left out.
 _POSIX = re.compile(r"^(?P<lang>[a-z]{2,3})(?:_(?P<region>[A-Za-z]{2}|\d{3}))?"
-                    r"(?:@(?P<modifier>[a-z]+))?$", re.IGNORECASE)
+                    r"(?:\.[a-z0-9-]+)?(?:@(?P<modifier>[a-z]+))?$", re.IGNORECASE)
 
 
 def normalise_language(code):
