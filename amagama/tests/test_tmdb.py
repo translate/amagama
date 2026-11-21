@@ -218,6 +218,13 @@ class TestTMDB(object):
         assert type(tmdb.min_levenshtein_length(100, 70)) is int
         assert type(tmdb.max_levenshtein_length(100, 70, 1000)) is int
 
+    def test_one_character_source(self, amagama):
+        assert tmdb.min_levenshtein_length(1, 70) == 1
+        with amagama.app_context():
+            amagama.tmdb.add_test_unit('X', 'Y', 'en', 'af')
+            result = amagama.tmdb.translate_unit('X', 'en', 'af')
+            assert [r['target'] for r in result] == ['Y']
+
     def test_ca_valencia(self, amagama):
         with amagama.app_context():
             targets = amagama.tmdb.available_languages['targetLanguages']
