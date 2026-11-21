@@ -55,7 +55,7 @@ _BRACES = re.compile(r"%\{\w+\}|\{\$[^{}]*\}|\{\d+\}|\{\}|\{(\d+)\s*,\s*\w+[^{}]
 # Java MessageFormat's choice format, {0,choice,1#one file|1<{0} files}, and
 # ICU's plural and select: their branches' text is translated, and their
 # number follows the language.
-_CHOICE = re.compile(r"\{(\d+)\s*,\s*(choice|plural|selectordinal|select)\s*,")
+_CHOICE = re.compile(r"\{(\d+|[A-Za-z_]\w*)\s*,\s*(choice|plural|selectordinal|select)\s*,")
 # TeX, whose braces hold text.
 _TEX = re.compile(r"\\[A-Za-z]+")
 # Tag names only: an attribute such as alt may be translated.
