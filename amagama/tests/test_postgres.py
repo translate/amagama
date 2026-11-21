@@ -6,6 +6,8 @@
 # the AUTHORS.md file for copyright and authorship information.
 
 
+import gc
+
 import pytest
 
 from amagama.application import amagama_server_factory
@@ -57,19 +59,35 @@ class TestClosedConnections(object):
         assert response.get_json()[0]['target'] == 'Stoor lêer'
 
     def test_replaced_connection_is_forgotten(self, app, pg_connection):
-        # A new connection can get a closed one's id(); it must not inherit
-        # its prepared statements or schema.
         lookup(app.test_client())
         tmdb = app.tmdb
         conn = tmdb.pool.getconn()
-        assert id(conn) in tmdb._prepared_statements
-        assert id(conn) in tmdb._last_schema
+        assert conn in tmdb._prepared_statements
+        assert conn in tmdb._last_schema
         close_app_connections(pg_connection)
         lookup(app.test_client())
         assert conn.closed
-        assert id(conn) not in tmdb._prepared_statements
-        assert id(conn) not in tmdb._last_schema
+        assert conn not in tmdb._prepared_statements
+        assert conn not in tmdb._last_schema
 
+    def test_connection_the_pool_closes(self, app):
+        # The pool closes a connection put back while it holds minconn idle
+        # ones. A connection it opens later can get the closed one's id(), so
+        # nothing may stay remembered under it.
+        client = app.test_client()
+        lookup(client)
+        tmdb = app.tmdb
+        conn = tmdb.pool.getconn()
+        while len(tmdb.pool._pool) < tmdb.pool.minconn:
+            tmdb.pool._connect()
+        tmdb.pool.putconn(conn)
+        assert conn.closed
+        closed_id = id(conn)
+        del conn
+        gc.collect()
+        assert closed_id not in tmdb._prepared_statements
+        assert closed_id not in tmdb._last_schema
+        assert lookup(client) == [('Open file', 'Maak lêer oop')]
 
 def test_rollback_undoes_set_schema(app):
     """A rollback undoes the SET SCHEMA in its transaction, so the next
@@ -90,4 +108,4 @@ def test_a_debug_request_ended_by_an_exception_sets_the_schema_again(app):
         cursor = app.tmdb.get_cursor('en')
         conn = cursor.connection
         app.tmdb.bailout(app, RuntimeError())
-        assert id(conn) not in app.tmdb._last_schema
+        assert conn not in app.tmdb._last_schema

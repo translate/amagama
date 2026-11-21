@@ -18,12 +18,12 @@ except ImportError:
     from gzip import compress
     COMPRESSED_LIMIT = 2000
 
-from collections import defaultdict
 import datetime
 import json
 import logging
 import math
 import re
+import weakref
 
 from flask import abort, current_app
 from psycopg2 import errors, sql
@@ -339,9 +339,8 @@ ORDER BY rank DESC{order};
         self._licences = {}
         self._check_names = {}
         self._load_source_langs()
-        # set of languages with prepared statements per connection key:
-        # {connection id: {slang: the lookup statement prepared for it}}
-        self._prepared_statements = defaultdict(dict)
+        # {connection: {slang: the lookup statement prepared for it}}
+        self._prepared_statements = weakref.WeakKeyDictionary()
 
     def _load_source_langs(self):
         cursor = self.get_cursor()
@@ -370,7 +369,7 @@ ORDER BY rank DESC{order};
 
     def forget_connection(self, conn):
         super(TMDB, self).forget_connection(conn)
-        self._prepared_statements.pop(id(conn), None)
+        self._prepared_statements.pop(conn, None)
 
     def init_app(self, app):
         super(TMDB, self).init_app(app)
@@ -650,7 +649,6 @@ ORDER BY rank DESC{order};
             cursor.connection.commit()
         except Exception:
             self.rollback(cursor.connection)
-            self.forget_connection(cursor.connection)
             raise
         self.source_langs.add(slang)
         return sources, targets
@@ -1193,7 +1191,7 @@ ORDER BY rank DESC{order};
         return self._comparer
 
     def _translate_query(self, cursor, slang, tlang, query, min_len, max_len, min_rank):
-        prepared = self._prepared_statements[id(cursor.connection)]
+        prepared = self._prepared_statements.setdefault(cursor.connection, {})
         if slang not in prepared:
             cursor.execute("""SELECT EXISTS(SELECT 1 FROM information_schema.columns
                 WHERE table_schema = current_schema() AND table_name = 'targets'
