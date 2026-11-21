@@ -1,0 +1,7 @@
+xliff-states
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+<file original="a" source-language="en" target-language="af" datatype="plaintext"><body>
+<trans-unit id="1"><source>Open file</source><target state="translated">Maak lêer oop</target></trans-unit>
+<trans-unit id="2" approved="yes"><source>Save <g id="b">now</g></source><target>Stoor <g id="b">nou</g></target></trans-unit>
+</body></file></xliff>

@@ -1,0 +1,7 @@
+android
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+<string name="open">Oop</string>
+<string name="q">Kan nie \'n lêer oopmaak nie</string>
+<plurals name="files"><item quantity="one">%d lêer</item><item quantity="other">%d lêers</item></plurals>
+</resources>

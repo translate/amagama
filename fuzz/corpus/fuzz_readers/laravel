@@ -1,0 +1,7 @@
+laravel
+<?php
+
+return [
+    'hello' => 'Hallo :name',
+    'save' => 'Stoor',
+];

@@ -1,0 +1,19 @@
+po
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: af\n"
+
+#: main.c:1
+msgctxt "menu"
+msgid "&File"
+msgstr "&Lêer"
+
+msgid "%d file"
+msgid_plural "%d files"
+msgstr[0] "%d lêer"
+msgstr[1] "%d lêers"
+
+#, fuzzy
+msgid "Close"
+msgstr "Sluit"

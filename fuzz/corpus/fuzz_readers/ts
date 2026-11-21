@@ -1,0 +1,6 @@
+ts
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE TS><TS version="2.1" language="af"><context><name>Main</name>
+<message><source>&amp;Open</source><translation>&amp;Oop</translation></message>
+<message numerus="yes"><source>%n file(s)</source><translation><numerusform>%n lêer</numerusform><numerusform>%n lêers</numerusform></translation></message>
+</context></TS>

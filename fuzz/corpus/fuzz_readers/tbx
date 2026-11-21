@@ -1,0 +1,5 @@
+tbx
+<?xml version="1.0" encoding="UTF-8"?>
+<martif type="TBX" xml:lang="en"><text><body>
+<termEntry id="1"><langSet xml:lang="en"><tig><term>file</term></tig></langSet><langSet xml:lang="af"><tig><term>lêer</term></tig></langSet></termEntry>
+</body></text></martif>
