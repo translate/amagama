@@ -205,6 +205,30 @@ def test_names_kept():
     assert found["test-app"]["files"] == ["po/{lang}.po"]
 
 
+def test_names_kept_same_identity(tmp_path):
+    # Two components of one repository in different formats share an
+    # identity: each keeps its own name, whichever is listed first.
+    components = [
+        component("fmit", "appdata", "https://git.example/fmit", "distrib/appdata_tr/*.po"),
+        component("fmit", "fmit", "https://git.example/fmit", "tr/fmit_*.ts", file_format="ts"),
+    ]
+    path = tmp_path / "w.toml"
+    path.write_text(generate.toml([
+        {"name": "test-fmit-appdata", "title": "Fmit", "source": "git",
+         "url": "https://git.example/fmit", "ref": "main", "files": ["distrib/appdata_tr/{lang}.po"],
+         "licence": "GPL-2.0-or-later"},
+        {"name": "test-fmit-2", "title": "Fmit", "source": "git", "url": "https://git.example/fmit",
+         "ref": "main", "files": ["tr/fmit_{lang}.ts"], "format": "ts", "licence": "GPL-2.0-or-later"},
+    ], "Generated"), encoding="utf-8")
+    for _ in range(3):
+        names, _, _ = generate.context(load_sources(str(path)), "test")
+        found, _ = weblate.blocks(components, "test", names=names)
+        assert {b["name"]: b["files"] for b in found} == {
+            "test-fmit-appdata": ["distrib/appdata_tr/{lang}.po"],
+            "test-fmit-2": ["tr/fmit_{lang}.ts"]}
+        path.write_text(generate.toml(found, "Generated"), encoding="utf-8")
+
+
 def test_toml_defaults(tmp_path):
     found, skipped = generated([component("app", "ui", "https://git.example/app", "po/*.po")])
     text = generate.toml(list(found.values()), "Generated", {"source": "git", "min_age_days": 60})

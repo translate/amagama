@@ -81,7 +81,9 @@ def test_context_same_identity(tmp_path):
         + block("t-app-man", "git", url="https://git.example/app", files=["man/po/{lang}.po"]),
         encoding="utf-8")
     names, _, _ = generate.context(load_sources(str(path), disabled=True), "t")
-    assert len(names.previous) == 1
+    app = generate.identity("https://git.example/app", None, None, False, None)
+    assert names.kept(app) is None
+    assert names.kept(app, ["man/po/{lang}.po"]) == "t-app-man"
     assert names.before == {"t-app", "t-app-man"}
 
 

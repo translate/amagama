@@ -253,13 +253,21 @@ def blocks(components, prefix, projects=("*",), docs=(), covered=(), names=None)
         bases[base(slug, repo, branch)] = bases.get(base(slug, repo, branch), 0) + 1
     # A new name doesn't depend on what else the project has, as a project's
     # blocks are told apart by a component.
+    for group in groups.values():
+        group["files"] = _collapsed(group["masks"]) if not group["template"] \
+            else sorted(group["masks"])
+    # A block of the same files keeps its name before one of the same identity.
     chosen = {}
-    for key, group in groups.items():
-        slug, repo, branch, weblate_format, _, licence, segment = key
-        kept = names.kept(identity(repo, branch, group["template"], segment, licence))
-        if kept:
-            chosen[key] = kept
-            names.take(kept)
+    for same_files in (True, False):
+        for key, group in groups.items():
+            slug, repo, branch, weblate_format, _, licence, segment = key
+            if key in chosen:
+                continue
+            kept = names.kept(identity(repo, branch, group["template"], segment, licence),
+                              group["files"] if same_files else None)
+            if kept:
+                chosen[key] = kept
+                names.take(kept)
     for key, group in sorted(groups.items()):
         if key in chosen:
             continue
@@ -278,7 +286,7 @@ def blocks(components, prefix, projects=("*",), docs=(), covered=(), names=None)
             block["version"] = branch
         if branch:
             block["ref"] = branch
-        block["files"] = _collapsed(group["masks"]) if not group["template"] else sorted(group["masks"])
+        block["files"] = group["files"]
         # Clone only the files the block reads.
         block["sparse"] = sparse_patterns(block["files"], group["template"])
         if FORMATS[weblate_format]:

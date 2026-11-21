@@ -130,9 +130,11 @@ def blocks(repositories, prefix, resolve, what, covered=(), names=None, pause=No
                                      **settings), (mirrors or {}).get(url), exists=lambda url: False)
             if licence:
                 block["licence"] = licence
-            # A previous name is kept only when nothing else here reads the same.
-            kept = names.kept(identity_of(settings)) \
-                if identities[identity_of(settings)] == 1 else None
+            # A previous name is kept for the same files, or when nothing
+            # else here reads the same.
+            kept = names.kept(identity_of(settings), settings.get("files", ())) or (
+                names.kept(identity_of(settings)) if identities[identity_of(settings)] == 1
+                else None)
             name = kept or (
                 "%s-%s" % (base, slug(candidate["suffix"])) if candidate.get("suffix") else base)
             unique = names.unique(name)
