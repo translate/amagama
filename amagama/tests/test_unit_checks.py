@@ -71,6 +71,7 @@ from amagama.unit_checks import Report, failed_checks, length_step, script, targ
      "{0, select, male {{1} het gery} female {{1} het gery} other {{1} het gery}}", "af", []),
     # A named argument is read the same way; dropping the format isn't.
     ("{count, plural, one {# file} other {# files}}", "{count} lêers", "af", ["braces"]),
+    ("{名, plural, one {# file} other {# files}}", "{名} lêers", "af", ["braces"]),
     ("{count, plural, one {{0} file} other {{0} files}}",
      "{count, plural, one {{0} lêer} other {{0} lêers}}", "af", []),
     ("{0, plural, one {{0} file} other {{0} files}}", "{0} lêers", "af", ["braces"]),
