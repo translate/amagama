@@ -60,6 +60,11 @@ from amagama.updater.sources import load_sources
     ("ms-zsm", "zsm"),
     ("sgn-ase", "ase"),
     ("zh-min-nan", "nan"),
+    # Mandarin is what Chinese software is translated into: it stays zh.
+    ("zh-cmn", "zh"),
+    ("zh-guoyu", "zh"),
+    ("zh-cmn-Hans-CN", "zh_CN"),
+    ("zh-cmn-Hant", "zh_TW"),
     ("zh-hakka", "hak"),
     ("art-lojban", "jbo"),
     ("no-bok", "nb"),

@@ -113,13 +113,16 @@ SCRIPT_NAMES = {"latn": "latin", "cyrl": "cyrillic", "arab": "arabic", "deva": "
 
 # BCP 47's extended language subtags follow these: zh-yue is yue.
 EXTLANG_PREFIXES = {"ar", "kok", "lv", "ms", "sgn", "sw", "uz", "zh"}
+# Extended subtags kept as their prefix: Chinese software is translated into
+# written Mandarin, so zh-cmn is zh.
+EXTLANG_AS_PREFIX = {"zh": {"cmn"}}
 
 # BCP 47's grandfathered tags with a language's code.
 GRANDFATHERED = {
     "art-lojban": "jbo", "i-ami": "ami", "i-bnn": "bnn", "i-hak": "hak", "i-klingon": "tlh",
     "i-lux": "lb", "i-navajo": "nv", "i-pwn": "pwn", "i-tao": "tao", "i-tay": "tay",
     "i-tsu": "tsu", "no-bok": "nb", "no-nyn": "nn", "sgn-be-fr": "sfb", "sgn-be-nl": "vgt",
-    "sgn-ch-de": "sgg", "zh-guoyu": "cmn", "zh-hakka": "hak", "zh-min-nan": "nan",
+    "sgn-ch-de": "sgg", "zh-guoyu": "zh", "zh-hakka": "hak", "zh-min-nan": "nan",
     "zh-xiang": "hsn",
 }
 
@@ -160,7 +163,8 @@ def normalise_language(code):
     if not re.fullmatch(r"[a-z]{2,3}", lang):
         return None
     extlang = parts[0].lower() if parts and len(parts[0]) == 3 else ""
-    if lang in EXTLANG_PREFIXES and extlang in _iso_codes() and _language(extlang):
+    if lang in EXTLANG_PREFIXES and extlang in _iso_codes() and _language(extlang) \
+            and extlang not in EXTLANG_AS_PREFIX.get(lang, ()):
         lang = parts.pop(0).lower()
     lang = _language(lang)
     if lang is None:
