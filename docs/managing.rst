@@ -299,7 +299,9 @@ A target fails:
 - ``tags`` when its XML tags don't, by name; attributes may be translated.
 - ``escapes`` when its backslash escapes don't.
 - ``unchanged`` when it is a source of three words or more left in English,
-  in a language that isn't a variant of English.
+  in a language that isn't a variant of English. Imports skip most of these
+  (:ref:`importing#record`); the check finds the rest, such as those in a
+  snapshot.
 - ``script`` when most of its letters are in a script under 1% of the
   language's targets, in a language with 1000 of them or more. A script other
   than the source language's that the source has too (``μ``, a language's own

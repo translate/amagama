@@ -23,6 +23,7 @@ import datetime
 import json
 import logging
 import math
+import re
 
 from flask import abort, current_app
 from psycopg2 import errors, sql
@@ -48,6 +49,22 @@ TRANSLATOR_CREDITS = frozenset({
     "translator-credits", "translator_credits", "Your names", "Your emails",
     "ROLES_OF_TRANSLATORS", "CREDIT_FOR_TRANSLATORS",
 })
+
+# A word of a source: letters, perhaps joined by an apostrophe or a hyphen,
+# with punctuation around them; placeholders, numbers and URLs aren't words.
+_WORD = re.compile(r"[(\"'“‘«]*[^\W\d_]+(?:['’-][^\W\d_]+)*[)\"'”’».,:;!?…]*")
+_MARKUP = re.compile(r"<[^<>]*>|&\w+;")
+
+
+def copied_source(source, target):
+    """Whether target is source left untranslated: the same text, of two
+    words or more and not all capitals. A name, an acronym or a placeholder
+    is often the same in every language."""
+    if indexing_version(target) != indexing_version(source):
+        return False
+    words = [word for word in _MARKUP.sub(" ", source).split() if _WORD.fullmatch(word)]
+    return len(words) >= 2 and not all(word.isupper() for word in words)
+
 
 # Schemas named with these prefixes hold a source language's rebuild and its
 # previous copy. Schemas starting with "_" are never served.
@@ -1089,7 +1106,12 @@ ORDER BY rank DESC{order};
             return bool(u.target) and u.get_state_n() >= u.S_UNREVIEWED
         return u.istranslated()
 
-    def _usable_unit(self, u):
+    def _usable_unit(self, u, target_lang=None):
+        """Whether to import u. With target_lang, a copied_source() isn't,
+        unless target_lang is a variant of English."""
+        if target_lang and (lang_to_table(target_lang) or "").split("_")[0] != "en" \
+                and copied_source(str(u.source), str(u.target)):
+            return False
         return u.istranslatable() and \
                bool(u.source) and \
                str(u.source) not in TRANSLATOR_CREDITS and \
@@ -1107,7 +1129,7 @@ ORDER BY rank DESC{order};
         """
         units = []
         for u in store.units:
-            if not self._usable_unit(u):
+            if not self._usable_unit(u, target_lang):
                 continue
             source, target = _encodable(str(u.source)), _encodable(str(u.target))
             if source is not None and target is not None:

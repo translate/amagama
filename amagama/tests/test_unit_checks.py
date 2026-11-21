@@ -156,7 +156,8 @@ def test_command(imported, monkeypatch):
     imported('odd', 'et',
              ('Delete everything', 'මකන්න'),
              ('Close the %s window now', 'Sulge aken'),
-             ('Do you want to save?', 'Do you want to save?'))
+             # In capitals, so imported, though left in English.
+             ('DO YOU WANT TO SAVE?', 'DO YOU WANT TO SAVE?'))
     output = check()
     assert "Checked 'en': 6 targets in 1 languages." in output
     assert "printf: 1 (16.67%)" in output
@@ -236,7 +237,7 @@ def test_reject(imported, pg_connection, monkeypatch):
     imported('odd', 'et',
              ('Delete everything', 'මකන්න'),
              ('Close the %s window now', 'Sulge aken'),
-             ('Do you want to save?', 'Do you want to save?'))
+             ('DO YOU WANT TO SAVE?', 'DO YOU WANT TO SAVE?'))
     report = unit_checks.reject(pg_connection, 'en')
     assert {name: report.failures(name) for name in unit_checks.FILTER} == {
         'printf': 1, 'braces': 0, 'script': 1}
@@ -247,14 +248,14 @@ def test_reject(imported, pg_connection, monkeypatch):
             LEFT JOIN en.targets t ON t.tid = l.tid WHERE t.tid IS NULL""")
         orphans = cursor.fetchone()[0]
     # Left in English is only reported.
-    assert kept == ['Ava %s fail kohe', 'Do you want to save?', 'Kustuta valitud fail',
+    assert kept == ['Ava %s fail kohe', 'DO YOU WANT TO SAVE?', 'Kustuta valitud fail',
                     'Salvesta kõik avatud failid']
     assert orphans == 0
 
 
 def test_reject_flags(imported, pg_connection):
     imported('gnome', 'af', ('Open the %s file now', 'Maak lêer oop'),
-             ('Do you want to save?', 'Do you want to save?'),
+             ('DO YOU WANT TO SAVE?', 'DO YOU WANT TO SAVE?'),
              ('Save the file.', 'Stoor die lêer'), ('Close the file.', 'Maak die lêer toe.'))
     report = unit_checks.reject(pg_connection, 'en', names=['unchanged', 'endpunc'],
                                 leave_out=['printf'])
@@ -265,7 +266,7 @@ def test_reject_flags(imported, pg_connection):
         cursor.execute("SELECT text, checks FROM en.targets ORDER BY text")
         targets = cursor.fetchall()
     assert names == [(0, 'printf', True), (1, 'unchanged', False), (2, 'endpunc', False)]
-    assert targets == [('Do you want to save?', 2), ('Maak die lêer toe.', None),
+    assert targets == [('DO YOU WANT TO SAVE?', 2), ('Maak die lêer toe.', None),
                        ('Stoor die lêer', 4)]
 
 
