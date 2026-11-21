@@ -179,6 +179,10 @@ def test_folded_mask_leaves_out_skipped():
                                                 for i in range(11))
     assert skipped == {"glossary (terminology)": 1, "no-derivatives licence": 1,
                        "source not English": 1}
+    # A wildcard extension matches the folded mask's.
+    found, _ = generated(app + [component("app", "terms", "https://git.example/app",
+                                          "locale/*/LC_MESSAGES/terms.*", is_glossary=True)])
+    assert len(found["test-app"]["files"]) == 11
     # With nothing left out under it, the mask is folded.
     found, _ = generated(app + [component("app", "terms", "https://git.example/app",
                                           "locale/*/terms.tbx", file_format="tbx")])
