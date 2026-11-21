@@ -314,11 +314,26 @@ language (``cn``, ``ua``) becomes the language's (``zh_CN``, ``uk``); and a
 three-letter ISO 639 code with a two-letter one becomes it (``arg`` and
 ``deu`` become ``an`` and ``de``). ISO 639-3's languages and ISO 639-5's
 collective codes (``son``, Songhai languages) are languages. Special codes
-(``mul``, ``und``, ``zxx``) and codes in neither (``fu``, ``eml``) are left
-out, and listed with why by ``fetch_sources`` and ``update``; a block's
-``languages`` table can map them to a specific language::
+(``mul``, ``und``, ``zxx``) and codes in neither (``fu``) are left out, and
+listed with why by ``fetch_sources`` and ``update``; a block's ``languages``
+table can map them to a specific language::
 
     Not language codes in hosted-plone-18.x.x, skipped: fu (not an ISO 639 code)
+
+A code ISO 639-3 has retired becomes its successor where it has one (a
+change, duplicate or merge), and is kept as it is where it was split or never
+in use, listed with the candidates for a block's ``languages`` table::
+
+    Retired codes in mediawiki-1.46: dat (retired 2008-01-14, a duplicate (mhu); now mhu)
+
+The retired codes come from ISO 639-3, iso639-3.sil.org: ``fetch_sources``
+and ``update`` download its `retirements table
+<https://iso639-3.sil.org/sites/iso639-3/files/downloads/iso-639-3_Retirements.tab>`_
+into :setting:`ISO639_RETIREMENTS_FILE` when the copy there is over 90 days
+old, under its `terms of use
+<https://iso639-3.sil.org/code_tables/download_tables#termsofuse>`_: the
+table isn't redistributed or served. Without a copy, retired codes aren't
+recognised.
 
 :ref:`fetch_sources <managing#fetch-sources>` downloads the blocks into
 :setting:`UPDATER_CACHE_DIR`, and :ref:`update <managing#update>` rebuilds the

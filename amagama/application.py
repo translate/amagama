@@ -16,6 +16,7 @@ from flask_caching import Cache
 
 from amagama import poparser_compat  # noqa: F401 - patches the PO parser on import
 from amagama import tmdb
+from amagama.updater import languages, retirements
 from amagama.views import api
 
 # The placeholder in settings.py.
@@ -37,6 +38,8 @@ class AmagamaServer(Flask):
         # backend like Redis across multiple worker processes.
         self.config.setdefault('CACHE_TYPE', 'SimpleCache')
         self.cache = Cache(self)
+        languages.use_retirements(retirements.load(retirements.path(self.config)))
+        tmdb._table_name_cache.clear()
         self.tmdb = tmdb.TMDB(self)
 
 

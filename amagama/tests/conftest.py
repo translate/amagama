@@ -20,7 +20,7 @@ from translate.storage.po import pofile
 
 from amagama.application import amagama_server_factory
 from amagama import tmdb
-from amagama.updater import fetchers
+from amagama.updater import fetchers, languages, retirements
 
 
 class TempTMDB(tmdb.TMDB):
@@ -84,6 +84,7 @@ def amagama_config(pg_server, pg_connection, tmp_path, monkeypatch):
         "DB_PASSWORD": pg_server.password or "",
         "DB_HOST": pg_server.host,
         "DB_PORT": pg_server.port,
+        "ISO639_RETIREMENTS_FILE": str(tmp_path / "no-retirements.tab"),
     }
 
     def configure(**extra):
@@ -110,6 +111,37 @@ def amagama(amagama_config, pg_connection):
     })
     app.cache = cache
     return app
+
+
+@pytest.fixture(autouse=True)
+def no_retirements(monkeypatch):
+    """No download of ISO 639-3's retired codes, and none known: the
+    retirements fixture gives a made-up table."""
+    monkeypatch.setattr(retirements, "refresh", lambda filename: None)
+    languages.use_retirements({})
+    tmdb._table_name_cache.clear()
+    yield
+    languages.use_retirements({})
+    tmdb._table_name_cache.clear()
+
+
+# A made-up table in the shape of ISO 639-3's retirements table.
+RETIREMENTS = (retirements.HEADER + "\n"
+               "xzc\tChanged\tC\tdeu\t\t2010-01-01\n"
+               "xzd\tDuplicate\tD\tnld\t\t2011-01-01\n"
+               "xzq\tMerged\tM\tzul\t\t2012-01-01\n"
+               "xzs\tSplit\tS\t\tSplit into Afrikaans [afr] and Dutch [nld]\t2013-01-01\n"
+               "xzn\tNever\tN\t\tNon-existent\t2014-01-01\n")
+
+
+@pytest.fixture
+def retired(tmp_path):
+    """The made-up retirements table, in use."""
+    path = tmp_path / retirements.FILENAME
+    path.write_text(RETIREMENTS, encoding="utf-8")
+    languages.use_retirements(retirements.load(str(path)))
+    tmdb._table_name_cache.clear()
+    return path
 
 
 @pytest.fixture(autouse=True)

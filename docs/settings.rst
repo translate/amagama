@@ -185,6 +185,19 @@ Settings for fetching translations to import, see :ref:`sources`.
   commands writing blocks also read when the cache exists.
 
 
+.. setting:: ISO639_RETIREMENTS_FILE
+
+``ISO639_RETIREMENTS_FILE``
+  Default: ``None``
+
+  Where ``fetch_sources`` and ``update`` keep ISO 639-3's table of retired
+  codes, downloaded from iso639-3.sil.org (see :ref:`sources <sources>`),
+  and the web app reads it, so a retired code is looked up as it was
+  imported. ``None`` is :file:`iso-639-3_Retirements.tab` in
+  :setting:`UPDATER_CACHE_DIR`. When the web app and the updater have
+  settings files of their own, set it in both.
+
+
 .. setting:: UPDATER_EXCLUDE_TAGS
 
 ``UPDATER_EXCLUDE_TAGS``

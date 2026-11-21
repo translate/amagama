@@ -26,7 +26,7 @@ from amagama import unit_checks
 from amagama.unit_checks import reject
 from amagama.updater import chromium, compressed
 from amagama.updater.formats import CHROMIUM, open_pieces, open_store
-from amagama.updater.languages import described
+from amagama.updater.languages import described, described_retired
 from amagama.updater.pairing import paired_store, without_ids
 from amagama.updater.segment import segmented
 from amagama.updater.fetchers import FetchError
@@ -304,6 +304,9 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
         if state["unknown_languages"]:
             out("Not language codes in %s, skipped: %s" % (
                 block.name, described(state["unknown_languages"])))
+        if state.get("retired_languages"):
+            out("Retired codes in %s: %s" % (block.name,
+                                             described_retired(state["retired_languages"])))
         if state.get("outside_links"):
             out("Symlinks leading outside %s, skipped: %s" % (
                 block.name, ", ".join(state["outside_links"])))
