@@ -90,3 +90,18 @@ def test_export_failure_stops_fetch(repo, monkeypatch):
     monkeypatch.setattr(fetchers, "run_tool", broken)
     with pytest.raises(FetchError, match="Connection reset"):
         fetcher.fetch(str(tmp_path / "dest"))
+
+
+def test_never_prompts_or_follows_externals(monkeypatch, tmp_path):
+    calls = []
+
+    def run_tool(tool, *args, trusted=None):
+        calls.append(args)
+        return "af/\nteamnames\n" if args[0] == "ls" else "7\n"
+    monkeypatch.setattr(fetchers, "run_tool", run_tool)
+    fetcher = Svn({"url": "svn://example.org/l10n-kf6", "dirs": ["messages"], "pause": 0})
+    fetcher.fingerprint()
+    fetcher.fetch(str(tmp_path / "dest"))
+    assert [call[0] for call in calls] == ["info", "ls", "export"]
+    assert all("--non-interactive" in call for call in calls)
+    assert "--ignore-externals" in calls[2]

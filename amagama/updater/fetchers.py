@@ -612,12 +612,13 @@ class Svn(Fetcher):
     def languages(self):
         """The top-level directories; files there (KDE's teamnames) aren't languages."""
         if not hasattr(self, "_languages"):
-            self._languages = sorted(name[:-1] for name in run_tool("svn", "ls", self.url).split()
-                                     if name.endswith("/"))
+            self._languages = sorted(name[:-1] for name in run_tool(
+                "svn", "ls", "--non-interactive", self.url).split() if name.endswith("/"))
         return self._languages
 
     def fingerprint(self):
-        return run_tool("svn", "info", "--show-item", "last-changed-revision", self.url).strip()
+        return run_tool("svn", "info", "--non-interactive", "--show-item",
+                        "last-changed-revision", self.url).strip()
 
     def fetch(self, dest, languages=None):
         files = []
@@ -630,7 +631,10 @@ class Svn(Fetcher):
                 os.makedirs(os.path.dirname(target.rstrip(os.sep)), exist_ok=True)
                 url = "/".join(part for part in (self.url, lang, directory) if part)
                 try:
-                    run_tool("svn", "export", "--quiet", "--force", url, target)
+                    # Not svn:externals, which can name any server; a
+                    # prompt for a login or certificate fails rather than waits.
+                    run_tool("svn", "export", "--quiet", "--force", "--non-interactive",
+                             "--ignore-externals", url, target)
                 except FetchError as e:
                     # Not every language has every directory.
                     if "E170000" not in str(e) and "doesn't exist" not in str(e):
