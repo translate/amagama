@@ -42,14 +42,20 @@ EXTENSIONS = {
     ".ftl": "fluent",
     ".dtd": "dtd",
     ".strings": "strings",
+    ".arb": "arb",
+    ".resx": "resx",
 }
 
 
 def format_of(path):
     """amaGama's format for a file by its name, or None if amaGama doesn't read it."""
     extension = posixpath.splitext(path)[1].lower()
+    if extension == ".xml" and re.search(r"(?:^|/)composeResources/values[^/]*/[^/]+\.xml\Z", path):
+        return "compose"
     if extension == ".xml" and re.search(r"(?:^|/)values[^/]*/[^/]+\.xml\Z", path):
         return "android"
+    if re.search(r"(?:^|/)_locales/[^/]+/messages\.json\Z", path):
+        return "webextension"
     return EXTENSIONS.get(extension)
 
 

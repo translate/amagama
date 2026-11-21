@@ -370,7 +370,7 @@ class Block(object):
                     lang = lang and self.selection.select(path, lang)
                 else:
                     lang = self.selection.select(path, lang)
-                if self.format == "android" and lang and not is_android_locale(lang):
+                if self.format in ("android", "compose") and lang and not is_android_locale(lang):
                     lang = None
                 code = lang and map_language(lang, self.languages)
                 if path in templates or any(mask.match(path.replace("\\", "/"))

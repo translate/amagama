@@ -18,6 +18,7 @@ import fnmatch
 import re
 
 from translate.storage.base import TranslationStore, TranslationUnit
+from translate.storage.po import pounit
 
 
 def text(unit):
@@ -80,7 +81,7 @@ def paired_store(translation, template, exclude_ids=(), language_in_ids=False):
     store = TranslationStore()
     store.plurals = 0
     for unit in translation.units:
-        if excluded(unit, exclude_ids):
+        if excluded(unit, exclude_ids) or unit.isheader():
             continue
         source = english.get(key(unit.getid()))
         if source is None:
@@ -88,7 +89,11 @@ def paired_store(translation, template, exclude_ids=(), language_in_ids=False):
         if is_plural(unit) or is_plural(source):
             store.plurals += 1
             continue
-        target = text(unit)
+        # PO keyed by id: an empty or fuzzy msgstr is untranslated, not its id.
+        if isinstance(unit, pounit):
+            target = unit.target if unit.istranslated() else ""
+        else:
+            target = text(unit)
         if not target or not text(source):
             continue
         paired = TranslationUnit(str(text(source)))
