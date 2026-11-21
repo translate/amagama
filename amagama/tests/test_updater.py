@@ -25,6 +25,14 @@ from amagama.updater.fetchers import DamnedLies, FetchError, Git, combine
 from amagama.updater.sources import load_sources, select, sparse_patterns
 
 
+def test_files_under(tmp_path):
+    """Version control directories are left out; other dot directories aren't."""
+    for name in ("po/af.po", ".github/zu.json", "po/.svn/af.po", ".hg/af.po", "CVS/af.po"):
+        (tmp_path / name).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / name).write_text("")
+    assert sorted(fetchers.files_under(tmp_path)) == [".github/zu.json", "po/af.po"]
+
+
 def write_tarball(path, members):
     """members: {name: text}"""
     os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -510,6 +518,24 @@ class TestFetch(object):
         assert result.exit_code == 0, result.output
         assert fetched(run.cache, "x") == [("po/af.po", "af"), ("po/zu.po", "zu")]
         assert not (run.cache / "x/.git").exists()
+
+    def test_git_dot_directories(self, run, git_repo):
+        """Translations under .github/ or docs/.vitepress/ are fetched."""
+        repo, git = git_repo
+        (repo / ".github/Listings").mkdir(parents=True)
+        (repo / ".github/Listings/af.json").write_text("{}")
+        (repo / "docs/.vitepress/strings").mkdir(parents=True)
+        (repo / "docs/.vitepress/strings/zu.json").write_text("{}")
+        git("add", ".")
+        git("commit", "-q", "-m", "dot directories")
+        expected = [(".github/Listings/af.json", "af"), ("docs/.vitepress/strings/zu.json", "zu")]
+        result = run(block("x", "git", url=repo.as_uri(), files=[
+            ".github/Listings/{lang}.json", "docs/.vitepress/strings/{lang}.json"]))
+        assert result.exit_code == 0, result.output
+        assert fetched(run.cache, "x") == expected
+        result = run(block("y", "git", url=repo.as_uri(), files=["**/{lang}.json"], sparse=["**"]))
+        assert result.exit_code == 0, result.output
+        assert fetched(run.cache, "y") == expected
 
     def test_unchanged_files_not_compressed_again(self, run, git_repo, tmp_path, monkeypatch):
         repo, git = git_repo

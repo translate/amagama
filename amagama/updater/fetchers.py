@@ -106,9 +106,12 @@ def combine(fingerprints):
     return digest.hexdigest()
 
 
+VCS_DIRECTORIES = {"CVS", ".svn", "_darcs", ".git", ".hg", ".bzr"}
+
+
 def files_under(root):
     for dirpath, dirnames, filenames in os.walk(root):
-        dirnames[:] = sorted(d for d in dirnames if not d.startswith("."))
+        dirnames[:] = sorted(d for d in dirnames if d not in VCS_DIRECTORIES)
         for filename in sorted(filenames):
             yield os.path.relpath(os.path.join(dirpath, filename), root)
 

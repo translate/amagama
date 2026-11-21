@@ -35,7 +35,7 @@ from amagama import logsummary, stats
 from amagama.licences import normalise_licence
 from amagama.source_options import MAX_WEIGHT
 from amagama.updater import discovery, generate, status, transifex, weblate
-from amagama.updater.fetchers import FetchError, remembered_commits
+from amagama.updater.fetchers import VCS_DIRECTORIES, FetchError, remembered_commits
 from amagama.updater.formats import open_pieces
 from amagama.updater.sources import (FAILURES_TO_REPORT, REPOSITORIES, TAGS, limit_first_fetches,
                                      load_sources, select, unused_repositories)
@@ -397,7 +397,7 @@ class BuildTMDB(object):
 
     def handledir(self, dirname, verbose):
         path, name = os.path.split(dirname)
-        if name in {"CVS", ".svn", "_darcs", ".git", ".hg", ".bzr"}:
+        if name in VCS_DIRECTORIES:
             return
         entries = os.listdir(dirname)
         self.handlefiles(dirname, entries, verbose)
