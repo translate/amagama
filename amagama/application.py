@@ -10,6 +10,7 @@
 with clients using JSON over HTTP."""
 
 import logging
+from urllib.parse import unquote_to_bytes
 
 from flask import Flask
 from flask_caching import Cache
@@ -41,6 +42,38 @@ class AmagamaServer(Flask):
         languages.use_retirements(retirements.load(retirements.path(self.config)))
         tmdb._table_name_cache.clear()
         self.tmdb = tmdb.TMDB(self)
+
+    def wsgi_app(self, environ, start_response):
+        unit_path_as_sent(environ)
+        return super(AmagamaServer, self).wsgi_app(environ, start_response)
+
+
+def unit_path_as_sent(environ):
+    """Give PATH_INFO a lookup's source as the client sent it.
+
+    nginx passes its normalised URI as PATH_INFO: decoded, with slashes
+    merged and "." and ".." segments resolved, so a source such as
+    "https://example.org" or "." in the path changes. The source is taken
+    from REQUEST_URI instead; the path before it is normalised as nginx does.
+    """
+    # Like PATH_INFO, REQUEST_URI is bytes decoded as Latin-1.
+    try:
+        raw = environ.get('REQUEST_URI', '').encode('latin-1')
+    except UnicodeEncodeError:
+        return
+    if not raw.startswith(b'/'):
+        return
+    head, sep, source = raw.split(b'?', 1)[0].partition(b'/unit/')
+    if not sep:
+        return
+    segments = []
+    for segment in unquote_to_bytes(head).decode('latin-1').split('/'):
+        if segment == '..':
+            segments = segments[:-1]
+        elif segment not in ('', '.'):
+            segments.append(segment)
+    environ['PATH_INFO'] = ''.join('/' + segment for segment in segments) + \
+        '/unit/' + unquote_to_bytes(source).decode('latin-1')
 
 
 def amagama_server_factory():
