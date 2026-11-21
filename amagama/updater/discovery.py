@@ -17,6 +17,7 @@ resolver turns each into blocks.
 """
 
 import datetime
+import http.client
 import json
 import re
 import time
@@ -88,7 +89,7 @@ def _message(error):
     """An HTTP error's body, lowercased, or "" if it can't be read."""
     try:
         return error.read().decode("utf-8", "replace").lower()
-    except (OSError, ValueError):
+    except (OSError, ValueError, http.client.HTTPException):
         return ""
 
 

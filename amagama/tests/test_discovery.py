@@ -8,6 +8,7 @@
 
 import datetime
 import email.message
+import http.client
 import io
 import json
 import time
@@ -374,6 +375,21 @@ def test_github_secondary_rate_limit(monkeypatch):
     monkeypatch.setattr(discovery, "time", types.SimpleNamespace(sleep=slept.append, time=lambda: 0))
     assert discovery.github("https://api.github.com/x", "tok") == {"ok": 1}
     assert slept == [60]
+
+
+def test_github_unreadable_error_body(monkeypatch):
+    class Truncated(io.BytesIO):
+        def read(self, *args):
+            raise http.client.IncompleteRead(b"", 10)
+
+    def urlopen(request, timeout):
+        raise urllib.error.HTTPError("https://api.github.com/x", 403, "Forbidden",
+                                     email.message.Message(), Truncated())
+
+    monkeypatch.setattr(discovery.urllib.request, "urlopen", urlopen)
+    with pytest.raises(FetchError) as e:
+        discovery.github("https://api.github.com/x", "tok")
+    assert e.value.status == 403
 
 
 def test_github_network_error(monkeypatch):
