@@ -411,6 +411,9 @@ def xliff_pieces(path, size=None):
                 body.append(etree.Comment("units"))
                 skeleton = etree.tostring(out, xml_declaration=True,
                                           encoding="UTF-8").split(b"<!--units-->")
+                # Raises for what the reader doesn't read, such as XLIFF 2.0,
+                # which has no <trans-unit> to find.
+                _read_xliff(path, b"".join(skeleton))
             continue
         if name != "trans-unit":
             continue
