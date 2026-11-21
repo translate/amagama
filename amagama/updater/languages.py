@@ -111,6 +111,18 @@ USUAL_SCRIPTS = {
 # Scripts written by name in a modifier; others by their lower-case code.
 SCRIPT_NAMES = {"latn": "latin", "cyrl": "cyrillic", "arab": "arabic", "deva": "devanagari"}
 
+# BCP 47's extended language subtags follow these: zh-yue is yue.
+EXTLANG_PREFIXES = {"ar", "kok", "lv", "ms", "sgn", "sw", "uz", "zh"}
+
+# BCP 47's grandfathered tags with a language's code.
+GRANDFATHERED = {
+    "art-lojban": "jbo", "i-ami": "ami", "i-bnn": "bnn", "i-hak": "hak", "i-klingon": "tlh",
+    "i-lux": "lb", "i-navajo": "nv", "i-pwn": "pwn", "i-tao": "tao", "i-tay": "tay",
+    "i-tsu": "tsu", "no-bok": "nb", "no-nyn": "nn", "sgn-be-fr": "sfb", "sgn-be-nl": "vgt",
+    "sgn-ch-de": "sgg", "zh-guoyu": "cmn", "zh-hakka": "hak", "zh-min-nan": "nan",
+    "zh-xiang": "hsn",
+}
+
 # Chinese scripts are left to the region: their usual one if there's none.
 CHINESE = {"hans": "CN", "hant": "TW"}
 
@@ -140,10 +152,16 @@ def normalise_language(code):
         return lang + region + ("@" + modifier if modifier else "")
     if code.startswith("b+"):  # Android BCP 47 qualifier
         code = code[2:].replace("+", "-")
+    tag = code.lower().replace("_", "-")
+    if tag in GRANDFATHERED:
+        return normalise_language(GRANDFATHERED[tag])
     parts = re.split(r"[-_]", code)
     lang = parts.pop(0).lower()
     if not re.fullmatch(r"[a-z]{2,3}", lang):
         return None
+    extlang = parts[0].lower() if parts and len(parts[0]) == 3 else ""
+    if lang in EXTLANG_PREFIXES and extlang in _iso_codes() and _language(extlang):
+        lang = parts.pop(0).lower()
     lang = _language(lang)
     if lang is None:
         return None
