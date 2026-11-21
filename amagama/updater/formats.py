@@ -275,7 +275,7 @@ def open_store(path, format=None, columns=None, header_row=False, xliff_states=N
     """
     if format == "csv" and columns:
         return _read_csv(path, columns, header_row)
-    if format in (None, "po", "po-mono") and path.endswith(".po"):
+    if format in ("po", "po-mono") or format is None and path.endswith(".po"):
         with open(path, "rb") as f:
             store = _read_po(path, f.read())
     elif format == "strings":
@@ -438,8 +438,9 @@ def xliff_pieces(path, size=None):
         yield wrap()
 
 
-# Readers for files too large to hold whole, by extension: (format, piece
-# size setting, pieces, read one piece).
+# Readers for files too large to hold whole, by extension, or by format
+# whatever the extension: (format, piece size setting, pieces, read one
+# piece).
 _PIECES = {
     ".po": ("po", "PIECE_SIZE", po_pieces, _read_po),
     ".tmx": ("tmx", "TMX_PIECE_SIZE", tmx_pieces, _read_tmx),
@@ -455,8 +456,11 @@ def open_pieces(path, format=None, columns=None, header_row=False, xliff_states=
     Every piece is parsed once first, so a file that can't be read is
     reported before any of it is imported.
     """
-    reader = _PIECES.get(os.path.splitext(path)[1])
-    if reader is None or format not in (None, reader[0]):
+    if format is None:
+        reader = _PIECES.get(os.path.splitext(path)[1])
+    else:
+        reader = next((reader for reader in _PIECES.values() if reader[0] == format), None)
+    if reader is None:
         return None
     format, setting, pieces, read = reader
     if format == "xliff":
