@@ -329,6 +329,10 @@ def po_pieces(path, size=None):
     header, piece, length = b"", [], 0
     with open(path, "rb") as f:
         for entry in _po_entries(f):
+            # A domain line before the header would hide it.
+            entry = [line for line in entry if not _PO_DOMAIN.match(line)]
+            if not entry:
+                continue
             if not header and not piece and _is_header(entry):
                 header = b"".join(entry) + _newline(entry)
                 continue
