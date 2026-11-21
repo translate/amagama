@@ -367,6 +367,14 @@ class Block(object):
         shutil.rmtree(new, ignore_errors=True)
         os.makedirs(new)
         try:
+            if due is not None:
+                # A language not due whose last fetch is gone from the cache
+                # is fetched again.
+                carried = (previous or {}).get("by_language", {})
+                due = due + sorted(
+                    lang for lang in set(available) - set(due)
+                    if not all(os.path.exists(os.path.join(final, entry[0] + compressed.SUFFIX))
+                               for entry in carried.get(lang, [])))
             files = []
             unknown = set()
             no_template = []
