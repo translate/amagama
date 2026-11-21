@@ -432,3 +432,37 @@ class TestCharts(object):
         assert page.count('<rect class="ordinary"') == 18
         assert "stats-line limited" not in page
         assert "Refused (429)</span>" not in page
+
+
+def test_page_groups_blocks_by_title(amagama_config, tmp_path):
+    filename = tmp_path / "stats.json"
+    amagama_config(ENABLE_WEB_UI=True, STATS_FILE=str(filename))
+    write_figures(filename, {"unchanged": 7})
+    figures = json.loads(filename.read_text(encoding="utf-8"))
+
+    def block(name, title, languages, targets, imported, checks, version=None):
+        return {"name": name, "title": title, "version": version, "languages": languages,
+                "targets": targets, "imported": imported, "checks": checks}
+    # A project's components share its title; releases keep theirs apart.
+    figures["sourceLanguages"]["en"]["blocks"] = [
+        block("tor-browser", "Tor Project", 40, 300, "2026-11-01T00:00:00Z", {"unchanged": 2}),
+        block("tor-support", "Tor Project", 55, 200, "2026-11-08T00:00:00Z", {"unchanged": 3}),
+        block("tor-tails", "Tor Project", 20, None, None, {}),
+        block("gnome-50", "GNOME", 90, 450, "2026-10-01T00:00:00Z", {}, "50"),
+        block("gnome-51", "GNOME", 95, 600, "2026-10-02T00:00:00Z", {"unchanged": 2}, "51"),
+    ]
+    filename.write_text(json.dumps(figures), encoding="utf-8")
+    page = get("/stats/").get_data(as_text=True)
+    table = page[page.index('id="sources-en"'):page.index("</table>", page.index('id="sources-en"'))]
+    rows = [[cell.split(">", 1)[1].split("<", 1)[0] for cell in row.split("<t")[1:]
+             if cell.startswith(("h", "d")) and 'class="bar-column"' not in cell]
+            for row in table.split("<tr>")[2:]]
+    assert rows == [["GNOME 51", "95", "600", "2026-10-02"],
+                    ["Tor Project", "55", "500", "2026-11-08"],
+                    ["GNOME 50", "90", "450", "2026-10-01"]]
+    # The checks by project add up too.
+    checks = page[page.index("By project"):]
+    assert '<th scope="row" dir="ltr">Tor Project</th><td class="number">5</td>' in checks
+    # The API keeps one entry per block.
+    api = get("/api/v1/stats/").get_json()
+    assert len(api["sourceLanguages"]["en"]["blocks"]) == 5
