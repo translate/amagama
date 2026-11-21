@@ -196,9 +196,10 @@ Scheduled updates
 so a day's fetch is small. ``amagama-update.timer`` rebuilds and swaps in the
 database every Sunday (``amagama-manage update -s en --no-fetch``), from the
 cache as the fetch timer left it, without fetching itself; a
-rebuild takes hours, so it isn't run daily. They share a lock on the cache,
-and whichever finds the other running skips that run. A run missed while the
-box was down happens when it's back.
+rebuild takes hours, so it isn't run daily. They share a lock on the cache:
+a fetch that finds a rebuild running skips that day, and a rebuild waits up to
+six hours for a fetch to finish, then fails. A run missed while the box was
+down happens when it's back.
 
 The update keeps the copy it replaced, so ``swap_db --rollback`` can bring it
 back; ``amagama-drop-old.timer`` drops it on Thursday, after the longest

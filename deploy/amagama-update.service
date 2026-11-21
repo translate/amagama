@@ -12,11 +12,11 @@ Environment=AMAGAMA_CONFIG=/srv/amagama/updater_settings.py
 Environment=PYTHONUNBUFFERED=1
 SyslogIdentifier=amagama-update
 # The fetch timer keeps the cache current; this only rebuilds from it.
-# Not while a fetch is running: skipped (75) rather than failed.
-ExecStart=/usr/bin/flock --nonblock --conflict-exit-code 75 \
+# A fetch still running (Sunday's, or a catch-up after a reboot) is waited
+# for; one still holding the lock after six hours fails the unit.
+ExecStart=/usr/bin/flock --wait 21600 \
         /srv/amagama/cache/.lock \
         /srv/amagama/venv/bin/amagama-manage update -s en --no-fetch
-SuccessExitStatus=75
 # The web app caches block weights, licences and the source list per worker:
 # reload it so a swapped-in rebuild is served whole. "+" runs it as root.
 ExecStartPost=+/usr/bin/systemctl try-reload-or-restart amagama.uwsgi.service
