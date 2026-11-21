@@ -78,3 +78,20 @@ def test_bad_mask(mask):
 def test_fill(mask, template, path, expected):
     assert fill(template, compile_mask(mask).match(path)) == expected
     assert wildcards(template) == wildcards(mask)
+
+
+@pytest.mark.parametrize("mask, path, lang", [
+    ("**/*_{lang}.properties", "src/foo_bar_de.properties", "de"),
+    ("**/*_{lang}.properties", "src/my_app_fr.properties", "fr"),
+    ("**/*_{lang}.properties", "src/web_ui_de.properties", "de"),
+    ("**/*_{lang}.properties", "src/app_pt_br.properties", "pt_br"),
+    ("**/*_{lang}.properties", "src/messages_pt_BR.properties", "pt_BR"),
+    ("**/*_{lang}.properties", "src/app_zh_Hans.properties", "zh_Hans"),
+    ("**/*_{lang}.properties", "src/app_ast.properties", "ast"),
+    ("*-{lang}.json", "core-ast-es.json", "es"),
+    ("*-{lang}.json", "core-zh-hant.json", "zh-hant"),
+    ("*-{lang}.json", "app-ca-valencia.json", "ca-valencia")])
+def test_lang_after_wildcard(mask, path, lang):
+    """A * before {lang} can end in more than one place: the likelier
+    language is read."""
+    assert Selection([mask]).select(path, None) == lang

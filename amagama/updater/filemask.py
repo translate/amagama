@@ -16,13 +16,19 @@ b+sr+Latn).
 
 import re
 
+from amagama.updater.languages import normalise_language
+
 TOKENS = re.compile(r"(\*\*/|\*\*|\*|\{lang\})")
 # BCP 47 subtags are at most 8 characters; a POSIX @modifier has no limit.
 LANG_PATTERN = r"[a-z]{1,3}(?:[_+-][A-Za-z0-9]{1,8}|@[A-Za-z0-9]+)*"
 
 
-def compile_mask(mask, allow_lang=True):
-    """The regular expression for mask; raises ValueError if it's malformed."""
+def compile_mask(mask, allow_lang=True, greedy=False):
+    """The regular expression for mask; raises ValueError if it's malformed.
+
+    A * matches as little as it can, unless greedy, so {lang} after it takes
+    as much as it can: foo_{lang} reads foo_pt_BR as pt_BR.
+    """
     if not mask or mask.startswith("/") or ".." in mask.split("/"):
         raise ValueError("bad filemask %r" % mask)
     if mask.count("{lang}") > 1 or (not allow_lang and "{lang}" in mask):
@@ -34,7 +40,7 @@ def compile_mask(mask, allow_lang=True):
     for token in TOKENS.split(mask):
         if token in ("**/", "**", "*"):
             pattern += "(?P<w%d>%s)" % (wildcard, {"**/": "(?:.*/)?", "**": ".*",
-                                                    "*": "[^/]*?"}[token])
+                                                    "*": "[^/]*" if greedy else "[^/]*?"}[token])
             wildcard += 1
         elif token == "{lang}":
             pattern += "(?P<lang>%s)" % LANG_PATTERN
@@ -67,6 +73,7 @@ class Selection(object):
     def __init__(self, masks=None, excludes=None):
         self.mask_texts = list(masks or [])
         self.masks = [compile_mask(mask) for mask in self.mask_texts]
+        self._shortest = [compile_mask(mask, greedy=True) for mask in self.mask_texts]
         self.excludes = [compile_mask(mask, allow_lang=False) for mask in excludes or []]
 
     @property
@@ -80,8 +87,28 @@ class Selection(object):
             return None
         if not self.masks:
             return lang
-        for mask in self.masks:
+        for mask, shortest in zip(self.masks, self._shortest):
             match = mask.match(path)
             if match:
-                return match.groupdict().get("lang") or lang
+                found = match.groupdict().get("lang")
+                if found:
+                    other = shortest.match(path)
+                    return likelier(found, other and other.group("lang"))
+                return lang
         return None
+
+
+def likelier(longest, shortest):
+    """Which of two readings of a file name's language to take, when a *
+    before {lang} could end in more than one place: foo_bar_de is German
+    (de) more likely than Bavarian in Germany (bar_DE), but app_pt_br is
+    Brazilian Portuguese (pt_br), not Breton (br). A code that is a language
+    wins; between two, one whose language has two letters; then the longest.
+    """
+    if not shortest or shortest == longest:
+        return longest
+    readings = [code for code in (longest, shortest) if normalise_language(code)]
+    if len(readings) != 2:
+        return readings[0] if readings else longest
+    two_letters = [code for code in readings if len(re.split(r"[-_+@]", code)[0]) == 2]
+    return two_letters[0] if len(two_letters) == 1 else longest
