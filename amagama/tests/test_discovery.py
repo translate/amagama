@@ -274,7 +274,11 @@ def test_licence(spdx, expected):
      None, True, None),
     ("https://github.com/someone/foo", "Foo", "https://gitlab.com/groups/foo", False, None),
     ("https://github.com/someone/foo", "Mirror of https://gitlab.gnome.org/GNOME/foo/-/tree/main/foo",
-     None, True, None)])
+     None, True, None),
+    ("https://github.com/someone/foo", "Mirror. Docs: https://codeberg.org/o/foo/wiki/foo", None,
+     True, None),
+    ("https://github.com/someone/foo", "Mirror of https://bitbucket.org/o/foo/src/main/foo", None,
+     True, None)])
 def test_upstream(url, description, homepage, issues, expected):
     found = {"url": url, "description": description, "homepageUrl": homepage,
              "hasIssuesEnabled": issues}
