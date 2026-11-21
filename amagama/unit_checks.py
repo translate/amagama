@@ -49,12 +49,13 @@ _PRINTF = re.compile(
 _VARIABLE = re.compile(r"%[A-Z][A-Z_]{3,}")
 # A date and time format, whose fields are reordered as the language needs.
 _STRFTIME = re.compile(r"%[-_0^#]?[HMSYyBbPIklZjUWVCRT]")
-# Placeholders in braces: Moodle's {$a}, numbered {0}, empty {} and Ruby's
-# %{name}. Other braces are often text to translate.
-_BRACES = re.compile(r"%\{\w+\}|\{\$[^{}]*\}|\{\d+\}|\{\}")
-# Java MessageFormat's choice format, {0,choice,1#one file|1<{0} files}: its
-# branches' text is translated, and their number follows the language.
-_CHOICE = re.compile(r"\{(\d+)\s*,\s*choice\s*,")
+# Placeholders in braces: Moodle's {$a}, numbered {0} (or typed, {0,number}),
+# empty {} and Ruby's %{name}. Other braces are often text to translate.
+_BRACES = re.compile(r"%\{\w+\}|\{\$[^{}]*\}|\{\d+\}|\{\}|\{(\d+)\s*,\s*\w+[^{}]*\}")
+# Java MessageFormat's choice format, {0,choice,1#one file|1<{0} files}, and
+# ICU's plural and select: their branches' text is translated, and their
+# number follows the language.
+_CHOICE = re.compile(r"\{(\d+)\s*,\s*(choice|plural|selectordinal|select)\s*,")
 # TeX, whose braces hold text.
 _TEX = re.compile(r"\\[A-Za-z]+")
 # Tag names only: an attribute such as alt may be translated.
@@ -125,9 +126,16 @@ def _printf_differs(source, target):
     return found != wanted
 
 
+def _plain_braces(text):
+    """The placeholders in braces in text, a typed one ({0,number}) as its
+    argument ({0})."""
+    return ["{%s}" % match[1] if match[1] else match[0] for match in _BRACES.finditer(text)]
+
+
 def _braces(text):
-    """text's placeholders in braces. A choice format counts as its argument
-    and the placeholders its branches use, but not its own argument again."""
+    """text's placeholders in braces. A choice, plural or select format
+    counts as its argument and the placeholders its branches use, but not
+    its own argument again."""
     found = []
     pos = 0
     while match := _CHOICE.search(text, pos):
@@ -137,15 +145,21 @@ def _braces(text):
             end += 1
         if depth:
             break
-        found += _BRACES.findall(text[pos:match.start()])
-        found.append("{%s,choice}" % match[1])
+        found += _plain_braces(text[pos:match.start()])
+        found.append("{%s,%s}" % (match[1], match[2]))
         found += sorted(set(_braces(text[match.end():end - 1])) - {"{%s}" % match[1]})
         pos = end
-    return sorted(found + _BRACES.findall(text[pos:]))
+    return sorted(found + _plain_braces(text[pos:]))
 
 
 def _braces_differ(source, target):
-    return not _TEX.search(source) and _braces(source) != _braces(target)
+    """Whether target's placeholders differ from source's. A numbered or
+    named one may be used more or fewer times; each {} takes the next
+    argument, so their number must match."""
+    if _TEX.search(source):
+        return False
+    wanted, found = _braces(source), _braces(target)
+    return set(wanted) != set(found) or wanted.count("{}") != found.count("{}")
 
 
 def tags(text):
