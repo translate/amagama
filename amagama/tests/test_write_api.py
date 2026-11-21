@@ -79,9 +79,14 @@ class TestWriteAPI(object):
         ('post', 'store/x.po', 5),
         ('post', 'store/x.po', {'source': 'File', 'target': 'Lêer'}),
         ('post', 'store/x.po', [{'source': 'File'}]),
+        # An unpaired surrogate, which UTF-8 can't hold.
+        ('put', 'unit/File', '{"source": "File", "target": "L\\ud800er"}'),
+        ('post', 'store/x.po', '[{"source": "\\udc00", "target": "Leer"}]'),
     ])
     def test_wrong_json(self, client, method, path, body):
-        response = getattr(client, method)('/api/v1/en/af/' + path, json=body)
+        kwargs = {'data': body, 'content_type': 'application/json'} \
+            if isinstance(body, str) else {'json': body}
+        response = getattr(client, method)('/api/v1/en/af/' + path, **kwargs)
         assert response.status_code == 400
         assert stored_sources(client) == []
 

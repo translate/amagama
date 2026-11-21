@@ -220,15 +220,25 @@ def get_uid_and_call(func, slang, tlang):
 def json_units(many=False):
     """Return the request's JSON units as a list, or send a HTTP 400.
 
-    A unit is an object with a string source and target; with many, the
-    body is a list of them, otherwise a single one.
+    A unit is an object with a string source and target that UTF-8 can hold
+    (JSON can give an unpaired surrogate); with many, the body is a list of
+    them, otherwise a single one.
     """
+    def text(value):
+        if not isinstance(value, str):
+            return False
+        try:
+            value.encode('utf-8')
+        except UnicodeEncodeError:
+            return False
+        return True
+
     data = request.json
     units = data if many else [data]
     if not (isinstance(units, list) and
             all(isinstance(unit, dict) and
-                isinstance(unit.get('source'), str) and
-                isinstance(unit.get('target'), str) for unit in units)):
+                text(unit.get('source')) and
+                text(unit.get('target')) for unit in units)):
         abort(400)
     return units
 
