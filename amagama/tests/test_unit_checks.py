@@ -67,8 +67,12 @@ from amagama.unit_checks import Report, failed_checks, length_step, script, targ
     # ICU's plural and select, by number, translate their branches too.
     ("{0, plural, one {{0} file} other {{0} files}}",
      "{0, plural, one {{0} файл} few {{0} файла} many {{0} файлов} other {{0} файла}}", "ru", []),
-    ("{0, select, male {He} other {They}} left", "{0, select, male {Hy} other {Hulle}} het gery",
-     "af", []),
+    ("{0, select, male {{1} left} other {{1} left}}",
+     "{0, select, male {{1} het gery} female {{1} het gery} other {{1} het gery}}", "af", []),
+    # A named argument is read the same way; dropping the format isn't.
+    ("{count, plural, one {# file} other {# files}}", "{count} lêers", "af", ["braces"]),
+    ("{count, plural, one {{0} file} other {{0} files}}",
+     "{count, plural, one {{0} lêer} other {{0} lêers}}", "af", []),
     ("{0, plural, one {{0} file} other {{0} files}}", "{0} lêers", "af", ["braces"]),
     # A typed argument is its argument; a numbered one may be used again.
     ("{0} files", "{0,number} lêers", "af", []),
