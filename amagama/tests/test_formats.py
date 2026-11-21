@@ -390,6 +390,19 @@ def test_xliff_pieces(tmp_path):
     assert open_pieces(str(path)) is None
 
 
+def test_xliff_pieces_plurals(tmp_path):
+    path = tmp_path / "ru.xlf"
+    path.write_bytes(XLIFF_DOC % (XLIFF_FILE % (b"a.po", b"ru", xliff_unit("1", "Save", "S")
+        + b'<group id="2" restype="x-gettext-plurals">' + xliff_unit("2[0]", "%d file", "F0")
+        + xliff_unit("2[1]", "%d files", "F1") + xliff_unit("2[2]", "%d files", "F2")
+        + b"</group>" + xliff_unit("3", "Quit", "Q"))).replace(b"plaintext", b"po"))
+    stores = list(open_pieces(str(path), size=10))
+    assert len(stores) == 3
+    assert [(str(u.source), str(u.target), u.hasplural()) for s in stores for u in s.units] \
+        == [(str(u.source), str(u.target), u.hasplural()) for u in open_store(str(path)).units] \
+        == [("Save", "S", False), ("%d file", "F0", True), ("Quit", "Q", False)]
+
+
 def test_xliff_pieces_without_namespace(tmp_path):
     path = tmp_path / "de.xliff"
     path.write_bytes(XLIFF_DOC.replace(b' xmlns="urn:oasis:names:tc:xliff:document:1.2"', b"")
