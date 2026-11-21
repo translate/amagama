@@ -115,12 +115,23 @@ jobs:
               -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
               commit -qam "Regenerate the discovered sources files"
           gh auth setup-git
+          number=$(gh pr list --head "$branch" --state open --json number --jq '.[].number')
+          if [ -n "$number" ]; then
+            # Commits added in review aren't replaced: leave that pull request be.
+            others=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$number/commits" --paginate \
+                --jq '.[] | select(.author.login != "github-actions[bot]") | .sha')
+            if [ -n "$others" ]; then
+              echo "::error::Pull request #$number has commits added in review; merge or close it first."
+              exit 1
+            fi
+          fi
           git fetch -q --depth=1 origin "+refs/heads/$branch:refs/remotes/origin/$branch" || true
           git push --force-with-lease origin "$branch"
           title="Discovered sources, $(date -u +%Y-%m-%d)"
-          number=$(gh pr list --head "$branch" --state open --json number --jq '.[].number')
           if [ -n "$number" ]; then
-            gh pr edit "$number" --body-file "$RUNNER_TEMP/body.md" --title "$title"
+            # gh pr edit fails on the retired Projects (classic) query.
+            gh api -X PATCH "repos/$GITHUB_REPOSITORY/pulls/$number" -f title="$title" \
+                -F body=@"$RUNNER_TEMP/body.md" > /dev/null
           else
             gh pr create --base "$GITHUB_REF_NAME" --head "$branch" --body-file "$RUNNER_TEMP/body.md" \
               --title "$title"
