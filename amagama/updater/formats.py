@@ -376,16 +376,18 @@ def tmx_pieces(path, size=None):
 
 
 def _read_xliff(path, data, xliff_states=None):
-    store = xliff.xlifffile()
+    # As a whole file is read: one from po2xliff (datatype "po") with its
+    # plural forms as one unit.
+    store = xliff.xlifffile.parsestring(data)
     store.filename = path
-    store.parse(data)
     return _accepted_xliff(store, xliff_states) if xliff_states else store
 
 
 def xliff_pieces(path, size=None):
     """path in XLIFF files of about size bytes, each with one <file>'s attributes.
 
-    The <trans-unit> elements are streamed, so the whole file is never held.
+    The <trans-unit> elements, and gettext plural groups, are streamed, so
+    the whole file is never held.
     """
     size = size or XLIFF_PIECE_SIZE
     skeleton, piece, length = None, [], 0
@@ -394,7 +396,7 @@ def xliff_pieces(path, size=None):
         before, after = skeleton
         return before + b"".join(piece) + after
     for event, elem in etree.iterparse(path, events=("start", "end"),
-                                       tag=("{*}xliff", "{*}file", "{*}trans-unit"),
+                                       tag=("{*}xliff", "{*}file", "{*}group", "{*}trans-unit"),
                                        huge_tree=True):
         name = etree.QName(elem).localname
         if event == "start":
@@ -415,7 +417,11 @@ def xliff_pieces(path, size=None):
                 # which has no <trans-unit> to find.
                 _read_xliff(path, b"".join(skeleton))
             continue
-        if name != "trans-unit":
+        # A gettext plural's forms are one message: their group goes whole.
+        if name == "trans-unit":
+            if elem.getparent().get("restype") == "x-gettext-plurals":
+                continue
+        elif name != "group" or elem.get("restype") != "x-gettext-plurals":
             continue
         piece.append(etree.tostring(elem, with_tail=False))
         length += len(piece[-1])
