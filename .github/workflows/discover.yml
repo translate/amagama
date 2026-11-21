@@ -48,6 +48,8 @@ jobs:
       - name: Regenerate
         id: regenerate
         continue-on-error: true
+        # Stopped in time for the pull request of the files regenerated so far.
+        timeout-minutes: 270
         env:
           AMAGAMA_CONFIG: ${{ runner.temp }}/settings.py
           # Code search, issue search and GraphQL work with the workflow's token,
@@ -56,7 +58,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.DISCOVER_TOKEN || secrets.GITHUB_TOKEN }}
           AMAGAMA_SEARCH_PAUSE: ${{ secrets.DISCOVER_TOKEN && '6' || '61' }}
           # The workflow's token waits minutes at a time for the rate limit:
-          # stop searching in time to read what was found within the job's 300.
+          # stop searching in time to read what was found within the step's
+          # 270. The commands share these minutes.
           AMAGAMA_SEARCH_MINUTES: "180"
         run: >-
           devsupport/regenerate-sources.sh "$RUNNER_TEMP/reports"

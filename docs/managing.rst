@@ -734,7 +734,8 @@ until each part is under that; a part that can't be split further is reported
 as incomplete. Each request is logged with how long it took, waits for the
 rate limit included. ``--search-minutes`` stops the search after that long and
 reads what it found, the largest files (the most languages) first; the
-workflow stops at 180 minutes, so the run ends within the job's time limit.
+workflow's commands share 180 minutes of searching, so the run ends within
+the job's time limit.
 A request still rate limited after its retries stops the search the same way.
 Either way, the report says new candidates may be missing. Code search
 gives a different set of results each run, so the repositories of the blocks
