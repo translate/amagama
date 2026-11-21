@@ -171,6 +171,11 @@ def _po_entries(lines):
         yield entry
 
 
+def _newline(entry):
+    """The line ending of entry's lines."""
+    return b"\r\n" if entry[0].endswith(b"\r\n") else b"\n"
+
+
 def _decodes(line, charset):
     try:
         line.decode(charset)
@@ -200,10 +205,10 @@ def _decodable(data):
         lines = [line for line in entry
                  if not line.startswith(b"#") or _decodes(line, charset)]
         if entry is header or all(_decodes(line, charset) for line in lines):
-            kept.append(b"".join(lines))
+            kept.append(b"".join(lines) + _newline(entry))
         else:
             dropped += 1
-    return b"\n".join(kept), dropped
+    return b"".join(kept), dropped
 
 
 def _read_po(path, data):
@@ -317,9 +322,9 @@ def po_pieces(path, size=None):
     with open(path, "rb") as f:
         for entry in _po_entries(f):
             if not header and not piece and _is_header(entry):
-                header = b"".join(entry) + b"\n"
+                header = b"".join(entry) + _newline(entry)
                 continue
-            piece.append(b"".join(entry) + b"\n")
+            piece.append(b"".join(entry) + _newline(entry))
             length += len(piece[-1])
             if length >= size:
                 yield header + b"".join(piece)
