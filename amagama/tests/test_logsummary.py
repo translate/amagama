@@ -75,6 +75,15 @@ def test_summarise(logs):
         ORDINARY: [2, 0], PREFETCH: [1, 0], BULK: [3, 2]}
 
 
+def test_rotated_away_since_listed(logs, tmp_path):
+    # logrotate's delaycompress gzips a rotated log and removes it.
+    plain, rotated = logs
+    listed = str(rotated)[:-len(".gz")]
+    gone = str(tmp_path / "live-nginx.access.log-20260930")
+    assert summarise([str(plain), listed, gone]) == {
+        ORDINARY: [2, 0], PREFETCH: [1, 0], BULK: [3, 2]}
+
+
 def test_lookups_per_day(logs, tmp_path):
     test = tmp_path / "test.log"
     test.write_text(line().replace("Virtaal/1.1.0", "Virtaal/1.1.0 Test/instance")
