@@ -260,6 +260,18 @@ def test_unusable_file_is_kept(tmp_path, old):
     assert not (tmp_path / "stats.json.3").exists()
 
 
+def test_unusable_file_is_kept_without_hard_links(tmp_path, monkeypatch):
+    filename = tmp_path / "stats.json"
+    filename.write_text("{", encoding="utf-8")
+
+    def link(*args):
+        raise PermissionError("Operation not permitted")
+    monkeypatch.setattr(stats.os, "link", link)
+    stats.update_use(str(filename), [])
+    assert (tmp_path / "stats.json.1").read_text(encoding="utf-8") == "{"
+    assert stats.load(str(filename))["version"] == stats.VERSION
+
+
 def test_source_language_gone(tmp_path, monkeypatch):
     filename = tmp_path / "stats.json"
     write_figures(filename, {})
