@@ -58,6 +58,41 @@ def _iso_codes():
             | set(_two_letter_codes().values()))
 
 
+# ISO 639-3's retired codes, {code: retirements.Retirement}: use_retirements().
+_RETIRED = {}
+# SIL's Ret_Reason codes.
+RETIRED_REASONS = {"C": "changed", "D": "a duplicate", "M": "merged", "N": "never in use",
+                   "S": "split"}
+
+
+def use_retirements(table):
+    """Recognise the retired codes of a retirements.load() table."""
+    _RETIRED.clear()
+    _RETIRED.update(table)
+
+
+def retirement(code):
+    """The retirement of the code code's language is in, or None."""
+    return _RETIRED.get(re.split(r"[-_@+]", code.strip().removeprefix("b+"))[0].lower())
+
+
+def _language(lang):
+    """lang's current code, or None if it isn't a language's. A retired
+    code with one successor is that; one split or never in use stays."""
+    lang = _short(lang)
+    if lang in _special_codes():
+        return None
+    if lang in _iso_codes():
+        return lang
+    retired = _RETIRED.get(lang)
+    if retired is None:
+        return None
+    if retired.reason in "CDM" and len(retired.successors) == 1:
+        successor = _short(retired.successors[0])
+        return successor if successor in _iso_codes() else None
+    return lang
+
+
 def _short(lang):
     """lang's current code, two letters where ISO 639-1 has one."""
     lang = RENAMED.get(lang, lang)
@@ -92,8 +127,8 @@ def normalise_language(code):
         return COUNTRY_CODES[code.lower()]
     match = _POSIX.match(code)
     if match:
-        lang = _short(match["lang"].lower())
-        if lang not in _iso_codes() or lang in _special_codes():
+        lang = _language(match["lang"].lower())
+        if lang is None:
             return None
         region = "_" + match["region"].upper() if match["region"] else ""
         modifier = match["modifier"].lower() if match["modifier"] else ""
@@ -106,8 +141,8 @@ def normalise_language(code):
     lang = parts.pop(0).lower()
     if not re.fullmatch(r"[a-z]{2,3}", lang):
         return None
-    lang = _short(lang)
-    if lang not in _iso_codes() or lang in _special_codes():
+    lang = _language(lang)
+    if lang is None:
         return None
     script = region = modifier = ""
     for part in parts:
@@ -139,6 +174,20 @@ def not_language(code):
     if re.fullmatch(r"[a-z]{2,3}", lang) and _short(lang) in _iso_codes():
         return "not a language code"
     return "not an ISO 639 code"
+
+
+def described_retired(codes):
+    """{retired code: the code used} in words, for a log."""
+    found = []
+    for code, used in sorted(codes.items()):
+        retired = retirement(code)
+        what = "retired %s, %s" % (retired.date, RETIRED_REASONS.get(retired.reason,
+                                                                     retired.reason))
+        if retired.successors:
+            what += " (%s)" % ", ".join(retired.successors)
+        found.append("%s (%s; %s)" % (code, what, "now " + used if used != code.lower()
+                                      else "kept: a block's languages can map it"))
+    return ", ".join(found)
 
 
 def described(codes):

@@ -26,7 +26,7 @@ from amagama.updater.fetchers import FETCHERS, FetchError
 from amagama.updater.filemask import Selection, compile_mask, fill, wildcards
 from amagama.updater.formats import (CHROMIUM, check_csv_options, check_format,
                                      check_xliff_states, is_monolingual)
-from amagama.updater.languages import is_android_locale, map_language
+from amagama.updater.languages import is_android_locale, map_language, retirement
 
 DEFAULT_SOURCES = os.path.join(os.path.dirname(__file__), "sources.toml")
 STATE_FILE = "fetched.json"
@@ -463,6 +463,10 @@ class Block(object):
             "unknown_languages": sorted(unknown),
             "outside_links": outside,
             "no_template": sorted(no_template),
+            # ISO 639-3's retired codes, mapped or kept, by the code used.
+            "retired_languages": {lang: code for code, sources in sorted(codes.items())
+                                  for lang in sorted(sources)
+                                  if lang not in self.languages and retirement(lang)},
             "languages": {code: sorted(sources) for code, sources in sorted(codes.items())},
             # Different codes normalised to one, not by the block's languages.
             "merged_languages": {code: sorted(sources) for code, sources in sorted(codes.items())

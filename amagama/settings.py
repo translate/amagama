@@ -77,6 +77,11 @@ MIN_SIMILARITY = 70
 MAX_CANDIDATES = 5
 
 
+# ISO 639-3's retired codes, downloaded from iso639-3.sil.org by fetch_sources
+# and update, and read by both and the web app (None: in UPDATER_CACHE_DIR).
+ISO639_RETIREMENTS_FILE = None
+
+
 # Statistics config
 #
 # The statistics page's figures, which rebuilds and update_stats write and the

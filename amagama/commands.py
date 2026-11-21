@@ -34,13 +34,14 @@ from translate.storage import factory
 from amagama import logsummary, stats
 from amagama.licences import normalise_licence
 from amagama.source_options import MAX_WEIGHT
-from amagama.updater import discovery, generate, status, transifex, weblate
+from amagama.updater import discovery, generate, languages, retirements, status, transifex, weblate
 from amagama.updater.fetchers import VCS_DIRECTORIES, FetchError, remembered_commits
 from amagama.updater.formats import open_pieces
-from amagama.updater.languages import described
+from amagama.updater.languages import described, described_retired
 from amagama.updater.sources import (FAILURES_TO_REPORT, REPOSITORIES, TAGS, limit_first_fetches,
                                      load_sources, select, unused_repositories)
-from amagama.tmdb import BUILD_PREFIX, OLD_PREFIX, lang_to_table, snapshot_left_out
+from amagama.tmdb import (BUILD_PREFIX, OLD_PREFIX, _table_name_cache, lang_to_table,
+                          snapshot_left_out)
 
 def ensure_source_exists():
     db_name = current_app.config.get("DB_NAME")
@@ -600,6 +601,16 @@ def load_snapshot(source_langs, name, block, licence):
             print("Not language codes, skipped: %s" % snapshot_left_out(left_out))
 
 
+def use_retirements(cache_dir):
+    """Download ISO 639-3's retired codes if the copy is old, and use them."""
+    filename = retirements.path(current_app.config, cache_dir)
+    note = retirements.refresh(filename)
+    if note:
+        print(note)
+    languages.use_retirements(retirements.load(filename))
+    _table_name_cache.clear()
+
+
 def configured_blocks(tags=()):
     """The sources file's blocks in the configured set, and with any of tags
     if given; exits on a sources file or tag that isn't valid."""
@@ -629,6 +640,7 @@ def fetch_sources(block_names, tags, check):
     sources file uses are removed.
     """
     cache_dir = os.path.expanduser(current_app.config.get('UPDATER_CACHE_DIR'))
+    use_retirements(cache_dir)
     blocks = configured_blocks(tags)
     unknown = set(block_names) - {block.name for block in blocks}
     if unknown:
@@ -658,6 +670,9 @@ def fetch_sources(block_names, tags, check):
                 if state['unknown_languages']:
                     print("%s: not language codes, skipped: %s" % (
                         block.name, described(state['unknown_languages'])))
+                if state.get('retired_languages'):
+                    print("%s: retired codes: %s" % (
+                        block.name, described_retired(state['retired_languages'])))
                 if state.get('outside_links'):
                     print("%s: symlinks leading outside the block, skipped: %s" % (
                         block.name, ", ".join(state['outside_links'])))
@@ -1118,6 +1133,7 @@ def update(source_langs, force, fetch):
     cache_dir = os.path.expanduser(current_app.config.get('UPDATER_CACHE_DIR'))
     failed = False
     try:
+        use_retirements(cache_dir)
         for slang in source_langs:
             failed |= bool(update_from_sources(
                 slang, cache_dir, current_app.config.get('UPDATER_SOURCES'),

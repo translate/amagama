@@ -81,10 +81,11 @@ and the updater's own::
     # One import worker: the box has 2 GB of memory.
     UPDATER_WORKERS = 1
 
-The web app reads the statistics page's figures from the file the updater
-writes, so ``local_settings.py`` also has::
+The web app reads the statistics page's figures and ISO 639-3's retired
+codes from files the updater writes, so ``local_settings.py`` also has::
 
     STATS_FILE = "/srv/amagama/cache/stats.json"
+    ISO639_RETIREMENTS_FILE = "/srv/amagama/cache/iso-639-3_Retirements.tab"
 
 Install the units and the nginx site from the table above, then::
 
@@ -232,6 +233,13 @@ after the upgrade's pull::
     sudo cp /srv/amagama/amagama/deploy/amagama-stats.service \
         /srv/amagama/amagama/deploy/amagama-stats.timer /etc/systemd/system/
     sudo systemctl daemon-reload && sudo systemctl enable --now amagama-stats.timer
+    sudo systemctl restart amagama.uwsgi
+
+A box deployed before retired language codes were read needs their setting
+once, after the upgrade's pull::
+
+    echo 'ISO639_RETIREMENTS_FILE = "/srv/amagama/cache/iso-639-3_Retirements.tab"' | \
+        sudo tee -a /srv/amagama/local_settings.py
     sudo systemctl restart amagama.uwsgi
 
 The output goes to the journal (``journalctl -u amagama-update``). A source
