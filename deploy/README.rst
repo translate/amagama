@@ -201,9 +201,9 @@ and whichever finds the other running skips that run. A run missed while the
 box was down happens when it's back.
 
 The update keeps the copy it replaced, so ``swap_db --rollback`` can bring it
-back; ``amagama-drop-old.timer`` drops it on Monday, a day later, to keep the
-database to one copy (and the ``legacy`` snapshot). After that, going back
-means fixing the cause and rebuilding.
+back; ``amagama-drop-old.timer`` drops it on Thursday, after the longest
+update the unit allows, to keep the database to one copy (and the ``legacy``
+snapshot). After that, going back means fixing the cause and rebuilding.
 
 These run as the ``amagama`` user, with settings the web app can't read, since
 they need the database user that can write.

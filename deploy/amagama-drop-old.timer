@@ -1,9 +1,9 @@
 [Unit]
-Description=Drop amaGama's replaced copy a day after the weekly update
+Description=Drop amaGama's replaced copy after the weekly update's longest run
 
 [Timer]
-# The update runs on Sundays at 05:00 and takes a few hours.
-OnCalendar=Mon *-*-* 09:00
+# The update starts on Sundays at 05:00 and may run up to 96 hours.
+OnCalendar=Thu *-*-* 09:00
 Persistent=true
 
 [Install]
