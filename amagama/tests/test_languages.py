@@ -46,6 +46,12 @@ from amagama.updater.sources import load_sources
     ("sr_RS@latin", "sr_RS@latin"),
     ("uz-Cyrl", "uz@cyrillic"),
     ("uz@cyrillic", "uz@cyrillic"),
+    ("uz@latin", "uz"),
+    ("uz@Latn", "uz"),
+    ("sr@cyrillic", "sr"),
+    ("sr_RS@cyrillic", "sr_RS"),
+    ("kmr@latin", "kmr"),
+    ("yue@hant", "yue"),
     # Chinese scripts stand for their usual region.
     ("zh-Hans", "zh_CN"),
     ("zh_Hans", "zh_CN"),

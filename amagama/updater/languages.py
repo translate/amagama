@@ -132,9 +132,12 @@ def normalise_language(code):
             return None
         region = "_" + match["region"].upper() if match["region"] else ""
         modifier = match["modifier"].lower() if match["modifier"] else ""
-        # GNOME writes sr@Latn.
-        modifier = "@" + SCRIPT_NAMES.get(modifier, modifier) if modifier else ""
-        return lang + region + modifier
+        # GNOME writes sr@Latn. The usual script is left out: uz@latin is uz.
+        modifier = SCRIPT_NAMES.get(modifier, modifier)
+        usual = USUAL_SCRIPTS.get(lang)
+        if usual and modifier == SCRIPT_NAMES.get(usual, usual):
+            modifier = ""
+        return lang + region + ("@" + modifier if modifier else "")
     if code.startswith("b+"):  # Android BCP 47 qualifier
         code = code[2:].replace("+", "-")
     parts = re.split(r"[-_]", code)
