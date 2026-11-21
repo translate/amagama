@@ -12,6 +12,7 @@ from json import dumps
 
 from flask import Blueprint, abort, current_app, request
 from werkzeug.datastructures import Headers
+from werkzeug.routing import PathConverter
 
 from amagama import stats, titles
 from amagama.source_options import SourceOptions
@@ -22,6 +23,14 @@ from amagama.tmdb import lang_to_table
 # given and adds its own to them, so each gets a copy.
 cache_headers = Headers()
 cache_headers['Cache-Control'] = "max-age=3600, public"
+
+
+class SourceConverter(PathConverter):
+    """A source in the path, as sent: it may start with a slash. Its rules
+    don't merge slashes (see application.unit_path_as_sent)."""
+    regex = '.+?'
+    part_isolating = False
+
 
 # Create the blueprints.
 read_api = Blueprint('read_api', __name__)
@@ -66,7 +75,8 @@ def add_unit_get(slang, tlang):
     return get_uid_and_call(add_unit, slang, tlang)
 
 
-@read_api.route('/<slang>/<tlang>/unit/<path:uid>', methods=('GET', ))
+@read_api.route('/<slang>/<tlang>/unit/<source:uid>', methods=('GET', ),
+                merge_slashes=False)
 def translate_unit(slang, tlang, uid):
     """Return the translations for the provided unit."""
     min_similarity = get_int_arg(request, 'min_similarity')
@@ -85,7 +95,8 @@ def translate_unit(slang, tlang, uid):
                                       headers=Headers(cache_headers))
 
 
-@write_api.route('/<slang>/<tlang>/unit/<path:uid>', methods=('POST', ))
+@write_api.route('/<slang>/<tlang>/unit/<source:uid>', methods=('POST', ),
+                merge_slashes=False)
 def update_unit(slang, tlang, uid):
     """Update an existing unit."""
     from translate.storage import base
@@ -100,7 +111,8 @@ def update_unit(slang, tlang, uid):
     return ""
 
 
-@write_api.route('/<slang>/<tlang>/unit/<path:uid>', methods=('PUT', ))
+@write_api.route('/<slang>/<tlang>/unit/<source:uid>', methods=('PUT', ),
+                merge_slashes=False)
 def add_unit(slang, tlang, uid):
     """Add a new unit."""
     from translate.storage import base

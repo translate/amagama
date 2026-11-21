@@ -27,6 +27,7 @@ DEFAULT_SECRET_KEY = "foobar"
 class AmagamaServer(Flask):
     def __init__(self, settings, *args, **kwargs):
         super(AmagamaServer, self).__init__(*args, **kwargs)
+        self.url_map.converters['source'] = api.SourceConverter
         self.config.from_pyfile(settings)
         self.config.from_envvar('AMAGAMA_CONFIG', silent=True)
         if self.config.get('SECRET_KEY') == DEFAULT_SECRET_KEY:
