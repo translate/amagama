@@ -70,8 +70,10 @@ FIELDS = ("url stargazerCount pushedAt isArchived isFork licenseInfo { spdxId } 
 FORGES = ("gitlab.com", "codeberg.org", "bitbucket.org", "framagit.org", "salsa.debian.org",
           "invent.kde.org")
 FORGE_PREFIXES = ("gitlab.", "git.", "code.")
-# A forge's pages that aren't repositories: /groups/<name>, /-/...
-FORGE_PAGES = ("groups", "projects", "users", "explore", "-")
+# A forge's pages that aren't repositories: /groups/<name>, /-/..., and a
+# repository's own pages (Gitea's and Bitbucket's /<owner>/<name>/wiki).
+FORGE_PAGES = ("groups", "projects", "users", "explore", "-", "wiki", "wikis", "issues", "pulls",
+               "src", "tree", "blob", "raw", "releases", "commits")
 
 
 class RateLimited(FetchError):
