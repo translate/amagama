@@ -16,6 +16,7 @@ mustn't fail.
 """
 
 import importlib
+import logging
 import os
 import sys
 import tempfile
@@ -104,6 +105,8 @@ def TestOneInput(data):
 
 
 def main():
+    # It warns about each malformed escape, thousands of times a run.
+    logging.getLogger("translate.misc.quote").setLevel(logging.ERROR)
     atheris.Setup(sys.argv, TestOneInput)
     atheris.Fuzz()
 
