@@ -21,6 +21,8 @@ from amagama.updater.languages import normalise_language
 TOKENS = re.compile(r"(\*\*/|\*\*|\*|\{lang\})")
 # BCP 47 subtags are at most 8 characters; a POSIX @modifier has no limit.
 LANG_PATTERN = r"[a-z]{1,3}(?:[_+-][A-Za-z0-9]{1,8}|@[A-Za-z0-9]+)*"
+# The shortest reading still takes a language of two or three letters.
+SHORTEST_LANG_PATTERN = r"[a-z]{2,3}(?:[_+-][A-Za-z0-9]{1,8}|@[A-Za-z0-9]+)*"
 
 
 def compile_mask(mask, allow_lang=True, greedy=False):
@@ -43,7 +45,7 @@ def compile_mask(mask, allow_lang=True, greedy=False):
                                                     "*": "[^/]*" if greedy else "[^/]*?"}[token])
             wildcard += 1
         elif token == "{lang}":
-            pattern += "(?P<lang>%s)" % LANG_PATTERN
+            pattern += "(?P<lang>%s)" % (SHORTEST_LANG_PATTERN if greedy else LANG_PATTERN)
         else:
             pattern += re.escape(token)
     return re.compile(pattern + r"\Z")
@@ -87,14 +89,21 @@ class Selection(object):
             return None
         if not self.masks:
             return lang
+        match = self.match(path)
+        return match and (match.groupdict().get("lang") or lang)
+
+    def match(self, path):
+        """The first mask's match of path, or None. Of two readings of its
+        {lang}, the likelier (see likelier()): a template is filled from it."""
+        path = path.replace("\\", "/")
         for mask, shortest in zip(self.masks, self._shortest):
             match = mask.match(path)
             if match:
                 found = match.groupdict().get("lang")
-                if found:
-                    other = shortest.match(path)
-                    return likelier(found, other and other.group("lang"))
-                return lang
+                other = found and shortest.match(path)
+                if other and likelier(found, other.group("lang")) != found:
+                    return other
+                return match
         return None
 
 
@@ -110,5 +119,6 @@ def likelier(longest, shortest):
     readings = [code for code in (longest, shortest) if normalise_language(code)]
     if len(readings) != 2:
         return readings[0] if readings else longest
-    two_letters = [code for code in readings if len(re.split(r"[-_+@]", code)[0]) == 2]
+    two_letters = [code for code in readings
+                   if len(re.split(r"[-_@]", normalise_language(code))[0]) == 2]
     return two_letters[0] if len(two_letters) == 1 else longest

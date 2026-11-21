@@ -159,10 +159,9 @@ class Block(object):
         """The English template path for a selected file, if the block pairs."""
         if not self.template:
             return None
-        for mask in self.selection.masks:
-            match = mask.match(path.replace("\\", "/"))
-            if match:
-                return fill(self.template, match)
+        match = self.selection.match(path)
+        if match:
+            return fill(self.template, match)
 
     @property
     def display_title(self):
