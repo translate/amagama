@@ -107,7 +107,7 @@ def update_unit(slang, tlang, uid):
 
     # FIXME: This is exactly the same code as in the add_unit() view, which
     # only adds units, but doesn't update them.
-    data = request.json
+    data = json_units()[0]
     unit = base.TranslationUnit(data['source'])
     unit.target = data['target']
     current_app.tmdb.recorded_write(slang, tlang, 'unit', 1,
@@ -120,7 +120,7 @@ def add_unit(slang, tlang, uid):
     """Add a new unit."""
     from translate.storage import base
 
-    data = request.json
+    data = json_units()[0]
     unit = base.TranslationUnit(data['source'])
     unit.target = data['target']
     current_app.tmdb.recorded_write(slang, tlang, 'unit', 1,
@@ -131,7 +131,7 @@ def add_unit(slang, tlang, uid):
 @write_api.route('/<slang>/<tlang>/store/<path:sid>', methods=('POST', ))
 def add_store(slang, tlang, sid):
     """Add unit from POST data to tmdb."""
-    units = request.json
+    units = json_units(many=True)
     project_style = request.args.get('style', None)
     count = current_app.tmdb.recorded_write(slang, tlang, sid, len(units),
         lambda iid: current_app.tmdb.add_list(units, slang, tlang, project_style, iid=iid))
@@ -147,9 +147,13 @@ def upload_store(slang, tlang, sid):
 
     data = BytesIO(request.data)
     data.name = sid
-    store = factory.getobject(data)
+    try:
+        store = factory.getobject(data)
+        total = sum(1 for u in store.units if u.istranslatable())
+    except Exception:
+        # An unknown file type, or a file its reader can't parse.
+        abort(400)
     project_style = request.args.get('style', None)
-    total = sum(1 for u in store.units if u.istranslatable())
     count = current_app.tmdb.recorded_write(slang, tlang, sid, total,
         lambda iid: current_app.tmdb.add_store(store, slang, tlang, project_style, iid=iid))
     response = "added %d units from %s" % (count, sid)
@@ -211,6 +215,22 @@ def get_uid_and_call(func, slang, tlang):
         return func(slang, tlang, uid)
 
     abort(404)
+
+
+def json_units(many=False):
+    """Return the request's JSON units as a list, or send a HTTP 400.
+
+    A unit is an object with a string source and target; with many, the
+    body is a list of them, otherwise a single one.
+    """
+    data = request.json
+    units = data if many else [data]
+    if not (isinstance(units, list) and
+            all(isinstance(unit, dict) and
+                isinstance(unit.get('source'), str) and
+                isinstance(unit.get('target'), str) for unit in units)):
+        abort(400)
+    return units
 
 
 def jsonwrapper(data):

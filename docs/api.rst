@@ -504,7 +504,8 @@ API also accepts translations. ``style`` can be passed as for lookups.
 +--------+-------------------------------------+---------------------------------+
 
 The store requests reply ``added <N> units from <NAME>``.
-A request with a language code that isn't valid returns 400.
+A request with a language code that isn't valid, a body not shaped as above, or
+a file that can't be read returns 400.
 Strings too long for the database's index are skipped.
 Each request is :ref:`recorded <importing#record>` as an import of block
 ``api``, named ``unit`` or ``<NAME>``.
