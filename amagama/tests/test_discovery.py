@@ -260,10 +260,31 @@ def test_licence(spdx, expected):
     ("https://github.com/o/app", "Mirror of https://git.example/o/other", None, False, None),
     ("https://github.com/o/app", "Mirror", "https://github.com/p/app", False, None),
     ("https://github.com/o/app", "App", "https://git.example/o/app", True, None),
-    ("https://github.com/o/app", None, None, False, None)])
+    ("https://github.com/o/app", None, None, False, None),
+    # Issues off and the same-named repository on a forge as its homepage.
+    ("https://github.com/f-droid/fdroidserver", "F-Droid server and build tools.",
+     "https://gitlab.com/fdroid/fdroidserver", False, "https://gitlab.com/fdroid/fdroidserver"),
+    ("https://github.com/o/app", "App", "https://gitlab.com/o/app", False,
+     "https://gitlab.com/o/app"),
+    ("https://github.com/o/app", "App", "https://app.example/o/app", False, None)])
 def test_upstream(url, description, homepage, issues, expected):
     found = {"url": url, "description": description, "homepageUrl": homepage,
              "hasIssuesEnabled": issues}
+    assert discovery.upstream(found) == expected
+
+
+@pytest.mark.parametrize("is_mirror, mirror_url, expected", [
+    # GitHub's own data, as f-droid/fdroidserver has it.
+    (True, "https://gitlab.com/fdroid/fdroidserver", "https://gitlab.com/fdroid/fdroidserver"),
+    # Whatever its name there.
+    (True, "https://gitlab.com/fdroid/server/", "https://gitlab.com/fdroid/server"),
+    (True, "https://github.com/f-droid/other", None),
+    (False, None, None)])
+def test_upstream_github_mirror(is_mirror, mirror_url, expected):
+    found = {"url": "https://github.com/f-droid/fdroidserver",
+             "description": "F-Droid server and build tools.",
+             "homepageUrl": "https://f-droid.org", "hasIssuesEnabled": True,
+             "isMirror": is_mirror, "mirrorUrl": mirror_url}
     assert discovery.upstream(found) == expected
 
 
