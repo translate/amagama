@@ -436,6 +436,25 @@ def test_clone_empty_repository(tmp_path):
     with generate.clone(repo.as_uri(), None) as cloned:
         assert cloned is None
 
+
+def test_clone_tree_unreadable(monkeypatch, tmp_path):
+    """A clone whose tree can't be listed (a timeout) is unreadable, not gone."""
+    run_tool = generate.run_tool
+
+    def failing(*args, **kwargs):
+        if "ls-tree" in args:
+            raise FetchError("git ls-tree timed out after 3600 seconds")
+        return run_tool(*args, **kwargs)
+    monkeypatch.setattr(generate, "run_tool", failing)
+    repo = tmp_path / "repo"
+    subprocess.run(["git", "init", "-q", str(repo)], check=True)
+    subprocess.run(["git", "-C", str(repo), "-c", "user.name=t", "-c", "user.email=t@example.org",
+                    "commit", "-q", "--allow-empty", "-m", "one"], check=True)
+    with pytest.raises(FetchError, match="timed out"):
+        with generate.clone(repo.as_uri(), None):
+            pass
+
+
 def test_tree(tmp_path):
     repo = tmp_path / "repo"
     (repo / "po").mkdir(parents=True)
