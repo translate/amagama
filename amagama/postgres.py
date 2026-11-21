@@ -8,6 +8,8 @@
 
 """PostgreSQL access and helpers."""
 
+import weakref
+
 import psycopg2.extensions
 from psycopg2 import sql
 from flask import g, got_request_exception, has_request_context
@@ -76,7 +78,9 @@ class PostGres(object):
     def __init__(self, app=None):
         self.app = None
         self.pool = None
-        self._last_schema = {}  # id(conn)-> last used schema on conn
+        # conn -> the schema last set on it. Keyed by the connection, not its
+        # id(): the pool closes connections, and a new one can reuse the id.
+        self._last_schema = weakref.WeakKeyDictionary()
 
         if app:
             self.init_app(app)
@@ -139,11 +143,11 @@ class PostGres(object):
     def rollback(self, conn):
         """Roll back conn's transaction, and with it any SET SCHEMA it ran."""
         conn.rollback()
-        self._last_schema.pop(id(conn), None)
+        self.forget_connection(conn)
 
     def forget_connection(self, conn):
-        """Drop what is remembered about a connection that is going away."""
-        self._last_schema.pop(id(conn), None)
+        """Drop what is remembered about a connection."""
+        self._last_schema.pop(conn, None)
 
     def _discard(self, conn):
         """Close a connection and take it out of the pool."""
@@ -177,9 +181,9 @@ class PostGres(object):
             if has_request_context():
                 g.connection_live = True
         cursor = conn.cursor(cursor_factory=DictCursor)
-        if schema and self._last_schema.get(id(conn)) != schema:
+        if schema and self._last_schema.get(conn) != schema:
             cursor.execute(sql.SQL("SET SCHEMA {}").format(sql.Literal(schema)))
-            self._last_schema[id(conn)] = schema
+            self._last_schema[conn] = schema
         return cursor
 
     def init_db(self, *args, **kwargs):
