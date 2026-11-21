@@ -791,11 +791,11 @@ ORDER BY rank DESC{order};
         return cursor.fetchone()[0]
 
     def _add_target_language(self, cursor, tlang):
-        """Note a target language written to a deployed schema."""
+        """Note a target language written to a deployed schema; the cached
+        list is dropped once the write is committed."""
         if self._has_target_languages(cursor):
             cursor.execute("INSERT INTO target_languages VALUES (%s) ON CONFLICT DO NOTHING",
                            (tlang,))
-        self._available_langs = {}
 
     def _schema_exists(self, cursor, name):
         cursor.execute("SELECT 1 FROM pg_namespace WHERE nspname = %s", (name,))
@@ -1005,6 +1005,8 @@ ORDER BY rank DESC{order};
         except Exception:
             self.rollback(cursor.connection)
             raise
+        if added:
+            self._available_langs = {}
         return int(bool(added))
 
     def add_dict(self, unit, cursor, iid=None, unique=True):
