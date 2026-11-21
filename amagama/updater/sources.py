@@ -22,7 +22,7 @@ from translate.filters.checks import projectcheckers
 from amagama.licences import normalise_licence
 from amagama.source_options import MAX_WEIGHT
 from amagama.updater import chromium, compressed
-from amagama.updater.fetchers import FETCHERS, FetchError
+from amagama.updater.fetchers import FETCHERS, FetchError, inside
 from amagama.updater.filemask import Selection, compile_mask, fill, wildcards
 from amagama.updater.formats import (CHROMIUM, check_csv_options, check_format,
                                      check_xliff_states, is_monolingual)
@@ -350,6 +350,8 @@ class Block(object):
             # Git keeps one repository per URL here, shared between blocks.
             self.fetcher.store = os.path.join(cache_dir, REPOSITORIES)
             fetched = self.fetcher.fetch(new) if due is None else self.fetcher.fetch(new, due)
+            for path, lang in fetched:
+                inside(new, path)
             outside = _resolve_links(new)
             fetched = [(path, lang) for path, lang in fetched
                        if path.replace("\\", "/") not in outside]

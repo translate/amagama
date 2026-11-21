@@ -116,6 +116,18 @@ def files_under(root):
             yield os.path.relpath(os.path.join(dirpath, filename), root)
 
 
+def inside(dest, *parts):
+    """os.path.join(dest, *parts), refusing a path outside dest or dest itself.
+
+    Language codes and file names from a listing or an API become paths.
+    """
+    path = os.path.normpath(os.path.join(dest, *parts))
+    root = os.path.normpath(dest)
+    if os.path.commonpath([root, path]) != root or path == root:
+        raise FetchError("%s: not a path in the fetch" % os.path.join(*parts))
+    return path
+
+
 class Fetcher(object):
     """Settings come from the block's entry in the sources file."""
 
@@ -177,7 +189,7 @@ class TarballPerLanguage(Fetcher):
             for lang in self.languages():
                 if languages is not None and lang not in languages:
                     continue
-                lang_dir = os.path.join(dest, lang)
+                lang_dir = inside(dest, lang)
                 for url in self.urls(lang):
                     path = os.path.join(tmp, "download")
                     download(url, path)
@@ -346,12 +358,13 @@ class HttpPerLanguage(Fetcher):
 
             def save(url):
                 path = posixpath.join(lang, posixpath.basename(urllib.parse.unquote(url)))
-                os.makedirs(os.path.join(dest, lang), exist_ok=True)
+                lang_dir = inside(dest, lang)
+                os.makedirs(lang_dir, exist_ok=True)
                 try:
-                    download(url, os.path.join(dest, path))
+                    download(url, inside(dest, path))
                 except FetchError:
-                    if not os.listdir(os.path.join(dest, lang)):
-                        os.rmdir(os.path.join(dest, lang))
+                    if not os.listdir(lang_dir):
+                        os.rmdir(lang_dir)
                     raise
                 return path
             path = self._get(lang, save)
@@ -401,9 +414,9 @@ class Pontoon(Fetcher):
             if languages is not None and lang not in languages:
                 continue
             path = posixpath.join(lang, "%s.all-projects.tmx" % lang)
-            os.makedirs(os.path.join(dest, lang))
+            os.makedirs(inside(dest, lang))
             download("%s/translation-memory/%s.all-projects.tmx"
-                     % (self.base_url, urllib.parse.quote(lang)), os.path.join(dest, path))
+                     % (self.base_url, urllib.parse.quote(lang)), inside(dest, path))
             files.append((path, lang))
             time.sleep(self.settings.get("pause", 1))
         return files
@@ -589,8 +602,9 @@ class Svn(Fetcher):
         for lang in self.languages():
             if languages is not None and lang not in languages:
                 continue
+            lang_dir = inside(dest, lang)
             for directory in self.settings.get("dirs", [""]):
-                target = os.path.join(dest, lang, directory)
+                target = os.path.join(lang_dir, directory)
                 os.makedirs(os.path.dirname(target.rstrip(os.sep)), exist_ok=True)
                 url = "/".join(part for part in (self.url, lang, directory) if part)
                 try:
@@ -600,9 +614,8 @@ class Svn(Fetcher):
                     if "E170000" not in str(e) and "doesn't exist" not in str(e):
                         raise
                 time.sleep(self.settings.get("pause", 1))
-            if os.path.isdir(os.path.join(dest, lang)):
-                files.extend((os.path.join(lang, path), lang)
-                             for path in files_under(os.path.join(dest, lang)))
+            if os.path.isdir(lang_dir):
+                files.extend((os.path.join(lang, path), lang) for path in files_under(lang_dir))
         return files
 
 
@@ -681,7 +694,7 @@ class WordPress(Fetcher):
                     continue
                 path = os.path.join(tmp, "pack.zip")
                 download(url, path)
-                directory = os.path.join(dest, slug, lang)
+                directory = inside(dest, slug, lang)
                 extract_zip(path, directory)
                 files.extend((os.path.join(slug, lang, f), self.locales.get(lang, lang))
                              for f in files_under(directory))
@@ -863,7 +876,7 @@ class Drupal(Fetcher):
                 name = "%s-%s.%s.po" % (project, version, lang)
                 try:
                     download("%s/all/%s/%s" % (self.base_url, project, urllib.parse.quote(name)),
-                             os.path.join(dest, project, name))
+                             inside(dest, project, name))
                     files.append((os.path.join(project, name), lang))
                 except FetchError as e:
                     if e.status != 404:
@@ -930,9 +943,9 @@ class Moodle(Fetcher):
                     if hashlib.md5(f.read()).hexdigest() != md5:
                         raise FetchError("%s: MD5 doesn't match the index" % url)
                 extract_zip(path, dest)
-                if os.path.isdir(os.path.join(dest, lang)):
-                    files.extend((os.path.join(lang, f), lang)
-                                 for f in files_under(os.path.join(dest, lang)))
+                lang_dir = inside(dest, lang)
+                if os.path.isdir(lang_dir):
+                    files.extend((os.path.join(lang, f), lang) for f in files_under(lang_dir))
                 time.sleep(self.settings.get("pause", 1))
         return files
 
@@ -1258,14 +1271,14 @@ class UbuntuLanguagePacks(Fetcher):
                     compressed.decompress(packed, os.path.join(tmp, "data.tar"))
                     with open(os.path.join(tmp, "data.tar"), "rb") as f:
                         data = f.read()
+                lang_dir = inside(dest, lang)
                 try:
                     with tarfile.open(fileobj=io.BytesIO(data)) as tar:
                         members = [member for member in tar.getmembers() if member.isfile()
                                    and member.name.lstrip("./").startswith(self.LOCALES)]
-                        tar.extractall(os.path.join(dest, lang), members, filter="data")
+                        tar.extractall(lang_dir, members, filter="data")
                 except tarfile.TarError as e:
                     raise FetchError("%s: %s" % (url, e))
-                lang_dir = os.path.join(dest, lang)
                 if os.path.isdir(lang_dir):
                     files.extend((os.path.join(lang, f), lang) for f in files_under(lang_dir))
                 time.sleep(self.settings.get("pause", 1))
