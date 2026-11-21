@@ -853,24 +853,29 @@ def with_shared_repositories(command):
     return wrapped
 
 
+def generated_sources():
+    """The sources file's blocks, disabled ones too, for a generator: none
+    without a sources file, but one that doesn't load stops it, as its
+    blocks would be lost."""
+    path = current_app.config.get('UPDATER_SOURCES')
+    if path and not os.path.exists(path):
+        return []
+    try:
+        return load_sources(path, disabled=True)
+    except (OSError, ValueError) as e:
+        raise click.ClickException("The sources file doesn't load: %s" % e)
+
+
 def generated_context(prefix):
     """generate.context() of the sources file, for writing blocks whose
     names start with prefix."""
-    try:
-        existing = load_sources(current_app.config.get('UPDATER_SOURCES'), disabled=True)
-    except (OSError, ValueError):
-        existing = []
-    return generate.context(existing, prefix)
+    return generate.context(generated_sources(), prefix)
 
 
 def generated_written(prefix):
     """generate.written() of the sources file, for blocks whose names start
     with prefix."""
-    try:
-        existing = load_sources(current_app.config.get('UPDATER_SOURCES'), disabled=True)
-    except (OSError, ValueError):
-        return {}
-    return generate.written(existing, prefix)
+    return generate.written(generated_sources(), prefix)
 
 
 def failed_repositories(prefix, found, failed):
@@ -885,10 +890,7 @@ def failed_repositories(prefix, found, failed):
 def generated_repositories(prefix):
     """The GitHub repositories ("owner/name") of the blocks whose names start
     with prefix: each block's own, or its mirror's."""
-    try:
-        existing = load_sources(current_app.config.get('UPDATER_SOURCES'), disabled=True)
-    except (OSError, ValueError):
-        return set()
+    existing = generated_sources()
     found = set()
     for block in existing:
         if block.name.startswith(prefix + "-") and block.source == "git":
