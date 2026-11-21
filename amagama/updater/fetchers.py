@@ -531,7 +531,14 @@ class Git(Fetcher):
         url = self.source or self.settings["url"]
         ref = self.settings.get("ref", "HEAD")
         trusted = (repo, dest)
-        if not os.path.isfile(os.path.join(repo, "HEAD")):
+        # git init writes HEAD first: a repository is set up once it has
+        # the setting written last.
+        try:
+            made = self._git("--git-dir", repo, "config", "remote.origin.partialclonefilter",
+                             clone=trusted)
+        except FetchError:
+            made = False
+        if not made:
             shutil.rmtree(repo, ignore_errors=True)
             os.makedirs(repo)
             self._git("init", "--quiet", "--bare", repo, clone=trusted)
