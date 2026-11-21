@@ -173,6 +173,25 @@ class TestLoadSnapshot(object):
         assert query(pg_connection, """SELECT lang, units, skipped FROM _build_en.imports
             ORDER BY lang""") == [('af', 2, 1), ('xh', 1, 0), ('zu', 1, 1)]
 
+    def test_skips_short_text_too_many_bytes_to_index(self, run, live, pg_connection):
+        # Under 1000 characters, but about 3000 bytes that don't compress.
+        random.seed(1)
+        source = ''.join(chr(random.randint(0x4e00, 0x9fff)) for _ in range(999))
+        target = ''.join(chr(random.randint(0x4e00, 0x9fff)) for _ in range(999))
+        with pg_connection.cursor() as cursor:
+            cursor.execute("""INSERT INTO en.sources (text, vector, length)
+                VALUES (%(t)s, TO_TSVECTOR('english', %(t)s), 999)""", {'t': source})
+            cursor.execute("""INSERT INTO en.targets (sid, text, lang)
+                SELECT sid, %s, 'zu' FROM en.sources WHERE text = 'Open file'""",
+                           (target,))
+        pg_connection.commit()
+        run('snapshot_db', '-s', 'en', '--name', 'legacy')
+        run('initdb', '-s', 'en', '--build')
+        result = run('load_snapshot', '-s', 'en', '--name', 'legacy')
+        assert result.exit_code == 0, result.output
+        assert ("Loaded _legacy_en into _build_en: 1 sources (1 skipped), "
+                "2 targets (1 skipped).") in result.output
+
     def test_needs_snapshot(self, run, live):
         run('initdb', '-s', 'en', '--build')
         result = run('load_snapshot', '-s', 'en', '--name', 'legacy')
