@@ -858,8 +858,13 @@ def generated_sources():
     without a sources file, but one that doesn't load stops it, as its
     blocks would be lost."""
     path = current_app.config.get('UPDATER_SOURCES')
-    if path and not os.path.exists(path):
+    try:
+        if path:
+            os.stat(path)
+    except FileNotFoundError:
         return []
+    except OSError:
+        pass
     try:
         return load_sources(path, disabled=True)
     except (OSError, ValueError) as e:

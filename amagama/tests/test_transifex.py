@@ -6,6 +6,7 @@
 # the AUTHORS.md file for copyright and authorship information.
 
 
+import os
 import subprocess
 
 import pytest
@@ -317,6 +318,23 @@ def test_command_sources_not_loading(amagama_config, repository, tmp_path):
     assert result.exit_code == 1
     assert "The sources file doesn't load" in result.output
     assert not output.exists()
+
+
+@pytest.mark.skipif(os.name != "posix" or os.geteuid() == 0, reason="needs file permissions")
+def test_command_sources_not_reachable(amagama_config, repository, tmp_path):
+    # A sources file that can't be reached isn't one that isn't there.
+    hidden = tmp_path / "hidden"
+    hidden.mkdir()
+    (hidden / "sources.toml").write_text("")
+    amagama_config(UPDATER_SOURCES=str(hidden / "sources.toml"))
+    hidden.chmod(0)
+    try:
+        result = CliRunner().invoke(manage, ("transifex_sources", repository, "--prefix", "tx",
+                                             "--output", str(tmp_path / "transifex.toml")))
+    finally:
+        hidden.chmod(0o755)
+    assert result.exit_code == 1
+    assert "The sources file doesn't load" in result.output
 
 
 def test_command_needs_repositories(amagama_config, tmp_path):
