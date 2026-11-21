@@ -36,6 +36,9 @@ def test_normal_url():
     assert generate.normal_url("https://gitlab.com/O/A") == generate.normal_url("https://gitlab.com/o/a")
     # Elsewhere a path's case may matter.
     assert generate.normal_url("https://git.example/Org/App") == "git.example/Org/App"
+    # Every GitLab ignores case.
+    assert generate.normal_url("https://gitlab.gnome.org/GNOME/Foo") == "gitlab.gnome.org/gnome/foo"
+    assert generate.normal_url("https://invent.kde.org/KDE/Foo") == "invent.kde.org/kde/foo"
 
 
 def test_matching():

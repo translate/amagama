@@ -123,8 +123,10 @@ def add_mirrors(blocks, pause=None, exists=exists):
     return [with_mirror(block, exists=cached) for block in blocks]
 
 
-# Hosts whose repository paths ignore case.
-CASELESS_HOSTS = {"github.com", "gitlab.com", "codeberg.org"}
+# Hosts whose repository paths ignore case: every GitLab's does.
+CASELESS_HOSTS = {"github.com", "gitlab.com", "codeberg.org", "gitlab.gnome.org", "invent.kde.org",
+                  "salsa.debian.org", "gitlab.freedesktop.org", "gitlab.xfce.org",
+                  "gitlab.torproject.org", "gitlab.nic.cz", "framagit.org", "code.videolan.org"}
 
 
 def normal_url(repo):
