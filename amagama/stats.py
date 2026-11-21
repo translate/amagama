@@ -112,7 +112,10 @@ def _updating(filename):
                 n = 1
                 while os.path.lexists("%s.%d" % (filename, n)):
                     n += 1
-                os.link(filename, "%s.%d" % (filename, n))
+                try:
+                    os.link(filename, "%s.%d" % (filename, n))
+                except OSError:  # No hard links here: moved, a moment without one.
+                    os.rename(filename, "%s.%d" % (filename, n))
             os.replace(new, filename)
         except BaseException:
             os.remove(new)
