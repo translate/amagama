@@ -8,6 +8,7 @@
 
 """JSON based public APIs for the amaGama translation memory server"""
 
+import re
 from json import dumps
 
 from flask import Blueprint, abort, current_app, request
@@ -27,6 +28,10 @@ cache_headers['Cache-Control'] = "max-age=3600, public"
 read_api = Blueprint('read_api', __name__)
 write_api = Blueprint('write_api', __name__)
 
+# A JSONP callback must be a JavaScript name, like "f" or "Obj.f", so it
+# can't add code of its own to the reply.
+CALLBACK_RE = re.compile(r'[A-Za-z_$][\w$]*(\.[A-Za-z_$][\w$]*)*', re.ASCII)
+
 
 @write_api.before_request
 def check_languages():
@@ -34,6 +39,16 @@ def check_languages():
     args = request.view_args or {}
     if not all(lang_to_table(args.get(k)) for k in ('slang', 'tlang')):
         abort(400)
+
+
+@read_api.after_request
+@write_api.after_request
+def set_content_type(response):
+    """Don't let a browser take a reply for another type; serve JSONP as script."""
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    if response.mimetype == 'application/json' and jsoncallback():
+        response.mimetype = 'text/javascript'
+    return response
 
 
 @read_api.route('/<slang>/<tlang>/unit/', methods=('GET', ))
@@ -206,8 +221,16 @@ def jsonwrapper(data):
         dump = dumps(data, ensure_ascii=False, sort_keys=True)
 
     # This is used by Pootle.
-    callback = request.args.get('jsoncallback')
+    callback = jsoncallback()
     if callback:
         return '%s(%s)' % (callback, dump)
 
     return dump
+
+
+def jsoncallback():
+    """Return the request's JSONP callback, or None if it isn't a JavaScript name."""
+    callback = request.args.get('jsoncallback', '')
+    if CALLBACK_RE.fullmatch(callback):
+        return callback
+    return None

@@ -96,6 +96,15 @@ class TestURLs(object):
         assert response.status_code == 200 == response_v1.status_code
         assert b"xyz123456(" in response.data
         assert response.data == response_v1.data
+        assert response.mimetype == 'text/javascript'
+        assert response.headers['X-Content-Type-Options'] == 'nosniff'
+
+        # A callback that isn't a JavaScript name is left out.
+        response = client.get('/api/v1/en/af/unit/Network?jsoncallback=f(1);//')
+        assert response.status_code == 200
+        assert response.mimetype == 'application/json'
+        assert response.headers['X-Content-Type-Options'] == 'nosniff'
+        assert response.json == data
 
     def test_limits(self, amagama):
         with amagama.app_context():
