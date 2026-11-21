@@ -80,6 +80,24 @@ def _share(part, whole):
     return round(100 * part / whole, 1) if whole else 0
 
 
+def _grouped(blocks):
+    """One row per title shown: a project's components or branches with one
+    title add up, with the most languages of any and the newest import."""
+    rows = {}
+    for block in blocks:
+        row = rows.get(block["displayTitle"])
+        if row is None:
+            rows[block["displayTitle"]] = dict(block, checks=dict(block["checks"]))
+            continue
+        if block["targets"] is not None:
+            row["targets"] = (row["targets"] or 0) + block["targets"]
+        row["languages"] = max(row["languages"], block["languages"])
+        row["imported"] = max(row["imported"] or "", block["imported"] or "") or None
+        for name, n in block["checks"].items():
+            row["checks"][name] = row["checks"].get(name, 0) + n
+    return list(rows.values())
+
+
 def _source_language(slang, figures, _, names):
     """What the page shows of one source language's figures."""
     described = names(tuple([slang] + [lang["code"] for lang in figures["languages"]]))
@@ -107,6 +125,7 @@ def _source_language(slang, figures, _, names):
         lang["bar"] = _share(lang["targets"], most)
         lang["coverageBar"] = round(100 * lang["coverage"], 1)
     direction, blocks = titles.localise(figures["blocks"], _.lang)
+    blocks = _grouped(blocks)
     blocks.sort(key=lambda block: (-(block["targets"] or 0), block["displayTitle"].lower()))
     most = max((block["targets"] or 0 for block in blocks), default=0)
     for block in blocks:
