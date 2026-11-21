@@ -690,6 +690,10 @@ def load_sources(path=None, disabled=False):
             raise ValueError("%s: duplicate name" % where)
         if "/" in name or name.startswith("."):
             raise ValueError("%s: name can't contain / or start with ." % where)
+        # Another block's files beside its directory end so.
+        suffixes = (".new", ".old", FAILED_SUFFIX, MIRROR_SUFFIX)
+        if name.endswith(suffixes):
+            raise ValueError("%s: name can't end with %s" % (where, ", ".join(suffixes)))
         names.add(name)
         title = entry.pop("title", None)
         if not isinstance(title, str) or not title.strip():
