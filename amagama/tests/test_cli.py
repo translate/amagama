@@ -101,6 +101,19 @@ class TestCLI(object):
         for i in (0, 9):
             assert ('Open file %d' % i, 'Maak lêer %d oop' % i) in lookup('Open file %d' % i)
 
+    def test_build_tmdb_plural_form_for_one(self, run, tmp_path):
+        path = tmp_path / 'ar.po'
+        path.write_text(
+            'msgid ""\nmsgstr ""\n"Content-Type: text/plain; charset=UTF-8\\n"\n'
+            '"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : '
+            'n%100>=3 && n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\\n"\n\n'
+            'msgid "Open %d file"\nmsgid_plural "Open %d files"\n'
+            + ''.join('msgstr[%d] "<form %d>"\n' % (i, i) for i in range(6)), encoding='utf-8')
+        run('initdb', '-s', 'en')
+        result = run('build_tmdb', '-s', 'en', '-t', 'ar', '-i', str(path))
+        assert result.exit_code == 0, result.output
+        assert lookup('Open %d file', 'ar') == [('Open %d file', '<form 1>')]
+
     def test_build_tmdb_language_from_file_name(self, run, po_dir):
         # Without -t, the target language comes from the file name.
         run('initdb', '-s', 'en')
@@ -154,7 +167,7 @@ class TestCLI(object):
     def test_build_tmdb_read_error(self, run, po_dir, monkeypatch):
         def bad(*args):
             raise OSError("bad header")
-        monkeypatch.setattr(factory, 'getobject', bad)
+        monkeypatch.setattr('amagama.commands.open_store', bad)
         run('initdb', '-s', 'en')
         result = run('build_tmdb', '-s', 'en', '-t', 'af', '-i', str(po_dir / 'af.po'))
         assert result.exit_code == 1, result.output

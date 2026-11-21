@@ -29,14 +29,13 @@ from psycopg2 import sql
 
 from translate.lang.data import langcode_ire
 from translate.lang.identify import LanguageIdentifier
-from translate.storage import factory
 
 from amagama import logsummary, stats
 from amagama.licences import normalise_licence
 from amagama.source_options import MAX_WEIGHT
 from amagama.updater import discovery, generate, languages, retirements, status, transifex, weblate
 from amagama.updater.fetchers import VCS_DIRECTORIES, FetchError, remembered_commits
-from amagama.updater.formats import open_pieces
+from amagama.updater.formats import open_pieces, open_store
 from amagama.updater.repositories import unread_repositories
 from amagama.updater.languages import described, described_retired
 from amagama.updater.sources import (FAILURES_TO_REPORT, REPOSITORIES, TAGS, limit_first_fetches,
@@ -329,9 +328,9 @@ class BuildTMDB(object):
         try:
             stores = open_pieces(filename)
             in_pieces = stores is not None
-            stores = iter(stores) if in_pieces else iter([factory.getobject(filename)])
+            stores = iter(stores) if in_pieces else iter([open_store(filename)])
             # The languages and style come from the first piece.
-            store = next(stores, None) or factory.getobject(filename)
+            store = next(stores, None) or open_store(filename)
             source_lang = self.source_lang or store.getsourcelanguage()
             target_lang = self.target_lang or store.gettargetlanguage()
             project_style = self.project_style or store.getprojectstyle()
