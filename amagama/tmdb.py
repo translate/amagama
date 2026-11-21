@@ -1277,8 +1277,9 @@ ORDER BY rank DESC{order};
 def min_levenshtein_length(length, min_similarity):
     # This should return an integer, to avoid using a float in the SQL, which
     # produces slightly less optimal query plans. In Python 2, math.ceil
-    # returns a float.
-    return int(math.ceil(max(length * (min_similarity/100.0), 2)))
+    # returns a float. Never above the length itself, or a one-character
+    # source can't match.
+    return int(math.ceil(min(max(length * (min_similarity/100.0), 2), length)))
 
 
 def max_levenshtein_length(length, min_similarity, max_length):
