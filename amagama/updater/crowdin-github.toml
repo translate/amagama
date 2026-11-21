@@ -2291,13 +2291,23 @@ licence = "MIT"
 
 [[block]]
 name = "crowdin-N-Zik-strings"
-disabled = "the translations moved to ComposeN-Zik/src/androidMain/localization/translations/{lang}/*.xml, which crowdin.yml gives no type for, so no reader is chosen"
+disabled = "the translations moved to ComposeN-Zik/src/androidMain/localization/translations/{lang}/*.xml: crowdin-N-Zik-translations"
 title = "N-Zik"
 url = "https://github.com/N-Zik-Group/N-Zik"
 files = ["ComposeN-Zik/src/androidMain/res/values-{lang}/strings.xml"]
 sparse = ["ComposeN-Zik/src/androidMain/res/values-*/strings.xml", "ComposeN-Zik/src/androidMain/res/values/strings.xml"]
 format = "android"
 template = "ComposeN-Zik/src/androidMain/res/values/strings.xml"
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "crowdin-N-Zik-translations"
+title = "N-Zik"
+url = "https://github.com/N-Zik-Group/N-Zik"
+files = ["ComposeN-Zik/src/androidMain/localization/translations/{lang}/*.xml"]
+sparse = ["ComposeN-Zik/src/androidMain/localization/source/*.xml", "ComposeN-Zik/src/androidMain/localization/translations/*/*.xml"]
+format = "android"
+template = "ComposeN-Zik/src/androidMain/localization/source/*.xml"
 licence = "GPL-3.0-only"
 
 [[block]]
