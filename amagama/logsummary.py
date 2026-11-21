@@ -11,6 +11,7 @@ measure each client's lookup rate."""
 
 import collections
 import gzip
+import os
 import re
 from datetime import datetime, timedelta, timezone
 
@@ -85,9 +86,16 @@ def _open(path):
 
 
 def _requests(paths):
-    """Yield (match, kind) for each API request in the logs."""
+    """Yield (match, kind) for each API request in the logs. A log logrotate
+    compressed since it was listed is read from its .gz; one gone is skipped."""
     for path in paths:
-        with _open(path) as log:
+        try:
+            log = _open(path)
+        except FileNotFoundError:
+            if path.endswith(".gz") or not os.path.exists(path + ".gz"):
+                continue
+            log = _open(path + ".gz")
+        with log:
             for line in log:
                 match = LOG_LINE.match(line)
                 if not match:
