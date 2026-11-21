@@ -185,14 +185,6 @@ def _insert_indexable(cursor, query, params, text, returning=False):
 
 class TMDB(postgres.PostGres):
 
-    INIT_FUNCTIONS = """
-CREATE FUNCTION public.prepare_or_tsquery(text) RETURNS text AS $$
-    SELECT ARRAY_TO_STRING(
-        (SELECT ARRAY_AGG(quote_literal(token)) FROM TS_PARSE('default', $1) WHERE tokid != 12),
-        '|');
-$$ LANGUAGE SQL;
-"""
-
     INIT_SOURCE = """
 CREATE TABLE sources (
     sid SERIAL PRIMARY KEY,
@@ -281,7 +273,10 @@ SELECT sid, source, target, rank from (
     SELECT s.sid, {tid}s.text AS source, t.text AS target,
         TS_RANK(s.vector, query, 32) * 1744.93406073519 AS rank
     FROM sources s JOIN targets t ON s.sid = t.sid,
-    TO_TSQUERY($1, public.prepare_or_tsquery($2)) query
+    TO_TSQUERY($1, (SELECT STRING_AGG(
+        '''' || REPLACE(REPLACE(token, CHR(92), CHR(92) || CHR(92)), '''', '''''') || '''',
+        '|')
+        FROM TS_PARSE('default', $2) WHERE tokid != 12)) query
     WHERE t.lang = $3 AND s.length BETWEEN $4 AND $5
     AND s.vector @@ query
 ) sub
@@ -345,11 +340,6 @@ ORDER BY rank DESC{order};
             logging.warning("Very high value for MAX_LENGTH. Please reconsider. Continuing anyway...")
 
     def init_db(self, source_langs):
-        if not self.function_exists('prepare_or_tsquery'):
-            cursor = self.get_cursor()
-            cursor.execute(self.INIT_FUNCTIONS)
-            cursor.connection.commit()
-
         for slang in source_langs:
             slang = lang_to_table(slang)
             if slang in self.source_langs:
@@ -575,11 +565,6 @@ ORDER BY rank DESC{order};
         into the deployed layout: no sid key and no unique indexes, which
         also can't hold strings longer than a btree entry.
         """
-        if not self.function_exists('prepare_or_tsquery'):
-            cursor = self.get_cursor()
-            cursor.execute(self.INIT_FUNCTIONS)
-            cursor.connection.commit()
-
         old_sources = sql.Identifier('public', 'sources_%s' % slang)
         old_targets = sql.Identifier('public', 'targets_%s' % slang)
         cursor = self.get_cursor(self.schema(slang))
@@ -1189,17 +1174,8 @@ ORDER BY rank DESC{order};
         minrank = max(min_similarity / 2, 30)
 
         cursor = self.get_cursor(self.schema(slang))
-        try:
-            self._translate_query(cursor, slang, tlang,
-                                  indexing_version(unit_source, checker),
-                                  minlen, maxlen, minrank)
-        except postgres.psycopg2.ProgrammingError:
-            # Avoid problems parsing strings like '<a "\b">'. If any of the
-            # characters in the example string is not present, then no error is
-            # thrown. The error is still present if any number of other letters
-            # are included between any of the characters in the example string.
-            self.rollback(cursor.connection)
-            return []
+        self._translate_query(cursor, slang, tlang, indexing_version(unit_source, checker),
+                              minlen, maxlen, minrank)
 
         results = []
         similarity = self.comparer.similarity
