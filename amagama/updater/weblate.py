@@ -47,11 +47,18 @@ FORMATS = {
     "xwiki-page-properties": "xwiki-page",
     "strings": "strings",
     "strings-utf8": "strings",
+    "arb": "arb",
+    "po-mono": "po-mono",
+    "laravel": "laravel",
+    "cmp-resource": "compose",
+    "webextension": "webextension",
+    "resx": "resx",
 }
 MONOLINGUAL = {"aresource", "json", "json-nested", "fluent", "properties", "properties-utf8",
                "properties-utf16", "joomla", "php", "i18next", "i18nextv4", "xliff-template",
                "yaml", "ruby-yaml", "xwiki-java-properties", "xwiki-page-properties",
-               "strings", "strings-utf8"}
+               "strings", "strings-utf8", "arb", "po-mono", "laravel", "cmp-resource",
+               "webextension", "resx"}
 
 # Hosts that no longer serve their repositories, though Weblate still lists them.
 DEAD_HOSTS = {"pagure.io": "archived"}

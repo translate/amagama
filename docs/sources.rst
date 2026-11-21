@@ -127,11 +127,18 @@ files it includes); a block's own settings take precedence. ``name`` and
   text). Without it the extension picks the reader.
 
   Monolingual formats hold one language per file, keyed by an id, and need a
-  ``template``: ``android`` (:file:`strings.xml`), ``php``, ``properties``
+  ``template``: ``android`` (:file:`strings.xml`), ``compose`` (Compose
+  Multiplatform's, under :file:`composeResources/values-<lang>/`), ``php``,
+  ``laravel`` (Laravel's :file:`lang/<lang>/*.php`), ``properties``
   (Java's ISO-8859-1; ``properties-utf8`` and ``properties-utf16`` for files in
   those encodings), ``joomla-ini``, ``json`` (key to message), ``fluent``,
-  ``dtd``, ``yaml`` (key to message), ``ruby-yaml`` (Rails' locale files,
-  each under its language's key, which ids leave out); ``xwiki-properties`` and
+  ``arb`` (Flutter's :file:`app_<lang>.arb`), ``webextension``
+  (:file:`_locales/<lang>/messages.json`), ``resx`` (.NET's
+  :file:`Resources.<lang>.resx`, with the neutral :file:`Resources.resx` as
+  the template), ``po-mono`` (PO keyed by id, an empty or fuzzy ``msgstr``
+  untranslated), ``dtd``, ``yaml`` (key to message), ``ruby-yaml`` (Rails'
+  locale files, each under its language's key, which ids leave out);
+  ``xwiki-properties`` and
   ``xwiki-page`` (XWiki's properties, and its wiki pages holding them); and
   ``xliff-monolingual``, XLIFF whose ``<source>`` is the message's id and
   whose template's ``<target>`` is the English (Symfony's).
@@ -142,7 +149,7 @@ files it includes); a block's own settings take precedence. ``name`` and
   :file:`en.lproj` isn't imported. Plurals (:file:`.stringsdict`) and String
   Catalogs (:file:`.xcstrings`) aren't read.
 
-  For ``android``, ``{lang}`` must be a locale qualifier alone (``af``,
+  For ``android`` and ``compose``, ``{lang}`` must be a locale qualifier alone (``af``,
   ``pt-rBR``, ``b+sr+Latn``): directories that add another qualifier, such
   as :file:`values-af-watch` or :file:`values-fr-feminine`, and the
   pseudo-locales ``en-rXA``, ``ar-rXB`` and ``en-rXC`` are left out.

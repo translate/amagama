@@ -39,6 +39,8 @@ TYPES = {
     "PHP_ARRAY": "php",
     "PHP_ALT_ARRAY": "php",
     "STRINGS": "strings",
+    "CHROME": "webextension",
+    "RESX": "resx",
 }
 
 CONFIG = re.compile(r"(?:^|/)\.tx/config\Z")

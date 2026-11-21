@@ -60,7 +60,7 @@ def test_extension_without_format(tmp_path):
 
 
 def test_unknown_format():
-    with pytest.raises(ValueError, match="format must be one of android, csv, dtd"):
+    with pytest.raises(ValueError, match="format must be one of android, arb, compose, csv, dtd"):
         check_format("toml")
 
 

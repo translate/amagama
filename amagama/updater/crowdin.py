@@ -54,6 +54,9 @@ TYPES = {
     "php": "php",
     "ftl": "fluent",
     "macosx": "strings",
+    "arb": "arb",
+    "chrome": "webextension",
+    "resx": "resx",
 }
 
 

@@ -40,13 +40,22 @@ FORMATS = {
 # These hold one language each, keyed by id, and need their English template.
 MONOLINGUAL = {
     "android": ("translate.storage.aresource", "AndroidResourceFile", {}),
+    # Compose Multiplatform's Android-style resources, under composeResources/.
+    "compose": ("translate.storage.aresource", "CMPResourceFile", {}),
     "php": ("translate.storage.php", "phpfile", {}),
+    "laravel": ("translate.storage.php", "LaravelPHPFile", {}),
     # Java's traditional ISO-8859-1 (non-Latin text as \u escapes).
     "properties": ("translate.storage.properties", "propfile", {}),
     "properties-utf8": ("translate.storage.properties", "propfile", {"personality": "java-utf8"}),
     "properties-utf16": ("translate.storage.properties", "propfile", {"personality": "java-utf16"}),
     "joomla-ini": ("translate.storage.properties", "propfile", {"personality": "joomla"}),
     "json": ("translate.storage.jsonl10n", "JsonFile", {}),
+    # Flutter's Application Resource Bundles, and WebExtensions' messages.json.
+    "arb": ("translate.storage.jsonl10n", "ARBJsonFile", {}),
+    "webextension": ("translate.storage.jsonl10n", "WebExtensionJsonFile", {}),
+    "resx": ("translate.storage.resx", "RESXFile", {}),
+    # PO keyed by id: each msgid an id, the English the template's msgstr.
+    "po-mono": ("translate.storage.po", "pofile", {}),
     "fluent": ("translate.storage.fluent", "FluentFile", {}),
     "yaml": ("translate.storage.yaml", "YAMLFile", {}),
     # Rails' locale files: each under its language's key, left out of ids.
@@ -251,7 +260,7 @@ def open_store(path, format=None, columns=None, header_row=False, xliff_states=N
     """
     if format == "csv" and columns:
         return _read_csv(path, columns, header_row)
-    if format in (None, "po") and path.endswith(".po"):
+    if format in (None, "po", "po-mono") and path.endswith(".po"):
         with open(path, "rb") as f:
             store = _read_po(path, f.read())
     elif format == "strings":
