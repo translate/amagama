@@ -628,6 +628,17 @@ class TestFetch(object):
         compressed.decompress(str(run.cache / "ui/po/af.po.zst"), str(run.cache / "af"))
         assert (run.cache / "af").read_text() == "af changed"
 
+    def test_git_half_made_repository(self, run, git_repo):
+        """A shared repository left after git init only is set up again."""
+        repo, git = git_repo
+        shared = Git({"url": repo.as_uri()}).repository(str(run.cache / ".repos"))
+        os.makedirs(shared)
+        fetchers.run_tool("git", "init", "--quiet", "--bare", shared, trusted=shared)
+        text = block("ui", "git", url=repo.as_uri(), files=["po/{lang}.po"])
+        result = run(text)
+        assert result.exit_code == 0, result.output
+        assert fetched(run.cache, "ui") == [("po/af.po", "af"), ("po/zu.po", "zu")]
+
     def test_git_sparse_from_files(self, git_repo, tmp_path):
         repo, git = git_repo
         (repo / "README").write_text("not a translation")
