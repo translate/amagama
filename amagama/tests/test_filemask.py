@@ -9,6 +9,7 @@
 import pytest
 
 from amagama.updater.filemask import Selection, compile_mask, fill, wildcards
+from amagama.updater.sources import Block
 
 
 @pytest.mark.parametrize("masks, path, lang", [
@@ -90,8 +91,21 @@ def test_fill(mask, template, path, expected):
     ("**/*_{lang}.properties", "src/app_ast.properties", "ast"),
     ("*-{lang}.json", "core-ast-es.json", "es"),
     ("*-{lang}.json", "core-zh-hant.json", "zh-hant"),
-    ("*-{lang}.json", "app-ca-valencia.json", "ca-valencia")])
+    ("*-{lang}.json", "app-ca-valencia.json", "ca-valencia"),
+    # The shortest reading is a language of two letters or more.
+    ("*{lang}.po", "xx_de.po", "de"),
+    # A three-letter code counts by the language it names: German in Switzerland.
+    ("**/*_{lang}.properties", "src/app_deu_ch.properties", "deu_ch")])
 def test_lang_after_wildcard(mask, path, lang):
     """A * before {lang} can end in more than one place: the likelier
     language is read."""
     assert Selection([mask]).select(path, None) == lang
+
+
+def test_template_from_chosen_reading():
+    """The English template comes from the reading the language was read
+    from: foo_bar_de's is foo_bar, not foo."""
+    block = Block("x", "X", "git", url="https://git.example/x", format="properties",
+                  files=["src/*_{lang}.properties"], template="src/*.properties")
+    assert block.template_for("src/foo_bar_de.properties") == "src/foo_bar.properties"
+    assert block.template_for("src/app_pt_br.properties") == "src/app.properties"
