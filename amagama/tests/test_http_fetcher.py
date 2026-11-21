@@ -12,6 +12,7 @@ import os
 import socket
 import tarfile
 import threading
+import time
 
 import pytest
 
@@ -51,6 +52,30 @@ def test_fetch_some_languages(fetcher, monkeypatch, tmp_path):
     monkeypatch.setattr(fetcher, "languages", lambda: ["de", "fr"])
     monkeypatch.setattr(fetchers, "download", lambda url, path: open(path, "w").close())
     assert fetcher.fetch(str(tmp_path), ["fr"]) == [("fr/fr.po", "fr")]
+
+
+def test_slow_download_times_out(monkeypatch, tmp_path):
+    """A server sending a byte now and then is cut off at DEADLINE."""
+    listener = socket.socket()
+    listener.bind(("127.0.0.1", 0))
+    listener.listen(1)
+
+    def trickle():
+        connection, _ = listener.accept()
+        with connection, contextlib.suppress(OSError):
+            connection.recv(4096)
+            connection.sendall(b"HTTP/1.1 200 OK\r\nContent-Length: 6\r\n\r\n")
+            for byte in b"af.po\n":
+                connection.sendall(bytes([byte]))
+                time.sleep(0.5)
+    threading.Thread(target=trickle, daemon=True).start()
+    monkeypatch.setattr(fetchers, "DEADLINE", 1, raising=False)
+    url = "http://127.0.0.1:%d/af.po" % listener.getsockname()[1]
+    try:
+        with pytest.raises(FetchError, match="took more than 1 seconds"):
+            fetchers.download(url, str(tmp_path / "af.po"))
+    finally:
+        listener.close()
 
 
 @pytest.mark.parametrize("parts", [("fr",), ("fr", "fr.po"), ("a/../fr",)])

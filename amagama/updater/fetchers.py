@@ -44,6 +44,9 @@ from amagama.updater import compressed
 
 USER_AGENT = "amaGama-updater/%s (+https://github.com/translate/amagama)" % __version__
 TIMEOUT = 120
+# The longest a reply's body may take, though data keeps coming; TIMEOUT
+# is for each read.
+DEADLINE = 3600
 
 
 class FetchError(Exception):
@@ -65,10 +68,19 @@ def _request(url, method="GET"):
 READ_ERRORS = (OSError, http.client.HTTPException)
 
 
+def _read(response, url):
+    """The response's body in pieces, failing once DEADLINE has passed."""
+    end = time.monotonic() + DEADLINE
+    while chunk := response.read1(65536):
+        if time.monotonic() > end:
+            raise FetchError("%s: took more than %d seconds" % (url, DEADLINE))
+        yield chunk
+
+
 def http_text(url):
     with _request(url) as response:
         try:
-            return response.read().decode("utf-8")
+            return b"".join(_read(response, url)).decode("utf-8")
         except (*READ_ERRORS, UnicodeDecodeError) as e:
             raise FetchError("%s: %s" % (url, e))
 
@@ -86,7 +98,8 @@ def http_fingerprint(url):
 def download(url, path):
     with _request(url) as response, open(path, "wb") as f:
         try:
-            shutil.copyfileobj(response, f)
+            for chunk in _read(response, url):
+                f.write(chunk)
         except READ_ERRORS as e:
             raise FetchError("%s: %s" % (url, e))
         # A connection that drops early ends the body without an error.
@@ -1113,7 +1126,7 @@ class VSCode(Fetcher):
         """url's JSON, unzipped if the CDN sent it gzipped; None if missing_ok and 404."""
         try:
             with _request(url) as response:
-                data = response.read()
+                data = b"".join(_read(response, url))
         except FetchError as e:
             if missing_ok and e.status == 404:
                 return None
