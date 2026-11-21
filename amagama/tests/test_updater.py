@@ -259,7 +259,10 @@ class TestSourcesFile(object):
     @pytest.mark.parametrize("text, error", [
         ('[[block]]\nsource = "git"', "block 1: no name"),
         (block("a/b", "translationproject"), "can't contain /"),
+        (block("a.new", "translationproject"), "can't end with .new, .old, .failed"),
+        (block("a.old", "translationproject"), "can't end with .new, .old, .failed"),
         (block("a.failed", "translationproject"), "can't end with .new, .old, .failed"),
+        (block("a.mirror", "translationproject"), "can't end with .new, .old, .failed"),
         (block("a", "cvs"), "source must be one of"),
         (block("a", "translationproject") + block("a", "translationproject"),
          "block a: duplicate name"),

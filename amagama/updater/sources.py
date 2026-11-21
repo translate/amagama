@@ -657,7 +657,8 @@ def load_sources(path=None, disabled=False):
             raise ValueError("%s: duplicate name" % where)
         if "/" in name or name.startswith("."):
             raise ValueError("%s: name can't contain / or start with ." % where)
-        # Another block's files beside its directory end so.
+        # A block keeps files beside its directory under these suffixes, so
+        # a block named so would share paths with the block it's named after.
         suffixes = (".new", ".old", FAILED_SUFFIX, MIRROR_SUFFIX)
         if name.endswith(suffixes):
             raise ValueError("%s: name can't end with %s" % (where, ", ".join(suffixes)))
