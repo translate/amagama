@@ -177,6 +177,40 @@ def test_nextcloud_plurals(tmp_path):
         ("Save file", "Datei speichern"), ("%n file", "%n Datei")]
 
 
+ARABIC_PLURAL = ("n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 "
+                 ": n%100>=11 ? 4 : 5")
+
+
+def test_nextcloud_plurals_form_for_one(tmp_path):
+    path = tmp_path / "ar.json"
+    path.write_text('{"translations": {"_%%n file_::_%%n files_": [%s]}, '
+                    '"pluralForm": "nplurals=6; plural=%s;"}'
+                    % (", ".join('"<form %d>"' % i for i in range(6)), ARABIC_PLURAL),
+                    encoding="utf-8")
+    store = open_store(str(path), "nextcloud-json")
+    assert [(u.source, u.target) for u in store.units] == [("%n file", "<form 1>")]
+
+
+@pytest.mark.parametrize("plural, expected", [
+    (ARABIC_PLURAL, "<form 1>"),
+    ("(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2)",
+     "<form 0>"),
+    ("n==1 ? 1 : (", "<form 0>"),
+])
+@pytest.mark.parametrize("size", [None, 40])
+def test_po_plurals_form_for_one(tmp_path, plural, expected, size):
+    path = tmp_path / "ar.po"
+    path.write_bytes(('msgid ""\nmsgstr ""\n"Content-Type: text/plain; charset=UTF-8\\n"\n'
+                      '"Plural-Forms: nplurals=6; plural=%s;\\n"\n\n'
+                      'msgid "Save file"\nmsgstr "<save>"\n\n'
+                      'msgid "%%d file"\nmsgid_plural "%%d files"\n%s'
+                      % (plural, "".join('msgstr[%d] "<form %d>"\n' % (i, i) for i in range(6))))
+                     .encode())
+    stores = list(open_pieces(str(path), size=size)) if size else [open_store(str(path))]
+    assert [(str(u.source), str(u.target)) for store in stores for u in store.units
+            if not u.isheader()] == [("Save file", "<save>"), ("%d file", expected)]
+
+
 PO_HEADER = b'msgid ""\nmsgstr ""\n"Content-Type: text/plain; charset=ISO-8859-1\\n"\n\n'
 PO_ENTRIES = (
     b'msgid "Save file"\nmsgstr "Stoor l\xeaer"\n\n'

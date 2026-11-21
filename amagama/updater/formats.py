@@ -17,13 +17,15 @@ paired with its template first.
 import codecs
 import csv
 import functools
+import gettext
 import importlib
 import io
 import os
 import re
 
 from lxml import etree
-from translate.storage import factory, po, tmx, xliff
+from translate.misc.multistring import multistring
+from translate.storage import factory, po, poheader, tmx, xliff
 from translate.storage.base import TranslationStore, TranslationUnit
 
 FORMATS = {
@@ -288,6 +290,7 @@ def open_store(path, format=None, columns=None, header_row=False, xliff_states=N
         with open(path, "rb") as f:
             # Not store_class(f): NextcloudJsonFile then fails on _metadata.
             store.parse(f.read())
+    _singulars_first(store)
     if xliff_states and isinstance(store, xliff.xlifffile):
         return _accepted_xliff(store, xliff_states)
     if format == "nextcloud-json":
@@ -463,7 +466,28 @@ def open_pieces(path, format=None, columns=None, header_row=False, xliff_states=
         return None
     for piece in pieces(path, size):
         read(path, piece)
-    return (read(path, piece) for piece in pieces(path, size))
+    return (_singulars_first(read(path, piece)) for piece in pieces(path, size))
+
+
+def _singular_form(plural):
+    """The form a Plural-Forms plural expression gives for n=1, or 0."""
+    try:
+        return int(gettext.c2py(plural)(1)) if plural else 0
+    except (ValueError, ArithmeticError, RecursionError):
+        return 0
+
+
+def _singulars_first(store):
+    """store, with each plural target's form for n=1 first, the one str()
+    gives and so the one imported. Arabic's first form is for n=0."""
+    if not isinstance(store, poheader.poheader):
+        return store
+    form = _singular_form(store.getheaderplural()[1])
+    for unit in store.units if form else []:
+        strings = [str(s) for s in getattr(unit.target, "strings", [])]
+        if form < len(strings):
+            unit.target = multistring([strings[form]] + strings[:form] + strings[form + 1:])
+    return store
 
 
 _NEXTCLOUD_PLURAL = re.compile(r"_(.*)_::_.*_", re.DOTALL)
@@ -473,11 +497,13 @@ def _nextcloud_singulars(store):
     """Nextcloud keys a plural "_<singular>_::_<plural>_"; keep the singular."""
     plain = TranslationStore()
     plain.filename = store.filename
+    plural = poheader.plural_re.findall(str(store._metadata.get("pluralForm", "")))
+    form = _singular_form(plural[0] if plural else None)
     for unit in store.units:
         match = _NEXTCLOUD_PLURAL.fullmatch(str(unit.source))
         target = getattr(unit.target, "strings", [unit.target])
         converted = TranslationUnit(match.group(1) if match else str(unit.source))
-        converted.target = str(target[0]) if target else ""
+        converted.target = str(target[form if form < len(target) else 0]) if target else ""
         plain.addunit(converted)
     return plain
 
