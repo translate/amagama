@@ -8,6 +8,7 @@
 
 """pytest fixtures"""
 
+import time
 import types
 
 import psycopg2
@@ -148,5 +149,6 @@ def retired(tmp_path):
 def pauses(monkeypatch):
     """The fetchers' pauses, recorded instead of slept."""
     slept = []
-    monkeypatch.setattr(fetchers, "time", types.SimpleNamespace(sleep=slept.append))
+    monkeypatch.setattr(fetchers, "time",
+                        types.SimpleNamespace(sleep=slept.append, monotonic=time.monotonic))
     return slept
