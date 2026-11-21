@@ -202,11 +202,23 @@ def test_po_pieces(tmp_path):
     assert [str(u.target) for u in stores[0].units if not u.isheader()] == ["Stoor lêer", "Maak lêer oop"]
 
 
+@pytest.mark.parametrize("name", ["af.po", "af.po.txt", "af"])
+@pytest.mark.parametrize("size", [None, 40])
+def test_po_format_whatever_the_extension(tmp_path, name, size):
+    """Domain lines and undecodable entries are handled for any name."""
+    path = tmp_path / name
+    path.write_bytes(MIXED_PO.replace(b'msgid ""', b'domain "app"\nmsgid ""', 1))
+    stores = list(open_pieces(str(path), "po", size=size)) if size \
+        else [open_store(str(path), "po")]
+    assert sources(stores) == ["Save file", "Quit"]
+    assert sum(store.undecodable for store in stores) == 1
+
+
 def test_small_po_read_whole(tmp_path):
     path = tmp_path / "af.po"
     path.write_bytes(PO_HEADER + PO_ENTRIES)
     assert open_pieces(str(path)) is None
-    assert open_pieces(str(path), format="xliff", size=40) is None
+    assert open_pieces(str(path), format="po-mono", size=40) is None
 
 
 def test_po_piece_unreadable(tmp_path):
