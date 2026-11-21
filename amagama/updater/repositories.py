@@ -141,7 +141,8 @@ def blocks(repositories, prefix, resolve, what, covered=(), names=None, pause=No
     return found, dict(skipped)
 
 
-def _read(directory, path):
+def read_file(directory, path):
+    """A file's text in a clone made without a checkout."""
     return run_tool("git", "-C", directory, "show", "HEAD:" + path, trusted=directory)
 
 
@@ -162,7 +163,7 @@ def read(url, configuration):
         texts = {}
         for path in configs(paths, configuration):
             try:
-                texts[path] = _read(directory, path)
+                texts[path] = read_file(directory, path)
             except FetchError:
                 texts[path] = None
         return paths, texts

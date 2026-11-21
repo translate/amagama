@@ -219,7 +219,7 @@ def test_repository(repository, tmp_path):
 def test_repository_unreadable_config(repository, monkeypatch):
     def unreadable(directory, path):
         raise FetchError("git show failed")
-    monkeypatch.setattr(repositories, "_read", unreadable)
+    monkeypatch.setattr(repositories, "read_file", unreadable)
     assert transifex.repository(repository)[1] == {".tx/config": None, "web/.tx/config": None}
 
 

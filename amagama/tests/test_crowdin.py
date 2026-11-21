@@ -10,7 +10,7 @@ import subprocess
 
 import pytest
 
-from amagama.updater import crowdin
+from amagama.updater import crowdin, repositories
 from amagama.updater.generate import Names, identity, toml
 from amagama.updater.sources import load_sources
 
@@ -195,7 +195,81 @@ def crowdin_repository(tmp_path):
 
 
 def test_repository(crowdin_repository, tmp_path):
-    paths, texts = crowdin.repository(crowdin_repository)
+    paths, texts, xml = crowdin.repository(crowdin_repository)
     assert list(texts) == ["crowdin.yml"]
     assert "po/af.po" in paths
+    assert xml == {}
     assert crowdin.repository((tmp_path / "nothing").as_uri()) is None
+
+
+# N-Zik's layout: Android string resources outside values*/, with no type.
+XML_CONFIG = """files:
+  - source: /app/localization/source/*.xml
+    translation: /app/localization/translations/%two_letters_code%/%original_file_name%
+  - source: /app/layout/*.xml
+    translation: /app/layout-%two_letters_code%/%original_file_name%
+"""
+
+
+def test_typeless_xml():
+    assert crowdin.typeless_xml(XML_CONFIG) == ["app/localization/source/*.xml",
+                                                "app/layout/*.xml"]
+    assert crowdin.typeless_xml("files: [{source: /res/values/strings.xml, "
+                                "translation: '/res/values-%android_code%/strings.xml'}]") == []
+
+
+def test_files_typeless_xml():
+    xml = {"app/localization/source/*.xml": "android", "app/layout/*.xml": None}
+    found, skipped = crowdin.files(XML_CONFIG, xml=xml)
+    assert [(f["mask"], f["format"], f["template"]) for f in found] == [
+        ("app/localization/translations/{lang}/*.xml", "android",
+         "app/localization/source/*.xml")]
+    assert skipped == {"type .xml": 1}
+    assert crowdin.files(XML_CONFIG)[1] == {"type .xml": 2}
+
+
+@pytest.mark.parametrize("text, expected", [
+    ('<?xml version="1.0" encoding="utf-8"?>\n<resources>\n<string name="a">A</string>',
+     "android"),
+    ("\ufeff<!-- Strings -->\n<resources xmlns:tools=\"t\">", "android"),
+    ("<resources/>", "android"),
+    ('<?xml version="1.0"?>\n<?xml-stylesheet href="s.xsl"?>\n<!DOCTYPE resources>\n<resources>',
+     "android"),
+    ('<?xml version="1.0"?>\n<LinearLayout>', None),
+    ("<resourcesx>", None),
+])
+def test_xml_format(tmp_path, monkeypatch, text, expected):
+    monkeypatch.setattr(repositories, "read_file", lambda directory, path: text)
+    assert crowdin.xml_format(str(tmp_path), "src/*.xml", ["README", "src/a.xml"]) == expected
+    assert crowdin.xml_format(str(tmp_path), "src/*.xml", ["README"]) is None
+
+
+def test_xml_format_not_text(tmp_path, monkeypatch):
+    def undecodable(directory, path):
+        return b"\xff".decode("utf-8")
+    monkeypatch.setattr(repositories, "read_file", undecodable)
+    assert crowdin.xml_format(str(tmp_path), "src/*.xml", ["src/a.xml"]) is None
+
+
+def test_repository_typeless_xml(tmp_path):
+    repo = tmp_path / "repo"
+    resources = '<?xml version="1.0" encoding="utf-8"?>\n<resources>\n' \
+                '<string name="save">%s</string>\n</resources>\n'
+    files = {"crowdin.yml": XML_CONFIG,
+             "app/localization/source/strings_main.xml": resources % "Save",
+             "app/localization/translations/af/strings_main.xml": resources % "Stoor",
+             "app/layout/main.xml": "<LinearLayout/>\n",
+             "app/layout-af/main.xml": "<LinearLayout/>\n"}
+    for name, text in files.items():
+        (repo / name).parent.mkdir(parents=True, exist_ok=True)
+        (repo / name).write_text(text, encoding="utf-8")
+    subprocess.run(["sh", "-c", "git init -q -b main && git add . && git -c user.name=t "
+                    "-c user.email=t@example.org commit -q -m crowdin"], cwd=repo, check=True)
+    url = repo.as_uri()
+    assert crowdin.repository(url)[2] == {"app/localization/source/*.xml": "android",
+                                          "app/layout/*.xml": None}
+    found, skipped = crowdin.blocks([url], "crowdin", pause=0)
+    assert [(b["files"], b.get("format"), b.get("template")) for b in found] == [
+        (["app/localization/translations/{lang}/*.xml"], "android",
+         "app/localization/source/*.xml")]
+    assert skipped == {("files", "type .xml"): 1}
