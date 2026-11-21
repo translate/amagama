@@ -3,8 +3,9 @@
 
 default_install_hook_types: [pre-commit, commit-msg]
 
-# Vendored third-party files stay byte-for-byte as upstream ships them.
-exclude: ^amagama/static/(css/bootstrap|fonts/|js/vendor/)
+# Vendored third-party files stay byte-for-byte as upstream ships them, and
+# fuzz seeds as the fuzzers read them.
+exclude: ^(amagama/static/(css/bootstrap|fonts/|js/vendor/)|fuzz/corpus/)
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks

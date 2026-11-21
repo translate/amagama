@@ -1,0 +1,13 @@
+po-mono
+msgid ""
+msgstr "Content-Type: text/plain; charset=UTF-8\n"
+
+msgid "hello"
+msgstr "Hallo {name}"
+
+#, fuzzy
+msgid "save"
+msgstr "Stoor"
+
+msgid "close"
+msgstr "Sluit"

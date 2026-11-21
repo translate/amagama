@@ -1,0 +1,5 @@
+xliff-monolingual
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2"><file source-language="en" target-language="af" datatype="plaintext" original="messages"><body>
+<trans-unit id="a1"><source>menu.open</source><target>Oop</target></trans-unit>
+</body></file></xliff>

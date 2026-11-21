@@ -1,0 +1,6 @@
+fluent
+open = Oop
+files = { $count ->
+    [one] { $count } lêer
+   *[other] { $count } lêers
+}

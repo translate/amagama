@@ -1,0 +1,5 @@
+php
+<?php
+$lang['open'] = 'Oop';
+$lang['save'] = "Stoor";
+return ['close' => 'Sluit', 'nested' => ['a' => 'b']];

@@ -1,0 +1,8 @@
+gnome*
+kde*
+kde*:3,gnome:0.5
+GPL-*,!AGPL*
+punctuation
+kde-5,gnome-48
+GPL-2.0-only OR MIT
+spelling,punctuation

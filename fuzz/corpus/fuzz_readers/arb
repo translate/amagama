@@ -1,0 +1,2 @@
+arb
+{"@@locale": "af", "hello": "Hallo {name}", "@hello": {"placeholders": {"name": {}}}, "save": "Stoor"}

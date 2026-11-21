@@ -1,0 +1,2 @@
+webextension
+{"hello": {"message": "Hallo $NAME$", "description": "A note"}, "save": {"message": "Stoor"}}
