@@ -72,6 +72,29 @@ class TestWriteAPI(object):
         assert response.data == b'added 1 units from x.po'
         assert lookup(client, 'Open file') == [('Open file', 'Maak lêer oop')]
 
+    @pytest.mark.parametrize('method, path, body', [
+        ('put', 'unit/File', {}),
+        ('post', 'unit/File', []),
+        ('put', 'unit/File', {'source': 'File', 'target': 5}),
+        ('post', 'store/x.po', 5),
+        ('post', 'store/x.po', {'source': 'File', 'target': 'Lêer'}),
+        ('post', 'store/x.po', [{'source': 'File'}]),
+    ])
+    def test_wrong_json(self, client, method, path, body):
+        response = getattr(client, method)('/api/v1/en/af/' + path, json=body)
+        assert response.status_code == 400
+        assert stored_sources(client) == []
+
+    @pytest.mark.parametrize('name, data', [
+        ('x.xyz', PO_FILE),
+        ('x.po', b'msgid "Open file"\nmsgstr'),
+        ('x.xlf', b'<xliff'),
+    ])
+    def test_unreadable_store(self, client, name, data):
+        response = client.put('/api/v1/en/af/store/' + name, data=data)
+        assert response.status_code == 400
+        assert stored_sources(client) == []
+
     def test_put_store(self, client):
         response = client.put('/api/v1/en/af/store/x.po', data=PO_FILE)
         assert response.status_code == 200
@@ -108,11 +131,20 @@ class TestWriteAPI(object):
         assert response.status_code == 200
         assert lookup(client, 'Open file') == [('Open file', 'Maak lêer oop')]
 
-    def test_failed_store_is_rolled_back(self, client):
+    def test_failed_store_is_rolled_back(self, client, monkeypatch):
         client.application.testing = False
+        tmdb = client.application.tmdb
+        add_dict = tmdb.add_dict
+
+        def fail_on_second(unit, *args):
+            if unit['source'] == 'Save file':
+                raise RuntimeError("failed mid-store")
+            return add_dict(unit, *args)
+
+        monkeypatch.setattr(tmdb, 'add_dict', fail_on_second)
         response = client.post('/api/v1/en/af/store/x.po', json=[
             {'source': 'Open file', 'target': 'Maak lêer oop'},
-            {'source': 'Save file'},
+            {'source': 'Save file', 'target': 'Stoor lêer'},
         ])
         assert response.status_code == 500
         assert lookup(client, 'Open file') == []
