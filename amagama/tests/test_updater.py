@@ -1077,3 +1077,36 @@ class TestRotation(object):
         sources._carry(str(final), str(new), ["af/strings.xml", "af", "en.xml"], {})
         assert (new / "af/strings.xml.zst").read_text() == "af"
         assert (new / "en.xml").read_text() == "fetched again"
+
+
+class TestUnexpectedErrors(object):
+    """An error a fetcher doesn't expect fails its block; the run goes on."""
+
+    def sources(self, url):
+        return (block("bad", "translationproject", base_url=url + "/backups/bad/")
+                + block("good", "translationproject", base_url=url + "/backups/last/"))
+
+    def test_truncated_tarball(self, run, site):
+        root, url = site
+        (root / "backups/bad").mkdir()
+        whole = (root / "backups/last/af.tgz").read_bytes()
+        (root / "backups/bad/af.tgz").write_bytes(whole[:len(whole) // 2])
+        result = run(self.sources(url))
+        assert result.exit_code == 1
+        assert "bad: failed: " in result.output
+        assert fetched(run.cache, "good")
+        assert sorted(os.listdir(run.cache)) == ["bad.failed", "good"]
+
+    def test_error_from_fetcher(self, run, site, monkeypatch):
+        root, url = site
+        languages = fetchers.TranslationProject.languages
+
+        def failing(self):
+            if "/bad/" in self.base_url:
+                raise KeyError("code")
+            return languages(self)
+        monkeypatch.setattr(fetchers.TranslationProject, "languages", failing)
+        result = run(self.sources(url))
+        assert result.exit_code == 1
+        assert "bad: failed: KeyError: 'code'" in result.output
+        assert fetched(run.cache, "good")
