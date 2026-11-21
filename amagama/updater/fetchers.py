@@ -1054,7 +1054,8 @@ class Joomla(Fetcher):
     def fetch(self, dest, languages=None):
         with tempfile.TemporaryDirectory() as tmp:
             self.git.fetch(os.path.join(tmp, "english"))
-            shutil.copytree(os.path.join(tmp, "english"), dest, dirs_exist_ok=True)
+            # Links as they are, for the block to check.
+            shutil.copytree(os.path.join(tmp, "english"), dest, symlinks=True, dirs_exist_ok=True)
             found = {path: "en-GB" for path in files_under(os.path.join(tmp, "english"))}
             for lang, version, details in self.packs():
                 if languages is not None and lang not in languages:
