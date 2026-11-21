@@ -41,6 +41,10 @@ from amagama.updater.sources import Block
     (["{lang}/LC_MESSAGES/*.po"], "de_DE.UTF-8/LC_MESSAGES/app.po", "de_DE.UTF-8"),
     (["{lang}/LC_MESSAGES/*.po"], "sr_RS.UTF-8@latin/LC_MESSAGES/app.po", "sr_RS.UTF-8@latin"),
     (["*/{lang}.js"], "dist/app.min.js", None),
+    # Upper-case codes.
+    (["po/{lang}.po"], "po/DE.po", "DE"),
+    (["po/{lang}.po"], "po/PT_BR.po", "PT_BR"),
+    (["lang/{lang}.json"], "lang/DE.json", "DE"),
     (["po/{lang}.po"], "po/af.mo", None),
     (["po/{lang}.po"], "src/po/af.po", None),
     (["po/*.po"], "po/af.po", "fallback"),
