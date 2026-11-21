@@ -1047,6 +1047,8 @@ def discover_sources(signal, min_stars, pushed_since, min_units, search_pause, s
     bot_prs = discovery.SIGNALS[signal].get("bot_prs", [])
     if bot_prs_days and not bot_prs:
         raise click.UsageError("%s has no translation bot's pull requests." % signal)
+    # Only a date given is kept for the next run; the default moves each year.
+    given = " --pushed-since %s" % pushed_since.date().isoformat() if pushed_since else ""
     pushed_since = pushed_since.date() if pushed_since else discovery.default_pushed_since()
     deadline = time.monotonic() + search_minutes * 60 if search_minutes else None
 
@@ -1110,8 +1112,8 @@ def discover_sources(signal, min_stars, pushed_since, min_units, search_pause, s
         click.echo("Kept %d blocks whose repositories weren't read: %s." % (
             len(unread), ", ".join(block["name"] for block in unread)), err=True)
     found += unread
-    command = "discover_sources %s --prefix %s --min-stars %d --pushed-since %s --min-units %d%s" % (
-        signal, prefix, min_stars, pushed_since.isoformat(), min_units,
+    command = "discover_sources %s --prefix %s --min-stars %d%s --min-units %d%s" % (
+        signal, prefix, min_stars, given, min_units,
         " --bot-prs-days %d" % bot_prs_days if bot_prs_days else "")
     write_generated(found, skipped, command, min_age_days, weight, tags, output, disabled,
                     names, report, note="Code search didn't give all its results this run: "
