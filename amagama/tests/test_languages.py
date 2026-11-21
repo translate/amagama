@@ -158,6 +158,10 @@ def test_mediawiki_codes(code, expected, shipped):
     ("en-rGB-land", False),
     ("en-rXC", False),
     ("ar-rXB", False),
+    ("en-rXA", False),
+    ("b+en+XA", False),
+    ("b+ar+XB", False),
+    ("b+en+XC", False),
     ("night", False),
 ])
 def test_android_locale(qualifier, expected):
