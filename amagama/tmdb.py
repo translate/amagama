@@ -509,14 +509,15 @@ ORDER BY rank DESC{order};
             if cursor.fetchone()[0]:
                 raise ValueError("Schema %s isn't empty." % self.schema(slang))
 
-            # Text under 1000 characters always fits the indexes.
+            # Text of up to SAFE_INDEX_BYTES always fits the indexes.
             cursor.execute(sql.SQL("""INSERT INTO sources (sid, text, vector, length)
                 SELECT sid, text, vector, length FROM {}
-                WHERE length <= %s AND length(text) < 1000
-                ON CONFLICT DO NOTHING""").format(snap_sources), (self.max_import_len,))
+                WHERE length <= %s AND octet_length(text) <= %s
+                ON CONFLICT DO NOTHING""").format(snap_sources),
+                (self.max_import_len, SAFE_INDEX_BYTES))
             cursor.execute(sql.SQL("""SELECT sid, text, vector, length FROM {}
-                WHERE length <= %s AND length(text) >= 1000""").format(snap_sources),
-                (self.max_import_len,))
+                WHERE length <= %s AND octet_length(text) > %s""").format(snap_sources),
+                (self.max_import_len, SAFE_INDEX_BYTES))
             for row in cursor.fetchall():
                 if self._indexable_string(row['text']):
                     _insert_indexable(cursor, """INSERT INTO sources (sid, text, vector, length)
@@ -547,13 +548,13 @@ ORDER BY rank DESC{order};
                 ", COALESCE(%s::jsonb ->> t.lang, t.lang) AS lang"
             cursor.execute(sql.SQL("""INSERT INTO targets (%s)
                 SELECT %s FROM {} t JOIN sources s ON s.sid = t.sid
-                WHERE length(t.text) < 1000 AND t.lang = ANY(%%s)
+                WHERE octet_length(t.text) <= %%s AND t.lang = ANY(%%s)
                 ON CONFLICT DO NOTHING""" % (columns, picked)).format(snap_targets),
-                (json.dumps(renamed), langs))
+                (json.dumps(renamed), SAFE_INDEX_BYTES, langs))
             cursor.execute(sql.SQL("""SELECT %s FROM {} t
                 JOIN sources s ON s.sid = t.sid
-                WHERE length(t.text) >= 1000 AND t.lang = ANY(%%s)""" % picked).format(
-                snap_targets), (json.dumps(renamed), langs))
+                WHERE octet_length(t.text) > %%s AND t.lang = ANY(%%s)""" % picked).format(
+                snap_targets), (json.dumps(renamed), SAFE_INDEX_BYTES, langs))
             insert = "INSERT INTO targets (%s) VALUES (%s) ON CONFLICT DO NOTHING" % (
                 columns, ", ".join(["%s"] * len(columns.split(", "))))
             for row in cursor.fetchall():
