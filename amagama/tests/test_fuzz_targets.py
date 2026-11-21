@@ -24,6 +24,7 @@ TARGETS = sorted(FUZZ.glob("fuzz_*.py"))
 def load(monkeypatch):
     atheris = types.ModuleType("atheris")
     atheris.instrument_imports = contextlib.nullcontext
+    atheris.instrument_func = lambda function: function
     monkeypatch.setitem(sys.modules, "atheris", atheris)
 
     def load(path):
