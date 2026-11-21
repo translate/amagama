@@ -287,6 +287,16 @@ def test_update_po_in_pieces(amagama_config, tmp_path, monkeypatch):
     assert [c["target"] for c in response.get_json()] == ["Maak lêer oop"]
 
 
+def test_po_pieces_domain_before_header(tmp_path):
+    """Every piece keeps the header, and so its charset."""
+    path = tmp_path / "af.po"
+    path.write_bytes(b'domain "app"\n' + PO_HEADER + PO_ENTRIES)
+    stores = list(open_pieces(str(path), size=40))
+    assert len(stores) > 1
+    assert [str(u.target) for store in stores for u in store.units if not u.isheader()] \
+        == ["Stoor lêer", "Maak lêer oop", "Sluit", "Verlaat"]
+
+
 @pytest.mark.parametrize("size", [None, 40])
 def test_po_domain_lines_ignored(tmp_path, size):
     """msgcat keeps gettext's domain lines; the parser doesn't accept them."""
