@@ -54,8 +54,14 @@ def test_fetch_some_languages(fetcher, monkeypatch, tmp_path):
     assert fetcher.fetch(str(tmp_path), ["fr"]) == [("fr/fr.po", "fr")]
 
 
-def test_slow_download_times_out(monkeypatch, tmp_path):
-    """A server sending a byte now and then is cut off at DEADLINE."""
+@pytest.mark.parametrize("length, body, pause, close_after", [
+    # A byte now and then.
+    (b"Content-Length: 6\r\n", [bytes([byte]) for byte in b"af.po\n"], 0.5, 0),
+    # All of a reply of no length, but the connection held open.
+    (b"", [b"af.po\n"], 0, 1.5),
+])
+def test_slow_download_times_out(monkeypatch, tmp_path, length, body, pause, close_after):
+    """A reply still coming at DEADLINE is cut off."""
     listener = socket.socket()
     listener.bind(("127.0.0.1", 0))
     listener.listen(1)
@@ -64,10 +70,11 @@ def test_slow_download_times_out(monkeypatch, tmp_path):
         connection, _ = listener.accept()
         with connection, contextlib.suppress(OSError):
             connection.recv(4096)
-            connection.sendall(b"HTTP/1.1 200 OK\r\nContent-Length: 6\r\n\r\n")
-            for byte in b"af.po\n":
-                connection.sendall(bytes([byte]))
-                time.sleep(0.5)
+            connection.sendall(b"HTTP/1.1 200 OK\r\n" + length + b"\r\n")
+            for piece in body:
+                connection.sendall(piece)
+                time.sleep(pause)
+            time.sleep(close_after)
     threading.Thread(target=trickle, daemon=True).start()
     monkeypatch.setattr(fetchers, "DEADLINE", 1, raising=False)
     url = "http://127.0.0.1:%d/af.po" % listener.getsockname()[1]
