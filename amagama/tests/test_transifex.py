@@ -305,6 +305,20 @@ def test_command_report(amagama_config, repository, tmp_path):
     assert "- `tx-off`: duplicates tool" in text
 
 
+def test_command_sources_not_loading(amagama_config, repository, tmp_path):
+    # A sources file that doesn't load would lose its blocks' names and
+    # disabled reasons: the command stops.
+    sources = tmp_path / "sources.toml"
+    sources.write_text('include = ["missing.toml"]\n')
+    amagama_config(UPDATER_SOURCES=str(sources))
+    output = tmp_path / "transifex.toml"
+    result = CliRunner().invoke(manage, ("transifex_sources", repository, "--prefix", "tx",
+                                         "--output", str(output)))
+    assert result.exit_code == 1
+    assert "The sources file doesn't load" in result.output
+    assert not output.exists()
+
+
 def test_command_needs_repositories(amagama_config, tmp_path):
     amagama_config(UPDATER_SOURCES=str(tmp_path / "missing.toml"))
     result = CliRunner().invoke(manage, ("transifex_sources", "--prefix", "tx"))
