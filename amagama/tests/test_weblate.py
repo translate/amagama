@@ -231,13 +231,14 @@ def test_names_kept():
     assert found["test-app"]["files"] == ["po/{lang}.po"]
 
 
-def test_names_kept_same_identity(tmp_path):
+@pytest.mark.parametrize("reverse", [False, True])
+def test_names_kept_same_identity(tmp_path, reverse):
     # Two components of one repository in different formats share an
     # identity: each keeps its own name, whichever is listed first.
     components = [
         component("fmit", "appdata", "https://git.example/fmit", "distrib/appdata_tr/*.po"),
         component("fmit", "fmit", "https://git.example/fmit", "tr/fmit_*.ts", file_format="ts"),
-    ]
+    ][::-1 if reverse else 1]
     path = tmp_path / "w.toml"
     path.write_text(generate.toml([
         {"name": "test-fmit-appdata", "title": "Fmit", "source": "git",
