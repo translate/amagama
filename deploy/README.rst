@@ -246,7 +246,7 @@ The output goes to the journal. A source that fails to fetch is listed by the
 fetch (``journalctl -u amagama-fetch``), and that unit is marked failed
 (``systemctl --failed``) though the rest was fetched. The update
 (``journalctl -u amagama-update``) doesn't fetch, so its unit fails only when
-a rebuild stops.
+a rebuild stops or the uWSGI reload after it fails.
 
 
 Upgrading
