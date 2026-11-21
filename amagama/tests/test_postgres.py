@@ -7,7 +7,9 @@
 
 
 import gc
+import weakref
 
+import psycopg2.extensions
 import pytest
 
 from amagama.application import amagama_server_factory
@@ -82,11 +84,13 @@ class TestClosedConnections(object):
             tmdb.pool._connect()
         tmdb.pool.putconn(conn)
         assert conn.closed
-        closed_id = id(conn)
+        closed = weakref.ref(conn)
         del conn
         gc.collect()
-        assert closed_id not in tmdb._prepared_statements
-        assert closed_id not in tmdb._last_schema
+        assert closed() is None
+        remembered = list(tmdb._prepared_statements) + list(tmdb._last_schema)
+        assert all(isinstance(conn, psycopg2.extensions.connection) and not conn.closed
+                   for conn in remembered)
         assert lookup(client) == [('Open file', 'Maak lêer oop')]
 
 def test_rollback_undoes_set_schema(app):
