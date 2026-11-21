@@ -288,6 +288,22 @@ def test_po_undecodable_crlf(tmp_path, size):
     assert sum(store.undecodable for store in stores) == 1
 
 
+@pytest.mark.parametrize("size", [None, 40])
+def test_po_undecodable_without_blank_lines(tmp_path, size):
+    path = tmp_path / "af.po"
+    path.write_bytes(b'msgid ""\nmsgstr ""\n"Content-Type: text/plain; charset=UTF-8\\n"\n'
+                     b'msgid "Save file"\nmsgstr "Stoor l\xc3\xaaer"\n'
+                     b'#, c-format\nmsgid "%d file"\nmsgid_plural "%d files"\n'
+                     b'msgstr[0] "%d l\xc3\xaaer"\nmsgstr[1] "%d l\xc3\xaaers"\n'
+                     b'msgctxt "menu"\nmsgid "Open file"\nmsgstr "Maak l\xeaer oop"\n'
+                     b'msgid "Quit"\nmsgstr ""\n"Verlaat"\n'
+                     b'#~ msgid "Close file"\n#~ msgstr "Maak l\xc3\xaaer toe"\n'
+                     b'#~ msgid "Print"\n#~ msgstr "Druk"\n')
+    stores = list(open_pieces(str(path), size=size)) if size else [open_store(str(path))]
+    assert sources(stores) == ["Save file", "%d file", "Quit", "Close file", "Print"]
+    assert sum(store.undecodable for store in stores) == 1
+
+
 def test_po_latin1_declared_nothing_left_out(tmp_path):
     path = tmp_path / "af.po"
     path.write_bytes(MIXED_PO.replace(b"charset=UTF-8", b"charset=ISO-8859-1"))
