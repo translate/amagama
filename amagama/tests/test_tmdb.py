@@ -166,8 +166,25 @@ class TestTMDB(object):
             assert result0["source"] == "Network"
             assert result0["quality"] < 100
 
-            # Was giving traceback psycopg2.ProgrammingError:
-            amagama.tmdb.translate_unit('<a "\\b">', "en", "af")
+    @pytest.mark.parametrize("source", [
+        '<a "\\b"> link', "Don't 'quote' it", "A \\ back\\slash", "C:\\path & (more) | !not",
+        "Quote ''' here", "Back\\'slash here", "<b>bold</b>:* <-> to"])
+    def test_translate_unit_quoting(self, amagama, source):
+        # Each word is quoted for the text search query.
+        with amagama.app_context():
+            amagama.tmdb.add_test_unit(source, "Vertaal")
+            assert [r["target"] for r in amagama.tmdb.translate_unit(source, "en", "af")] == \
+                ["Vertaal"]
+
+    def test_translate_unit_without_standard_strings(self, amagama):
+        # A backslash in a plain string literal is then an escape.
+        with amagama.app_context():
+            amagama.tmdb.add_test_unit("A \\ back\\slash", "Vertaal")
+            cursor = amagama.tmdb.get_cursor()
+            cursor.execute("SET standard_conforming_strings = off")
+            cursor.connection.commit()
+            assert [r["target"] for r in amagama.tmdb.translate_unit(
+                "A \\ back\\slash", "en", "af")] == ["Vertaal"]
 
     def test_source_lang_with_region_code(self, amagama):
         with amagama.app_context():
