@@ -45,6 +45,21 @@ jobs:
       - name: Settings
         # The commands connect to a database, though generating needs none.
         run: printf 'DB_HOST = "localhost"\nSECRET_KEY = "%s"\n' "$(openssl rand -hex 24)" > "$RUNNER_TEMP/settings.py"
+      - name: Check DISCOVER_TOKEN
+        id: token
+        env:
+          DISCOVER_TOKEN: ${{ secrets.DISCOVER_TOKEN }}
+        # An expired or revoked token would fail every search.
+        run: |
+          if [ -z "$DISCOVER_TOKEN" ]; then
+            echo "works=false" >> "$GITHUB_OUTPUT"
+          elif curl -fsS -o /dev/null -H "Authorization: Bearer $DISCOVER_TOKEN" \
+              https://api.github.com/rate_limit; then
+            echo "works=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::DISCOVER_TOKEN doesn't work: renew it. Searching with the workflow's token."
+            echo "works=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: Regenerate
         id: regenerate
         continue-on-error: true
@@ -55,8 +70,8 @@ jobs:
           # Code search, issue search and GraphQL work with the workflow's token,
           # but its code search allows about one request a minute; a token in
           # DISCOVER_TOKEN (public read access is enough) allows 10.
-          GITHUB_TOKEN: ${{ secrets.DISCOVER_TOKEN || secrets.GITHUB_TOKEN }}
-          AMAGAMA_SEARCH_PAUSE: ${{ secrets.DISCOVER_TOKEN && '6' || '61' }}
+          GITHUB_TOKEN: ${{ steps.token.outputs.works == 'true' && secrets.DISCOVER_TOKEN || secrets.GITHUB_TOKEN }}
+          AMAGAMA_SEARCH_PAUSE: ${{ steps.token.outputs.works == 'true' && '6' || '61' }}
           # The workflow's token waits minutes at a time for the rate limit:
           # stop searching in time to read what was found within the step's
           # 270. The commands share these minutes.
