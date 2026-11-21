@@ -111,7 +111,10 @@ following fields.
 |                   | out every flagged suggestion.             |
 +-------------------+-------------------------------------------+
 | jsoncallback      | Wrap the reply in a call to this          |
-|                   | JavaScript function (JSONP).              |
+|                   | JavaScript function (JSONP), served as    |
+|                   | ``text/javascript``. A name such as       |
+|                   | ``f`` or ``app.f``; any other value is    |
+|                   | ignored.                                  |
 +-------------------+-------------------------------------------+
 
 The source options are applied before ``max_candidates``, and a suggestion's
