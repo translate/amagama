@@ -112,8 +112,8 @@ following fields.
 +-------------------+-------------------------------------------+
 | jsoncallback      | Wrap the reply in a call to this          |
 |                   | JavaScript function (JSONP), served as    |
-|                   | ``text/javascript``. A name such as       |
-|                   | ``f`` or ``app.f``; any other value is    |
+|                   | ``text/javascript``. An ASCII name such   |
+|                   | as ``f`` or ``app.f``; any other value is |
 |                   | ignored.                                  |
 +-------------------+-------------------------------------------+
 
