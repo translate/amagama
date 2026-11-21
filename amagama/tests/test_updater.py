@@ -1097,7 +1097,7 @@ class TestUnexpectedErrors(object):
         assert fetched(run.cache, "good")
         assert sorted(os.listdir(run.cache)) == ["bad.failed", "good"]
 
-    def test_error_from_fetcher(self, run, site, monkeypatch):
+    def test_error_from_fetcher(self, run, site, monkeypatch, caplog):
         root, url = site
         languages = fetchers.TranslationProject.languages
 
@@ -1110,3 +1110,5 @@ class TestUnexpectedErrors(object):
         assert result.exit_code == 1
         assert "bad: failed: KeyError: 'code'" in result.output
         assert fetched(run.cache, "good")
+        assert "bad: unexpected error" in caplog.text
+        assert "Traceback" in caplog.text

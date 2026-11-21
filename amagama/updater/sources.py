@@ -12,6 +12,7 @@ import datetime
 import functools
 import hashlib
 import json
+import logging
 import math
 import os
 import random
@@ -55,14 +56,15 @@ def sparse_patterns(files, template=None, keep=None):
 
 def _fetch_errors(method):
     """method, raising any error as a FetchError, so a fetcher's unexpected
-    one fails its block instead of the whole run."""
+    one fails its block instead of the whole run. Its traceback is logged."""
     @functools.wraps(method)
-    def wrapper(*args, **kwargs):
+    def wrapper(block, *args, **kwargs):
         try:
-            return method(*args, **kwargs)
+            return method(block, *args, **kwargs)
         except FetchError:
             raise
         except Exception as e:
+            logging.exception("%s: unexpected error", block.name)
             raise FetchError("%s: %s" % (type(e).__name__, e)) from e
     return wrapper
 

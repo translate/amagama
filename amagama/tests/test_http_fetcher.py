@@ -6,6 +6,7 @@
 # the AUTHORS.md file for copyright and authorship information.
 
 
+import contextlib
 import io
 import os
 import socket
@@ -108,6 +109,8 @@ def server():
                 connection.sendall(replies[request.split()[1]])
     threading.Thread(target=serve, daemon=True).start()
     yield "http://127.0.0.1:%d" % listener.getsockname()[1], replies
+    with contextlib.suppress(OSError):
+        listener.shutdown(socket.SHUT_RDWR)
     listener.close()
 
 
