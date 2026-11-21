@@ -391,6 +391,43 @@ def test_check_duplicate_after_fallback():
     assert cloned == [("u", "1.x"), ("u", None), ("u", "2.x")]
 
 
+
+def test_check_unreadable_repository():
+    """A repository that couldn't be read keeps its blocks as they were."""
+    blocks = [{"name": "down", "url": "u1", "ref": "main", "files": ["po/{lang}.po"]},
+              {"name": "gone", "url": "u2", "ref": "main", "files": ["po/{lang}.po"]}]
+
+    @contextlib.contextmanager
+    def clone(url, ref):
+        if url == "u1":
+            raise FetchError("git clone u1: Could not resolve host")
+        yield None
+    kept, problems = generate.check(blocks, pause=0, clone=clone)
+    assert kept == [blocks[0]]
+    assert problems == {"repository not read, kept as it was": 1,
+                        "repository or branch not found": 1}
+
+
+@pytest.mark.parametrize("error, found", [
+    ("remote: Repository not found.\nfatal: repository 'u' not found", False),
+    ("fatal: could not read Username for 'https://github.com': terminal prompts disabled", False),
+    ("warning: Could not find remote branch 1.x to clone.", False),
+    ("fatal: unable to access 'u': Could not resolve host: git.example", True),
+    ("fatal: unable to access 'u': The requested URL returned error: 503", True),
+    ("git clone timed out after 3600 seconds", True)])
+def test_clone_failure(monkeypatch, error, found):
+    """A repository or branch that isn't there is None; any other failure raises."""
+    def run_tool(*args, **kwargs):
+        raise FetchError(error)
+    monkeypatch.setattr(generate, "run_tool", run_tool)
+    if found:
+        with pytest.raises(FetchError):
+            with generate.clone("https://git.example/u", "1.x"):
+                pass
+    else:
+        with generate.clone("https://git.example/u", "1.x") as cloned:
+            assert cloned is None
+
 def test_tree(tmp_path):
     repo = tmp_path / "repo"
     (repo / "po").mkdir(parents=True)

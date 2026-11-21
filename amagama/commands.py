@@ -37,6 +37,7 @@ from amagama.source_options import MAX_WEIGHT
 from amagama.updater import discovery, generate, languages, retirements, status, transifex, weblate
 from amagama.updater.fetchers import VCS_DIRECTORIES, FetchError, remembered_commits
 from amagama.updater.formats import open_pieces
+from amagama.updater.repositories import unread_repositories
 from amagama.updater.languages import described, described_retired
 from amagama.updater.sources import (FAILURES_TO_REPORT, REPOSITORIES, TAGS, limit_first_fetches,
                                      load_sources, select, unused_repositories)
@@ -873,6 +874,15 @@ def generated_written(prefix):
     return generate.written(existing, prefix)
 
 
+def failed_repositories(prefix, found, failed):
+    """The blocks written with prefix, not in found, whose repositories (or
+    mirrors) are in failed: couldn't be read this time, so kept as they were."""
+    names = {block["name"] for block in found}
+    return [settings for name, settings in sorted(generated_written(prefix).items())
+            if name not in names and {generate.normal_url(settings.get(key))
+                                      for key in ("url", "mirror") if settings.get(key)} & failed]
+
+
 def generated_repositories(prefix):
     """The GitHub repositories ("owner/name") of the blocks whose names start
     with prefix: each block's own, or its mirror's."""
@@ -999,8 +1009,10 @@ def transifex_sources(repositories, from_file, prefix, output, min_age_days, wei
     if not repositories:
         raise click.UsageError("Give repositories, or --from-file.")
     names, covered, disabled = generated_context(prefix)
-    found, skipped = transifex.blocks(repositories, prefix, covered, names)
+    with unread_repositories() as failed:
+        found, skipped = transifex.blocks(repositories, prefix, covered, names)
     found = generate.add_mirrors(found)
+    found += failed_repositories(prefix, found, failed)
     write_generated(found, skipped, command, min_age_days, weight, tags, output, disabled,
                     names, report)
 
@@ -1092,20 +1104,23 @@ def discover_sources(signal, min_stars, pushed_since, min_units, search_pause, s
         click.echo("%d mirrors: their blocks use the repositories they copy." % len(mirrors),
                    err=True)
     names, covered, disabled = generated_context(prefix)
-    found, resolved = discovery.SIGNALS[signal]["blocks"](
-        urls, prefix, covered, names,
-        licences={generate.normal_url(url): discovery.licence(repository)
-                  for url, repository in zip(urls, kept)},
-        min_units=min_units, mirrors=mirrors)
+    with unread_repositories() as failed:
+        found, resolved = discovery.SIGNALS[signal]["blocks"](
+            urls, prefix, covered, names,
+            licences={generate.normal_url(url): discovery.licence(repository)
+                      for url, repository in zip(urls, kept)},
+            min_units=min_units, mirrors=mirrors)
     found = generate.add_mirrors(found)
     skipped.update(resolved)
     # A block whose repository wasn't read (code search missed it, and it has
-    # no GitHub repository to read again) is kept as it was.
+    # no GitHub repository to read again), or couldn't be, is kept as it was.
     names_found = {block["name"] for block in found}
     unread = [settings for name, settings in sorted(generated_written(prefix).items())
               if name not in names_found and not {
                   discovery.github_name(settings.get("url")),
                   discovery.github_name(settings.get("mirror"))} & read]
+    unread += [settings for settings in failed_repositories(prefix, found, failed)
+               if settings not in unread]
     if unread:
         click.echo("Kept %d blocks whose repositories weren't read: %s." % (
             len(unread), ", ".join(block["name"] for block in unread)), err=True)

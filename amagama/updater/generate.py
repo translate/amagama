@@ -342,10 +342,18 @@ def _paths(directory, trusted):
                     trusted=trusted).splitlines()
 
 
+# What git says when a repository or branch isn't there (or, with prompts
+# off, is private), rather than that it couldn't reach it.
+NOT_FOUND = re.compile(r"not found|does not appear to be a git repository|"
+                       r"terminal prompts disabled|returned error: 40[134]\b|"
+                       r"couldn't find remote ref|could not find remote branch", re.I)
+
+
 @contextlib.contextmanager
 def clone(url, ref):
     """(directory, file paths) of a clone of url at ref (None: its default
-    branch), or None if the repository or ref isn't there. Only the trees
+    branch), or None if the repository or ref isn't there; FetchError if it
+    couldn't be read (a timeout, a server error). Only the trees
     are downloaded; a file's contents come when it's read. In a shared
     repository if shared_repositories() gives a store; a throwaway clone if
     not, or if that fails."""
@@ -367,7 +375,9 @@ def clone(url, ref):
             try:
                 run_tool("git", *(args + [url, directory]))
                 paths = _paths(directory, directory)
-            except FetchError:
+            except FetchError as e:
+                if not NOT_FOUND.search(str(e)):
+                    raise
                 yield None
                 return
         yield directory, paths
@@ -472,8 +482,8 @@ def check(blocks, pause=None, clone=clone):
     with none, or whose template is missing, is left out. Then a block's
     template and files are read until one has a translation, at most
     EMPTY_SAMPLE files spread over its files; one whose files can't be read
-    is kept. One clone per repository and ref, spaced as
-    Pacer.of(pause).
+    is kept, and so are the blocks of a repository that couldn't be read at
+    all. One clone per repository and ref, spaced as Pacer.of(pause).
     """
     pacer = Pacer.of(pause)
     groups, problems, seen, kept = {}, {}, set(), {}
@@ -496,10 +506,17 @@ def check(blocks, pause=None, clone=clone):
         for (url, ref), positions in groups.items():
             if ref:
                 pacer.wait(url)
-            with (clone(url, ref) if ref else contextlib.nullcontext(None)) as cloned:
-                used = ref
-                if cloned is None:
-                    used, cloned = None, default_branch(url)
+            with contextlib.ExitStack() as stack:
+                try:
+                    cloned = stack.enter_context(clone(url, ref)) if ref else None
+                    used = ref
+                    if cloned is None:
+                        used, cloned = None, default_branch(url)
+                except FetchError:
+                    for position in positions:
+                        problem("repository not read, kept as it was")
+                        kept[position] = blocks[position]
+                    continue
                 if cloned is None:
                     for _ in positions:
                         problem("repository or branch not found")

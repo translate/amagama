@@ -13,7 +13,7 @@ from click.testing import CliRunner
 
 from amagama.cli import manage
 from amagama.tests.test_updater import block
-from amagama.updater import discovery, generate, repositories, transifex
+from amagama.updater import discovery, fetchers, generate, repositories, transifex
 from amagama.updater.fetchers import FetchError
 from amagama.updater.sources import load_sources
 
@@ -292,3 +292,29 @@ def test_command_needs_repositories(amagama_config, tmp_path):
     result = CliRunner().invoke(manage, ("transifex_sources", "--prefix", "tx"))
     assert result.exit_code == 2
     assert "Give repositories, or --from-file." in result.output
+
+
+def test_command_keeps_unreadable(amagama_config, repository, tmp_path, monkeypatch):
+    """A block whose repository couldn't be read is kept; one gone isn't."""
+    sources = tmp_path / "sources.toml"
+    sources.write_text('include = ["transifex.toml"]\n')
+    output = tmp_path / "transifex.toml"
+    output.write_text(block("tx-down", "git", url="https://git.example/down", files=["po/{lang}.po"])
+                      + block("tx-gone", "git", url="https://git.example/gone", files=["po/{lang}.po"]))
+    amagama_config(UPDATER_SOURCES=str(sources))
+    run_tool = generate.run_tool
+
+    def failing(*args, **kwargs):
+        if "https://git.example/down" in args:
+            raise FetchError("fatal: unable to access 'https://git.example/down/': "
+                             "Could not resolve host: git.example")
+        if "https://git.example/gone" in args:
+            raise FetchError("remote: Repository not found.")
+        return run_tool(*args, **kwargs)
+    monkeypatch.setattr(generate, "run_tool", failing)
+    monkeypatch.setattr(fetchers, "run_tool", failing)
+    result = CliRunner().invoke(manage, ("transifex_sources", repository, "https://git.example/down",
+                                         "https://git.example/gone", "--prefix", "tx",
+                                         "--output", str(output)))
+    assert result.exit_code == 0, result.output
+    assert sorted(found.name for found in load_sources(str(output))) == ["tx-down", "tx-repo"]

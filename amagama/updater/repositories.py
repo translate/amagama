@@ -15,6 +15,8 @@ left out.
 """
 
 import collections
+import contextlib
+import contextvars
 import posixpath
 import re
 import urllib.parse
@@ -81,6 +83,23 @@ def slug(text):
     return re.sub(r"[^\w.-]+", "-", text).strip("-")
 
 
+# The repositories blocks() couldn't read, while unread_repositories() is in
+# effect.
+_UNREAD = contextvars.ContextVar("unread", default=None)
+
+
+@contextlib.contextmanager
+def unread_repositories():
+    """Collect, in the set given, the normal_url()s of the repositories
+    blocks() couldn't read (a timeout, a server error), so their blocks can
+    be kept as they were rather than dropped as gone."""
+    token = _UNREAD.set(set())
+    try:
+        yield _UNREAD.get()
+    finally:
+        _UNREAD.reset(token)
+
+
 def blocks(repositories, prefix, resolve, what, covered=(), names=None, pause=None, licences=None,
            mirrors=None):
     """(blocks, skipped) for repositories, as resolve reads them.
@@ -107,7 +126,13 @@ def blocks(repositories, prefix, resolve, what, covered=(), names=None, pause=No
             skipped["repositories", "imported by another block"] += 1
             continue
         pacer.wait((mirrors or {}).get(url, url))
-        resolved = resolve((mirrors or {}).get(url, url))
+        try:
+            resolved = resolve((mirrors or {}).get(url, url))
+        except FetchError:
+            skipped["repositories", "not read"] += 1
+            if _UNREAD.get() is not None:
+                _UNREAD.get().add(normal_url(url))
+            continue
         if resolved is None:
             skipped["repositories", "not found"] += 1
             continue
