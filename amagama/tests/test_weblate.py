@@ -428,6 +428,14 @@ def test_clone_failure(monkeypatch, error, found):
         with generate.clone("https://git.example/u", "1.x") as cloned:
             assert cloned is None
 
+
+def test_clone_empty_repository(tmp_path):
+    """A repository with no commits has nothing to read: not there."""
+    repo = tmp_path / "empty"
+    subprocess.run(["git", "init", "-q", str(repo)], check=True)
+    with generate.clone(repo.as_uri(), None) as cloned:
+        assert cloned is None
+
 def test_tree(tmp_path):
     repo = tmp_path / "repo"
     (repo / "po").mkdir(parents=True)

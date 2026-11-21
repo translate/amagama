@@ -185,19 +185,14 @@ def configs(paths, configuration):
 
 
 def read(url, configuration):
-    """(paths, {configs() path: text, or None if unreadable}) of url's
-    default branch, or None if the repository isn't there."""
+    """(paths, {configs() path: text}) of url's default branch, or None if
+    the repository isn't there. A config that can't be read (its contents
+    are fetched as it's read) raises FetchError, as a failed clone does."""
     with clone(url, None) as cloned:
         if cloned is None:
             return None
         directory, paths = cloned
-        texts = {}
-        for path in configs(paths, configuration):
-            try:
-                texts[path] = read_file(directory, path)
-            except FetchError:
-                texts[path] = None
-        return paths, texts
+        return paths, {path: read_file(directory, path) for path in configs(paths, configuration)}
 
 
 def candidates(files, paths, what, nothing):
