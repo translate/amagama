@@ -19,7 +19,9 @@ ExecStart=/usr/bin/flock --wait 21600 \
         /srv/amagama/venv/bin/amagama-manage update -s en --no-fetch
 # The web app caches block weights, licences and the source list per worker:
 # reload it so a swapped-in rebuild is served whole. "+" runs it as root.
-ExecStartPost=+/usr/bin/systemctl try-reload-or-restart amagama.uwsgi.service
+# ExecStopPost, as an update can fail after its swap (a full disk), and
+# ExecStartPost runs only after a success.
+ExecStopPost=+/usr/bin/systemctl try-reload-or-restart amagama.uwsgi.service
 Nice=10
 IOSchedulingClass=idle
 # Reclaim its own page cache, then slow down, before squeezing the web app.
