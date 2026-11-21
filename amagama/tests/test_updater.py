@@ -628,9 +628,18 @@ class TestFetch(object):
         compressed.decompress(str(run.cache / "ui/po/af.po.zst"), str(run.cache / "af"))
         assert (run.cache / "af").read_text() == "af changed"
 
-    def test_git_half_made_repository(self, run, git_repo):
-        """A shared repository left after git init only is set up again."""
+    @pytest.mark.parametrize("global_setting", [False, True])
+    def test_git_half_made_repository(self, run, git_repo, tmp_path, monkeypatch,
+                                      global_setting):
+        """A shared repository left after git init only is set up again,
+        whatever the user's git config says."""
         repo, git = git_repo
+        if global_setting:
+            (tmp_path / "home").mkdir()
+            (tmp_path / "home/.gitconfig").write_text(
+                '[remote "origin"]\n\tpartialclonefilter = blob:none\n')
+            monkeypatch.setenv("HOME", str(tmp_path / "home"))
+            monkeypatch.delenv("XDG_CONFIG_HOME", raising=False)
         shared = Git({"url": repo.as_uri()}).repository(str(run.cache / ".repos"))
         os.makedirs(shared)
         fetchers.run_tool("git", "init", "--quiet", "--bare", shared, trusted=shared)
