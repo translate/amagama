@@ -229,6 +229,15 @@ def test_select():
     assert len(kept) == 7
 
 
+def test_select_renamed():
+    # GitHub answers an old name or other case with the repository's stats.
+    found = {"Owner/Proj": repo("Owner/Proj"), "owner/proj": repo("Owner/Proj"),
+             "old/proj": repo("Owner/Proj")}
+    kept, skipped = discovery.select(found, 100, None)
+    assert [r["url"] for r in kept] == ["https://github.com/Owner/Proj"]
+    assert skipped == {}
+
+
 @pytest.mark.parametrize("spdx, expected", [
     ("MIT", "MIT"), ("GPL-3.0", "GPL-3.0-only"), ("LGPL-2.1", "LGPL-2.1-only"),
     ("GPL-2.0-or-later", "GPL-2.0-or-later"), ("NOASSERTION", None), (None, None)])
