@@ -84,6 +84,14 @@ def _wait(headers, default):
     return default
 
 
+def _message(error):
+    """An HTTP error's body, lowercased, or "" if it can't be read."""
+    try:
+        return error.read().decode("utf-8", "replace").lower()
+    except (OSError, ValueError):
+        return ""
+
+
 def github(url, token, data=None, retries=6, wait=60):
     """A GitHub API request's JSON, POSTing data if given; waits out rate
     limits, and retries server errors and timeouts."""
@@ -96,8 +104,10 @@ def github(url, token, data=None, retries=6, wait=60):
             with urllib.request.urlopen(request, timeout=TIMEOUT) as response:
                 return json.loads(response.read().decode("utf-8"))
         except urllib.error.HTTPError as e:
+            # A secondary rate limit can say so only in its message.
             limited = e.code == 429 or (e.code == 403 and (
-                "Retry-After" in e.headers or e.headers.get("X-RateLimit-Remaining") == "0"))
+                "Retry-After" in e.headers or e.headers.get("X-RateLimit-Remaining") == "0"
+                or "secondary rate limit" in _message(e)))
             if (limited or e.code >= 500) and attempt < retries:
                 time.sleep(_wait(e.headers, wait))
                 continue
