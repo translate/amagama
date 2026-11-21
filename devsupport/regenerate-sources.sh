@@ -20,7 +20,7 @@ mkdir -p "$report_dir"
 status=0
 search_minutes=${AMAGAMA_SEARCH_MINUTES:-0}
 for file in "$@"; do
-    if [ "$search_minutes" != 0 ]; then
+    if awk -v minutes="$search_minutes" 'BEGIN { exit !(minutes > 0) }'; then
         # 0 doesn't stop: once none are left, a command searches for a moment.
         AMAGAMA_SEARCH_MINUTES=$(awk -v minutes="$search_minutes" -v seconds="$SECONDS" \
             'BEGIN { left = minutes - seconds / 60; printf "%.2f", (left > 0.01 ? left : 0.01) }')
