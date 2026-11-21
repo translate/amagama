@@ -505,10 +505,17 @@ class Git(Fetcher):
         if host.endswith(GITILES_HOSTS):
             commit = self._gitiles_commit(url, ref)
         else:
-            lines = self._git("ls-remote", url, ref).split()
-            if not lines:
+            # ls-remote lists every ref ending in /ref (l10n/main for main);
+            # take the one fetch takes, in git's order.
+            refs = {}
+            for line in self._git("ls-remote", url, ref).splitlines():
+                commit, _, name = line.partition("\t")
+                refs.setdefault(name, commit)
+            names = [name for name in (ref, "refs/" + ref, "refs/tags/" + ref,
+                                       "refs/heads/" + ref) if name in refs]
+            if not names:
                 raise FetchError("%s: no ref %s" % (url, ref))
-            commit = lines[0]
+            commit = refs[names[0]]
         if known is not None:
             known[url, ref] = commit
         return commit

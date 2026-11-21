@@ -681,6 +681,15 @@ class TestFetch(object):
         assert result.exit_code == 0, result.output
         assert ("po/nl.po", "nl") in fetched(run.cache, "x")
 
+    def test_git_ref_fingerprint(self, git_repo):
+        """Not the commit of another branch whose name ends in the ref."""
+        repo, git = git_repo
+        git("branch", "l10n/main")
+        git("commit", "-q", "--allow-empty", "-m", "two")
+        main = subprocess.run(["git", "-C", str(repo), "rev-parse", "main"], check=True,
+                              capture_output=True, text=True).stdout.strip()
+        assert Git({"url": repo.as_uri(), "ref": "main"}).fingerprint() == main
+
     def test_git_missing_path(self, run, git_repo):
         repo, git = git_repo
         result = run(block("x", "git", url=repo.as_uri(), files=["l10n/{lang}.po"]))
