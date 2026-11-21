@@ -154,6 +154,8 @@ class Fetcher(object):
     # Whether fetch() also downloads the block's English, the files its
     # template matches; the block then calls use_template().
     needs_template = False
+    # Whether fetch() gives files; one that gives none has failed.
+    gives_files = True
 
     def __init__(self, settings):
         missing = [key for key in self.required if key not in settings]
@@ -1192,6 +1194,7 @@ class Snapshot(Fetcher):
     """Data kept in the database by snapshot_db; nothing to download."""
 
     required = ("snapshot",)
+    gives_files = False
 
     def fingerprint(self):
         return "snapshot %s" % self.settings["snapshot"]
