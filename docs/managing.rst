@@ -744,9 +744,11 @@ block's. GitHub gives ``GPL-3.0`` and its like, which SPDX defines as
 
 A project's mirror on GitHub (GNOME's, Xfce's) is read from GitHub, but its
 block fetches from the repository it copies: a repository is taken as a
-mirror when its description says "mirror" or its issues are off, and its
-description links a repository of the same name elsewhere; or when its
-description says "mirror" and its homepage is that repository. Mirrors are
+mirror when GitHub says it is one and of what; when its description says
+"mirror" or its issues are off, and its description links a repository of
+the same name elsewhere; when its description says "mirror" and its
+homepage is that repository; or when its issues are off and its homepage is
+that repository on a forge (GitLab, Codeberg and the like). Mirrors are
 read first, as the originals of copies with more stars.
 
 The repositories are read most stars first, each from a clone of its file

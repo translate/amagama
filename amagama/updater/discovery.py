@@ -61,7 +61,13 @@ SIGNALS = {
 }
 
 FIELDS = ("url stargazerCount pushedAt isArchived isFork licenseInfo { spdxId } description "
-          "homepageUrl hasIssuesEnabled")
+          "homepageUrl hasIssuesEnabled isMirror mirrorUrl")
+
+# Hosts of repositories, not of websites: a homepage there that is a
+# repository of the same name is the one a mirror copies.
+FORGES = ("gitlab.com", "codeberg.org", "bitbucket.org", "framagit.org", "salsa.debian.org",
+          "invent.kde.org")
+FORGE_PREFIXES = ("gitlab.", "git.", "code.")
 
 
 class RateLimited(FetchError):
@@ -250,19 +256,25 @@ def licence(repository):
 def upstream(repository):
     """The repository a GitHub mirror copies, or None.
 
-    GitHub's own isMirror is only for mirrors it pulls. A project's mirror
-    (GNOME's, Xfce's) says "mirror" or has its issues off, and links the
-    repository of the same name elsewhere in its description, or (if it
-    says "mirror") as its homepage, which is otherwise often a website.
+    GitHub's isMirror and mirrorUrl, where it pulls the mirror, say so,
+    whatever its name. Otherwise a project's mirror (GNOME's, Xfce's) says "mirror" or has its
+    issues off, and links the repository of the same name elsewhere in its
+    description or as its homepage. A homepage, often a website, counts if
+    the repository says "mirror" or the homepage is on a forge.
     """
+    if repository.get("isMirror") and repository.get("mirrorUrl"):
+        parts = urllib.parse.urlsplit(repository["mirrorUrl"].rstrip("/"))
+        if parts.scheme in ("http", "https", "git") and parts.hostname not in (None, "github.com"):
+            return parts.geturl()
+    links = []
     description = repository.get("description") or ""
     mirror = "mirror" in description.lower()
-    if not mirror and repository.get("hasIssuesEnabled", True):
-        return None
+    if mirror or not repository.get("hasIssuesEnabled", True):
+        links += re.findall(r"(?:https?|git)://[^\s,;()<>\[\]]+", description)
+        homepage = repository.get("homepageUrl")
+        if homepage and (mirror or _forge(urllib.parse.urlsplit(homepage).hostname)):
+            links.append(homepage)
     name = repository["url"].rstrip("/").rsplit("/", 1)[-1].lower()
-    links = re.findall(r"(?:https?|git)://[^\s,;()<>\[\]]+", description)
-    if mirror and repository.get("homepageUrl"):
-        links.append(repository["homepageUrl"])
     for link in links:
         parts = urllib.parse.urlsplit(link.rstrip(".").rstrip("/"))
         path = parts.path.strip("/")
@@ -270,6 +282,11 @@ def upstream(repository):
                 and path.removesuffix(".git").rsplit("/", 1)[-1].lower() == name:
             return "%s://%s/%s" % (parts.scheme, parts.netloc, path)
     return None
+
+
+def _forge(hostname):
+    hostname = (hostname or "").lower()
+    return hostname in FORGES or hostname.startswith(FORGE_PREFIXES)
 
 
 def default_pushed_since(today=None):
