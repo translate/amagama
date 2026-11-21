@@ -318,11 +318,12 @@ class Response(io.BytesIO):
         self.close()
 
 
-def http_error(code, **headers):
+def http_error(code, body=b"", **headers):
     message = email.message.Message()
     for key, value in headers.items():
         message[key.replace("_", "-")] = value
-    return urllib.error.HTTPError("https://api.github.com/x", code, "limited", message, None)
+    return urllib.error.HTTPError("https://api.github.com/x", code, "limited", message,
+                                  io.BytesIO(body))
 
 
 def test_github_waits_out_rate_limits(monkeypatch):
@@ -364,6 +365,24 @@ def test_github_still_rate_limited(monkeypatch):
     with pytest.raises(discovery.RateLimited) as e:
         discovery.github("https://api.github.com/x", "tok", retries=2)
     assert e.value.status == 429
+
+
+def test_github_secondary_rate_limit(monkeypatch):
+    # GitHub's secondary rate limit can give neither Retry-After nor 0 left.
+    slept, answers = [], [http_error(403, b'{"message": "You have exceeded a secondary rate '
+                                          b'limit. Please wait a few minutes."}',
+                                     X_RateLimit_Remaining="25"), Response(b'{"ok": 1}')]
+
+    def urlopen(request, timeout):
+        answer = answers.pop(0)
+        if isinstance(answer, Exception):
+            raise answer
+        return answer
+
+    monkeypatch.setattr(discovery.urllib.request, "urlopen", urlopen)
+    monkeypatch.setattr(discovery, "time", types.SimpleNamespace(sleep=slept.append, time=lambda: 0))
+    assert discovery.github("https://api.github.com/x", "tok") == {"ok": 1}
+    assert slept == [60]
 
 
 def test_github_network_error(monkeypatch):
