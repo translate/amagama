@@ -71,9 +71,13 @@ READ_ERRORS = (OSError, http.client.HTTPException)
 def _read(response, url):
     """The response's body in pieces, failing once DEADLINE has passed."""
     end = time.monotonic() + DEADLINE
-    while chunk := response.read1(65536):
+    while True:
+        chunk = response.read1(65536)
+        # The end too: a server can hold back closing a reply of no length.
         if time.monotonic() > end:
             raise FetchError("%s: took more than %d seconds" % (url, DEADLINE))
+        if not chunk:
+            return
         yield chunk
 
 
