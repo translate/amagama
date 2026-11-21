@@ -556,9 +556,9 @@ For each source language it keeps:
   translation for and their words, and its coverage: that share of all the
   source strings;
 - for each block, its languages, the translations it supplied and when it was
-  last imported. The page shows blocks with one title (a project's components
-  or branches) as one row: their translations added up, the most languages of
-  any, and the newest import;
+  last imported. The page shows blocks with the same title and version (a
+  project's components) as one row: their translations and check failures
+  added up, the most languages of any, and the newest import;
 - for each check that flags translations, how many fail it, by language and by
   block, and what the last rebuild left out (only a rebuild knows that; run
   here, the figures of the same rebuild are kept);
