@@ -11,7 +11,6 @@ measure each client's lookup rate."""
 
 import collections
 import gzip
-import os
 import re
 from datetime import datetime, timedelta, timezone
 
@@ -92,9 +91,12 @@ def _requests(paths):
         try:
             log = _open(path)
         except FileNotFoundError:
-            if path.endswith(".gz") or not os.path.exists(path + ".gz"):
+            if path.endswith(".gz"):
                 continue
-            log = _open(path + ".gz")
+            try:
+                log = _open(path + ".gz")
+            except FileNotFoundError:
+                continue
         with log:
             for line in log:
                 match = LOG_LINE.match(line)
