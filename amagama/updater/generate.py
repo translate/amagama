@@ -123,10 +123,11 @@ def add_mirrors(blocks, pause=None, exists=exists):
     return [with_mirror(block, exists=cached) for block in blocks]
 
 
-# Hosts whose repository paths ignore case: every GitLab's does.
-CASELESS_HOSTS = {"github.com", "gitlab.com", "codeberg.org", "gitlab.gnome.org", "invent.kde.org",
-                  "salsa.debian.org", "gitlab.freedesktop.org", "gitlab.xfce.org",
-                  "gitlab.torproject.org", "gitlab.nic.cz", "framagit.org", "code.videolan.org"}
+# Hosts whose repository paths ignore case: every GitLab's does, and
+# discovery takes a gitlab.* host for one.
+CASELESS_HOSTS = {"github.com", "gitlab.com", "codeberg.org", "invent.kde.org", "salsa.debian.org",
+                  "framagit.org", "code.videolan.org"}
+CASELESS_PREFIXES = ("gitlab.",)
 
 
 def normal_url(repo):
@@ -134,7 +135,7 @@ def normal_url(repo):
     lowercased on hosts whose paths ignore case."""
     parts = urllib.parse.urlsplit(repo)
     path = re.sub(r"(\.git)?/*$", "", parts.path)
-    if parts.hostname in CASELESS_HOSTS:
+    if parts.hostname in CASELESS_HOSTS or (parts.hostname or "").startswith(CASELESS_PREFIXES):
         path = path.lower()
     return (parts.hostname or "") + path
 
