@@ -313,10 +313,12 @@ replaced codes such as ``iw`` become ``he``; a country's code used for its
 language (``cn``, ``ua``) becomes the language's (``zh_CN``, ``uk``); and a
 three-letter ISO 639 code with a two-letter one becomes it (``arg`` and
 ``deu`` become ``an`` and ``de``). ISO 639-3's languages and ISO 639-5's
-collective codes (``son``, Songhai languages) are languages; codes in
-neither, such as ``eml``, aren't: a block's ``languages`` table can map
-them to a specific language. Codes that aren't languages are left out and
-listed by ``fetch_sources`` and ``update``.
+collective codes (``son``, Songhai languages) are languages. Special codes
+(``mul``, ``und``, ``zxx``) and codes in neither (``fu``, ``eml``) are left
+out, and listed with why by ``fetch_sources`` and ``update``; a block's
+``languages`` table can map them to a specific language::
+
+    Not language codes in hosted-plone-18.x.x, skipped: fu (not an ISO 639 code)
 
 :ref:`fetch_sources <managing#fetch-sources>` downloads the blocks into
 :setting:`UPDATER_CACHE_DIR`, and :ref:`update <managing#update>` rebuilds the

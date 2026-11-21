@@ -487,7 +487,7 @@ class TestFetch(object):
         result = run(block("tp", "translationproject", base_url=url + "/backups/last/",
                            max_age_days=0))
         assert result.exit_code == 0, result.output
-        assert "tp: not language codes, skipped: x!" in result.output
+        assert "tp: not language codes, skipped: x! (not an ISO 639 code)" in result.output
         assert [lang for path, lang in fetched(run.cache, "tp")] == ["af", "zu"]
 
     def test_merged_languages(self, run, git_repo):

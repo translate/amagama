@@ -252,10 +252,17 @@ class TestUpdate(object):
         legacy.write_text(po("af", ("Close file", "Maak lêer toe")))
         run("initdb", "-s", "en")
         run("build_tmdb", "-s", "en", "-t", "af", "-i", str(legacy))
+        # The 2019 database stored some directory names as languages.
+        with pg_connection.cursor() as cursor:
+            cursor.execute("INSERT INTO en.targets (sid, text, lang) SELECT sid, 'x', 'po' "
+                           "FROM en.sources")
+        pg_connection.commit()
         run("snapshot_db", "-s", "en", "--name", "legacy")
         result = run("update", "-s", "en")
         assert result.exit_code == 0, result.output
-        assert "Loaded legacy-2019: 1 targets (0 skipped)." in result.output
+        assert "Loaded legacy-2019: 1 targets (1 skipped)." in result.output
+        assert ("Not language codes in legacy-2019, skipped: po (not an ISO 639 code; "
+                "1 targets)") in result.output
         assert lookup("af", "Close file") == ["Maak lêer toe"]
         assert lookup("af", "Open file") == ["Maak lêer oop"]
 
@@ -293,7 +300,7 @@ class TestUpdate(object):
                       {"x!/bash-5.2.x!.po": po("x!", ("Save file", "?"))})
         result = run("update", "-s", "en")
         assert result.exit_code == 0, result.output
-        assert "Not language codes in tp, skipped: x!" in result.output
+        assert "Not language codes in tp, skipped: x! (not an ISO 639 code)" in result.output
         assert lookup("af", "Save file") == ["Stoor lêer"]
 
     def test_fetch_failure_leaves_live_data(self, run, site, pg_connection):

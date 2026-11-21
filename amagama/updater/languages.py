@@ -128,6 +128,25 @@ def normalise_language(code):
     return lang + ("_" + region if region else "") + modifier
 
 
+def not_language(code):
+    """Why code isn't a language code, or None if it is one."""
+    if normalise_language(code) is not None:
+        return None
+    lang = re.split(r"[-_@+]", code.strip().removeprefix("b+"))[0].lower()
+    special = pycountry.languages.get(alpha_3=lang) if len(lang) == 3 else None
+    if special and special.alpha_3 in _special_codes():
+        return "special: %s" % special.name
+    if re.fullmatch(r"[a-z]{2,3}", lang) and _short(lang) in _iso_codes():
+        return "not a language code"
+    return "not an ISO 639 code"
+
+
+def described(codes):
+    """codes that aren't languages, each with why."""
+    return ", ".join("%s (%s)" % (code, not_language(code) or "not a language code")
+                     for code in codes)
+
+
 def map_language(code, overrides=None):
     """A block's language code in canonical form, after its own overrides.
 

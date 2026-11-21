@@ -10,7 +10,8 @@ import pytest
 
 from amagama.tests import test_pairing
 from amagama.tests.test_updater import block
-from amagama.updater.languages import is_android_locale, map_language, normalise_language
+from amagama.updater.languages import (described, is_android_locale, map_language,
+                                       normalise_language, not_language)
 from amagama.updater.sources import load_sources
 
 
@@ -99,6 +100,25 @@ from amagama.updater.sources import load_sources
 ])
 def test_normalise(code, expected):
     assert normalise_language(code) == expected
+
+
+@pytest.mark.parametrize("code, why", [
+    ("af", None),
+    ("ber", None),
+    ("mul", "special: Multiple languages"),
+    ("zxx_ZA", "special: No linguistic content"),
+    ("eml", "not an ISO 639 code"),
+    ("fu", "not an ISO 639 code"),
+    ("x!", "not an ISO 639 code"),
+    ("pt-!!", "not a language code"),
+])
+def test_not_language(code, why):
+    assert not_language(code) == why
+
+
+def test_described():
+    assert described(["mul", "fu"]) == \
+        "mul (special: Multiple languages), fu (not an ISO 639 code)"
 
 
 def test_overrides():
