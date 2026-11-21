@@ -37,6 +37,10 @@ from amagama.updater.sources import Block
     # Apple: Base.lproj is the template's, not a language.
     (["{lang}.lproj/Localizable.strings"], "zh-Hans.lproj/Localizable.strings", "zh-Hans"),
     (["{lang}.lproj/Localizable.strings"], "Base.lproj/Localizable.strings", None),
+    # A POSIX locale directory with a codeset.
+    (["{lang}/LC_MESSAGES/*.po"], "de_DE.UTF-8/LC_MESSAGES/app.po", "de_DE.UTF-8"),
+    (["{lang}/LC_MESSAGES/*.po"], "sr_RS.UTF-8@latin/LC_MESSAGES/app.po", "sr_RS.UTF-8@latin"),
+    (["*/{lang}.js"], "dist/app.min.js", None),
     (["po/{lang}.po"], "po/af.mo", None),
     (["po/{lang}.po"], "src/po/af.po", None),
     (["po/*.po"], "po/af.po", "fallback"),

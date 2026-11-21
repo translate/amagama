@@ -20,9 +20,10 @@ from amagama.updater.languages import normalise_language
 
 TOKENS = re.compile(r"(\*\*/|\*\*|\*|\{lang\})")
 # BCP 47 subtags are at most 8 characters; a POSIX @modifier has no limit.
-LANG_PATTERN = r"[a-z]{1,3}(?:[_+-][A-Za-z0-9]{1,8}|@[A-Za-z0-9]+)*"
+# A POSIX .codeset is read in a directory's name (de_DE.UTF-8/).
+LANG_PATTERN = r"[a-z]{1,3}(?:[_+-][A-Za-z0-9]{1,8}|\.[A-Za-z0-9-]+(?=[/@])|@[A-Za-z0-9]+)*"
 # The shortest reading still takes a language of two or three letters.
-SHORTEST_LANG_PATTERN = r"[a-z]{2,3}(?:[_+-][A-Za-z0-9]{1,8}|@[A-Za-z0-9]+)*"
+SHORTEST_LANG_PATTERN = r"[a-z]{2,3}(?:[_+-][A-Za-z0-9]{1,8}|\.[A-Za-z0-9-]+(?=[/@])|@[A-Za-z0-9]+)*"
 
 
 def compile_mask(mask, allow_lang=True, greedy=False):
