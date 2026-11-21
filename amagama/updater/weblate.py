@@ -20,6 +20,7 @@ import re
 import urllib.parse
 
 from amagama.updater.fetchers import FetchError, http_text
+from amagama.updater.filemask import compile_mask
 from amagama.updater.generate import Names, Pacer, check_block, identity, normal_url
 from amagama.updater.sources import sparse_patterns
 
@@ -145,14 +146,25 @@ def _mask(filemask):
     return filemask.replace("*", "{lang}", 1)
 
 
-def _collapsed(masks):
-    """masks as one "<dir>/{lang}/**/*<ext>" when they share both."""
+def _collapsed(masks, others=()):
+    """masks as one "<dir>/{lang}/**/*<ext>" when they share both, unless it
+    also matches the files of others' masks."""
     shapes = {(mask.split("{lang}")[0], "." + mask.rsplit(".", 1)[-1])
               for mask in masks if "{lang}/" in mask}
     if len(masks) <= COLLAPSE or len(shapes) != 1 or not all("{lang}/" in mask for mask in masks):
         return sorted(masks)
     prefix, extension = shapes.pop()
-    return ["%s{lang}/**/*%s" % (prefix, extension)]
+    collapsed = "%s{lang}/**/*%s" % (prefix, extension)
+    pattern = compile_mask(collapsed)
+    if any(pattern.match(_example(mask)) for mask in others):
+        return sorted(masks)
+    return [collapsed]
+
+
+def _example(mask):
+    """A path mask matches."""
+    return re.sub(r"\*\*/|\*\*|\*", lambda wildcard: "" if wildcard.group() == "**/" else "x",
+                  mask).replace("{lang}", "af")
 
 
 def readable(component):
@@ -201,7 +213,8 @@ def blocks(components, prefix, projects=("*",), docs=(), covered=(), names=None)
         if component.get("branch") and "://" in repo:
             named.setdefault(repo, set()).add(component["branch"])
     covered = {normal_url(repo) for repo in covered}
-    groups, skipped = {}, {}
+    # Each project's masks, so a folded mask leaves out others' files.
+    groups, skipped, project_masks = {}, {}, {}
 
     def skip(reason):
         skipped[reason] = skipped.get(reason, 0) + 1
@@ -212,6 +225,7 @@ def blocks(components, prefix, projects=("*",), docs=(), covered=(), names=None)
             continue
         weblate_format = _with_encoding(component)
         licence = (component.get("license") or "").strip()
+        project_masks.setdefault(project["slug"], set()).add(_mask(component.get("filemask") or ""))
         if readable(component):
             skip(readable(component))
         else:
@@ -254,8 +268,9 @@ def blocks(components, prefix, projects=("*",), docs=(), covered=(), names=None)
     # A new name doesn't depend on what else the project has, as a project's
     # blocks are told apart by a component.
     for group in groups.values():
-        group["files"] = _collapsed(group["masks"]) if not group["template"] \
-            else sorted(group["masks"])
+        group["files"] = _collapsed(
+            group["masks"], project_masks[group["project"]["slug"]] - group["masks"]) \
+            if not group["template"] else sorted(group["masks"])
     # A block of the same files keeps its name before one of the same identity.
     chosen = {}
     for same_files in (True, False):

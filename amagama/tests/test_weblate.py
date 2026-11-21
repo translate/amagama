@@ -163,6 +163,28 @@ def test_docs():
         "sparse": ["po/*/**/*.po"], "segment": True, "licence": "CC-BY-SA-4.0"}}
 
 
+def test_folded_mask_leaves_out_skipped():
+    # Folding the masks would also read the components left out.
+    app = [component("app", "c%d" % i, "https://git.example/app", "locale/*/LC_MESSAGES/c%d.po" % i)
+           for i in range(11)]
+    left_out = [
+        component("app", "glossary", "https://git.example/app", "locale/*/LC_MESSAGES/terms.po",
+                  is_glossary=True),
+        component("app", "noderivs", "https://git.example/app", "locale/*/LC_MESSAGES/noderivs.po",
+                  license="CC-BY-ND-4.0"),
+        component("app", "de", "https://git.example/app", "locale/*/LC_MESSAGES/de.po", source="de"),
+    ]
+    found, skipped = generated(app + left_out)
+    assert found["test-app"]["files"] == sorted("locale/{lang}/LC_MESSAGES/c%d.po" % i
+                                                for i in range(11))
+    assert skipped == {"glossary (terminology)": 1, "no-derivatives licence": 1,
+                       "source not English": 1}
+    # With nothing left out under it, the mask is folded.
+    found, _ = generated(app + [component("app", "terms", "https://git.example/app",
+                                          "locale/*/terms.tbx", file_format="tbx")])
+    assert found["test-app"]["files"] == ["locale/{lang}/**/*.po"]
+
+
 def test_docs_component():
     found, skipped = generated([
         component("app", "ui", "https://git.example/app", "po/*.po"),
