@@ -348,6 +348,8 @@ def _paths(directory, trusted):
 NOT_FOUND = re.compile(r"not found|does not appear to be a git repository|"
                        r"terminal prompts disabled|returned error: 40[134]\b|"
                        r"couldn't find remote ref|could not find remote branch", re.I)
+# What git ls-tree says in a clone of a repository with no commits.
+NO_COMMITS = re.compile(r"not a valid object name HEAD", re.I)
 
 
 @contextlib.contextmanager
@@ -382,8 +384,10 @@ def clone(url, ref):
                 return
             try:
                 paths = _paths(directory, directory)
-            except FetchError:
+            except FetchError as e:
                 # A repository with no commits has nothing to read.
+                if not NO_COMMITS.search(str(e)):
+                    raise
                 yield None
                 return
         yield directory, paths
