@@ -779,7 +779,23 @@ ORDER BY rank DESC{order};
         cursor.execute("""
             CREATE INDEX sources_long_idx ON sources USING gin(vector)
             WHERE length >= %s""", (min_levenshtein_length(lower_bound, similarity),))
+        # The languages page reads these; finding them takes a scan of targets.
+        cursor.execute("""
+            DROP TABLE IF EXISTS target_languages;
+            CREATE TABLE target_languages (lang text PRIMARY KEY);
+            INSERT INTO target_languages SELECT DISTINCT lang FROM targets""")
         cursor.connection.commit()
+
+    def _has_target_languages(self, cursor):
+        cursor.execute("SELECT to_regclass('target_languages') IS NOT NULL")
+        return cursor.fetchone()[0]
+
+    def _add_target_language(self, cursor, tlang):
+        """Note a target language written to a deployed schema."""
+        if self._has_target_languages(cursor):
+            cursor.execute("INSERT INTO target_languages VALUES (%s) ON CONFLICT DO NOTHING",
+                           (tlang,))
+        self._available_langs = {}
 
     def _schema_exists(self, cursor, name):
         cursor.execute("SELECT 1 FROM pg_namespace WHERE nspname = %s", (name,))
@@ -827,11 +843,14 @@ ORDER BY rank DESC{order};
             source_languages = list(self.source_langs)
             target_languages = set()
 
-            # Get all the target languages.
+            # Get all the target languages: as deploy() stored them, or from
+            # the targets in a schema that wasn't deployed.
             for slang in source_languages:
                 cursor = self.get_cursor(self.schema(slang))
-                query = "SELECT DISTINCT lang FROM targets"
-                cursor.execute(query)
+                if self._has_target_languages(cursor):
+                    cursor.execute("SELECT lang FROM target_languages")
+                else:
+                    cursor.execute("SELECT DISTINCT lang FROM targets")
                 target_results = cursor.fetchall()
 
                 for result in target_results:
@@ -978,6 +997,8 @@ ORDER BY rank DESC{order};
                 return 0
             iid, unique = self._link_mode(cursor, iid)
             added = self.add_dict(unitdict, cursor, iid, unique)
+            if added:
+                self._add_target_language(cursor, tlang)
 
             if commit:
                 cursor.connection.commit()
@@ -1170,6 +1191,8 @@ ORDER BY rank DESC{order};
                 })
                 if unit['source'] not in too_long and self.add_dict(unit, cursor, iid, unique):
                     count += 1
+            if count:
+                self._add_target_language(cursor, tlang)
             if commit:
                 cursor.connection.commit()
         except Exception:
