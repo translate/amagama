@@ -246,6 +246,20 @@ def test_failed_write_keeps_the_file(tmp_path, monkeypatch):
     assert sorted(os.listdir(tmp_path)) == ["stats.json", "stats.json.lock"]
 
 
+@pytest.mark.parametrize("old", ['{"version": 2, "sourceLanguages": {}}', '{"version": 1, "sou'])
+def test_unusable_file_is_kept(tmp_path, old):
+    filename = tmp_path / "stats.json"
+    (tmp_path / "stats.json.1").write_text("older", encoding="utf-8")
+    filename.write_text(old, encoding="utf-8")
+    stats.update_use(str(filename), [])
+    assert (tmp_path / "stats.json.1").read_text(encoding="utf-8") == "older"
+    assert (tmp_path / "stats.json.2").read_text(encoding="utf-8") == old
+    assert stats.load(str(filename))["version"] == stats.VERSION
+    # A file it can use isn't kept again.
+    stats.update_use(str(filename), [])
+    assert not (tmp_path / "stats.json.3").exists()
+
+
 def test_source_language_gone(tmp_path, monkeypatch):
     filename = tmp_path / "stats.json"
     write_figures(filename, {})
