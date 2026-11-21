@@ -10,6 +10,7 @@ import functools
 import hashlib
 import http.server
 import io
+import json
 import subprocess
 import threading
 import zipfile
@@ -213,3 +214,19 @@ def test_fetch_some_languages(joomla, tmp_path):
     files = joomla_fetcher.fetch(str(tmp_path / "out"), [lang])
     # The English template comes every time.
     assert {code for path, code in files} == {lang, "en-GB"}
+
+
+def test_english_link_outside(run, joomla, tmp_path):
+    """A link in joomla-cms to a file outside it is left out, not copied."""
+    root, settings = joomla
+    secret = tmp_path / "secret.ini"
+    secret.write_text('SECRET="Secret"\n')
+    repo = tmp_path / "joomla-cms"
+    (repo / "language/en-GB/lib_joomla.ini").symlink_to(secret)
+    subprocess.run(["sh", "-c", "git add . && git -c user.name=t -c user.email=t@example.org "
+                    "commit -q -m link"], cwd=repo, check=True)
+    result = run(joomla_block(dict(settings, max_age_days=0)))
+    assert result.exit_code == 0, result.output
+    state = json.loads((run.cache / "joomla/fetched.json").read_text())
+    assert state["outside_links"] == ["language/en-GB/lib_joomla.ini"]
+    assert not (run.cache / "joomla/language/en-GB/lib_joomla.ini").exists()
