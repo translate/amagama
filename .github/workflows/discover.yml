@@ -53,8 +53,8 @@ jobs:
         run: |
           if [ -z "$DISCOVER_TOKEN" ]; then
             echo "works=false" >> "$GITHUB_OUTPUT"
-          elif curl -fsS -o /dev/null -H "Authorization: Bearer $DISCOVER_TOKEN" \
-              https://api.github.com/rate_limit; then
+          elif curl --connect-timeout 10 --max-time 30 -fsS -o /dev/null \
+              -H "Authorization: Bearer $DISCOVER_TOKEN" https://api.github.com/rate_limit; then
             echo "works=true" >> "$GITHUB_OUTPUT"
           else
             echo "::warning::DISCOVER_TOKEN doesn't work: renew it. Searching with the workflow's token."
