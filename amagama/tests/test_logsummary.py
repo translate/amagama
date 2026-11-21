@@ -128,6 +128,15 @@ def test_lookups_per_second(rates_log):
     ]
 
 
+def test_lookups_per_second_counts_reads_only(tmp_path):
+    # nginx's lookup limit counts GET and HEAD; OPTIONS is answered before it.
+    log = tmp_path / "live-nginx.access.log"
+    log.write_text("".join(
+        at("203.0.113.1", "07/Nov/2026:10:00:00").replace("GET", method)
+        for method in ("POST", "PUT", "OPTIONS", "GET", "HEAD")), encoding="utf-8")
+    assert lookups_per_second([str(log)]) == [{1794045600: 2}]
+
+
 def test_peaks():
     assert peaks({0: 3, 59: 1, 60: 1}) == (3, 4)
     assert peaks({0: 1, 30: 2, 89: 3, 200: 1}) == (3, 5)

@@ -148,13 +148,13 @@ def summarise(paths):
 
 
 def lookups_per_second(paths):
-    """Count each client's lookups (ordinary and prefetch, what nginx's
-    lookup limit counts) per second: [{second: requests}], one per client,
-    in no order. Clients aren't named."""
+    """Count each client's lookups (ordinary and prefetch GETs and HEADs,
+    what nginx's lookup limit counts) per second: [{second: requests}], one
+    per client, in no order. Clients aren't named."""
     clients = collections.defaultdict(collections.Counter)
     last_time, second = None, None
     for match, kind in _requests(paths):
-        if kind == BULK:
+        if kind == BULK or match.group("request").split(" ")[0] not in ("GET", "HEAD"):
             continue
         time = match.group("time")
         if time != last_time:
