@@ -375,10 +375,15 @@ def clone(url, ref):
                 args += ["--branch", ref]
             try:
                 run_tool("git", *(args + [url, directory]))
-                paths = _paths(directory, directory)
             except FetchError as e:
                 if not NOT_FOUND.search(str(e)):
                     raise
+                yield None
+                return
+            try:
+                paths = _paths(directory, directory)
+            except FetchError:
+                # A repository with no commits has nothing to read.
                 yield None
                 return
         yield directory, paths

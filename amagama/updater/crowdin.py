@@ -217,19 +217,16 @@ def xml_format(directory, source, paths):
 
 
 def repository(url):
-    """(paths, {config: text, or None}, {typeless .xml source: format}) of
-    url's Crowdin configurations, or None if the repository isn't there."""
+    """(paths, {config: text}, {typeless .xml source: format}) of url's
+    Crowdin configurations, or None if the repository isn't there; see
+    repositories.read() for a config that can't be read."""
     with clone(url, None) as cloned:
         if cloned is None:
             return None
         directory, paths = cloned
         texts, xml = {}, {}
         for path in configs(paths):
-            try:
-                texts[path] = repositories.read_file(directory, path)
-            except FetchError:
-                texts[path] = None
-                continue
+            texts[path] = repositories.read_file(directory, path)
             for source in typeless_xml(texts[path], posixpath.dirname(path)):
                 if source not in xml:
                     xml[source] = xml_format(directory, source, paths)

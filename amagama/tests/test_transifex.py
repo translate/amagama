@@ -217,10 +217,28 @@ def test_repository(repository, tmp_path):
 
 
 def test_repository_unreadable_config(repository, monkeypatch):
+    """A config that can't be read is a repository not read, not one without it."""
     def unreadable(directory, path):
         raise FetchError("git show failed")
     monkeypatch.setattr(repositories, "read_file", unreadable)
-    assert transifex.repository(repository)[1] == {".tx/config": None, "web/.tx/config": None}
+    with pytest.raises(FetchError, match="git show failed"):
+        transifex.repository(repository)
+
+
+def test_command_keeps_unreadable_config(amagama_config, repository, tmp_path, monkeypatch):
+    sources = tmp_path / "sources.toml"
+    sources.write_text('include = ["transifex.toml"]\n')
+    output = tmp_path / "transifex.toml"
+    amagama_config(UPDATER_SOURCES=str(sources))
+    assert CliRunner().invoke(manage, ("transifex_sources", repository, "--prefix", "tx",
+                                       "--output", str(output))).exit_code == 0
+    def unreadable(directory, path):
+        raise FetchError("git show failed")
+    monkeypatch.setattr(repositories, "read_file", unreadable)
+    result = CliRunner().invoke(manage, ("transifex_sources", repository, "--prefix", "tx",
+                                         "--output", str(output)))
+    assert result.exit_code == 0, result.output
+    assert [found.name for found in load_sources(str(output))] == ["tx-repo"]
 
 
 def test_command(amagama_config, repository, tmp_path):
