@@ -771,7 +771,9 @@ the files: its first language placeholder (``%locale%``,
 the language, and ``%original_file_name%``, ``%file_name%``,
 ``%file_extension%`` and ``%original_path%`` are the source's own, so a
 monolingual source is the template. ``languages_mapping`` gives the block's
-``languages``; ``type``, else the extension, the format. Bilingual files of a
+``languages``; ``type``, else the extension, the format: an :file:`.xml`
+source outside a :file:`values*/` directory is Android's string resources
+if the first of its files has ``<resources>`` as its root. Bilingual files of a
 repository share a block, and a monolingual file has its own. Left out, and
 counted: files of a type amaGama doesn't read (:file:`.stringsdict`), with
 a placeholder it can't (``%language%``) or none, and patterns matching no
