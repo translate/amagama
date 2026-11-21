@@ -413,6 +413,18 @@ def test_xliff_pieces_states(tmp_path):
         == ["Save 1", "Save 4", "Save 7"]
 
 
+def test_xliff_2_pieces_unreadable(tmp_path):
+    path = tmp_path / "de.xlf"
+    path.write_bytes(b'<?xml version="1.0"?><xliff version="2.0" '
+                     b'xmlns="urn:oasis:names:tc:xliff:document:2.0" srcLang="en" trgLang="de">'
+                     b'<file id="f">' + b'<unit id="1"><segment><source>Save</source>'
+                     b'<target>Speichern</target></segment></unit>' * 10 + b'</file></xliff>')
+    with pytest.raises(ValueError, match="XLIFF 2"):
+        open_store(str(path))
+    with pytest.raises(ValueError, match="XLIFF 2"):
+        open_pieces(str(path), size=200)
+
+
 def test_xliff_piece_unreadable(tmp_path):
     path = tmp_path / "de.xlf"
     path.write_bytes(XLIFF_DOC % (XLIFF_FILE % (b"a.txt", b"de", xliff_unit("1", "Save", "Speichern")
