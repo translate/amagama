@@ -534,8 +534,8 @@ class Git(Fetcher):
         # git init writes HEAD first: a repository is set up once it has
         # the setting written last.
         try:
-            made = self._git("--git-dir", repo, "config", "remote.origin.partialclonefilter",
-                             clone=trusted)
+            made = self._git("--git-dir", repo, "config", "--local",
+                             "remote.origin.partialclonefilter", clone=trusted)
         except FetchError:
             made = False
         if not made:
