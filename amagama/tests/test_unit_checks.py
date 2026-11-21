@@ -24,6 +24,14 @@ from amagama.unit_checks import Report, failed_checks, length_step, script, targ
     ("Open %s file", "Maak lêer oop", "af", ["printf"]),
     ("Open %(name)s", "Maak %(naam)s oop", "af", ["printf"]),
     ("Open %1$s and %2$s", "%2$s en %1$s", "af", []),
+    # A plain conversion may be given its position, to reorder it.
+    ("Copy %s to %s", "Kopiere nach %2$s: %1$s", "de", []),
+    ("%s", "%1$s", "de", []),
+    ("%1$s", "%s", "de", []),
+    ("Copy %s to %s", "Kopiere nach %1$s: %1$s", "de", ["printf"]),
+    ("%d files", "%i Dateien", "de", []),
+    ("%d files", "%s Dateien", "de", ["printf"]),
+    ("Line %1 of %2", "Zeile %L1 von %L2", "de", []),
     # Placeholders may change places; numbered ones are KDE's and Qt's.
     ("This item costs %1 %2.", "Isto custa %2 %1.", "gl", []),
     ("In %1, a mount point for %2", "În %s, un punct de montare pentru %s", "ro", ["printf"]),

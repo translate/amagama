@@ -44,7 +44,7 @@ _checker = checks.StandardChecker()
 _PRINTF = re.compile(
     r"%(?:(\d+)\$|\((\w+)\))?[-+#0']*(\d+|\*)?(?:\.(?:\d+|\*))?"
     r"(?:hh|h|ll|l|L|q|j|z|t|I)*([diouxXeEfFgGaAcspn])"
-    r"|%(\d{1,2})(?![\d$])")
+    r"|%L?(\d{1,2})(?![\d$])")
 # LibreOffice's %PRODUCTNAME and the like.
 _VARIABLE = re.compile(r"%[A-Z][A-Z_]{3,}")
 # A date and time format, whose fields are reordered as the language needs.
@@ -98,12 +98,19 @@ _escapes = _failed("escapes")
 def printf_placeholders(text):
     """(placeholders, widened) of text: each placeholder (numbered %1 as
     itself, a conversion as its position or name and type, variables as
-    they are), and those with a width."""
+    they are), and those with a width. A conversion without a position
+    takes the next one, so %s %s can be translated as %2$s %1$s; %i is %d,
+    and Qt's %L1 is %1."""
     found, widened = collections.Counter(), set()
     text = text.replace("%%", "")
     for variable in _VARIABLE.findall(text):
         found[variable] += 1
+    plain = 0
     for position, name, width, conversion, numbered in _PRINTF.findall(_VARIABLE.sub("", text)):
+        if not (numbered or position or name):
+            plain += 1
+            position = str(plain)
+        conversion = "d" if conversion == "i" else conversion
         key = "%" + numbered if numbered else "%%%s%s" % (position or name, conversion)
         found[key] += 1
         if width:
