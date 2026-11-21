@@ -5888,6 +5888,10 @@ msgid "MySpeed"
 msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "N-Zik"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
 msgid "NClientV3"
 msgstr ""
 
