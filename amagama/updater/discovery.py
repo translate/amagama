@@ -68,6 +68,8 @@ FIELDS = ("url stargazerCount pushedAt isArchived isFork licenseInfo { spdxId } 
 FORGES = ("gitlab.com", "codeberg.org", "bitbucket.org", "framagit.org", "salsa.debian.org",
           "invent.kde.org")
 FORGE_PREFIXES = ("gitlab.", "git.", "code.")
+# A forge's pages that aren't repositories: /groups/<name>, /-/...
+FORGE_PAGES = ("groups", "projects", "users", "explore", "-")
 
 
 class RateLimited(FetchError):
@@ -279,9 +281,19 @@ def upstream(repository):
         parts = urllib.parse.urlsplit(link.rstrip(".").rstrip("/"))
         path = parts.path.strip("/")
         if parts.scheme in ("http", "https", "git") and parts.hostname not in (None, "github.com") \
-                and path.removesuffix(".git").rsplit("/", 1)[-1].lower() == name:
+                and path.removesuffix(".git").rsplit("/", 1)[-1].lower() == name \
+                and _repository_link(parts.scheme, parts.hostname, path):
             return "%s://%s/%s" % (parts.scheme, parts.netloc, path)
     return None
+
+
+def _repository_link(scheme, hostname, path):
+    """Whether a link is a repository's, not a web page's: git's, ending in
+    .git, or an owner/name path on a forge."""
+    if scheme == "git" or path.endswith(".git"):
+        return True
+    segments = path.split("/")
+    return _forge(hostname) and len(segments) >= 2 and not set(segments) & set(FORGE_PAGES)
 
 
 def _forge(hostname):
