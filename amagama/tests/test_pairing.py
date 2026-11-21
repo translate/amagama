@@ -62,6 +62,15 @@ def test_symfony_xliff():
     assert pairs(paired_store(bulgarian, english)) == [("Save file", "Запиши файла")]
 
 
+def test_symfony_xliff_untranslated():
+    """A unit with no target isn't its id translated; nor is English with none."""
+    english = read(xliff.xlifffile, symfony_xliff("en", [("save", "Save file"), ("open", "Open"),
+                                                         ("quit", "")]))
+    german = read(xliff.xlifffile, symfony_xliff("de", [("save", "Speichern"), ("open", ""),
+                                                        ("quit", "Beenden")]))
+    assert pairs(paired_store(german, english)) == [("Save file", "Speichern")]
+
+
 def test_php():
     english = read(php.phpfile, "<?php\n$string['save'] = 'Save file';\n")
     afrikaans = read(php.phpfile, "<?php\n$string['save'] = 'Stoor lêer';\n")
