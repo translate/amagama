@@ -148,19 +148,28 @@ def identity(url, ref, template, segment, licence):
 
 
 def previous_names(blocks):
-    """{identity(): name} of loaded sources-file blocks, for Names."""
-    return {identity(block.fetcher.settings.get("url", ""), block.fetcher.settings.get("ref"),
-                     block.template, block.segment, block.licence): block.name
-            for block in blocks if block.source == "git"}
+    """{(identity(), files): name} of loaded sources-file blocks, for Names,
+    and {identity(): name} for an identity only one block has."""
+    previous, shared = {}, set()
+    for block in blocks:
+        if block.source != "git":
+            continue
+        key = identity(block.fetcher.settings.get("url", ""), block.fetcher.settings.get("ref"),
+                       block.template, block.segment, block.licence)
+        if key in previous:
+            shared.add(key)
+        previous[key] = block.name
+        previous[key, tuple(sorted(block.selection.mask_texts))] = block.name
+    return {key: name for key, name in previous.items() if key not in shared}
 
 
 class Names(object):
     """The names blocks being written may take.
 
     taken are other blocks' names; previous maps the identity() of blocks
-    generated before to their names, which are kept: a block's name keys its
-    imports. before are all those blocks' names (default previous's): blocks
-    reading the same can share an identity.
+    generated before, with their files, to their names, which are kept: a
+    block's name keys its imports. before are all those blocks' names
+    (default previous's): blocks reading the same can share an identity.
     """
 
     def __init__(self, taken=(), previous=None, before=None):
@@ -171,9 +180,10 @@ class Names(object):
     def __contains__(self, name):
         return name in self.taken
 
-    def kept(self, identity):
-        """The name a block with identity had before, if it's still free."""
-        name = self.previous.get(identity)
+    def kept(self, identity, files=None):
+        """The name a block with identity, and files if given, had before, if
+        it's still free."""
+        name = self.previous.get(identity if files is None else (identity, tuple(sorted(files))))
         return name if name and name not in self.taken else None
 
     def unique(self, name):
