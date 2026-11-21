@@ -102,9 +102,11 @@ Before the first update, keep the current data as the ``legacy`` snapshot
 (``amagama-manage snapshot_db -s en --name legacy``, as ``amagama``); an
 update refuses to replace data it can't rebuild. Then::
 
-    sudo systemctl enable --now amagama-update.timer
+    sudo systemctl enable --now amagama-update.timer amagama-drop-old.timer
+    systemctl list-timers 'amagama-*'
 
-Each update imports what has been fetched so far.
+Each update imports what has been fetched so far. The last line should list
+the four timers.
 
 
 Switching from the old deployment
