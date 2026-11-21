@@ -276,7 +276,15 @@ def test_licence(spdx, expected):
      "https://gitlab.com/fdroid/fdroidserver", False, "https://gitlab.com/fdroid/fdroidserver"),
     ("https://github.com/o/app", "App", "https://gitlab.com/o/app", False,
      "https://gitlab.com/o/app"),
-    ("https://github.com/o/app", "App", "https://app.example/o/app", False, None)])
+    ("https://github.com/o/app", "App", "https://app.example/o/app", False, None),
+    # Links of the same name that aren't repositories.
+    ("https://github.com/someone/foo", "Mirror of https://sourceforge.net/projects/foo", None,
+     True, None),
+    ("https://github.com/someone/foo", "Read-only mirror. Docs: https://foo.example.org/manual/foo",
+     None, True, None),
+    ("https://github.com/someone/foo", "Foo", "https://gitlab.com/groups/foo", False, None),
+    ("https://github.com/someone/foo", "Mirror of https://gitlab.gnome.org/GNOME/foo/-/tree/main/foo",
+     None, True, None)])
 def test_upstream(url, description, homepage, issues, expected):
     found = {"url": url, "description": description, "homepageUrl": homepage,
              "hasIssuesEnabled": issues}
