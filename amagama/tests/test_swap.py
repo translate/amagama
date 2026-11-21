@@ -163,3 +163,40 @@ class TestSwap(object):
         result = run('dropdb', '-s', 'en', '--build', '--old')
         assert result.exit_code == 2
         assert "Use only one of --build and --old." in result.output
+
+
+class TestStoredLanguages(object):
+    """deploy_db stores the target languages, so the languages page doesn't
+    scan every target after a reload."""
+
+    def languages(self):
+        with amagama_server_factory().test_client() as client:
+            return client.get('/api/v1/languages/').get_json()['targetLanguages']
+
+    def test_read_from_deploy(self, run, load, pg_connection):
+        run('initdb', '-s', 'en')
+        load('Maak lêer oop')
+        assert run('deploy_db', input='y\n').exit_code == 0
+        with pg_connection.cursor() as cursor:
+            cursor.execute("SELECT lang FROM en.target_languages")
+            assert cursor.fetchall() == [('af',)]
+            # Read from what deploy_db stored, not from the targets.
+            cursor.execute("DELETE FROM en.targets")
+        pg_connection.commit()
+        assert self.languages() == ['af']
+
+    def test_not_deployed(self, run, load):
+        run('initdb', '-s', 'en')
+        load('Maak lêer oop')
+        assert self.languages() == ['af']
+
+    def test_write_adds_language(self, run, load, amagama_config):
+        run('initdb', '-s', 'en')
+        load('Maak lêer oop')
+        assert run('deploy_db', input='y\n').exit_code == 0
+        amagama_config(ENABLE_DATA_ALTERING_API=True)
+        with amagama_server_factory().test_client() as client:
+            response = client.put('/api/v1/en/zu/unit/Open file',
+                                  json={'source': 'Open file', 'target': 'Vula ifayela'})
+            assert response.status_code == 200, response.data
+        assert self.languages() == ['af', 'zu']
