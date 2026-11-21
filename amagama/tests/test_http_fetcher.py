@@ -152,3 +152,46 @@ def test_truncated_tarball_fails(tmp_path):
     path.write_bytes(path.read_bytes()[:20000])
     with pytest.raises(FetchError, match="fr.tgz"):
         fetchers.extract_tarball(str(path), str(tmp_path / "out"))
+
+
+class TestListingFails(object):
+    """A listing that fails, served as a success, keeps the last fetch."""
+
+    @pytest.fixture
+    def listing(self, monkeypatch):
+        pages = {}
+        monkeypatch.setattr(fetchers, "http_text", lambda url: pages["listing"])
+        monkeypatch.setattr(fetchers, "download", lambda url, path: open(path, "w").write(
+            'msgid ""\nmsgstr ""\n\nmsgid "a"\nmsgstr "b"\n'))
+        monkeypatch.setattr(fetchers.time, "sleep", lambda seconds: None)
+        return pages
+
+    def block(self):
+        return Block("debian", "Debian", "http", base_url="https://example.org/",
+                     path="{lang}/{lang}.po", max_age_days=1)
+
+    def fetch_all(self, listing, cache, *langs):
+        listing["listing"] = "".join('<a href="%s/">%s</a>' % (lang, lang) for lang in langs)
+        state = self.block().fetch(str(cache))
+        assert sorted(lang for path, lang in state["files"]) == sorted(langs)
+
+    def test_no_languages(self, listing, tmp_path):
+        self.fetch_all(listing, tmp_path, "af", "fr")
+        listing["listing"] = "<html>Down for maintenance</html>"
+        with pytest.raises(FetchError, match="0 languages listed, 2 last time"):
+            self.block().fetch(str(tmp_path))
+        assert sorted(os.listdir(tmp_path / "debian")) == ["af", "fetched.json", "fr"]
+
+    def test_few_languages(self, listing, tmp_path):
+        self.fetch_all(listing, tmp_path, "af", "de", "fr", "zu")
+        listing["listing"] = '<a href="af/">af</a>'
+        with pytest.raises(FetchError, match="1 languages listed, 4 last time"):
+            self.block().fetch(str(tmp_path))
+
+    def test_nothing_fetched(self, monkeypatch, tmp_path):
+        block = Block("x", "X", "http", base_url="https://example.org/", path="{lang}/{lang}.po")
+        monkeypatch.setattr(block.fetcher, "rotates", False)
+        monkeypatch.setattr(block, "fingerprint", lambda cache_dir: None)
+        monkeypatch.setattr(block.fetcher, "fetch", lambda dest: [])
+        with pytest.raises(FetchError, match="no files fetched"):
+            block.fetch(str(tmp_path))

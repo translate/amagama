@@ -356,6 +356,11 @@ class Block(object):
         # A rotating block's change is found by fetching its due languages.
         fingerprint = None if self.rotates else self.fingerprint(cache_dir)
         available = self.fetcher.languages() if self.rotates else None
+        # A listing that fails (an error page served as a success) lists few
+        # languages or none; fetching it would drop the others.
+        listed = (previous or {}).get("language_count")
+        if self.rotates and (not available or listed and len(available) < listed / 2):
+            raise FetchError("%d languages listed, %d last time" % (len(available), listed or 0))
         due = self.due(previous, available) if self.rotates else None
         final = self.directory(cache_dir)
         new = final + ".new"
@@ -445,8 +450,10 @@ class Block(object):
                         by_language.setdefault(lang, []).append(entry)
             # Only once every language has been tried: a run's few may lack them.
             tried = set(available or []) <= set((previous or {}).get("language_fetched", {}))
-            if self.selection.masks and not files and (due is None or tried):
-                raise FetchError("no file matches %s" % ", ".join(self.selection.mask_texts))
+            if self.fetcher.gives_files and not files and (due is None or tried):
+                if self.selection.masks:
+                    raise FetchError("no file matches %s" % ", ".join(self.selection.mask_texts))
+                raise FetchError("no files fetched")
         except BaseException:
             shutil.rmtree(new, ignore_errors=True)
             raise
