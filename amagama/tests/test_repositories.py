@@ -54,7 +54,7 @@ def test_blocks_skipped():
 def test_blocks_licences_and_mirrors():
     url = "https://gitlab.example/GNOME/app"
     found, _, read = generated({"https://github.com/GNOME/app": ([dict(PO, suffix=None)], {})},
-                               urls=[url], licences={"gitlab.example/GNOME/app": "GPL-2.0-or-later"},
+                               urls=[url], licences={"gitlab.example/gnome/app": "GPL-2.0-or-later"},
                                mirrors={url: "https://github.com/GNOME/app"})
     # The mirror is read; the block is the repository's.
     assert read == ["https://github.com/GNOME/app"]
