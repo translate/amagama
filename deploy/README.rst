@@ -260,4 +260,26 @@ Upgrading
     sudo git -C /srv/amagama/amagama pull --ff-only
     sudo /srv/amagama/venv/bin/pip install -r /srv/amagama/amagama/deploy/requirements.txt
     sudo /srv/amagama/venv/bin/python -c "from phply import phpparse; phpparse.make_parser()"
+
+The files from ``deploy/`` are copies, so a change to one takes effect only
+once it is put in place, as the table at the top says. Compare them first; a
+difference the pull didn't bring is a change made on the box, which copying
+would undo::
+
+    cd /srv/amagama/amagama/deploy
+    for f in amagama*.service amagama*.timer; do diff -u /etc/systemd/system/$f $f; done
+    diff -u /srv/amagama/uwsgi.ini uwsgi.ini
+    diff -u /etc/nginx/sites-enabled/amagama nginx-amagama.conf
+    diff -u /etc/logrotate.d/amagama-srv logrotate-amagama
+
+Then copy those that differ, and reload::
+
+    sudo install -m 644 uwsgi.ini /srv/amagama/
+    sudo install -m 644 amagama*.service amagama*.timer /etc/systemd/system/
+    sudo install -m 644 nginx-amagama.conf /etc/nginx/sites-enabled/amagama
+    sudo install -m 644 logrotate-amagama /etc/logrotate.d/amagama-srv
+    sudo systemctl daemon-reload
+    sudo nginx -t && sudo systemctl reload nginx
     sudo systemctl restart amagama.uwsgi
+
+A new timer also needs ``systemctl enable --now``, as the notes above say.
