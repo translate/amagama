@@ -52,6 +52,29 @@ against your checkout:
     $ docker compose run --rm test
 
 
+Fuzzing
+-------
+
+The fuzz targets in ``fuzz/`` feed generated input to the code that reads
+untrusted text: the file readers the updater uses, language codes, a lookup's
+options and text, and the language negotiation. They run with `Atheris
+<https://github.com/google/atheris>`_ under `ClusterFuzzLite
+<https://google.github.io/clusterfuzzlite/>`_: for a few minutes on each pull
+request, and for an hour every week on main. Each target's seed inputs are in
+``fuzz/corpus/``; the tests run every target over them.
+
+``amagama/tests/test_api_fuzz.py`` sends generated requests to the API and the
+web pages. The tests run it with the same examples every time; to run many
+more, new ones each time:
+
+.. code-block:: bash
+
+    $ AMAGAMA_FUZZ=1 pytest amagama/tests/test_api_fuzz.py
+
+A problem fuzzing finds gets an issue. Until it is fixed, the target or test
+lets that input through, with the issue number beside it.
+
+
 Planned work
 ------------
 
