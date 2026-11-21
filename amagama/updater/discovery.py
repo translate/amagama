@@ -28,6 +28,7 @@ import spdx_license_list
 
 from amagama.updater import crowdin, inlang, l10ntoml, lingui, linguas, transifex, wlc
 from amagama.updater.fetchers import TIMEOUT, USER_AGENT, FetchError
+from amagama.updater.generate import normal_url
 
 SEARCH = "https://api.github.com/search/code"
 ISSUES = "https://api.github.com/search/issues"
@@ -298,13 +299,17 @@ def select(found, min_stars=100, pushed_since=None, licensed=True):
     """(repositories kept, skipped) of stats(): kept are the stats of those
     not archived or forks, with at least min_stars, pushed since the date
     and (if licensed) a licence, most stars first; skipped counts the rest,
-    {("repositories", reason): count}."""
-    kept, skipped = [], {}
+    {("repositories", reason): count}. A repository found under two names
+    is kept once."""
+    kept, skipped, seen = [], {}, set()
 
     def skip(reason):
         skipped["repositories", reason] = skipped.get(("repositories", reason), 0) + 1
 
     for repository in found.values():
+        if normal_url(repository["url"]) in seen:
+            continue
+        seen.add(normal_url(repository["url"]))
         pushed = repository.get("pushedAt")
         pushed = datetime.date.fromisoformat(pushed[:10]) if pushed else None
         if repository.get("isArchived"):
