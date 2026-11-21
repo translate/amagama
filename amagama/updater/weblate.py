@@ -156,15 +156,16 @@ def _collapsed(masks, others=()):
     prefix, extension = shapes.pop()
     collapsed = "%s{lang}/**/*%s" % (prefix, extension)
     pattern = compile_mask(collapsed)
-    if any(pattern.match(_example(mask)) for mask in others):
+    if any(pattern.match(path) for mask in others for path in _examples(mask, extension)):
         return sorted(masks)
     return [collapsed]
 
 
-def _example(mask):
-    """A path mask matches."""
-    return re.sub(r"\*\*/|\*\*|\*", lambda wildcard: "" if wildcard.group() == "**/" else "x",
-                  mask).replace("{lang}", "af")
+def _examples(mask, extension):
+    """Paths mask matches: with its wildcards as "x", and as "x<extension>",
+    which a wildcard extension (terms.*) matches too."""
+    return [re.sub(r"\*\*/|\*\*|\*", lambda wildcard: "" if wildcard.group() == "**/" else part,
+                   mask).replace("{lang}", "af") for part in ("x", "x" + extension)]
 
 
 def readable(component):
