@@ -106,6 +106,32 @@ class TestURLs(object):
         assert response.headers['X-Content-Type-Options'] == 'nosniff'
         assert response.json == data
 
+    @pytest.mark.parametrize('source, quoted, normalised', [
+        ('https://example.org', 'https%3A%2F%2Fexample.org', '/unit/https:/example.org'),
+        ('.', '.', '/unit/'),
+        ('..', '..', '/'),
+        ('a//b', 'a//b', '/unit/a/b'),
+        ('Lêer/oop', 'L%C3%AAer%2Foop', '/unit/L\xc3\xaaer/oop'),
+        # Not quoted by the client: bytes, as Latin-1, like PATH_INFO.
+        ('Lêer//oop', 'L\xc3\xaaer//oop', '/unit/L\xc3\xaaer/oop'),
+    ])
+    def test_source_in_path_as_sent(self, amagama, source, quoted, normalised):
+        # nginx's PATH_INFO is its normalised URI; REQUEST_URI is as sent.
+        with amagama.app_context():
+            amagama.tmdb.add_test_unit(source, 'Teiken')
+        client = amagama.test_client()
+        prefix = '/api/v1/en/af'
+        response = client.get(prefix + '/unit/' + quoted + '?max_candidates=1',
+                              environ_overrides={
+                                  'PATH_INFO': prefix + normalised,
+                                  'REQUEST_URI': prefix + '/unit/' + quoted +
+                                                 '?max_candidates=1'})
+        assert response.status_code == 200
+        assert response.json == client.get(prefix + '/unit/', query_string={
+            'source': source, 'max_candidates': 1}).json
+        if source != '.':  # Not a word to look up.
+            assert [(c['source'], c['quality']) for c in response.json] == [(source, 100)]
+
     def test_limits(self, amagama):
         with amagama.app_context():
             for i in range(100):
