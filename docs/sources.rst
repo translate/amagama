@@ -414,7 +414,8 @@ Source types
   (default 14, a block setting that ``[defaults]`` can give) ago. After
   that, or when it can't be reached, ``url`` is, and ``fetch_sources`` and
   ``update`` say so; a mirror that hasn't moved for twice that is asked
-  about:
+  about. When ``url`` can't be reached, the block fails and keeps its last
+  fetch, since whether the mirror is current can't be told without it:
 
   .. code-block:: toml
 
