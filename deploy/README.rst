@@ -255,25 +255,24 @@ a rebuild stops or the uWSGI reload after it fails.
 Upgrading
 ---------
 
-::
+The files from ``deploy/`` are copies, so a change to one takes effect only
+once it is put in place, as the table at the top says, and the copy below
+replaces them all. Before the pull, while ``deploy/`` still matches what was
+installed, compare them: a difference is a change made on the box, which the
+copy would undo, so move it into ``deploy/`` first::
+
+    cd /srv/amagama/amagama/deploy
+    for f in amagama*.service amagama*.timer; do diff -u $f /etc/systemd/system/$f; done
+    diff -u uwsgi.ini /srv/amagama/uwsgi.ini
+    diff -u nginx-amagama.conf /etc/nginx/sites-enabled/amagama
+    diff -u logrotate-amagama /etc/logrotate.d/amagama-srv
+
+Then::
 
     sudo git -C /srv/amagama/amagama pull --ff-only
     sudo /srv/amagama/venv/bin/pip install -r /srv/amagama/amagama/deploy/requirements.txt
     sudo /srv/amagama/venv/bin/python -c "from phply import phpparse; phpparse.make_parser()"
-
-The files from ``deploy/`` are copies, so a change to one takes effect only
-once it is put in place, as the table at the top says. Compare them first; a
-difference the pull didn't bring is a change made on the box, which copying
-would undo::
-
     cd /srv/amagama/amagama/deploy
-    for f in amagama*.service amagama*.timer; do diff -u /etc/systemd/system/$f $f; done
-    diff -u /srv/amagama/uwsgi.ini uwsgi.ini
-    diff -u /etc/nginx/sites-enabled/amagama nginx-amagama.conf
-    diff -u /etc/logrotate.d/amagama-srv logrotate-amagama
-
-Then copy those that differ, and reload::
-
     sudo install -m 644 uwsgi.ini /srv/amagama/
     sudo install -m 644 amagama*.service amagama*.timer /etc/systemd/system/
     sudo install -m 644 nginx-amagama.conf /etc/nginx/sites-enabled/amagama
