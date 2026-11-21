@@ -6,8 +6,10 @@
 # the AUTHORS.md file for copyright and authorship information.
 
 
+import io
 import os
 import socket
+import tarfile
 import threading
 
 import pytest
@@ -121,3 +123,29 @@ def test_short_download_fails(server, tmp_path):
     replies["/fr.po"] = b"HTTP/1.1 200 OK\r\nContent-Length: 1000\r\n\r\n" + b"x" * 10
     with pytest.raises(FetchError, match="got 10 of 1000 bytes"):
         fetchers.download(url + "/fr.po", str(tmp_path / "fr.po"))
+
+
+def test_cut_chunked_download_fails(server, tmp_path):
+    url, replies = server
+    replies["/fr.po"] = b"HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n10\r\nfr po"
+    with pytest.raises(FetchError, match="IncompleteRead"):
+        fetchers.download(url + "/fr.po", str(tmp_path / "fr.po"))
+
+
+def test_text_not_utf8_fails(server):
+    url, replies = server
+    replies["/"] = b"HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\n\xff\xfe<a"
+    with pytest.raises(FetchError, match="can't decode"):
+        fetchers.http_text(url + "/")
+
+
+def test_truncated_tarball_fails(tmp_path):
+    path = tmp_path / "fr.tgz"
+    with tarfile.open(path, "w:gz") as tar:
+        data = os.urandom(100000)
+        info = tarfile.TarInfo("fr/fr.po")
+        info.size = len(data)
+        tar.addfile(info, io.BytesIO(data))
+    path.write_bytes(path.read_bytes()[:20000])
+    with pytest.raises(FetchError, match="fr.tgz"):
+        fetchers.extract_tarball(str(path), str(tmp_path / "out"))

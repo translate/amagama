@@ -9,6 +9,7 @@
 """The sources file: which blocks of translations to fetch, and from where."""
 
 import datetime
+import functools
 import hashlib
 import json
 import math
@@ -50,6 +51,20 @@ def sparse_patterns(files, template=None, keep=None):
     """Git sparse-checkout patterns for a block's files: {lang} as *."""
     return sorted({mask.replace("{lang}", "*") for mask in files}
                   | ({template} if template else set()) | set(keep or []))
+
+
+def _fetch_errors(method):
+    """method, raising any error as a FetchError, so a fetcher's unexpected
+    one fails its block instead of the whole run."""
+    @functools.wraps(method)
+    def wrapper(*args, **kwargs):
+        try:
+            return method(*args, **kwargs)
+        except FetchError:
+            raise
+        except Exception as e:
+            raise FetchError("%s: %s" % (type(e).__name__, e)) from e
+    return wrapper
 
 
 class Block(object):
@@ -258,6 +273,7 @@ class Block(object):
             note += "; is it kept current?"
         return note
 
+    @_fetch_errors
     def changed(self, cache_dir):
         """Whether the source may differ from the last fetch.
 
@@ -327,6 +343,7 @@ class Block(object):
         part = int(hashlib.sha256(self.name.encode("utf-8")).hexdigest()[:8], 16) / 0x100000000
         return days * part
 
+    @_fetch_errors
     def fetch(self, cache_dir):
         """Fetch into the cache, replacing the last fetch only on success.
 

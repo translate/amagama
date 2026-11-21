@@ -17,6 +17,7 @@ import contextvars
 import fnmatch
 import gzip
 import hashlib
+import http.client
 import io
 import json
 import logging
@@ -34,6 +35,7 @@ import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
 import zipfile
+import zlib
 
 from translate.storage import po
 
@@ -59,9 +61,16 @@ def _request(url, method="GET"):
         raise FetchError("%s: %s" % (url, e), getattr(e, "code", None))
 
 
+# What reading a response's body can raise, once it has started.
+READ_ERRORS = (OSError, http.client.HTTPException)
+
+
 def http_text(url):
     with _request(url) as response:
-        return response.read().decode("utf-8")
+        try:
+            return response.read().decode("utf-8")
+        except (*READ_ERRORS, UnicodeDecodeError) as e:
+            raise FetchError("%s: %s" % (url, e))
 
 
 def http_fingerprint(url):
@@ -76,7 +85,10 @@ def http_fingerprint(url):
 
 def download(url, path):
     with _request(url) as response, open(path, "wb") as f:
-        shutil.copyfileobj(response, f)
+        try:
+            shutil.copyfileobj(response, f)
+        except READ_ERRORS as e:
+            raise FetchError("%s: %s" % (url, e))
         # A connection that drops early ends the body without an error.
         length = response.headers.get("Content-Length", "")
         if length.isdigit() and f.tell() != int(length):
@@ -87,7 +99,7 @@ def extract_tarball(path, dest):
     try:
         with tarfile.open(path) as tar:
             tar.extractall(dest, filter="data")
-    except (tarfile.TarError, OSError) as e:
+    except (tarfile.TarError, OSError, EOFError, zlib.error, lzma.LZMAError) as e:
         raise FetchError("%s: %s" % (path, e))
 
 
@@ -96,7 +108,7 @@ def extract_zip(path, dest):
     try:
         with zipfile.ZipFile(path) as archive:
             archive.extractall(dest)
-    except (zipfile.BadZipFile, OSError) as e:
+    except (zipfile.BadZipFile, OSError, EOFError, zlib.error) as e:
         raise FetchError("%s: %s" % (path, e))
 
 
