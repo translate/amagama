@@ -102,7 +102,9 @@ jobs:
             echo "Nothing changed."
             exit 0
           fi
-          branch="discovered-sources-$(date -u +%Y-%m-%d)"
+          # One branch: a rerun, or a run with last month's pull request still
+          # open, replaces it and updates that pull request.
+          branch=discovered-sources
           for report in "$RUNNER_TEMP"/reports/*.md; do
             printf '### %s\n\n' "$(basename "$report" .md)"
             cat "$report"
@@ -113,9 +115,16 @@ jobs:
               -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
               commit -qam "Regenerate the discovered sources files"
           gh auth setup-git
-          git push origin "$branch"
-          gh pr create --base "$GITHUB_REF_NAME" --head "$branch" --body-file "$RUNNER_TEMP/body.md" \
-            --title "Discovered sources, $(date -u +%Y-%m-%d)"
+          git fetch -q --depth=1 origin "+refs/heads/$branch:refs/remotes/origin/$branch" || true
+          git push --force-with-lease origin "$branch"
+          title="Discovered sources, $(date -u +%Y-%m-%d)"
+          number=$(gh pr list --head "$branch" --state open --json number --jq '.[].number')
+          if [ -n "$number" ]; then
+            gh pr edit "$number" --body-file "$RUNNER_TEMP/body.md" --title "$title"
+          else
+            gh pr create --base "$GITHUB_REF_NAME" --head "$branch" --body-file "$RUNNER_TEMP/body.md" \
+              --title "$title"
+          fi
           # A pull request the workflow's token opens starts no workflows: start the tests.
           gh workflow run test.yml --ref "$branch"
       - name: Fail if a file couldn't be regenerated
