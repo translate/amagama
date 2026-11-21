@@ -91,18 +91,28 @@ def _utc(stamp):
 @contextlib.contextmanager
 def _updating(filename):
     """Yield the figures in filename (new ones if none) to change, then write
-    them, readable by all, in place of the file. One change at a time."""
+    them, readable by all, in place of the file. One change at a time. A file
+    load() can't use (unreadable, or another version) is kept as
+    filename.<n>, as its history can't be computed again."""
     directory = os.path.dirname(os.path.abspath(filename))
     os.makedirs(directory, exist_ok=True)
     with open(filename + ".lock", "w") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX)
-        figures = load(filename) or {"version": VERSION, "sourceLanguages": {}, "use": None}
+        figures = load(filename)
+        unusable = figures is None and os.path.exists(filename)
+        if figures is None:
+            figures = {"version": VERSION, "sourceLanguages": {}, "use": None}
         yield figures
         fd, new = tempfile.mkstemp(dir=directory, prefix=".stats-", suffix=".json")
         try:
             with os.fdopen(fd, "w", encoding="utf-8") as f:
                 json.dump(figures, f, ensure_ascii=False, sort_keys=True)
             os.chmod(new, 0o644)
+            if unusable:
+                n = 1
+                while os.path.lexists("%s.%d" % (filename, n)):
+                    n += 1
+                os.link(filename, "%s.%d" % (filename, n))
             os.replace(new, filename)
         except BaseException:
             os.remove(new)
