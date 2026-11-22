@@ -126,9 +126,6 @@ def test_stored_text_found(get, stored, min_similarity, max_candidates):
     response = get("/api/v1/en/af/unit/%s" % quote(source, safe=''), query)
     if response is None:
         return
-    candidates = integer(max_candidates or "")
-    if candidates is not None and candidates < 0:
-        return  # #3672: a negative max_candidates drops matches.
     found = [(match['source'], match['target']) for match in response.get_json()]
     if max(integer(min_similarity or "") or 70, 70) > 100:
         assert found == []

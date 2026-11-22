@@ -1296,7 +1296,9 @@ ORDER BY rank DESC{order};
 
         max_length = current_app.config.get('MAX_LENGTH', 2000)
         min_similarity = max(min_similarity or current_app.config.get('MIN_SIMILARITY', 70), 70)
-        max_candidates = min(max_candidates or current_app.config.get('MAX_CANDIDATES', 5), 30)
+        if not max_candidates or max_candidates < 1:
+            max_candidates = current_app.config.get('MAX_CANDIDATES', 5)
+        max_candidates = min(max_candidates, 30)
 
         source_len = len(unit_source)
         minlen = min_levenshtein_length(source_len, min_similarity)
