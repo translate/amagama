@@ -1202,3 +1202,19 @@ def test_carry_through_link_outside(tmp_path):
     entry = ["res/af.properties", "af", "eng/en.properties"]
     assert sources._carry(str(final), str(new), entry, {}) is False
     assert not os.path.exists(new / "eng")
+
+
+def test_carry_with_template_fetched_again(tmp_path):
+    """A file is still carried when this fetch brought its template, though
+    the last fetch's copy was reached through a link leading outside."""
+    final, new, outside = tmp_path / "x", tmp_path / "x.new", tmp_path / "outside"
+    for directory in (final / "res", new / "eng", outside):
+        directory.mkdir(parents=True)
+    (final / ("res/af.properties" + compressed.SUFFIX)).write_bytes(b"af")
+    (outside / "en.properties").write_text("a=Secret\n")
+    os.symlink(str(outside), final / "eng")
+    (new / "eng/en.properties").write_text("a=File\n")
+    entry = ["res/af.properties", "af", "eng/en.properties"]
+    assert sources._carry(str(final), str(new), entry, {}) is True
+    assert (new / ("res/af.properties" + compressed.SUFFIX)).read_bytes() == b"af"
+    assert (new / "eng/en.properties").read_text() == "a=File\n"

@@ -540,7 +540,7 @@ def _carry(final, new, entry, previous):
         names.append(entry[2])
     real_final = os.path.realpath(final)
     if not all(os.path.realpath(os.path.join(final, name)).startswith(real_final + os.sep)
-               for name in names):
+               for name in names if not os.path.exists(os.path.join(new, name))):
         return False
     for name in names:
         source, target = os.path.join(final, name), os.path.join(new, name)
