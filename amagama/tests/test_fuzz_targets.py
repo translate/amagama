@@ -10,6 +10,7 @@
 
 import contextlib
 import importlib.util
+import os
 import pathlib
 import sys
 import types
@@ -26,6 +27,8 @@ def load(monkeypatch):
     atheris.instrument_imports = contextlib.nullcontext
     atheris.instrument_func = lambda function: function
     monkeypatch.setitem(sys.modules, "atheris", atheris)
+    # The targets import fuzzing.py from beside them.
+    monkeypatch.syspath_prepend(str(FUZZ))
 
     def load(path):
         spec = importlib.util.spec_from_file_location(path.stem, path)
@@ -58,3 +61,25 @@ def test_reader_seeds(load):
         units = [unit for store in target.read(name.decode(), data) for unit in store.units
                  if target.tmdb.TMDB._usable_unit(target.IMPORTER, unit)]
         assert units, path.name
+
+
+@pytest.mark.skipif(not TARGETS, reason="no fuzz/ beside the package")
+def test_within(load):
+    """-max_total_time loses the time spent starting, and nothing else changes."""
+    fuzzing = load(FUZZ / "fuzzing.py")
+    argv = ["/out/fuzz_readers", "-rss_limit_mb=2560", "-max_total_time=1200", "corpus"]
+    assert fuzzing.within(argv, 41.2) == [
+        "/out/fuzz_readers", "-rss_limit_mb=2560", "-max_total_time=1158", "corpus"]
+    assert fuzzing.within(["-max_total_time=30"], 100) == ["-max_total_time=1"]
+    assert fuzzing.within(["-runs=5", "corpus"], 100) == ["-runs=5", "corpus"]
+
+
+@pytest.mark.skipif(not TARGETS, reason="no fuzz/ beside the package")
+def test_running_for(load):
+    fuzzing = load(FUZZ / "fuzzing.py")
+    spent = fuzzing.running_for()
+    if os.path.exists("/proc/self/stat") and os.path.exists("/proc/uptime"):
+        with open("/proc/uptime") as f:
+            assert 0 < spent < float(f.read().split()[0])
+    else:
+        assert spent == 0.0

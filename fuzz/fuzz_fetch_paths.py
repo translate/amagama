@@ -15,9 +15,9 @@ The input is lines: the parts of one path.
 
 import os
 import posixpath
-import sys
 
 import atheris
+import fuzzing
 
 with atheris.instrument_imports():
     from amagama.updater import fetchers
@@ -45,8 +45,7 @@ def TestOneInput(data):
 
 
 def main():
-    atheris.Setup(sys.argv, TestOneInput)
-    atheris.Fuzz()
+    fuzzing.run(TestOneInput)
 
 
 if __name__ == "__main__":

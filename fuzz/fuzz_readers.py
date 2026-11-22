@@ -18,11 +18,11 @@ mustn't fail.
 import importlib
 import logging
 import os
-import sys
 import tempfile
 import types
 
 import atheris
+import fuzzing
 
 with atheris.instrument_imports():
     from amagama import tmdb
@@ -107,8 +107,7 @@ def TestOneInput(data):
 def main():
     # It warns about each malformed escape, thousands of times a run.
     logging.getLogger("translate.misc.quote").setLevel(logging.ERROR)
-    atheris.Setup(sys.argv, TestOneInput)
-    atheris.Fuzz()
+    fuzzing.run(TestOneInput)
 
 
 if __name__ == "__main__":
