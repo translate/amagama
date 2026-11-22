@@ -345,6 +345,17 @@ def test_po_undecodable_crlf(tmp_path, size):
 
 
 @pytest.mark.parametrize("size", [None, 40])
+def test_po_lf_entry_in_crlf_file(tmp_path, size):
+    path = tmp_path / "af.po"
+    path.write_bytes(b'msgid ""\r\nmsgstr ""\r\n"Content-Type: text/plain; charset=UTF-8\\n"\r\n\r\n'
+                     b'msgid "Open"\r\nmsgstr "Maak oop"\r\n\r\n'
+                     b'#. A menu item\nmsgid "Save file"\nmsgstr "Stoor l\xc3\xaaer"\n\r\n'
+                     b'msgid "Quit"\r\nmsgstr "Verlaat"\r\n')
+    stores = list(open_pieces(str(path), size=size)) if size else [open_store(str(path))]
+    assert sources(stores) == ["Open", "Save file", "Quit"]
+
+
+@pytest.mark.parametrize("size", [None, 40])
 def test_po_undecodable_without_blank_lines(tmp_path, size):
     path = tmp_path / "af.po"
     path.write_bytes(b'msgid ""\nmsgstr ""\n"Content-Type: text/plain; charset=UTF-8\\n"\n'
