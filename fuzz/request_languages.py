@@ -30,8 +30,6 @@ def TestOneInput(data):
     languages.not_language(code)
     languages.is_android_locale(code)
     languages.map_language(code, {"x": ""})
-    if not code.isascii():
-        return  # #3674: some non-ASCII letters pass as a modifier.
     if canonical is not None:
         assert languages.normalise_language(canonical) == canonical, (code, canonical)
     if table is not None:
