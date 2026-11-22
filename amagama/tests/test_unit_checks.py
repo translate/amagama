@@ -8,7 +8,6 @@
 
 import os
 import random
-import time
 
 import pytest
 from click.testing import CliRunner
@@ -356,13 +355,20 @@ def test_slow_check_left_out_on_long_text(monkeypatch):
                        "Maak die lêer nou oop en stoor dit.") == 0
 
 
-def test_functions_check_left_out_on_long_text():
+def test_functions_check_left_out_on_long_text(monkeypatch):
+    checked = []
+    monkeypatch.setattr(unit_checks.checks.StandardChecker, "functions",
+                        lambda self, str1, str2: checked.append(str2) or True, raising=False)
+    checks = unit_checks.Checks(["functions"])
+    checks.mask("af", None, "Run setup() now", "Begin nou")
+    # Cubic backtracking: minutes for this, were it checked.
+    checks.mask("af", None, "x ()", "a." * 2000 + " ()")
+    assert checked == ["Begin nou"]
+
+
+def test_functions_check_on_short_text():
     checks = unit_checks.Checks(["functions"])
     assert checks.mask("af", None, "Run setup() now", "Begin nou") == 1
-    # Cubic backtracking: minutes for this, were it checked.
-    start = time.monotonic()
-    assert checks.mask("af", None, "x ()", "a." * 2000 + " ()") == 0
-    assert time.monotonic() - start < 1
 
 
 def test_broken_ttk_check_passes(monkeypatch):
