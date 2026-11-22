@@ -31,8 +31,8 @@ def client(amagama_config):
     return app.test_client()
 
 
-def lookup(client, source):
-    response = client.get('/api/v1/en/af/unit/%s' % source)
+def lookup(client, source, tlang='af'):
+    response = client.get('/api/v1/en/%s/unit/%s' % (tlang, source))
     assert response.status_code == 200
     return [(c['source'], c['target']) for c in response.get_json()]
 
@@ -105,6 +105,17 @@ class TestWriteAPI(object):
         assert response.status_code == 200
         assert response.data == b'added 1 units from x.po'
         assert lookup(client, 'Open file') == [('Open file', 'Maak lêer oop')]
+
+    def test_put_store_read_as_the_updater_does(self, client):
+        """An uploaded plural pairs the singular with the form for n=1."""
+        po = ('msgid ""\nmsgstr ""\n"Content-Type: text/plain; charset=UTF-8\\n"\n'
+              '"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : '
+              'n%100>=3 && n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\\n"\n\n'
+              'msgid "Open %d file"\nmsgid_plural "Open %d files"\n'
+              + ''.join('msgstr[%d] "<form %d>"\n' % (i, i) for i in range(6)))
+        response = client.put('/api/v1/en/ar/store/a/b/ar.po', data=po.encode('utf-8'))
+        assert response.status_code == 200, response.data
+        assert lookup(client, 'Open %d file', 'ar') == [('Open %d file', '<form 1>')]
 
     @pytest.mark.parametrize('method', ['put', 'post'])
     def test_unit_source_in_query(self, client, method):
