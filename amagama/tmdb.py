@@ -27,6 +27,7 @@ import weakref
 
 from flask import abort, current_app
 from psycopg2 import errors, sql
+from psycopg2.extras import execute_values
 from translate.lang import data
 from translate.search.lshtein import LevenshteinComparer
 from translate.storage import xliff
@@ -40,6 +41,8 @@ from amagama.updater.languages import COUNTRY_CODES, normalise_language, not_lan
 # Shorter strings always fit a btree index row (2704 bytes, with the row's
 # other columns); a longer one may not, however it compresses.
 SAFE_INDEX_BYTES = 2600
+# Rows per multi-row INSERT when a file's units are stored.
+INSERT_PAGE = 1000
 
 _table_name_cache = {}
 
@@ -1047,6 +1050,39 @@ ORDER BY rank DESC{order};
             ON CONFLICT DO NOTHING""", (row[0], iid))
         return True
 
+    def _add_batch(self, units, cursor, iid):
+        """add_dict() for units in a few statements, not a few each: targets
+        too short to risk the index limit, linked to import iid, in a schema
+        with its unique index. Returns how many units were stored."""
+        if not units:
+            return 0
+        sids = self._sids(cursor, {unit['source'] for unit in units},
+                          self.schema(units[0]['source_lang']))
+        # One row per target: DO UPDATE can't touch a row twice in a statement.
+        rows = sorted({(sids[unit['source']], unit['target'], unit['target_lang'])
+                       for unit in units}, key=lambda row: (row[1], row[0]))
+        tids = execute_values(cursor, """INSERT INTO targets (sid, text, lang) VALUES %s
+            ON CONFLICT (sid, text, lang) DO UPDATE SET sid = EXCLUDED.sid
+            RETURNING tid""", rows, page_size=INSERT_PAGE, fetch=True)
+        execute_values(cursor, """INSERT INTO target_imports (tid, iid) VALUES %s
+            ON CONFLICT DO NOTHING""", sorted({(row[0], iid) for row in tids}),
+            page_size=INSERT_PAGE)
+        return len(units)
+
+    @staticmethod
+    def _sids(cursor, sources, schema):
+        """{source: sid} for sources, which get_all_sids() stored: from the
+        cache, and the rest in one query."""
+        cached = current_app.cache.get_dict(*(build_cache_key(s, schema) for s in sources))
+        sids = {split_cache_key(key): sid for key, sid in cached.items() if sid}
+        missing = tuple(sources - set(sids))
+        if missing:
+            cursor.execute("SELECT text, sid FROM sources WHERE text IN %s", (missing,))
+            sids.update(cursor.fetchall())
+        if len(sids) < len(sources):
+            raise Exception("sid not found although it should have existed")
+        return sids
+
     def get_all_sids(self, units, source_lang, project_style):
         """Ensure that all source strings are in the database+cache.
 
@@ -1091,7 +1127,10 @@ ORDER BY rank DESC{order};
             insert = """INSERT INTO sources (text, vector, length)
                 VALUES (%(source)s, TO_TSVECTOR(%(lang_config)s, %(indexed_source)s), %(length)s)
                 ON CONFLICT DO NOTHING"""
-            cursor.executemany(insert, [p for p in params if not _long(p["source"])])
+            execute_values(cursor, """INSERT INTO sources (text, vector, length) VALUES %s
+                ON CONFLICT DO NOTHING""", [p for p in params if not _long(p["source"])],
+                template="(%(source)s, TO_TSVECTOR(%(lang_config)s, %(indexed_source)s), %(length)s)",
+                page_size=INSERT_PAGE)
             rejected = {p["source"] for p in params if _long(p["source"])
                         and not _insert_indexable(cursor, insert, p, p["source"])}
             cursor.execute(select_query, {"list": tuple(to_store)})
@@ -1185,14 +1224,20 @@ ORDER BY rank DESC{order};
             # We sort to avoid deadlocks during parallel import.
             units.sort(key=lambda x: x['target'])
             count = 0
+            batch = []
             for unit in units:
                 unit.update({
                     'source_lang': slang,
                     'target_lang': tlang,
                     'lang_config': lang_config,
                 })
-                if unit['source'] not in too_long and self.add_dict(unit, cursor, iid, unique):
+                if unit['source'] in too_long:
+                    continue
+                if iid is not None and unique and not _long(unit['target']):
+                    batch.append(unit)
+                elif self.add_dict(unit, cursor, iid, unique):
                     count += 1
+            count += self._add_batch(batch, cursor, iid)
             if count:
                 self._add_target_language(cursor, tlang)
             if commit:
