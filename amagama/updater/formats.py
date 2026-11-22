@@ -226,10 +226,26 @@ def _decodable(data):
     return b"".join(kept), dropped
 
 
+def _without_obsolete(data):
+    """data without its obsolete lines, and the entries left with only comments.
+
+    Obsolete entries aren't imported, and Translate Toolkit reads one that
+    stops short into the next entry.
+    """
+    kept = []
+    for entry in _po_entries(data.splitlines(keepends=True)):
+        lines = [line for line in entry if not line.startswith(b"#~")]
+        if len(lines) == len(entry) or not all(line.startswith(b"#") for line in lines):
+            kept.append(b"".join(lines) + _newline(entry))
+    return b"".join(kept)
+
+
 def _read_po(path, data):
     """The PO file's store; undecodable counts the entries left out."""
     # Translate Toolkit splits lines on the first msgid's ending only.
     data = _PO_DOMAIN.sub(b"", data).replace(b"\r\n", b"\n")
+    if b"#~" in data:
+        data = _without_obsolete(data)
     store = po.pofile()
     store.filename = path
     store.undecodable = 0
