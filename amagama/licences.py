@@ -13,6 +13,8 @@ import functools
 import spdx_license_list
 from license_expression import LicenseSymbol, Licensing
 
+from amagama.source_options import MALFORMED
+
 
 @functools.cache
 def spdx_licensing():
@@ -28,7 +30,12 @@ def spdx_licensing():
 
 def normalise_licence(value):
     """Return value as a normalised SPDX expression, or raise ValueError."""
-    info = spdx_licensing().validate(value, strict=True)
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError("not a current SPDX licence expression: %r" % (value,))
+    try:
+        info = spdx_licensing().validate(value, strict=True)
+    except MALFORMED as e:
+        raise ValueError("not a current SPDX licence expression: %r" % value) from e
     if info.errors:
         raise ValueError("not a current SPDX licence expression: %s" % "; ".join(info.errors))
     return info.normalized_expression

@@ -62,6 +62,11 @@ class TestSourceOptions(object):
         ('GPL-2.0-only', ('GPL-*', '!GPL-3.0-*'), True),
         (None, ('*',), False),
         ('(MIT', ('*',), False),
+        # license-expression gives None or an error of its own for these.
+        (' ', ('*',), False),
+        ('()', ('*',), False),
+        (',', ('*',), False),
+        ('(and +', ('*',), False),
     ])
     def test_licence_allowed(self, expression, allowed, result):
         assert licence_allowed(expression, allowed) is result
