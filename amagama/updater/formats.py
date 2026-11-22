@@ -16,6 +16,7 @@ paired with its template first.
 
 import codecs
 import csv
+import datetime
 import functools
 import gettext
 import importlib
@@ -25,6 +26,7 @@ import os
 import re
 
 from lxml import etree
+from translate.lang.data import cldr_plural_categories
 from translate.misc.multistring import multistring
 from translate.storage import factory, po, poheader, tmx, xliff
 from translate.storage.base import TranslationStore, TranslationUnit
@@ -251,8 +253,30 @@ def _php_parser(make_parser):
     return parser, [production.callable for production in parser.productions]
 
 
+def _yaml_text(flatten):
+    """YAMLFile._flatten, leaving out numbers, dates and binary values, which
+    it otherwise fails the whole file for."""
+    def text_only(self, data, *args, **kwargs):
+        if isinstance(data, (float, datetime.date, bytes)):
+            return iter(())
+        return flatten(self, data, *args, **kwargs)
+    return text_only
+
+
+def _yaml_plurals(parse_dict):
+    """RubyYAMLFile._parse_dict, leaving out a plural whose forms aren't all
+    text: it makes the plural of them directly, which fails the whole file."""
+    def text_plurals(self, data, prev):
+        if data and all(key in cldr_plural_categories for key in data) and \
+                not all(value is None or isinstance(value, str) for value in data.values()):
+            return iter(())
+        return parse_dict(self, data, prev)
+    return text_plurals
+
+
 def _reader(module):
-    """The reader module, with translate's PHP parser built once per process.
+    """The reader module, with translate's PHP parser built once per process,
+    and its YAML reader taking only text.
 
     The PHP reader builds a parser for each file, and phply rebuilds its
     tables each time it can't save them (a read-only site-packages): about
@@ -260,6 +284,9 @@ def _reader(module):
     so they're restored first.
     """
     module = importlib.import_module(module)
+    if module.__name__ == "translate.storage.yaml" and not hasattr(module, "_amagama_text"):
+        module.YAMLFile._flatten = module._amagama_text = _yaml_text(module.YAMLFile._flatten)
+        module.RubyYAMLFile._parse_dict = _yaml_plurals(module.RubyYAMLFile._parse_dict)
     if module.__name__ == "translate.storage.php" and not hasattr(module, "_amagama_parser"):
         make_parser = module.make_parser
 

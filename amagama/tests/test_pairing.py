@@ -332,6 +332,22 @@ def test_yaml_limits_left_out_where_not_taken(tmp_path, monkeypatch):
         "Text"]
 
 
+@pytest.mark.parametrize("value", ["0.5", ".inf", "2020-01-01", "2020-01-01T10:00:00Z",
+                                   "!!binary aGVsbG8="])
+def test_yaml_other_values_left_out(tmp_path, value):
+    store = opened(tmp_path, "af.yml", "yaml", "title: Lêers\nvalue: %s\n" % value)
+    assert [unit.source for unit in store.units] == ["Lêers"]
+
+
+@pytest.mark.parametrize("value", ["3", "0.5", "2020-01-01", "!!binary aGVsbG8="])
+def test_ruby_yaml_plural_of_other_values_left_out(tmp_path, value):
+    """Only a plural whose forms are all text is read; the rest of the file still is."""
+    store = opened(tmp_path, "af.yml", "ruby-yaml",
+                   "af:\n  files:\n    one: '%%{count} lêer'\n    other: '%%{count} lêers'\n"
+                   "  size:\n    one: '1'\n    other: %s\n  title: Lêers\n" % value)
+    assert [str(unit.source) for unit in store.units] == ["%{count} lêer", "Lêers"]
+
+
 def test_xwiki_properties(tmp_path):
     english = opened(tmp_path, "ApplicationResources.properties", "xwiki-properties",
                      "core.save=Save ''{0}''\n")
