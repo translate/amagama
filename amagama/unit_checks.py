@@ -205,8 +205,9 @@ TTK_LEFT_OUT = frozenset({
 TTK_CHECKS = tuple(sorted(set(_checker.defaultfilters) - TTK_LEFT_OUT - set(CHECKS)))
 # Checks that are slow on long text, skipped where the source or the target is
 # longer: translate-toolkit's sentence splitting is quadratic on text without
-# a sentence break it recognises.
-SLOW_CHECKS = {"sentencecount": 1000}
+# a sentence break it recognises, and its functions check is cubic on dotted
+# text with "()" in it.
+SLOW_CHECKS = {"sentencecount": 1000, "functions": 500}
 # A target's failures are a 64-bit mask.
 MAX_CHECKS = 63
 # Blocks with fewer targets get no suggested weight.
