@@ -270,10 +270,10 @@ def _php_parser(make_parser):
 
 
 def _yaml_text(flatten):
-    """YAMLFile._flatten, leaving out numbers, dates and binary values, which
-    it otherwise fails the whole file for."""
+    """YAMLFile._flatten, leaving out numbers, booleans, dates and binary
+    values: it fails the whole file for most of them."""
     def text_only(self, data, *args, **kwargs):
-        if isinstance(data, (float, datetime.date, bytes)):
+        if isinstance(data, (int, float, datetime.date, bytes)):
             return iter(())
         return flatten(self, data, *args, **kwargs)
     return text_only

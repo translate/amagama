@@ -332,8 +332,8 @@ def test_yaml_limits_left_out_where_not_taken(tmp_path, monkeypatch):
         "Text"]
 
 
-@pytest.mark.parametrize("value", ["0.5", ".inf", "2020-01-01", "2020-01-01T10:00:00Z",
-                                   "!!binary aGVsbG8="])
+@pytest.mark.parametrize("value", ["3", "true", "0.5", ".inf", "2020-01-01",
+                                   "2020-01-01T10:00:00Z", "!!binary aGVsbG8="])
 def test_yaml_other_values_left_out(tmp_path, value):
     store = opened(tmp_path, "af.yml", "yaml", "title: Lêers\nvalue: %s\n" % value)
     assert [unit.source for unit in store.units] == ["Lêers"]
