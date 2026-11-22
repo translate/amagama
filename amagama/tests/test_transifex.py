@@ -230,6 +230,7 @@ def test_command_keeps_unreadable_config(amagama_config, repository, tmp_path, m
     sources = tmp_path / "sources.toml"
     sources.write_text('include = ["transifex.toml"]\n')
     output = tmp_path / "transifex.toml"
+    output.write_text("")
     amagama_config(UPDATER_SOURCES=str(sources))
     assert CliRunner().invoke(manage, ("transifex_sources", repository, "--prefix", "tx",
                                        "--output", str(output))).exit_code == 0
