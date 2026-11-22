@@ -153,14 +153,22 @@ def add_store(slang, tlang, sid):
 
 @write_api.route('/<slang>/<tlang>/store/<path:sid>', methods=('PUT', ))
 def upload_store(slang, tlang, sid):
-    """Add units from the uploaded file to tmdb."""
-    from io import BytesIO
-    from translate.storage import factory
+    """Add units from the uploaded file to tmdb, read as the updater reads
+    the same file (its extension picks the reader)."""
+    import os
+    import tempfile
 
-    data = BytesIO(request.data)
-    data.name = sid
+    from amagama.updater.formats import open_store
+
+    name = os.path.basename(sid)
+    if not name:
+        abort(400)
     try:
-        store = factory.getobject(data)
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, name)
+            with open(path, "wb") as f:
+                f.write(request.data)
+            store = open_store(path)
         total = sum(1 for u in store.units if u.istranslatable())
     except Exception:
         # An unknown file type, or a file its reader can't parse.
