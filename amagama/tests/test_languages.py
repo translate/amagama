@@ -65,6 +65,8 @@ from amagama.updater.sources import load_sources
     ("zh-guoyu", "zh"),
     ("zh-cmn-Hans-CN", "zh_CN"),
     ("zh-cmn-Hant", "zh_TW"),
+    # An extended subtag is a language of ISO 639-3, not a collective code.
+    ("zh-afa", "zh"),
     ("zh-hakka", "hak"),
     ("art-lojban", "jbo"),
     ("no-bok", "nb"),
