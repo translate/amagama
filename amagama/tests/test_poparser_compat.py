@@ -15,6 +15,7 @@ from click.testing import CliRunner
 from amagama import poparser_compat
 from amagama.application import amagama_server_factory
 from amagama.cli import manage
+from amagama.updater.formats import open_store
 from translate.storage import factory, poparser
 
 
@@ -40,6 +41,20 @@ def test_patched_only_where_needed():
     state_class = poparser.PoParseState
     patched = "_current_encoding" in state_class.__init__.__code__.co_names
     assert (poparser_compat._patch.__qualname__ in state_class.set_encoding.__qualname__) == patched
+
+
+@pytest.mark.parametrize("escaped, text", [
+    (r"\033[1mBold\033[0m", "\x1b[1mBold\x1b[0m"),
+    (r"Bell\a \b\f\v", "Bell\a \b\f\v"),
+    (r"\x41\101", "AA"),
+    (r"\t\"\\\n", "\t\"\\\n"),
+    (r"\0 \xe9", r"\0 \xe9"),
+])
+def test_c_escapes(tmp_path, escaped, text):
+    path = tmp_path / "file.po"
+    path.write_bytes(('msgid "Save file"\nmsgstr "%s"\n' % escaped).encode("ascii"))
+    store = open_store(str(path))
+    assert [unit.target for unit in store.units if unit.source] == [text]
 
 
 def test_import(amagama_config, tmp_path):
