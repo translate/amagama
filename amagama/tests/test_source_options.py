@@ -168,6 +168,10 @@ class TestLookup(object):
     def test_max_candidates_after_choosing(self, client):
         assert lookup(client, 'only=kde&max_candidates=1') == [('Maak lêers oop', ['kde'])]
 
+    @pytest.mark.parametrize('value', ['0', '-1', '-3'])
+    def test_max_candidates_below_one_is_the_default(self, client, value):
+        assert lookup(client, 'max_candidates=' + value) == lookup(client)
+
     def test_bad_weight(self, client):
         assert client.get('/api/v1/en/af/unit/Open file?weight=kde').status_code == 400
 
