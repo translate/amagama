@@ -58,6 +58,12 @@ def _iso_codes():
             | set(_two_letter_codes().values()))
 
 
+@functools.cache
+def _individual_codes():
+    """ISO 639-3's codes alone: an extended language subtag is one of these."""
+    return {language.alpha_3 for language in pycountry.languages}
+
+
 # ISO 639-3's retired codes, {code: retirements.Retirement}: use_retirements().
 _RETIRED = {}
 # SIL's Ret_Reason codes.
@@ -163,7 +169,7 @@ def normalise_language(code):
     if not re.fullmatch(r"[a-z]{2,3}", lang):
         return None
     extlang = parts[0].lower() if parts and len(parts[0]) == 3 else ""
-    if lang in EXTLANG_PREFIXES and extlang in _iso_codes() and _language(extlang) \
+    if lang in EXTLANG_PREFIXES and extlang in _individual_codes() and _language(extlang) \
             and extlang not in EXTLANG_AS_PREFIX.get(lang, ()):
         lang = parts.pop(0).lower()
     lang = _language(lang)
