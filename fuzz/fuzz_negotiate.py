@@ -12,9 +12,9 @@ Accept-Language, and the titles in it.
 The input is lines: ?lang=, Accept-Language, a block's title and version.
 """
 
-import sys
 
 import atheris
+import fuzzing
 
 with atheris.instrument_imports():
     from werkzeug.datastructures import LanguageAccept
@@ -37,8 +37,7 @@ def TestOneInput(data):
 
 
 def main():
-    atheris.Setup(sys.argv, TestOneInput)
-    atheris.Fuzz()
+    fuzzing.run(TestOneInput)
 
 
 if __name__ == "__main__":

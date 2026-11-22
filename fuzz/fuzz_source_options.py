@@ -13,9 +13,9 @@ The input is lines: the five options, then the blocks' names (commas), their
 licence, and a suggestion's checks (commas).
 """
 
-import sys
 
 import atheris
+import fuzzing
 
 with atheris.instrument_imports():
     from license_expression import ExpressionError
@@ -61,8 +61,7 @@ def TestOneInput(data):
 
 
 def main():
-    atheris.Setup(sys.argv, TestOneInput)
-    atheris.Fuzz()
+    fuzzing.run(TestOneInput)
 
 
 if __name__ == "__main__":

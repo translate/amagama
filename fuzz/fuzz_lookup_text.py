@@ -13,9 +13,9 @@ The input is a byte choosing the style, then lines: the source text and a
 stored text to compare it with.
 """
 
-import sys
 
 import atheris
+import fuzzing
 
 with atheris.instrument_imports():
     from translate.filters.checks import projectcheckers
@@ -44,8 +44,7 @@ def TestOneInput(data):
 
 
 def main():
-    atheris.Setup(sys.argv, TestOneInput)
-    atheris.Fuzz()
+    fuzzing.run(TestOneInput)
 
 
 if __name__ == "__main__":
