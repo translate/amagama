@@ -52,15 +52,27 @@ def test_seeds(load, path):
 
 @pytest.mark.skipif(not TARGETS, reason="no fuzz/ beside the package")
 def test_reader_seeds(load):
-    """Every reader has a seed, and each gives units an import would keep."""
-    target = load(FUZZ / "fuzz_readers.py")
-    paths = seeds("fuzz_readers")
-    assert sorted(path.name for path in paths) == target.NAMES
-    for path in paths:
-        name, _, data = path.read_bytes().partition(b"\n")
-        units = [unit for store in target.read(name.decode(), data) for unit in store.units
-                 if target.tmdb.TMDB._usable_unit(target.IMPORTER, unit)]
-        assert units, path.name
+    """Every reader is in one family, the family's target has a seed for it,
+    and each seed gives units an import would keep."""
+    readers = load(FUZZ / "readers.py")
+    families = readers.FAMILIES.values()
+    assert sorted(name for names in families for name in names) == readers.NAMES
+    for family, names in readers.FAMILIES.items():
+        paths = seeds("fuzz_readers_" + family)
+        assert sorted(path.name for path in paths) == sorted(names), family
+        for path in paths:
+            name, _, data = path.read_bytes().partition(b"\n")
+            units = [unit for store in readers.read(name.decode(), data) for unit in store.units
+                     if readers.tmdb.TMDB._usable_unit(readers.IMPORTER, unit)]
+            assert units, path.name
+
+
+@pytest.mark.skipif(not TARGETS, reason="no fuzz/ beside the package")
+def test_request_seeds(load):
+    """fuzz_requests has seeds for each of the targets it picks from."""
+    target = load(FUZZ / "fuzz_requests.py")
+    picked = {path.read_bytes()[0] % len(target.TARGETS) for path in seeds("fuzz_requests")}
+    assert picked == set(range(len(target.TARGETS)))
 
 
 @pytest.mark.skipif(not TARGETS, reason="no fuzz/ beside the package")
