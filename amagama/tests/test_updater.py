@@ -20,7 +20,7 @@ import pytest
 from click.testing import CliRunner
 
 from amagama.cli import manage
-from amagama.updater import compressed, fetchers
+from amagama.updater import compressed, fetchers, sources
 from amagama.updater.fetchers import DamnedLies, FetchError, Git, combine
 from amagama.updater.sources import load_sources, select, sparse_patterns
 
@@ -1174,3 +1174,31 @@ class TestUnexpectedErrors(object):
         assert fetched(run.cache, "good")
         assert "bad: unexpected error" in caplog.text
         assert "Traceback" in caplog.text
+
+
+def test_directory_link_outside_dropped(tmp_path):
+    """A directory link leading outside, which a template could be read
+    through, is dropped; one inside is kept."""
+    root, outside = tmp_path / "block", tmp_path / "outside"
+    (root / "res").mkdir(parents=True)
+    outside.mkdir()
+    (outside / "en.properties").write_text("a=Secret\n")
+    os.symlink(str(outside), root / "eng")
+    os.symlink("res", root / "same")
+    assert sources._resolve_links(str(root)) == ["eng"]
+    assert not os.path.lexists(root / "eng")
+    assert os.path.islink(root / "same")
+
+
+def test_carry_through_link_outside(tmp_path):
+    """A last fetch's template reached through a link leading outside isn't
+    carried into the new fetch."""
+    final, new, outside = tmp_path / "x", tmp_path / "x.new", tmp_path / "outside"
+    for directory in (final / "res", new, outside):
+        directory.mkdir(parents=True)
+    (final / ("res/af.properties" + compressed.SUFFIX)).write_bytes(b"")
+    (outside / "en.properties").write_text("a=Secret\n")
+    os.symlink(str(outside), final / "eng")
+    entry = ["res/af.properties", "af", "eng/en.properties"]
+    assert sources._carry(str(final), str(new), entry, {}) is False
+    assert not os.path.exists(new / "eng")

@@ -529,13 +529,19 @@ def _carry(final, new, entry, previous):
     """Link a file of the last fetch (and its template) into the new one.
 
     Returns False, carrying nothing, if the file's template is gone: the
-    file can't be imported without it.
+    file can't be imported without it. Nor is a file reached through a
+    link leading out of the last fetch (one fetched before such links were
+    removed).
     """
     names = [entry[0] + compressed.SUFFIX]
     if len(entry) > 2 and entry[2]:
         if not any(os.path.exists(os.path.join(root, entry[2])) for root in (final, new)):
             return False
         names.append(entry[2])
+    real_final = os.path.realpath(final)
+    if not all(os.path.realpath(os.path.join(final, name)).startswith(real_final + os.sep)
+               for name in names):
+        return False
     for name in names:
         source, target = os.path.join(final, name), os.path.join(new, name)
         if os.path.exists(target):
@@ -561,11 +567,18 @@ def _resolve_links(root):
     Afterwards files can be removed or compressed in any order. A link
     leading outside root (a repository could link a "translation" to any
     file on the machine) or to nothing is removed; returns those, relative
-    to root.
+    to root. So is a directory link leading outside, which a template's
+    path could be read through; one inside root is left, as nothing is
+    read through it from outside.
     """
     real_root = os.path.realpath(root)
     dropped = []
     for dirpath, dirnames, filenames in os.walk(root):
+        for name in dirnames:
+            path = os.path.join(dirpath, name)
+            if os.path.islink(path) and not os.path.realpath(path).startswith(real_root + os.sep):
+                os.remove(path)
+                dropped.append(os.path.relpath(path, root))
         for name in filenames:
             path = os.path.join(dirpath, name)
             if not os.path.islink(path):
