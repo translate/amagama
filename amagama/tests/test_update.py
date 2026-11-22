@@ -234,6 +234,25 @@ class TestUpdate(object):
         assert not list((tmp_path / "cache").glob("*.new"))
         assert lookup("af", "Open file") == ["Maak lêer oop"]
 
+    def test_ts_plural_without_forms(self, run, git_repo, tmp_path, pg_connection):  # noqa: F811 - fixture
+        """Translate Toolkit can't read the target of a TS plural with no forms;
+        that message is skipped, not the update."""
+        repo, git = git_repo
+        (repo / "ts").mkdir()
+        (repo / "ts/af.ts").write_text(
+            '<?xml version="1.0" encoding="utf-8"?>\n<!DOCTYPE TS><TS version="2.1" language="af">'
+            '<context><name>Main</name><message><source>Open file</source>'
+            '<translation>Maak lêer oop</translation></message><message numerus="yes">'
+            '<source>%n file(s)</source><translation></translation></message></context></TS>\n')
+        git("add", ".")
+        git("commit", "-q", "-m", "ts")
+        sources = tmp_path / "git.toml"
+        sources.write_text(block("x", "git", url=repo.as_uri(), files=["ts/{lang}.ts"]))
+        result = run("update", "-s", "en", UPDATER_SOURCES=str(sources))
+        assert result.exit_code == 0, result.output
+        assert "Imported 1 files: 1 units (1 skipped)." in result.output
+        assert lookup("af", "Open file") == ["Maak lêer oop"]
+
     def test_symlink_outside_reported(self, run, git_repo, tmp_path, pg_connection):  # noqa: F811 - fixture
         repo, git = git_repo
         (tmp_path / "secret").write_text('msgid "Open file"\nmsgstr "secret"\n')

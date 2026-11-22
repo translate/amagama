@@ -1179,8 +1179,13 @@ ORDER BY rank DESC{order};
     def _usable_unit(self, u, target_lang=None):
         """Whether to import u. With target_lang, a copied_source() isn't,
         unless target_lang is a variant of English."""
+        try:
+            target = u.target
+        except ValueError:
+            # A Qt TS plural with no forms: Translate Toolkit can't make its target.
+            return False
         if target_lang and (lang_to_table(target_lang) or "").split("_")[0] != "en" \
-                and copied_source(str(u.source), str(u.target)):
+                and copied_source(str(u.source), str(target)):
             return False
         return u.istranslatable() and \
                bool(u.source) and \
@@ -1188,7 +1193,7 @@ ORDER BY rank DESC{order};
                self._translated(u) and \
                len(u.source) <= self.max_import_len and \
                self._indexable_string(u.source) and \
-               self._indexable_string(u.target)
+               self._indexable_string(target)
 
     def add_store(self, store, source_lang, target_lang, project_style=None,
                   commit=True, iid=None):
