@@ -223,7 +223,8 @@ def _decodable(data):
 
 def _read_po(path, data):
     """The PO file's store; undecodable counts the entries left out."""
-    data = _PO_DOMAIN.sub(b"", data)
+    # Translate Toolkit splits lines on the first msgid's ending only.
+    data = _PO_DOMAIN.sub(b"", data).replace(b"\r\n", b"\n")
     store = po.pofile()
     store.filename = path
     store.undecodable = 0
