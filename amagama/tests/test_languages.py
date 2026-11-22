@@ -135,6 +135,13 @@ from amagama.updater.sources import load_sources
     ("und", None),
     ("zxx", None),
     ("mul_ZA", None),
+    # Letters that only case-fold to ASCII letters: dotless i, long s, the Kelvin
+    # sign, dotted capital I.
+    ("sr@lat\u0131n", None),
+    ("sr@\u017fatin", None),
+    ("\u212aa", None),
+    ("af@\u212aa", None),
+    ("af_Z\u0130", None),
 ])
 def test_normalise(code, expected):
     assert normalise_language(code) == expected

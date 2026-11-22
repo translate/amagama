@@ -43,6 +43,8 @@ from amagama import tmdb
     ("en-US", "en"),
     ("en", "en"),
     ("x!", None),
+    ("sr@lat\u0131n", None),
+    ("\u212aa", None),
     ("", None),
 ])
 def test_lang_to_table(code, table):

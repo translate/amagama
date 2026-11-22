@@ -150,6 +150,10 @@ _POSIX = re.compile(r"^(?P<lang>[a-z]{2,3})(?:_(?P<region>[A-Za-z]{2}|\d{3}))?"
 def normalise_language(code):
     """The canonical form of code, or None if it isn't a language code."""
     code = code.strip()
+    # Language codes are ASCII; lower() and IGNORECASE would take the Kelvin
+    # sign for k and a dotless i for i.
+    if not code.isascii():
+        return None
     if code.lower() in COUNTRY_CODES:
         return COUNTRY_CODES[code.lower()]
     match = _POSIX.match(code)
