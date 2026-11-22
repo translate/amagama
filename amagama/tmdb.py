@@ -1300,6 +1300,9 @@ ORDER BY rank DESC{order};
 
         if isinstance(unit_source, bytes):
             unit_source = str(unit_source, "utf-8")
+        # PostgreSQL text can't hold NUL, so no source has one.
+        if "\x00" in unit_source:
+            abort(400)
 
         checker = project_checker(project_style, source_lang)
 

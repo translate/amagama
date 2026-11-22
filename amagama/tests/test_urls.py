@@ -152,6 +152,12 @@ class TestURLs(object):
         response_v1 = client.get('/api/v1/en/%s/unit/File' % tlang)
         assert response.status_code == 400 == response_v1.status_code
 
+    @pytest.mark.parametrize('url', ['/api/v1/en/af/unit/Fi%00le', '/api/v1/en/af/unit/?source=Fi%00le',
+                                     '/tmserver/en/af/unit/Fi%00le'])
+    def test_nul(self, amagama, url):
+        """PostgreSQL text can't hold NUL, so no source has one."""
+        assert amagama.test_client().get(url).status_code == 400
+
     def test_english_region(self, amagama):
         assert amagama.test_client().get('/api/v1/en/en_GB/unit/File').status_code == 200
 
