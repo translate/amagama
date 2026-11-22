@@ -31,7 +31,12 @@ jobs:
       - name: Install Subversion
         run: command -v svn || (sudo apt-get update && sudo apt-get install -y subversion)
       - name: pytest
+        env:
+          PYTHON_VERSION: ${{ matrix.python }}
         run: |
+          # sys.settrace, coverage's default core before 3.14, makes 3.12's run
+          # take three times as long; 3.11 has no sys.monitoring.
+          if [ "$PYTHON_VERSION" != 3.11 ]; then export COVERAGE_CORE=sysmon; fi
           pg_ctl=(/usr/lib/postgresql/*/bin/pg_ctl)
           pytest --postgresql-exec="${pg_ctl[-1]}" --cov --cov-report=xml
       - name: Coverage summary
