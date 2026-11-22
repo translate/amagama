@@ -334,7 +334,7 @@ and length. The checks run in :setting:`UNIT_CHECKS_WORKERS` processes
 (``--workers``). translate-toolkit's checks cost about 85 CPU seconds per
 million targets of interface text, five times amaGama's own;
 ``sentencecount`` is a sixth of that, and is skipped on text over 1000
-characters, where it gets slow.
+characters, where it gets slow; ``functions`` is skipped on text over 500.
 
 A check earns a place in :setting:`UNIT_CHECKS_LEAVE_OUT` when its failures
 turn out to be broken translations rather than style. ``--sample`` runs just
