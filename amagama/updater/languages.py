@@ -137,10 +137,14 @@ CHINESE = {"hans": "CN", "hant": "TW"}
 
 VARIANTS = {"valencia": "@valencia", "tarask": "@tarask"}
 
+# A POSIX locale's codeset: a charset's name, so fr.bak isn't one.
+CODESET = (r"(?:utf-?(?:8|16|32)|iso-?8859-?\d{1,2}|koi8-?[a-z]|cp\d{3,4}|windows-?\d{3,4}"
+           r"|euc-?[a-z]{2}|gb\d+|gbk|big5|shift_jis|sjis|tis-?620|ascii)")
+
 # language[_territory][.codeset][@modifier]; the codeset (de_DE.UTF-8) is
 # left out.
 _POSIX = re.compile(r"^(?P<lang>[a-z]{2,3})(?:_(?P<region>[A-Za-z]{2}|\d{3}))?"
-                    r"(?:\.[a-z0-9-]+)?(?:@(?P<modifier>[a-z]+))?$", re.IGNORECASE)
+                    r"(?:\.%s)?(?:@(?P<modifier>[a-z]+))?$" % CODESET, re.IGNORECASE)
 
 
 def normalise_language(code):
@@ -161,7 +165,7 @@ def normalise_language(code):
         if usual and modifier == SCRIPT_NAMES.get(usual, usual):
             modifier = ""
         return lang + region + ("@" + modifier if modifier else "")
-    if code.startswith("b+"):  # Android BCP 47 qualifier
+    if code[:2].lower() == "b+":  # Android BCP 47 qualifier
         code = code[2:].replace("+", "-")
     tag = code.lower().replace("_", "-")
     if tag in GRANDFATHERED:

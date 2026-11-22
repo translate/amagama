@@ -79,6 +79,11 @@ from amagama.updater.sources import load_sources
     ("de_DE.utf8", "de_DE"),
     ("de.UTF-8", "de"),
     ("sr_RS.UTF-8@latin", "sr_RS@latin"),
+    ("de_DE.ISO-8859-1", "de_DE"),
+    # Only a charset's name is a codeset: a backup's suffix isn't.
+    ("fr.bak", None),
+    ("de.orig", None),
+    ("B+sr+Latn", "sr@latin"),
     # Chinese scripts stand for their usual region.
     ("zh-Hans", "zh_CN"),
     ("zh_Hans", "zh_CN"),
