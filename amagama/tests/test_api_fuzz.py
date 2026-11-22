@@ -35,9 +35,6 @@ STORED = [("File", "Lêer"), ("Open file", "Maak lêer oop"), ("&Save", "&Stoor"
 
 def known_bug(exc, path, query):
     """The open issue an exception from a request is, or None."""
-    if isinstance(exc, ValueError) and "NUL (0x00)" in str(exc) and \
-            ("%00" in path or "\x00" in query.get('source', '')):
-        return 3670
     return None
 
 
