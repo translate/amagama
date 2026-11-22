@@ -11,7 +11,7 @@ import subprocess
 
 import pytest
 from click.testing import CliRunner
-from translate.storage import aresource, jsonl10n, php, properties, tmx, xliff
+from translate.storage import aresource, base, jsonl10n, php, properties, tmx, xliff
 
 from amagama.application import amagama_server_factory
 from amagama.cli import manage
@@ -305,6 +305,20 @@ def test_yaml(tmp_path):
     english = opened(tmp_path, "app.desktop.yaml", "yaml", "Desktop Entry:\n  Name: Files\n")
     afrikaans = opened(tmp_path, "app_af.desktop.yaml", "yaml", "Desktop Entry:\n  Name: Lêers\n")
     assert pairs(paired_store(afrikaans, english)) == [("Files", "Lêers")]
+
+
+@pytest.mark.parametrize("format", ["yaml", "ruby-yaml"])
+def test_big_yaml(tmp_path, format):
+    text = "en:\n" + "".join("  k%d: Text %d\n" % (i, i) for i in range(20001))
+    assert len(opened(tmp_path, "en.yml", format, text).units) == 20001
+
+
+def test_yaml_aliases_still_bounded(tmp_path):
+    text = 'a: &a ["x", "x", "x", "x", "x", "x", "x", "x", "x"]\n'
+    for level in "bcdefgh":
+        text += "%s: &%s [%s]\n" % (level, level, ", ".join(["*" + chr(ord(level) - 1)] * 9))
+    with pytest.raises(base.ParseError, match="unit extraction limit"):
+        opened(tmp_path, "en.yml", "yaml", text)
 
 
 def test_xwiki_properties(tmp_path):

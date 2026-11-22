@@ -39,6 +39,10 @@ FORMATS = {
     "nextcloud-json": ("translate.storage.jsonl10n", "NextcloudJsonFile", {}),
 }
 
+# Translate Toolkit stops reading YAML at 20,000 strings, against aliases
+# expanding without end; these still stop that, past any real locale file.
+YAML_LIMITS = {"max_yaml_units": 500_000, "max_yaml_nodes": 5_000_000}
+
 # These hold one language each, keyed by id, and need their English template.
 MONOLINGUAL = {
     "android": ("translate.storage.aresource", "AndroidResourceFile", {}),
@@ -59,9 +63,9 @@ MONOLINGUAL = {
     # PO keyed by id: each msgid an id, the English the template's msgstr.
     "po-mono": ("translate.storage.po", "pofile", {}),
     "fluent": ("translate.storage.fluent", "FluentFile", {}),
-    "yaml": ("translate.storage.yaml", "YAMLFile", {}),
+    "yaml": ("translate.storage.yaml", "YAMLFile", YAML_LIMITS),
     # Rails' locale files: each under its language's key, left out of ids.
-    "ruby-yaml": ("translate.storage.yaml", "RubyYAMLFile", {}),
+    "ruby-yaml": ("translate.storage.yaml", "RubyYAMLFile", YAML_LIMITS),
     # XWiki's ISO-8859-1 properties, and its wiki pages holding them.
     "xwiki-properties": ("translate.storage.properties", "xwikifile", {}),
     "xwiki-page": ("translate.storage.properties", "XWikiPageProperties", {}),
