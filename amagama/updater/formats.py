@@ -19,6 +19,7 @@ import csv
 import functools
 import gettext
 import importlib
+import inspect
 import io
 import os
 import re
@@ -270,6 +271,13 @@ def _reader(module):
     return module
 
 
+def _taken(reader, kwargs):
+    """kwargs, less the YAML limits a Translate Toolkit before 3.20.2 hasn't."""
+    parameters = inspect.signature(reader).parameters
+    return {key: value for key, value in kwargs.items()
+            if key not in YAML_LIMITS or key in parameters}
+
+
 def open_store(path, format=None, columns=None, header_row=False, xliff_states=None):
     """Read path with the named reader, or the one its extension picks.
 
@@ -289,7 +297,8 @@ def open_store(path, format=None, columns=None, header_row=False, xliff_states=N
         store = factory.getobject(path)
     else:
         module, name, kwargs = FORMATS.get(format) or MONOLINGUAL[format]
-        store = getattr(_reader(module), name)(**kwargs)
+        reader = getattr(_reader(module), name)
+        store = reader(**_taken(reader, kwargs))
         store.filename = path
         with open(path, "rb") as f:
             # Not store_class(f): NextcloudJsonFile then fails on _metadata.

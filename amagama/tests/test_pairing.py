@@ -11,7 +11,7 @@ import subprocess
 
 import pytest
 from click.testing import CliRunner
-from translate.storage import aresource, base, jsonl10n, php, properties, tmx, xliff
+from translate.storage import aresource, base, jsonl10n, php, properties, tmx, xliff, yaml
 
 from amagama.application import amagama_server_factory
 from amagama.cli import manage
@@ -319,6 +319,17 @@ def test_yaml_aliases_still_bounded(tmp_path):
         text += "%s: &%s [%s]\n" % (level, level, ", ".join(["*" + chr(ord(level) - 1)] * 9))
     with pytest.raises(base.ParseError, match="unit extraction limit"):
         opened(tmp_path, "en.yml", "yaml", text)
+
+
+def test_yaml_limits_left_out_where_not_taken(tmp_path, monkeypatch):
+    # Translate Toolkit before 3.20.2.
+    class YAMLFile(yaml.YAMLFile):
+        def __init__(self, inputfile=None, **kwargs):
+            assert not kwargs
+            super().__init__(inputfile)
+    monkeypatch.setattr(yaml, "YAMLFile", YAMLFile)
+    assert [unit.source for unit in opened(tmp_path, "en.yml", "yaml", "a: Text\n").units] == [
+        "Text"]
 
 
 def test_xwiki_properties(tmp_path):
