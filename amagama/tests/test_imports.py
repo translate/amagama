@@ -86,7 +86,8 @@ class TestImports(object):
                      '--licence', licence)
         assert result.exit_code == 0, result.output
 
-    @pytest.mark.parametrize('licence', ['GPL2', 'GPL-2.0', 'GPL-2.0+', 'MIT WITH GPL-2.0-only'])
+    @pytest.mark.parametrize('licence', ['GPL2', 'GPL-2.0', 'GPL-2.0+', 'MIT WITH GPL-2.0-only',
+                                         ' ', '()', ',', '(and +'])
     def test_bad_licence_imports_nothing(self, run, po_dir, pg_connection, licence):
         run('initdb', '-s', 'en')
         result = run('build_tmdb', '-s', 'en', '-t', 'af', '-i', str(po_dir / 'af.po'),

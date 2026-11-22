@@ -16,6 +16,9 @@ from license_expression import ExpressionError, LicenseSymbol, LicenseWithExcept
 
 MAX_WEIGHT = 10
 LICENSING = Licensing()
+# What license-expression raises for a malformed expression: its own error, and
+# these for some ("()", ",", "(and +").
+MALFORMED = (ExpressionError, AttributeError, IndexError, AssertionError)
 
 
 def _matches(name, globs):
@@ -46,9 +49,11 @@ def licence_allowed(expression, allowed):
     if not expression:
         return False
     try:
-        return met(LICENSING.parse(expression))
-    except ExpressionError:
+        parsed = LICENSING.parse(expression)
+    except MALFORMED:
         return False
+    # None for a blank expression.
+    return parsed is not None and met(parsed)
 
 
 class SourceOptions(object):

@@ -17,23 +17,9 @@ licence, and a suggestion's checks (commas).
 import atheris
 
 with atheris.instrument_imports():
-    from license_expression import ExpressionError
-
     from amagama import source_options
 
 OPTIONS = ["exclude", "only", "weight", "licence", "exclude_checks"]
-
-
-def mishandled(expression):
-    """#3724: license-expression gives None or an unexpected exception."""
-    if not expression:
-        return False
-    try:
-        return source_options.LICENSING.parse(expression) is None
-    except ExpressionError:
-        return False
-    except Exception:
-        return True
 
 
 def TestOneInput(data):
@@ -44,7 +30,7 @@ def TestOneInput(data):
         return
     for _, weight in options.weights:
         assert 0 <= weight <= source_options.MAX_WEIGHT, weight
-    licence = "MIT" if mishandled(lines[6]) else lines[6]
+    licence = lines[6]
     names = [name for name in lines[5].split(",") if name]
     results = [
         {"quality": 100.0, "sources": names, "checks": lines[7].split(",")},
