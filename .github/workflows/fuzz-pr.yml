@@ -26,6 +26,7 @@ jobs:
       - name: Fuzz the targets the change reaches
         uses: google/clusterfuzzlite/actions/run_fuzzers@v1
         with:
+          language: python
           github-token: ${{ secrets.GITHUB_TOKEN }}
           fuzz-seconds: 300
           mode: code-change
