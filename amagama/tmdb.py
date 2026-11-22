@@ -1058,14 +1058,23 @@ ORDER BY rank DESC{order};
             return 0
         sids = self._sids(cursor, {unit['source'] for unit in units},
                           self.schema(units[0]['source_lang']))
-        # One row per target: DO UPDATE can't touch a row twice in a statement.
         rows = sorted({(sids[unit['source']], unit['target'], unit['target_lang'])
                        for unit in units}, key=lambda row: (row[1], row[0]))
-        tids = execute_values(cursor, """INSERT INTO targets (sid, text, lang) VALUES %s
-            ON CONFLICT (sid, text, lang) DO UPDATE SET sid = EXCLUDED.sid
-            RETURNING tid""", rows, page_size=INSERT_PAGE, fetch=True)
+        # A target already there isn't written again (DO UPDATE would make a
+        # new row version for each repeat): its tid is read instead.
+        added = execute_values(cursor, """INSERT INTO targets (sid, text, lang) VALUES %s
+            ON CONFLICT (sid, text, lang) DO NOTHING
+            RETURNING sid, text, lang, tid""", rows, page_size=INSERT_PAGE, fetch=True)
+        tids = {row[3] for row in added}
+        there = sorted(set(rows) - {(row[0], row[1], row[2]) for row in added})
+        if there:
+            tids.update(row[0] for row in execute_values(cursor, """SELECT t.tid
+                FROM targets t JOIN (VALUES %s) AS v (sid, text, lang)
+                ON t.sid = v.sid AND t.text = v.text AND t.lang = v.lang""",
+                there, template="(%s::integer, %s::text, %s::text)",
+                page_size=INSERT_PAGE, fetch=True))
         execute_values(cursor, """INSERT INTO target_imports (tid, iid) VALUES %s
-            ON CONFLICT DO NOTHING""", sorted({(row[0], iid) for row in tids}),
+            ON CONFLICT DO NOTHING""", sorted((tid, iid) for tid in tids),
             page_size=INSERT_PAGE)
         return len(units)
 

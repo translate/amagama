@@ -168,3 +168,26 @@ class TestBatchedInserts(object):
             iid = app.tmdb.start_import('en', 'af', 'x.po')
             assert app.tmdb.add_list(units, 'en', 'af', iid=iid) == 2
         assert self.counts(pg_connection) == (1, 1)
+
+
+    def test_repeated_target_not_written_again(self, app, pg_connection):
+        """A target already there, imported again, keeps its row and is linked."""
+        unit = {'source': 'Open file', 'target': 'Maak lêer oop'}
+
+        def target_row():
+            with pg_connection.cursor() as cursor:
+                cursor.execute("SELECT tid, xmin::text FROM en.targets")
+                row = cursor.fetchone()
+            pg_connection.commit()
+            return row
+        with app.app_context():
+            first = app.tmdb.start_import('en', 'af', 'a.po')
+            app.tmdb.add_list([dict(unit)], 'en', 'af', iid=first)
+            before = target_row()
+            second = app.tmdb.start_import('en', 'af', 'b.po')
+            assert app.tmdb.add_list([dict(unit)], 'en', 'af', iid=second) == 1
+        assert target_row() == before
+        with pg_connection.cursor() as cursor:
+            cursor.execute("SELECT iid FROM en.target_imports ORDER BY iid")
+            assert [row[0] for row in cursor.fetchall()] == [first, second]
+        pg_connection.commit()
