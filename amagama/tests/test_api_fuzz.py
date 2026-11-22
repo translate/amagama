@@ -19,7 +19,6 @@ from urllib.parse import quote
 import pytest
 from flask_caching import Cache
 from hypothesis import HealthCheck, given, settings, strategies as st
-from psycopg2 import errors
 
 from amagama.application import amagama_server_factory
 from amagama.tests.conftest import TempTMDB
@@ -39,9 +38,6 @@ def known_bug(exc, path, query):
     if isinstance(exc, ValueError) and "NUL (0x00)" in str(exc) and \
             ("%00" in path or "\x00" in query.get('source', '')):
         return 3670
-    if isinstance(exc, errors.NumericValueOutOfRange) and \
-            (integer(query.get('min_similarity', '')) or 0) > 100:
-        return 3671
     return None
 
 
