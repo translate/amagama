@@ -10,6 +10,7 @@ import random
 
 import pytest
 
+from amagama import tmdb as tmdb_module
 from amagama.application import amagama_server_factory
 
 
@@ -148,16 +149,16 @@ class TestWriteAPI(object):
         assert lookup(client, 'Open file') == [('Open file', 'Maak lêer oop')]
 
     def test_failed_store_is_rolled_back(self, client, monkeypatch):
+        # Fails once the targets are in, as their links to the import go in.
         client.application.testing = False
-        tmdb = client.application.tmdb
-        add_dict = tmdb.add_dict
+        execute_values = tmdb_module.execute_values
 
-        def fail_on_second(unit, *args):
-            if unit['source'] == 'Save file':
+        def fail_on_links(cursor, query, *args, **kwargs):
+            if 'target_imports' in query:
                 raise RuntimeError("failed mid-store")
-            return add_dict(unit, *args)
+            return execute_values(cursor, query, *args, **kwargs)
 
-        monkeypatch.setattr(tmdb, 'add_dict', fail_on_second)
+        monkeypatch.setattr(tmdb_module, 'execute_values', fail_on_links)
         response = client.post('/api/v1/en/af/store/x.po', json=[
             {'source': 'Open file', 'target': 'Maak lêer oop'},
             {'source': 'Save file', 'target': 'Stoor lêer'},

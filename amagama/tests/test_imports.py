@@ -10,7 +10,9 @@ import hashlib
 
 import pytest
 from click.testing import CliRunner
+from psycopg2.extras import DictCursor
 
+from amagama.application import amagama_server_factory
 from amagama.cli import manage
 
 
@@ -125,3 +127,44 @@ class TestImports(object):
         result = run('build_tmdb', '-s', 'en', '-t', 'af', '-i', str(po_dir / 'af.po'))
         assert result.exit_code == 0, result.output
         assert len(imports(pg_connection)) == 1
+
+
+class TestBatchedInserts(object):
+    """A file's units go in a few statements, not a few each."""
+
+    @pytest.fixture
+    def app(self, amagama_config):
+        app = amagama_server_factory()
+        app.tmdb.init_db(['en'])
+        return app
+
+    def counts(self, pg_connection):
+        with pg_connection.cursor() as cursor:
+            cursor.execute("SELECT (SELECT COUNT(*) FROM en.targets), "
+                           "(SELECT COUNT(*) FROM en.target_imports)")
+            row = cursor.fetchone()
+        pg_connection.commit()
+        return row
+
+    def test_few_statements(self, app, pg_connection, monkeypatch):
+        statements = []
+        execute = DictCursor.execute
+
+        def counted(self, *args, **kwargs):
+            statements.append(args[0])
+            return execute(self, *args, **kwargs)
+        units = [{'source': 'Source %d' % i, 'target': 'Teiken %d' % i} for i in range(2500)]
+        with app.app_context():
+            iid = app.tmdb.start_import('en', 'af', 'x.po')
+            monkeypatch.setattr(DictCursor, 'execute', counted)
+            assert app.tmdb.add_list(units, 'en', 'af', iid=iid) == 2500
+        assert len(statements) < 40
+        assert self.counts(pg_connection) == (2500, 2500)
+
+    def test_repeated_unit(self, app, pg_connection):
+        """A unit twice in a file is one target and link, counted twice."""
+        units = [{'source': 'Open file', 'target': 'Maak lêer oop'} for _ in range(2)]
+        with app.app_context():
+            iid = app.tmdb.start_import('en', 'af', 'x.po')
+            assert app.tmdb.add_list(units, 'en', 'af', iid=iid) == 2
+        assert self.counts(pg_connection) == (1, 1)
