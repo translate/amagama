@@ -344,6 +344,22 @@ def test_po_undecodable_crlf(tmp_path, size):
     assert sum(store.undecodable for store in stores) == 1
 
 
+@pytest.mark.parametrize("obsolete", [
+    b'#~ msgid "Close"\n\n',
+    b'#~ msgid "Close"\n',
+    b'#, fuzzy\n#~ msgid "Close"\n#~\n#~ msgstr "Sluit"\n\n',
+])
+@pytest.mark.parametrize("size", [None, 40])
+@pytest.mark.parametrize("newline", [b"\n", b"\r\n"])
+def test_po_obsolete_entry_left_out(tmp_path, size, obsolete, newline):
+    path = tmp_path / "af.po"
+    path.write_bytes((b'msgid ""\nmsgstr ""\n"Content-Type: text/plain; charset=UTF-8\\n"\n\n'
+                      + obsolete + b'msgid "Quit"\nmsgstr "Verlaat"\n').replace(b"\n", newline))
+    stores = list(open_pieces(str(path), size=size)) if size else [open_store(str(path))]
+    assert [(str(u.source), str(u.target)) for store in stores for u in store.units
+            if not u.isheader()] == [("Quit", "Verlaat")]
+
+
 @pytest.mark.parametrize("size", [None, 40])
 def test_po_lf_entry_in_crlf_file(tmp_path, size):
     path = tmp_path / "af.po"
@@ -367,7 +383,7 @@ def test_po_undecodable_without_blank_lines(tmp_path, size):
                      b'#~ msgid "Close file"\n#~ msgstr "Maak l\xc3\xaaer toe"\n'
                      b'#~ msgid "Print"\n#~ msgstr "Druk"\n')
     stores = list(open_pieces(str(path), size=size)) if size else [open_store(str(path))]
-    assert sources(stores) == ["Save file", "%d file", "Quit", "Close file", "Print"]
+    assert sources(stores) == ["Save file", "%d file", "Quit"]
     assert sum(store.undecodable for store in stores) == 1
 
 
