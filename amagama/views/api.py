@@ -240,12 +240,12 @@ def get_uid_and_call(func, slang, tlang):
 def json_units(many=False):
     """Return the request's JSON units as a list, or send a HTTP 400.
 
-    A unit is an object with a string source and target that UTF-8 can hold
-    (JSON can give an unpaired surrogate); with many, the body is a list of
-    them, otherwise a single one.
+    A unit is an object with a string source and target that the database can
+    hold (JSON can give an unpaired surrogate or a NUL); with many, the body
+    is a list of them, otherwise a single one.
     """
     def text(value):
-        if not isinstance(value, str):
+        if not isinstance(value, str) or "\x00" in value:
             return False
         try:
             value.encode('utf-8')

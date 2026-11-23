@@ -68,8 +68,9 @@ def use(store):
     """What add_store() does with each unit."""
     for unit in store.units:
         if tmdb.TMDB._usable_unit(IMPORTER, unit):
-            tmdb._encodable(str(unit.source))
-            tmdb._encodable(str(unit.target))
+            for text in (tmdb._encodable(str(unit.source)), tmdb._encodable(str(unit.target))):
+                # psycopg2 refuses a NUL in a query.
+                assert text is None or "\x00" not in text
 
 
 def read(name, data):
