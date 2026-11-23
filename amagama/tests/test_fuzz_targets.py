@@ -109,3 +109,15 @@ def test_long_text_with_escaped_emoji(load):
              if readers.tmdb.TMDB._usable_unit(readers.IMPORTER, unit)]
     assert units
     target.TestOneInput(b"compose\n" + data)
+
+
+@pytest.mark.skipif(not TARGETS, reason="no fuzz/ beside the package")
+def test_nul_in_json(load):
+    """The data readers' target on a JSON string with \\u0000: the database
+    can't hold it, so it must not reach add_list() (#3825)."""
+    target = load(FUZZ / "fuzz_readers_data.py")
+    readers = load(FUZZ / "readers.py")
+    data = b'{"open": "Open\\u0000 it", "save": "Save"}'
+    assert any("\x00" in str(unit.source) for store in readers.read("json", data)
+               for unit in store.units)
+    target.TestOneInput(b"json\n" + data)

@@ -218,3 +218,34 @@ class TestBatchedInserts(object):
         unit.target = "Maak die l\u00eaer oop \ud83d " * 50
         with app.app_context():
             assert not app.tmdb._usable_unit(unit, 'af')
+
+
+    def test_nul_left_out(self, app, pg_connection):
+        """A unit with a NUL is left out, not an error for the whole store."""
+        store = TranslationStore()
+        store.addsourceunit("Open").target = "Maak\x00 oop"
+        store.addsourceunit("Close\x00").target = "Maak toe"
+        store.addsourceunit("Save").target = "Stoor"
+        with app.app_context():
+            iid = app.tmdb.start_import('en', 'af', 'x.json')
+            assert app.tmdb.add_store(store, 'en', 'af', iid=iid) == 1
+        with pg_connection.cursor() as cursor:
+            cursor.execute("SELECT text FROM en.targets")
+            assert cursor.fetchall() == [("Stoor",)]
+        pg_connection.commit()
+
+
+    def test_nul_not_usable(self, app):
+        """A unit add_store() would leave out isn't usable, so a segmented
+        import counts it as skipped."""
+        store = TranslationStore()
+        nul = store.addsourceunit("Open")
+        nul.target = "Maak\x00 oop"
+        surrogate = store.addsourceunit("Close")
+        surrogate.target = "Maak \ud83d toe"
+        source_nul = store.addsourceunit("Save\x00")
+        source_nul.target = "Stoor"
+        with app.app_context():
+            assert not app.tmdb._usable_unit(nul, 'af')
+            assert not app.tmdb._usable_unit(source_nul, 'af')
+            assert not app.tmdb._usable_unit(surrogate, 'af')

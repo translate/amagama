@@ -83,6 +83,9 @@ class TestWriteAPI(object):
         # An unpaired surrogate, which UTF-8 can't hold.
         ('put', 'unit/File', '{"source": "File", "target": "L\\ud800er"}'),
         ('post', 'store/x.po', '[{"source": "\\udc00", "target": "Leer"}]'),
+        # A NUL, which psycopg2 refuses.
+        ('put', 'unit/File', '{"source": "File", "target": "L\\u0000er"}'),
+        ('post', 'store/x.po', '[{"source": "File\\u0000", "target": "Leer"}]'),
     ])
     def test_wrong_json(self, client, method, path, body):
         kwargs = {'data': body, 'content_type': 'application/json'} \

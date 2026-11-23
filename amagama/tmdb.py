@@ -186,12 +186,14 @@ def split_cache_key(key):
 
 
 def _encodable(text):
-    """text as UTF-8 can hold it, or None.
+    """text as the database can hold it, or None.
 
     Readers can leave a character outside the BMP as two surrogates (the
     Translate Toolkit's Android reader does, for "\\uD83D\\uDC8E"); they are
-    joined. An unpaired surrogate can't be stored.
+    joined. An unpaired surrogate can't be stored, nor can a NUL.
     """
+    if "\x00" in text:
+        return None
     try:
         text.encode("utf-8")
         return text
@@ -1195,7 +1197,9 @@ ORDER BY rank DESC{order};
                self._translated(u) and \
                len(u.source) <= self.max_import_len and \
                self._indexable_string(u.source) and \
-               self._indexable_string(target)
+               self._indexable_string(target) and \
+               _encodable(str(u.source)) is not None and \
+               _encodable(str(target)) is not None
 
     def add_store(self, store, source_lang, target_lang, project_style=None,
                   commit=True, iid=None):
