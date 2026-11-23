@@ -60,7 +60,7 @@ untrusted text: the file readers the updater uses, language codes, a lookup's
 options and text, and the language negotiation. They run with `Atheris
 <https://github.com/google/atheris>`_ under `ClusterFuzzLite
 <https://google.github.io/clusterfuzzlite/>`_: for a few minutes on each pull
-request, and for two hours every week on main. Each target's seed inputs are in
+request, and for two hours every day on main. Each target's seed inputs are in
 ``fuzz/corpus/``; the tests run every target over them.
 
 ``amagama/tests/test_api_fuzz.py`` sends generated requests to the API and the
