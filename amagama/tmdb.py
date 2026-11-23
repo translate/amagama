@@ -1164,9 +1164,11 @@ ORDER BY rank DESC{order};
         # The limit is a third of a buffer page, usually 2712 bytes.
 
         # Shortcut to avoid the compression most of the time before testing
-        # with compression:
-        return len(s) < 1000 or \
-               len(compress(s.encode('utf-8'))) < COMPRESSED_LIMIT
+        # with compression. The text is measured as add_store() stores it.
+        if len(s) < 1000:
+            return True
+        text = _encodable(s)
+        return text is not None and len(compress(text.encode('utf-8'))) < COMPRESSED_LIMIT
 
     @staticmethod
     def _translated(u):
