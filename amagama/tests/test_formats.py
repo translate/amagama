@@ -297,6 +297,8 @@ def test_po_over_a_megabyte_in_pieces(tmp_path):
     assert 1024 * 1024 < path.stat().st_size < 8 * 1024 * 1024
     pieces = open_pieces(str(path))
     assert pieces is not None
+    pieces = list(pieces)
+    assert len(pieces) > 1
     assert sum(not unit.isheader() for piece in pieces for unit in piece.units) == 70000
 
 def test_po_pieces_domain_before_header(tmp_path):
