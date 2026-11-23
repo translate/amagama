@@ -160,6 +160,20 @@ class TestUpdate(object):
         assert lookup("af", "Open file") == ["Open lêer"]
         assert run("update", "-s", "en").output == "Nothing changed.\n"
 
+    def test_tasks_built_a_chunk_at_a_time(self, run, monkeypatch):
+        """Each block's tasks are imported as they're built, not all first."""
+        import_files, chunks = pipeline.import_files, []
+
+        def recorded(tasks, *args):
+            chunks.append(sorted({task[3] for task in tasks}))
+            return import_files(tasks, *args)
+        monkeypatch.setattr(pipeline, "import_files", recorded)
+        monkeypatch.setattr(pipeline, "IMPORT_CHUNK", 1, raising=False)
+        result = run("update", "-s", "en")
+        assert result.exit_code == 0, result.output
+        assert chunks == [["gnome-51"], ["tp"]]
+        assert "Imported 3 files" in result.output
+
     def test_dead_worker_names_its_file(self, run, tmp_path, monkeypatch):
         def worker_killed(tasks, workers, progress):
             os.makedirs(progress)
