@@ -146,6 +146,11 @@ def _import_task(task):
     return import_file(*task)
 
 
+# Import tasks built and imported at a time: whole blocks, at least this many
+# files, so their tasks aren't all held at once but a pool of workers starts
+# only every so often.
+IMPORT_CHUNK = 10000
+
 def in_workers(func, tasks, workers, initializer=None):
     """[func(task) for task in tasks] in worker processes.
 
@@ -340,23 +345,31 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
             out("Not language codes in %s, skipped: %s" % (block.name,
                                                             snapshot_left_out(left_out)))
 
-    tasks = []
-    for block in blocks:
-        if block.source == "snapshot":
-            continue
-        state = block.state(cache_dir)
-        if state is None:
-            if block in due:
-                out("Nothing to import from %s: it has never been fetched." % block.name)
-            continue
-        directory = block.directory(cache_dir)
-        block_tasks = [(os.path.join(directory, path), slang, lang, block.name, block.licence,
-                        block.format, os.path.join(directory, *template) if template else None,
-                        block.exclude_ids, block.reader_options, block.segment,
-                        block.language_in_ids)
-                       for path, lang, *template in state["files"]]
-        # Files sharing an English template in a row, so each worker reads it once.
-        tasks += sorted(block_tasks, key=lambda task: (task[6] or "", task[0]))
+    def chunks():
+        """Each block's import tasks, a few blocks at a time: building them all
+        first would hold every file's task through the run."""
+        tasks = []
+        for block in blocks:
+            if block.source == "snapshot":
+                continue
+            state = block.state(cache_dir)
+            if state is None:
+                if block in due:
+                    out("Nothing to import from %s: it has never been fetched." % block.name)
+                continue
+            directory = block.directory(cache_dir)
+            block_tasks = [(os.path.join(directory, path), slang, lang, block.name, block.licence,
+                            block.format, os.path.join(directory, *template) if template else None,
+                            block.exclude_ids, block.reader_options, block.segment,
+                            block.language_in_ids)
+                           for path, lang, *template in state["files"]]
+            # Files sharing an English template in a row, so each worker reads it once.
+            tasks += sorted(block_tasks, key=lambda task: (task[6] or "", task[0]))
+            if len(tasks) >= IMPORT_CHUNK:
+                yield tasks
+                tasks = []
+        if tasks:
+            yield tasks
     progress = os.path.join(cache_dir, ".importing-%s" % slang)
 
     def names(paths):
@@ -364,18 +377,23 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
     stopped = in_progress(progress)
     if stopped:
         out("The last update stopped while importing %s." % names(stopped))
+    files = units = skipped = 0
+    unreadable = []
     try:
-        results = import_files(tasks, workers, progress)
+        for tasks in chunks():
+            for task, result in zip(tasks, import_files(tasks, workers, progress)):
+                if isinstance(result, tuple):
+                    files += 1
+                    units += result[0]
+                    skipped += result[1]
+                else:
+                    unreadable.append((task[0], result))
     except RuntimeError as e:
         stopped = in_progress(progress)
         if not stopped:
             raise
         raise RuntimeError("%s, while importing %s" % (e, names(stopped))) from e
-    counts = [result for result in results if isinstance(result, tuple)]
-    out("Imported %d files: %d units (%d skipped)." % (
-        len(counts), sum(units for units, _ in counts), sum(skipped for _, skipped in counts)))
-    unreadable = [(task[0], result) for task, result in zip(tasks, results)
-                  if not isinstance(result, tuple)]
+    out("Imported %d files: %d units (%d skipped)." % (files, units, skipped))
     if unreadable:
         out("Couldn't read %d files:" % len(unreadable))
         for path, reason in unreadable:
