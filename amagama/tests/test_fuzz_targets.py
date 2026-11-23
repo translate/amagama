@@ -95,3 +95,17 @@ def test_running_for(load):
             assert 0 < spent < float(f.read().split()[0])
     else:
         assert spent == 0.0
+
+
+@pytest.mark.skipif(not TARGETS, reason="no fuzz/ beside the package")
+def test_long_text_with_escaped_emoji(load):
+    """The XML readers' target on a long Compose string with an emoji as a
+    surrogate-pair escape: it used to raise UnicodeEncodeError (#3823)."""
+    target = load(FUZZ / "fuzz_readers_xml.py")
+    readers = load(FUZZ / "readers.py")
+    text = "Open the file \\uD83D\\uDE00 " * 60
+    data = ('<resources><string name="open">%s</string></resources>' % text).encode("utf-8")
+    units = [unit for store in readers.read("compose", data) for unit in store.units
+             if readers.tmdb.TMDB._usable_unit(readers.IMPORTER, unit)]
+    assert units
+    target.TestOneInput(b"compose\n" + data)

@@ -11,6 +11,7 @@ import hashlib
 import pytest
 from click.testing import CliRunner
 from psycopg2.extras import DictCursor
+from translate.storage.base import TranslationStore
 
 from amagama.application import amagama_server_factory
 from amagama.cli import manage
@@ -192,3 +193,28 @@ class TestBatchedInserts(object):
             cursor.execute("SELECT iid FROM en.target_imports ORDER BY iid")
             assert [row[0] for row in cursor.fetchall()] == [first, second]
         pg_connection.commit()
+
+
+    def test_long_text_with_surrogate_pair(self, app, pg_connection):
+        """A long target with an emoji left as two surrogates (Android's
+        \\uD83D\\uDE00) is stored with the emoji joined, not an error."""
+        store = TranslationStore()
+        unit = store.addsourceunit("Open the file " * 90)
+        unit.target = "Maak die l\u00eaer oop \ud83d\ude00 " * 50
+        with app.app_context():
+            iid = app.tmdb.start_import('en', 'af', 'x.xml')
+            assert app.tmdb.add_store(store, 'en', 'af', iid=iid) == 1
+        with pg_connection.cursor() as cursor:
+            cursor.execute("SELECT text FROM en.targets")
+            [(text,)] = cursor.fetchall()
+        pg_connection.commit()
+        assert "\U0001f600" in text
+
+
+    def test_long_text_with_unpaired_surrogate(self, app):
+        """A long target with a surrogate that has no pair isn't imported."""
+        store = TranslationStore()
+        unit = store.addsourceunit("Open the file " * 90)
+        unit.target = "Maak die l\u00eaer oop \ud83d " * 50
+        with app.app_context():
+            assert not app.tmdb._usable_unit(unit, 'af')
