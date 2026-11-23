@@ -85,8 +85,9 @@ MONOLINGUAL = {
 CHROMIUM = "xtb"
 
 # A PO file bigger than this is read in pieces of about this size, since a
-# reader holds the whole file (a 161 MB compendium takes 2.8 GB).
-PIECE_SIZE = 8 * 1024 * 1024
+# reader holds the whole file (a 161 MB compendium takes 2.8 GB, an 8 MB
+# piece about 180 MB, a 1 MB one 25 MB).
+PIECE_SIZE = 1024 * 1024
 # TMX takes far more memory per byte (8 MB of it takes 0.5 GB).
 TMX_PIECE_SIZE = 1024 * 1024
 # XLIFF takes about as much as TMX.

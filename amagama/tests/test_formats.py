@@ -287,6 +287,18 @@ def test_update_po_in_pieces(amagama_config, tmp_path, monkeypatch):
     assert [c["target"] for c in response.get_json()] == ["Maak lêer oop"]
 
 
+
+def test_po_over_a_megabyte_in_pieces(tmp_path):
+    """A PO file over 1 MB is read in pieces, as TMX and XLIFF are."""
+    path = tmp_path / "es.po"
+    entries = "".join('msgid "File %d"\nmsgstr "Archivo %d"\n\n' % (i, i) for i in range(70000))
+    path.write_text('msgid ""\nmsgstr ""\n"Content-Type: text/plain; charset=UTF-8\\n"\n\n' + entries,
+                    encoding="utf-8")
+    assert 1024 * 1024 < path.stat().st_size < 8 * 1024 * 1024
+    pieces = open_pieces(str(path))
+    assert pieces is not None
+    assert sum(not unit.isheader() for piece in pieces for unit in piece.units) == 70000
+
 def test_po_pieces_domain_before_header(tmp_path):
     """Every piece keeps the header, and so its charset."""
     path = tmp_path / "af.po"
