@@ -52,7 +52,7 @@ class TestRebuild(object):
         en = figures["sourceLanguages"]["en"]
         # The live schema is the swapped-in, deploy_db-clustered build.
         assert sorted(en) == ["blocks", "built", "checks", "computed", "history", "languages",
-                              "sources", "targets", "words"]
+                              "rebuild", "sources", "targets", "words"]
         assert (en["sources"], en["targets"], en["words"]) == (4, 4, 10)
         assert [(lang["code"], lang["targets"], lang["sources"], lang["words"], lang["coverage"])
                 for lang in en["languages"]] == [
@@ -72,8 +72,14 @@ class TestRebuild(object):
         assert checks["categories"]["unchanged"] == "functional"
         assert checks["leftOut"] == {"targets": 1, "checks": {"printf": 1, "braces": 0,
                                                              "script": 0}}
+        rebuild = en["rebuild"]
+        assert rebuild["started"] <= rebuild["imported"] <= rebuild["swapped"]
+        # Five units, one of which printf leaves out.
+        assert {key: rebuild[key] for key in ("files", "units", "skipped", "unreadable")} == \
+            {"files": 3, "units": 5, "skipped": 0, "unreadable": 0}
         assert en["history"] == [{"built": en["built"], "sources": 4, "targets": 4, "words": 10,
-                                  "languages": 2}]
+                                  "languages": 2, "leftOut": checks["leftOut"],
+                                  "rebuild": rebuild}]
         assert os.stat(tmp_path / "cache" / "stats.json").st_mode & 0o777 == 0o644
 
     def test_history_grows_with_rebuilds(self, checked, run, site, tmp_path):  # noqa: F811
@@ -92,6 +98,7 @@ class TestRebuild(object):
         assert "en: 4 sources, 4 targets in 2 languages, 2 blocks." in result.output
         after = figures_in(tmp_path)["sourceLanguages"]["en"]
         assert after["checks"]["leftOut"] == before["checks"]["leftOut"]
+        assert after["rebuild"] == before["rebuild"]
         # The same rebuild isn't added to the history again.
         assert after["history"] == before["history"]
 

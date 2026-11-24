@@ -236,6 +236,7 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
     as it was, and the next update rebuilds even if nothing has changed
     since.
     """
+    started = stats.now()
     slang = lang_to_table(slang)
     tmdb = current_app.tmdb
     blocks = select(load_sources(sources_path), tags, exclude_tags)
@@ -393,6 +394,7 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
         if not stopped:
             raise
         raise RuntimeError("%s, while importing %s" % (e, names(stopped))) from e
+    imported = stats.now()
     out("Imported %d files: %d units (%d skipped)." % (files, units, skipped))
     if unreadable:
         out("Couldn't read %d files:" % len(unreadable))
@@ -425,17 +427,20 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
     os.replace(record + ".new", record)
     os.remove(pending)
     out("Swapped in '%s'; the replaced copy is %s%s." % (slang, OLD_PREFIX, slang))
-    update_stats(slang, cache_dir, stats.left_out(rejected, leave_out), out)
+    update_stats(slang, cache_dir, stats.left_out(rejected, leave_out), out,
+                 stats.rebuild(started, imported, stats.now(), files, units, skipped,
+                               len(unreadable)))
     report_failures(failed, out)
     return failed
 
 
-def update_stats(slang, cache_dir, left_out, out=print):
+def update_stats(slang, cache_dir, left_out, out=print, rebuild=None):
     """Compute the statistics page's figures of the swapped-in slang; a failure
     is reported, not raised: the rebuild is live already."""
     filename = stats.path(current_app.config, cache_dir)
     try:
-        stats.update_tm(filename, current_app.tmdb, [slang], {slang: left_out})
+        stats.update_tm(filename, current_app.tmdb, [slang], {slang: left_out},
+                        {slang: rebuild} if rebuild else None)
     except (OSError, psycopg2.Error) as e:
         # Not get_cursor(): its check fails in an aborted transaction.
         with contextlib.suppress(psycopg2.Error):
