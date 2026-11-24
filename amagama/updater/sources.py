@@ -752,10 +752,11 @@ def limit_first_fetches(blocks, cache_dir, limit):
     """The blocks to run, with at most limit of them fetched for the first time.
 
     A new cache fills over several runs rather than in one burst. Each run
-    picks its first fetches at random, so on average it takes a little from
-    every upstream and spaces a project's releases out. A block whose first
-    fetch failed is retried without counting. Returns (blocks, number left
-    for later runs); None is no limit.
+    takes its first fetches tier by tier (TIERS, then blocks with none), so
+    the hand-picked sources come first, and at random within a tier, so on
+    average it takes a little from every upstream and spaces a project's
+    releases out. A block whose first fetch failed is retried without
+    counting. Returns (blocks, number left for later runs); None is no limit.
     """
     blocks = list(blocks)
     new = [block for block in blocks
@@ -763,5 +764,13 @@ def limit_first_fetches(blocks, cache_dir, limit):
            and block.failures(cache_dir) is None]
     if limit is None or len(new) <= limit:
         return blocks, 0
-    chosen = random.sample(new, limit)
+    chosen = []
+    for rank in range(len(TIERS) + 1):
+        tier = [block for block in new if _tier_rank(block) == rank]
+        chosen += random.sample(tier, min(len(tier), limit - len(chosen)))
     return [block for block in blocks if block not in new] + chosen, len(new) - limit
+
+
+def _tier_rank(block):
+    """block's tier as its place in TIERS, len(TIERS) for none."""
+    return next((rank for rank, tier in enumerate(TIERS) if tier in block.tags), len(TIERS))

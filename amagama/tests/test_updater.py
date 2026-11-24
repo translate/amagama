@@ -835,6 +835,21 @@ class TestFirstFetches(object):
         assert "left for later" not in result.output
         assert sorted(os.listdir(run.cache)) == ["a", "b", "c"]
 
+    def test_core_blocks_come_first(self, run, site, amagama_config):
+        """First fetches go tier by tier: core, platform, discovered, then
+        blocks with no tier."""
+        root, url = site
+        amagama_config(UPDATER_FIRST_FETCHES=1)
+        text = "".join(block(name, "translationproject", base_url=url + "/backups/last/",
+                             **({"tags": [tier]} if tier else {}))
+                       for name, tier in (("untiered", None), ("found", "discovered"),
+                                          ("weblate", "platform"), ("main", "core")))
+        fetched = []
+        for _ in range(4):
+            assert run(text).exit_code == 0
+            fetched.append(sorted(set(os.listdir(run.cache)) - set(fetched))[0])
+        assert fetched == ["main", "weblate", "found", "untiered"]
+
     def test_failed_first_fetch_does_not_count(self, run, site, amagama_config, tmp_path):
         root, url = site
         amagama_config(UPDATER_FIRST_FETCHES=1)
