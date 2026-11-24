@@ -130,6 +130,21 @@ def test_blocks_subdirectory():
     assert [(b["name"], b["files"]) for b in found] == [("tx-tool", ["client/po/{lang}.po"])]
 
 
+def test_blocks_xliff_states(tmp_path):
+    """tx pull leaves a translated XLIFF target without a state."""
+    tree = ["l10n/en.xlf", "l10n/af.xlf", ".tx/config"]
+    config = "[p.r]\nfile_filter = l10n/<lang>.xlf\nsource_file = l10n/en.xlf\n" \
+        "source_lang = en\ntype = XLIFF\n"
+    found, _ = generated(["https://github.com/org/shop"],
+                         trees={"https://github.com/org/shop": (tree, {".tx/config": config})})
+    assert [(b["format"], b["xliff_states"]) for b in found] == [
+        ("xliff", ["none", "translated", "final", "signed-off"])]
+    path = tmp_path / "t.toml"
+    path.write_text(generate.toml(found, "Generated"), encoding="utf-8")
+    [loaded] = load_sources(str(path))
+    assert loaded.reader_options["xliff_states"] == ["none", "translated", "final", "signed-off"]
+
+
 def test_blocks_skipped():
     tree = ["po/af.po"]
     nothing = "[p.r]\nfile_filter = l10n/<lang>.po\nsource_lang = en\ntype = PO\n"
