@@ -425,9 +425,17 @@ Each source language has:
 |                 | ``critical``, ``functional``, ``cosmetic`` or   |
 |                 | ``extraction``                                  |
 +-----------------+-------------------------------------------------+
+| rebuild         | The last rebuild: when it ``started``, finished |
+|                 | importing (``imported``) and ``swapped`` in,    |
+|                 | and the ``files`` it imported, the ``units`` it |
+|                 | added and ``skipped``, and the files it         |
+|                 | couldn't read (``unreadable``); absent if       |
+|                 | unknown                                         |
++-----------------+-------------------------------------------------+
 | history         | ``built``, ``sources``, ``words``, ``targets``  |
 |                 | and ``languages`` (how many) at each of the     |
-|                 | last 52 rebuilds, oldest first                  |
+|                 | last 52 rebuilds, oldest first, with            |
+|                 | ``leftOut`` and ``rebuild`` when known          |
 +-----------------+-------------------------------------------------+
 | computed        | When these figures were computed                |
 +-----------------+-------------------------------------------------+
@@ -466,9 +474,16 @@ were refused with a 429. They are totals only.
             "categories": {"tags": "critical", "printf": "critical", "braces": "critical",
                            "script": "critical"}
           },
+          "rebuild": {"started": "2026-11-01T05:00:00Z", "imported": "2026-11-01T12:00:00Z",
+                      "swapped": "2026-11-01T13:00:00Z", "files": 100, "units": 2200,
+                      "skipped": 400, "unreadable": 1},
           "history": [
             {"built": "2026-11-01T12:00:00.000000Z", "sources": 1000, "words": 5000,
-             "targets": 2000, "languages": 1}
+             "targets": 2000, "languages": 1,
+             "leftOut": {"targets": 5, "checks": {"printf": 5, "braces": 0, "script": 0}},
+             "rebuild": {"started": "2026-11-01T05:00:00Z", "imported": "2026-11-01T12:00:00Z",
+                         "swapped": "2026-11-01T13:00:00Z", "files": 100, "units": 2200,
+                         "skipped": 400, "unreadable": 1}}
           ]
         }
       },

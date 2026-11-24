@@ -79,7 +79,7 @@ def cached(filename):
     return _read(filename, stat.st_mtime_ns, stat.st_size)
 
 
-def _now():
+def now():
     return datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
@@ -237,10 +237,23 @@ def left_out(report, names):
     return {"targets": report.left_out, "checks": {name: report.failures(name) for name in names}}
 
 
+def rebuild(started, imported, swapped, files, units, skipped, unreadable):
+    """A rebuild's record for update_tm(): when it started, finished importing
+    and swapped in, and the files and units it imported, skipped and couldn't
+    read."""
+    return {"started": started, "imported": imported, "swapped": swapped, "files": files,
+            "units": units, "skipped": skipped, "unreadable": unreadable}
+
+
 def _history(previous, figures):
     """previous's history with figures' rebuild added or replaced, last HISTORY kept."""
     entry = {key: figures[key] for key in ("built", "sources", "targets", "words")}
     entry["languages"] = len(figures["languages"])
+    left_out = (figures.get("checks") or {}).get("leftOut")
+    if left_out:
+        entry["leftOut"] = left_out
+    if figures.get("rebuild"):
+        entry["rebuild"] = figures["rebuild"]
     history = [old for old in (previous or {}).get("history", [])
                if old.get("built") != entry["built"]]
     history.append(entry)
@@ -248,11 +261,13 @@ def _history(previous, figures):
     return history[-HISTORY:]
 
 
-def update_tm(filename, tmdb, slangs=None, rejected=None):
+def update_tm(filename, tmdb, slangs=None, rejected=None, rebuilt=None):
     """Compute the figures of slangs (None: every live source language) into
-    filename. rejected is {slang: left_out()} of a rebuild just done; otherwise
-    a language keeps what the rebuild of its data left out, if known."""
+    filename. rejected is {slang: left_out()} and rebuilt {slang: rebuild()} of
+    a rebuild just done; otherwise a language keeps what the rebuild of its
+    data left out and its record, if known."""
     rejected = rejected or {}
+    rebuilt = rebuilt or {}
     everything = slangs is None
     slangs = sorted(tmdb.source_langs if slangs is None else slangs)
     computed = {slang: compute(tmdb, slang) for slang in slangs}
@@ -264,13 +279,17 @@ def update_tm(filename, tmdb, slangs=None, rejected=None):
                 new["checks"]["leftOut"] = rejected[slang]
             elif previous and previous.get("built") == new["built"]:
                 new["checks"]["leftOut"] = previous.get("checks", {}).get("leftOut")
+            if slang in rebuilt:
+                new["rebuild"] = rebuilt[slang]
+            elif previous and previous.get("built") == new["built"] and previous.get("rebuild"):
+                new["rebuild"] = previous["rebuild"]
             new["history"] = _history(previous, new)
-            new["computed"] = _now()
+            new["computed"] = now()
             languages[slang] = new
         if everything:
             for gone in set(languages) - set(tmdb.source_langs):
                 del languages[gone]
-        figures["computed"] = _now()
+        figures["computed"] = now()
     return computed
 
 
@@ -290,5 +309,5 @@ def update_use(filename, logs):
             first = (datetime.date.fromisoformat(kept[-1])
                      - datetime.timedelta(days=USE_DAYS - 1)).isoformat()
             kept = [date for date in kept if date >= first]
-        figures["use"] = {"computed": _now(), "days": [days[date] for date in kept]}
+        figures["use"] = {"computed": now(), "days": [days[date] for date in kept]}
     return counted
