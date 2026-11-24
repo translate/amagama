@@ -7851,6 +7851,7 @@ url = "https://github.com/KlipperScreen/KlipperScreen"
 ref = "master"
 files = ["ks_includes/locales/{lang}/LC_MESSAGES/KlipperScreen.po"]
 sparse = ["ks_includes/locales/*/LC_MESSAGES/KlipperScreen.po"]
+languages = {"rs" = "sr@latin"}
 licence = "AGPL-3.0-only"
 
 [[block]]
@@ -16004,6 +16005,7 @@ files = ["app/src/main/res/values-{lang}/strings.xml"]
 sparse = ["app/src/main/res/values-*/strings.xml", "app/src/main/res/values/strings.xml"]
 format = "android"
 template = "app/src/main/res/values/strings.xml"
+languages = {"du" = "de"}
 licence = "AGPL-3.0-only"
 
 [[block]]
@@ -16463,6 +16465,7 @@ files = ["app/locales/{lang}.json"]
 sparse = ["app/locales/*.json", "app/locales/en.json"]
 format = "json"
 template = "app/locales/en.json"
+languages = {"pu" = "pa"}
 licence = "BSD-2-Clause"
 
 [[block]]

@@ -1263,6 +1263,7 @@ title = "Duik"
 url = "https://github.com/RxLaboratory/Duik"
 files = ["translation/*_{lang}.po"]
 sparse = ["translation/*_*.po"]
+languages = {"pd_FR" = "pcd"}
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -3633,6 +3634,7 @@ files = ["romfs/lang/{lang}/app.json"]
 sparse = ["romfs/lang/*/app.json", "romfs/lang/en/app.json"]
 format = "json"
 template = "romfs/lang/en/app.json"
+languages = {"ry" = "ryu"}
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -4958,6 +4960,7 @@ files = ["docs/_data/i18n/{lang}.json"]
 sparse = ["docs/_data/i18n/*.json", "docs/_data/i18n/en-US.json"]
 format = "json"
 template = "docs/_data/i18n/en-US.json"
+languages = {"ry_JP" = "ryu"}
 licence = "GPL-3.0-only"
 
 [[block]]
