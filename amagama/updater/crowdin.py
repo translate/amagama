@@ -214,8 +214,9 @@ def files(text, directory="", xml=None):
         if base:
             filemask = posixpath.join(base, filemask)
         monolingual = is_monolingual(file_format)
-        # A block is named by its file, or the directory of a file pattern.
-        name = posixpath.splitext(posixpath.basename(source))[0].replace("*", "") or \
+        # A block is named by its file, or the directory of a file pattern;
+        # "*.strings.xml" is named strings, not .strings.
+        name = posixpath.splitext(posixpath.basename(source))[0].replace("*", "").strip("._-") or \
             posixpath.basename(posixpath.dirname(filemask.split("{lang}")[0]) or "files")
         found.append({"name": name,
                       "mask": filemask, "format": file_format,

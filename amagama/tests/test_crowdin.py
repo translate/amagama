@@ -313,3 +313,11 @@ def test_crowdin_own_codes():
     found, _ = generated(["https://github.com/org/own", "https://github.com/org/mapped"],
                          trees=trees)
     assert [block.get("languages") for block in found] == [{"pb": "pt_BR"}, {"pb": "pt_PT"}]
+
+
+def test_files_name_from_wildcard_stem():
+    """A file pattern's name is its stem without wildcards or the dot they leave."""
+    config = ("files: [{source: /res/values/*.strings.xml, "
+              "translation: '/res/values-%android_code%/%original_file_name%'}]")
+    [entry] = crowdin.files(config)[0]
+    assert entry["name"] == "strings"
