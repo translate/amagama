@@ -64,6 +64,10 @@ TYPES = {
 }
 
 
+# A .ts file that is Qt Linguist's, not a TypeScript module, by its root element.
+QT_TS_ROOT = re.compile(r"\A\ufeff?\s*(?:(?:<\?.*?\?>|<!--.*?-->|<!DOCTYPE[^>]*>)\s*)*"
+                        r"<TS[\s/>]", re.DOTALL)
+
 # An .xml file that is Android's string resources, by its root element.
 ANDROID_ROOT = re.compile(r"\A\ufeff?\s*(?:(?:<\?.*?\?>|<!--.*?-->|<!DOCTYPE[^>]*>)\s*)*"
                           r"<resources[\s/>]", re.DOTALL)
@@ -82,6 +86,9 @@ def _format(source, given, xml=None):
     gives the format of typeless .xml sources read from the repository."""
     if given:
         return TYPES.get(str(given).lower())
+    if source.lower().endswith(".ts"):
+        # Read from the repository: Qt's, or TypeScript.
+        return (xml or {}).get(source, "ts")
     return repositories.format_of(source) or (xml or {}).get(source)
 
 
@@ -169,10 +176,13 @@ def _entries(text, directory):
 
 
 def typeless_xml(text, directory=""):
-    """The .xml sources of a crowdin.yml that give no type and no format by name."""
+    """The sources of a crowdin.yml that give no type and whose format is in
+    the file: .xml ones with no format by name, and .ts ones (Qt Linguist's,
+    or TypeScript)."""
     return [source for entry, source in _entries(text, directory)[1]
-            if source and not entry.get("type") and source.lower().endswith(".xml")
-            and not repositories.format_of(source)]
+            if source and not entry.get("type") and (
+                source.lower().endswith(".ts") or
+                source.lower().endswith(".xml") and not repositories.format_of(source))]
 
 
 def files(text, directory="", xml=None):
@@ -221,8 +231,9 @@ def configs(paths):
 
 
 def xml_format(directory, source, paths):
-    """The format of a typeless .xml source, from the first file it matches in
-    a clone: "android" for string resources, else None."""
+    """The format of a typeless .xml or .ts source, from the first file it
+    matches in a clone: "android" for string resources, "ts" for Qt
+    Linguist's, else None."""
     try:
         mask = compile_mask(source, allow_lang=False)
     except ValueError:
@@ -234,11 +245,13 @@ def xml_format(directory, source, paths):
         text = repositories.read_file(directory, path)
     except (FetchError, UnicodeError):
         return None
+    if source.lower().endswith(".ts"):
+        return "ts" if QT_TS_ROOT.match(text) else None
     return "android" if ANDROID_ROOT.match(text) else None
 
 
 def repository(url):
-    """(paths, {config: text}, {typeless .xml source: format}) of url's
+    """(paths, {config: text}, {typeless .xml or .ts source: format}) of url's
     Crowdin configurations, or None if the repository isn't there; see
     repositories.read() for a config that can't be read."""
     with clone(url, None) as cloned:
