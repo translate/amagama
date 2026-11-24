@@ -104,6 +104,16 @@ from amagama.updater.sources import load_sources
     ("cn", "zh_CN"),
     ("ua", "uk"),
     ("GR", "el"),
+    ("jp", "ja"),
+    ("np", "ne"),
+    ("vn", "vi"),
+    ("dk", "da"),
+    # Serbia's code doesn't say which script: a block says.
+    ("rs", None),
+    ("gr_GR", "el_GR"),
+    ("jp_JP", "ja_JP"),
+    ("cn_CN", "zh_CN"),
+    ("cn_TW", "zh_TW"),
     # Not a country's code alone: a language with a region.
     ("uk_UA", "uk_UA"),
     ("ast", "ast"),
