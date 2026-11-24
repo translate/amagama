@@ -234,6 +234,8 @@ CHECKS = ".checks"
 # another build in between doesn't pass for it.
 SETTINGS = ".settings"
 LIVE = ".live"
+# Under SNAPSHOTS, each snapshot block's snapshot_fingerprint().
+SNAPSHOTS = ".snapshots"
 
 
 # Settings that don't change what a block's import stores.
@@ -278,16 +280,23 @@ def built_from(blocks, cache_dir, checks):
     return built
 
 
-def unchanged_blocks(blocks, cache_dir, last_built, live_built):
+def unchanged_blocks(blocks, cache_dir, last_built, live_built, snapshots=None):
     """The names of blocks whose files and settings are as the live data was
     built from, so their data can be copied from it; none if the record isn't
-    of the live data (rolled back, or built before records named it)."""
+    of the live data (rolled back, or built before records named it). A
+    snapshot block is, if its snapshot (snapshots: {block: fingerprint}) is
+    as it was."""
     if not last_built or last_built.get(LIVE) is None or last_built.get(LIVE) != live_built:
         return []
     settings = last_built.get(SETTINGS) or {}
+    recorded = last_built.get(SNAPSHOTS) or {}
     names = []
     for block in blocks:
         if block.source == "snapshot":
+            fingerprint = (snapshots or {}).get(block.name)
+            if fingerprint and recorded.get(block.name) == fingerprint and \
+                    settings.get(block.name) == block_settings(block):
+                names.append(block.name)
             continue
         state = block.state(cache_dir)
         if state and last_built.get(block.name) == state["content"] and \
@@ -368,7 +377,7 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
     # What it would read now, fetched or not: a block's changed settings
     # rebuild it even if its files didn't change.
     cache_changed = built_from(blocks, cache_dir, checks) != {
-        key: value for key, value in (last_built or {}).items() if key != LIVE}
+        key: value for key, value in (last_built or {}).items() if key not in (LIVE, SNAPSHOTS)}
     checks_changed = last_built is not None and last_built.get(CHECKS) != checks
     if not changed and not force and not was_pending and not cache_changed \
             and not checks_changed:
@@ -416,9 +425,22 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
     tmdb.init_db([slang])
     tmdb.record_blocks(slang, [(block.name, block.title, block.version, block.weight)
                                for block in blocks])
+    # Blocks unchanged since the live data was built, snapshots too, are
+    # copied from it, not imported again; a forced rebuild, or changed
+    # checks, imports them all.
+    fingerprints = {block.name: tmdb.snapshot_fingerprint(slang, block.fetcher.settings["snapshot"])
+                    for block in snapshots}
+    reuse = []
+    if not force and not checks_changed and tmdb.records_blocks(slang):
+        tmdb.use_schemas("")
+        reuse = unchanged_blocks(blocks, cache_dir, last_built, tmdb.live_built(slang),
+                                 fingerprints)
+        tmdb.use_schemas(BUILD_PREFIX)
     # load_snapshot needs an empty schema, so snapshots go first.
     for block in snapshots:
         name = block.fetcher.settings["snapshot"]
+        if block.name in reuse:
+            continue
         if block in missing:
             out("Skipped %s: no snapshot _%s_%s." % (block.name, name, slang))
             continue
@@ -429,18 +451,11 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
             out("Not language codes in %s, skipped: %s" % (block.name,
                                                             snapshot_left_out(left_out)))
 
-    # Blocks unchanged since the live data was built are copied from it, not
-    # imported again; a forced rebuild, or changed checks, imports them all.
-    copied = set()
-    if not force and not checks_changed:
-        tmdb.use_schemas("")
-        reuse = unchanged_blocks(blocks, cache_dir, last_built, tmdb.live_built(slang))
-        tmdb.use_schemas(BUILD_PREFIX)
-        counts = tmdb.copy_blocks(slang, reuse) if reuse else None
-        if counts is not None:
-            copied = set(reuse)
-            out("Copied %d unchanged blocks from the live data: %d files, %d targets." % (
-                len(reuse), counts[0], counts[2]))
+    copied = set(reuse)
+    if reuse:
+        counts = tmdb.copy_blocks(slang, reuse)
+        out("Copied %d unchanged blocks from the live data: %d files, %d targets." % (
+            len(reuse), counts[0], counts[2]))
 
     def chunks():
         """Each block's import tasks, a few blocks at a time: building them all
@@ -504,7 +519,8 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
                       weigh=leave_out if current_app.config.get("UNIT_CHECKS_SUGGEST_WEIGHTS")
                       else None,
                       styles=styles,
-                      workers=unit_checks.workers(current_app.config))
+                      workers=unit_checks.workers(current_app.config),
+                      measured=slang if copied else None)
     out("Left out %d targets that look broken." % rejected.left_out)
     for line in rejected.lines(leave_out):
         out("  " + line)
@@ -522,6 +538,7 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
     tmdb.swap(slang)
     built = built_from(blocks, cache_dir, checks)
     built[LIVE] = tmdb.live_built(slang)
+    built[SNAPSHOTS] = fingerprints
     with open(record + ".new", "w", encoding="utf-8") as f:
         json.dump(built, f)
     os.replace(record + ".new", record)

@@ -686,17 +686,25 @@ class Report(object):
                 example[3] = [block for block, in cursor.fetchall()]
 
 
-def _rows(connection, schema, langs, styled=False):
+def _rows(connection, schema, langs, styled=False, unchecked=False):
     """(lang, tid, source, target, style) of the targets in schema, in langs or
-    all; style is that of the target_styles table, with styled."""
+    all; style is that of the target_styles table, with styled. With
+    unchecked, the targets checked_before doesn't list."""
     query = sql.SQL("""SELECT t.lang, t.tid, s.text, t.text, {1} FROM {0}.targets t
         JOIN {0}.sources s ON s.sid = t.sid{2}""").format(
         sql.Identifier(schema), sql.SQL("ts.style" if styled else "NULL"),
         sql.SQL(" LEFT JOIN target_styles ts ON ts.tid = t.tid" if styled else ""))
     params = ()
+    conditions = []
     if langs:
-        query += sql.SQL(" WHERE t.lang = ANY(%s)")
+        conditions.append(sql.SQL("t.lang = ANY(%s)"))
         params = (list(langs),)
+    if unchecked:
+        conditions.append(sql.SQL(
+            "NOT EXISTS (SELECT 1 FROM {}.checked_before c WHERE c.tid = t.tid)").format(
+            sql.Identifier(schema)))
+    if conditions:
+        query += sql.SQL(" WHERE ") + sql.SQL(" AND ").join(conditions)
     with connection.cursor(name="check_units") as rows:
         rows.itersize = 10000
         rows.execute(query, params)
@@ -739,8 +747,33 @@ def workers(config, given=None):
     return given or config.get("UNIT_CHECKS_WORKERS") or os.cpu_count() or 1
 
 
+def _shifted(cursor, schema, checks):
+    """The languages whose measures (rare scripts, usual length) differ from
+    those schema's check_measures recorded, or True for all of them: no
+    record, or the source language's script changed."""
+    if not _has_relation_in(cursor, schema, "check_measures"):
+        return True
+    cursor.execute(sql.SQL("SELECT lang, rare, usual, home FROM {}.check_measures").format(
+        sql.Identifier(schema)))
+    recorded = {lang: (sorted(rare), usual) for lang, rare, usual, home in cursor.fetchall()}
+    cursor.execute(sql.SQL("SELECT DISTINCT home FROM {}.check_measures").format(
+        sql.Identifier(schema)))
+    homes = {home for (home,) in cursor.fetchall()}
+    if homes and homes != {checks.home}:
+        return True
+    now = {lang: (sorted(checks.rare.get(lang, ())), checks.usual.get(lang))
+           for lang in set(checks.rare) | set(checks.usual)}
+    return sorted(lang for lang in set(now) | set(recorded) if now.get(lang) != recorded.get(lang))
+
+
+def _has_relation_in(cursor, schema, table):
+    cursor.execute("SELECT to_regclass(%s) IS NOT NULL",
+                   (sql.Identifier(schema, table).as_string(cursor),))
+    return cursor.fetchone()[0]
+
+
 def _check(connection, schema, langs=(), examples=3, names=None, styles=None, workers=1,
-           sample=None, rng=None, weigh=None):
+           sample=None, rng=None, weigh=None, measured=None):
     """(Report, Checks) on the targets in schema, in langs or all of its
     languages, for names (check_names(); None: default_names()), leaving
     each failing target's mask in the checked table. Nothing is committed.
@@ -784,6 +817,20 @@ def _check(connection, schema, langs=(), examples=3, names=None, styles=None, wo
     report = Report(examples, rng, sample)
     with connection.cursor() as cursor:
         links = _has_imports(cursor, schema)
+        # A rebuild's targets copied with their check bits aren't checked
+        # again; the measures above still count them. Weights are suggested
+        # from every block's failures, so then all are. A language whose
+        # measures moved since the data the bits came from (measured, a
+        # schema) is checked again whole.
+        unchecked = weigh is None and _has_relation_in(cursor, schema, "checked_before")
+        if unchecked and measured:
+            shifted = _shifted(cursor, measured, checks)
+            if shifted is True:
+                unchecked = False
+            elif shifted:
+                cursor.execute(sql.SQL("""DELETE FROM {0}.checked_before c USING {0}.targets t
+                    WHERE t.tid = c.tid AND t.lang = ANY(%s)""").format(sql.Identifier(schema)),
+                    (shifted,))
         styled = bool(links and styles and checks.ttk)
         if styled:
             _style_targets(cursor, schema, styles, langs)
@@ -798,7 +845,7 @@ def _check(connection, schema, langs=(), examples=3, names=None, styles=None, wo
             failed.truncate()
         written = 0
         for (lang, tid, source, target, _), mask in masks(
-                _rows(connection, schema, langs, styled), checks, workers):
+                _rows(connection, schema, langs, styled, unchecked), checks, workers):
             report.targets += 1
             report.languages[lang] += 1
             if not mask:
@@ -839,7 +886,7 @@ def _has_imports(cursor, schema):
 
 
 def reject(connection, schema, examples=3, names=(), leave_out=FILTER, styles=None, workers=1,
-           weigh=None):
+           weigh=None, measured=None):
     """Delete the targets in schema failing leave_out, and record the
     failures of names on the others (targets.checks, named in
     check_names); a Report on both, see _check().
@@ -849,7 +896,7 @@ def reject(connection, schema, examples=3, names=(), leave_out=FILTER, styles=No
     """
     report, checks = _check(connection, schema, examples=examples,
                             names=list(leave_out) + list(names), styles=styles, workers=workers,
-                            weigh=weigh)
+                            weigh=weigh, measured=measured)
     mask = sum(checks.bits[name] for name in leave_out)
     table = sql.Identifier(schema)
     with connection.cursor() as cursor:
@@ -868,5 +915,14 @@ def reject(connection, schema, examples=3, names=(), leave_out=FILTER, styles=No
         cursor.execute("""UPDATE targets t SET checks = c.mask FROM checked c
             WHERE t.tid = c.tid AND c.mask & %s = 0""", (mask,))
         report.flagged = cursor.rowcount
+        cursor.execute("DROP TABLE IF EXISTS checked_before")
+        # What the measures were, for the next rebuild to tell whether the
+        # bits it copies from this data still hold.
+        cursor.execute("DROP TABLE IF EXISTS check_measures")
+        cursor.execute("""CREATE TABLE check_measures (lang TEXT PRIMARY KEY, rare TEXT[] NOT NULL,
+            usual INTEGER, home TEXT)""")
+        cursor.executemany("INSERT INTO check_measures VALUES (%s, %s, %s, %s)", [
+            (lang, sorted(checks.rare.get(lang, ())), checks.usual.get(lang), checks.home)
+            for lang in sorted(set(checks.rare) | set(checks.usual))])
     connection.commit()
     return report

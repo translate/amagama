@@ -689,3 +689,102 @@ class TestUnchangedCopied(object):
         result = run("update", "-s", "en")
         assert result.exit_code == 0, result.output
         assert "Copied" not in result.output
+
+
+class TestCheckedOnce(object):
+    """A rebuild checks only the targets it didn't copy with their check
+    bits, and copies an unchanged snapshot instead of loading it (#3599)."""
+
+    def checked_texts(self, monkeypatch):
+        """The targets the checks' second pass reads, as they're read."""
+        from amagama import unit_checks
+        rows, seen = unit_checks._rows, []
+
+        def spy(connection, schema, langs, styled=False, unchecked=False):
+            for row in rows(connection, schema, langs, styled, unchecked):
+                if unchecked:
+                    seen.append(row[3])
+                yield row
+        monkeypatch.setattr(unit_checks, "_rows", spy)
+        return seen
+
+    def test_only_new_checked(self, run, site, pg_connection, monkeypatch):
+        root, url = site
+        assert run("update", "-s", "en").exit_code == 0
+        write_gnome(root, "af", ("Open file", "Maak lêer oop"), ("Close file", "Maak lêer toe"))
+        write_stats(root, af=2, zu=1)
+        checked = self.checked_texts(monkeypatch)
+        result = run("update", "-s", "en")
+        assert result.exit_code == 0, result.output
+        assert "Copied 1 unchanged blocks" in result.output
+        assert "Maak lêer toe" in checked
+        assert "Stoor lêer" not in checked
+        assert query(pg_connection, "SELECT to_regclass('en.checked_before') IS NULL") == [(True,)]
+
+    def test_shifted_measures_check_again(self, run, site, monkeypatch):
+        """A language whose rare scripts or usual length moved has its copied
+        targets checked again: their measure bits may no longer hold."""
+        from amagama import unit_checks
+        root, url = site
+        assert run("update", "-s", "en").exit_code == 0
+        write_gnome(root, "af", ("Open file", "Maak lêer oop"), ("Close file", "Maak lêer toe"))
+        write_stats(root, af=2, zu=1)
+        checked = self.checked_texts(monkeypatch)
+        monkeypatch.setattr(unit_checks, "_shifted", lambda cursor, schema, checks: ["af"])
+        result = run("update", "-s", "en")
+        assert result.exit_code == 0, result.output
+        assert "Copied 1 unchanged blocks" in result.output
+        assert "Stoor lêer" in checked
+
+    def test_weights_check_all(self, run, site, monkeypatch):
+        """Suggesting weights needs every block's failures: all are checked."""
+        root, url = site
+        assert run("update", "-s", "en").exit_code == 0
+        write_gnome(root, "af", ("Open file", "Maak lêer oop"), ("Close file", "Maak lêer toe"))
+        write_stats(root, af=2, zu=1)
+        checked = self.checked_texts(monkeypatch)
+        result = run("update", "-s", "en", UNIT_CHECKS_SUGGEST_WEIGHTS=True)
+        assert result.exit_code == 0, result.output
+        assert "Copied 1 unchanged blocks" in result.output
+        assert checked == []
+
+    def test_snapshot_copied(self, run, tmp_path, site, pg_connection):
+        root, url = site
+        legacy = tmp_path / "legacy.po"
+        legacy.write_text(po("af", ("Close the window", "Maak die venster toe")))
+        run("initdb", "-s", "en")
+        run("build_tmdb", "-s", "en", "-t", "af", "-i", str(legacy))
+        run("snapshot_db", "-s", "en", "--name", "legacy")
+        assert "Loaded legacy-2019" in run("update", "-s", "en").output
+        write_gnome(root, "af", ("Open file", "Maak lêer oop"), ("Close file", "Maak lêer toe"))
+        write_stats(root, af=2, zu=1)
+        result = run("update", "-s", "en")
+        assert result.exit_code == 0, result.output
+        assert "Loaded legacy-2019" not in result.output
+        assert "Copied 2 unchanged blocks" in result.output
+        assert lookup("af", "Close the window") == ["Maak die venster toe"]
+
+
+    def test_snapshot_made_again_loaded(self, run, tmp_path, site, pg_connection):
+        """A snapshot made again, even with as many rows, is loaded again."""
+        root, url = site
+        legacy = tmp_path / "legacy.po"
+        legacy.write_text(po("af", ("Close the window", "Maak die venster toe")))
+        run("initdb", "-s", "en")
+        run("build_tmdb", "-s", "en", "-t", "af", "-i", str(legacy))
+        run("snapshot_db", "-s", "en", "--name", "legacy")
+        assert run("update", "-s", "en").exit_code == 0
+        with pg_connection.cursor() as cursor:
+            cursor.execute("ALTER SCHEMA _legacy_en RENAME TO _legacy_en_was")
+            cursor.execute("CREATE SCHEMA _legacy_en")
+            for table in ("sources", "targets"):
+                cursor.execute("CREATE TABLE _legacy_en.%s AS TABLE _legacy_en_was.%s"
+                               % (table, table))
+            cursor.execute("UPDATE _legacy_en.targets SET text = 'Sluit die venster'")
+        pg_connection.commit()
+        write_gnome(root, "af", ("Open file", "Maak lêer oop"), ("Close file", "Maak lêer toe"))
+        write_stats(root, af=2, zu=1)
+        result = run("update", "-s", "en")
+        assert result.exit_code == 0, result.output
+        assert "Loaded legacy-2019" in result.output
+        assert lookup("af", "Close the window") == ["Sluit die venster"]

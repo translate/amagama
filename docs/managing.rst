@@ -488,7 +488,13 @@ This subcommand refreshes a source language from the :ref:`sources file
 The build starts empty: snapshot blocks are loaded first. A block whose files
 and settings are as they were when the live data was built is copied from the
 live data (its imports, sources, targets with their check flags, and links)
-instead of being imported again. Every block but the snapshots is imported
+instead of being imported again, and so is a snapshot block whose snapshot is
+unchanged. Copied targets keep their flags and aren't checked again, except a
+language's whose rare scripts or usual length step moved since, and all of
+them when the source language's script changed or the live data has no
+record of its measures. So what the checks below list as left out is what
+the targets they checked lost: the newly imported ones, and any copied ones
+checked again. Every block but the snapshots is imported
 with ``--force``; when the checks, :setting:`MAX_LENGTH`, amaGama's code that
 reads and checks files, or the version of Translate Toolkit change; and when
 the live data isn't what the last rebuild swapped in (after ``swap_db

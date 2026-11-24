@@ -548,6 +548,30 @@ ORDER BY rank DESC{order};
             raise
         return tuple(counts)
 
+    def records_blocks(self, slang):
+        """Whether the live slang schema records which block supplied what."""
+        slang = lang_to_table(slang)
+        cursor = self.get_cursor()
+        found = all(self._has_relation(cursor, "%s.%s" % (slang, table))
+                    for table in ("imports", "target_imports"))
+        cursor.connection.commit()
+        return found
+
+    def snapshot_fingerprint(self, slang, name):
+        """The _<name>_<slang> snapshot's schema id and row counts, as text, or
+        None: a snapshot made again (a new schema) is one to load again."""
+        snapshot = "_%s_%s" % (name, lang_to_table(slang))
+        cursor = self.get_cursor()
+        if not self._schema_exists(cursor, snapshot):
+            return None
+        cursor.execute(sql.SQL("SELECT (SELECT oid FROM pg_namespace WHERE nspname = %s), "
+                               "(SELECT COUNT(*) FROM {0}.sources), "
+                               "(SELECT COUNT(*) FROM {0}.targets)").format(
+            sql.Identifier(snapshot)), (snapshot,))
+        found = cursor.fetchone()
+        cursor.connection.commit()
+        return "schema %d: %d sources, %d targets" % tuple(found)
+
     def live_built(self, slang):
         """When the live slang schema's newest import was, as text, or None."""
         slang = lang_to_table(slang)
@@ -621,10 +645,17 @@ ORDER BY rank DESC{order};
                 SELECT c.sid AS old, b.sid AS new FROM copied_sources c
                 JOIN {}.sources b ON b.text = c.text""").format(build))
             cursor.execute("CREATE INDEX ON copied_sids (old)")
-            cursor.execute(sql.SQL("""INSERT INTO {}.targets (sid, text, lang, checks)
-                SELECT m.new, t.text, t.lang, t.checks FROM copied_targets t
-                JOIN copied_sids m ON m.old = t.sid WHERE octet_length(t.text) <= %s
-                ON CONFLICT (sid, text, lang) DO NOTHING""").format(build), (SAFE_INDEX_BYTES,))
+            # The targets this inserts keep their check bits, and aren't checked
+            # again; one the build has already (from the snapshot, say) is.
+            cursor.execute(sql.SQL("""CREATE TABLE IF NOT EXISTS {}.checked_before
+                (tid INTEGER PRIMARY KEY)""").format(build))
+            cursor.execute(sql.SQL("""WITH inserted AS (
+                    INSERT INTO {0}.targets (sid, text, lang, checks)
+                    SELECT m.new, t.text, t.lang, t.checks FROM copied_targets t
+                    JOIN copied_sids m ON m.old = t.sid WHERE octet_length(t.text) <= %s
+                    ON CONFLICT (sid, text, lang) DO NOTHING RETURNING tid)
+                INSERT INTO {0}.checked_before SELECT tid FROM inserted""").format(build),
+                (SAFE_INDEX_BYTES,))
             targets = cursor.rowcount
             cursor.execute("""SELECT m.new, t.text, t.lang, t.checks FROM copied_targets t
                 JOIN copied_sids m ON m.old = t.sid WHERE octet_length(t.text) > %s""",
@@ -632,9 +663,13 @@ ORDER BY rank DESC{order};
             insert = sql.SQL("""INSERT INTO {}.targets (sid, text, lang, checks)
                 VALUES (%s, %s, %s, %s) ON CONFLICT (sid, text, lang) DO NOTHING RETURNING tid""").format(
                 build).as_string(cursor)
+            checked = sql.SQL("INSERT INTO {}.checked_before VALUES (%s)").format(
+                build).as_string(cursor)
             for row in cursor.fetchall():
-                targets += bool(_insert_indexable(cursor, insert, tuple(row), row[1],
-                                                  returning=True))
+                inserted = _insert_indexable(cursor, insert, tuple(row), row[1], returning=True)
+                if inserted:
+                    targets += 1
+                    cursor.execute(checked, (inserted[0],))
             cursor.execute(sql.SQL("""INSERT INTO {}.target_imports (tid, iid)
                 SELECT b.tid, l.iid FROM copied_links l
                 JOIN copied_targets t ON t.tid = l.tid
