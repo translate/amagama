@@ -8010,6 +8010,7 @@ files = ["**/translations/{lang}.json"]
 sparse = ["**/translation.json", "**/translations/*.json"]
 format = "json"
 template = "**/translation.json"
+languages = {"pb" = "pt_BR"}
 licence = "MIT"
 
 [[block]]
