@@ -75,6 +75,41 @@ from amagama.unit_checks import Report, failed_checks, length_step, script, targ
     ("{count, plural, one {{0} file} other {{0} files}}",
      "{count, plural, one {{0} lêer} other {{0} lêers}}", "af", []),
     ("{0, plural, one {{0} file} other {{0} files}}", "{0} lêers", "af", ["braces"]),
+    # A branch English hasn't: printf placeholders count by branch (#3846).
+    ("{TABS_COUNT, plural,\n =1 {%1$d tab}\n other {%1$d tabs}\n }",
+     "{TABS_COUNT,plural, =1{%1$d ટૅબ}one{%1$d ટૅબ}other{%1$d ટૅબ}}", "gu", []),
+    ("{n, plural, one {%d file} other {%d files}}",
+     "{n, plural, one {%d файл} few {%d файла} many {%d файлов} other {%d файла}}", "ru", []),
+    ("{n, plural, one {%d file} other {%d files}}", "{n, plural, one {файл} other {%d файлов}}",
+     "ru", []),
+    ("{n, plural, one {%d file} other {%d files}}", "{n, plural, one {%s} other {%s}}", "ru",
+     ["printf"]),
+    ("%s: {n, plural, one {%d file} other {%d files}}", "{n, plural, one {%d} other {%d}}", "ru",
+     ["printf"]),
+    # Outside the plural, each placeholder still counts.
+    ("%1$s, %1$s: {n, plural, one {%d file} other {%d files}}",
+     "%1$s: {n, plural, one {%d файл} other {%d файлов}}", "ru", ["printf"]),
+    # A select's branches too.
+    ("{g, select, female {%s shared her file} other {%s shared their file}}",
+     "{g, select, female {%s jagas oma faili} male {%s jagas oma faili} other {%s jagas faili}}",
+     "et", []),
+    ("{g, select, female {%s shared her file} other {%s shared their file}}",
+     "{g, select, female {%d jagas} other {%d jagas}}", "et", ["printf"]),
+    # A nested plural's surrounding text stays in its branch.
+    ("{g, select, female {%s has {n, plural, one {%d file} other {%d files}}} "
+     "other {%s has {n, plural, one {%d file} other {%d files}}}}",
+     "{g, select, female {%s a {n, plural, one {%d fichier} other {%d fichiers}}} "
+     "male {%s a {n, plural, one {%d fichier} other {%d fichiers}}} "
+     "other {%s a {n, plural, one {%d fichier} other {%d fichiers}}}}", "fr", []),
+    # ICU quotes a literal brace with an apostrophe.
+    ("{n, plural, one {'{'%d file} other {'{'%d files}}",
+     "{n, plural, one {'{'%d lêer} few {'{'%d lêers} other {'{'%d lêers}}", "af", []),
+    # ...and an empty branch isn't the empty placeholder {}.
+    ("{count, plural, =1 {{account} followed you.} other {{0} people followed you.}}",
+     "{count, plural, one {}=1 {{account} seurasi sinua.} other {{0} käyttäjää seurasi sinua.}}",
+     "fi", []),
+    ("Saved {} of {count, plural, one {# file} other {# files}}",
+     "{count, plural, one {# lêer} other {# lêers}} gestoor", "af", ["braces"]),
     # A typed argument is its argument; a numbered one may be used again.
     ("{0} files", "{0,number} lêers", "af", []),
     ("Saved {0,date,short}", "{0} gestoor", "af", []),

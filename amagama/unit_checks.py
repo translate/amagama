@@ -56,6 +56,8 @@ _BRACES = re.compile(r"%\{\w+\}|\{\$[^{}]*\}|\{\d+\}|\{\}|\{(\d+)\s*,\s*\w+[^{}]
 # ICU's plural and select: their branches' text is translated, and their
 # number follows the language.
 _CHOICE = re.compile(r"\{(\d+|[^\W\d]\w*)\s*,\s*(choice|plural|selectordinal|select)\s*,")
+# ICU's plural and select, whose branches are in braces (Java's choice uses |).
+_ICU_BRANCHING = re.compile(r"\{(\d+|[^\W\d]\w*)\s*,\s*(plural|selectordinal|select)\s*,")
 # TeX, whose braces hold text.
 _TEX = re.compile(r"\\[A-Za-z]+")
 # Tag names only: an attribute such as alt may be translated.
@@ -119,17 +121,104 @@ def printf_placeholders(text):
     return found, widened
 
 
+def _icu_chars(text, start=0):
+    """(position, char) of text from start, but for ICU's quoted literals: an
+    apostrophe before {, }, # or | quotes up to the next one ('' is an
+    apostrophe)."""
+    position = start
+    while position < len(text):
+        char = text[position]
+        if char == "'" and text[position + 1:position + 2] in ("{", "}", "#", "|"):
+            close = text.find("'", position + 1)
+            position = len(text) if close < 0 else close + 1
+            continue
+        yield position, char
+        position += 1
+
+
+def _closing(text, start):
+    """The position after the } that closes a { just before start, or None."""
+    depth = 1
+    for position, char in _icu_chars(text, start):
+        depth += {"{": 1, "}": -1}.get(char, 0)
+        if depth == 0:
+            return position + 1
+    return None
+
+
+def _branches(body):
+    """The branches' texts of an ICU plural or select's body, "one {# file}
+    other {# files}"; an empty branch has no text to check."""
+    found, depth, start = [], 0, None
+    for position, char in _icu_chars(body):
+        if char == "{":
+            if depth == 0:
+                start = position + 1
+            depth += 1
+        elif char == "}" and depth:
+            depth -= 1
+            if depth == 0 and body[start:position].strip():
+                found.append(body[start:position])
+    return found
+
+
+def _icu_split(text):
+    """(text outside its ICU plurals and selects, their branches' texts), or
+    None if it has none. A branch with a plural or select inside is split
+    too, its own text a branch of its own."""
+    outside, branches, pos = [], [], 0
+    while match := _ICU_BRANCHING.search(text, pos):
+        end = _closing(text, match.end())
+        if end is None:
+            break
+        outside.append(text[pos:match.start()])
+        for branch in _branches(text[match.end():end - 1]):
+            nested = _icu_split(branch)
+            branches += [branch] if nested is None else [nested[0]] + nested[1]
+        pos = end
+    if pos == 0:
+        return None
+    return "".join(outside + [text[pos:]]), branches
+
+
+def _printf_parts(text):
+    """(text's printf placeholders outside ICU plurals and selects, widened,
+    and the placeholders their branches use or None if it has none). A
+    branch uses a placeholder as many times as the language's form needs,
+    so only which occur is compared; each branch counts its own positions."""
+    split = _icu_split(text)
+    if split is None:
+        found, widened = printf_placeholders(text)
+        return found, widened, None
+    found, widened = printf_placeholders(split[0])
+    used = set()
+    for branch in split[1]:
+        branch_found, branch_widened = printf_placeholders(branch)
+        used |= set(branch_found)
+        widened |= branch_widened
+    return found, widened, used
+
+
 def _printf_differs(source, target):
     if _STRFTIME.search(source):
         return False
-    wanted, _ = printf_placeholders(source)
-    found, widened = printf_placeholders(target)
-    numbered = any(key[1:].isdigit() for key in wanted)
-    for key in list(found):
+    wanted, _, wanted_used = _printf_parts(source)
+    found, widened, found_used = _printf_parts(target)
+    known = set(wanted) | (wanted_used or set())
+    numbered = any(key[1:].isdigit() for key in known)
+
+    def unwanted(key):
         # Not the source's kind of placeholder: Basque and Turkish write
         # percentages as %95 or %50.
-        if key not in wanted and ((key[1:].isdigit() and not numbered) or key in widened):
-            del found[key]
+        return key not in known and ((key[1:].isdigit() and not numbered) or key in widened)
+    found = collections.Counter({key: n for key, n in found.items() if not unwanted(key)})
+    if found_used is not None:
+        found_used = {key for key in found_used if not unwanted(key)}
+    if wanted_used is not None and found_used is not None:
+        return found != wanted or found_used != wanted_used
+    if wanted_used is not None or found_used is not None:
+        # One has a plural or select the other hasn't: compare which occur.
+        return set(found) | (found_used or set()) != known
     return found != wanted
 
 
@@ -154,7 +243,10 @@ def _braces(text):
             break
         found += _plain_braces(text[pos:match.start()])
         found.append("{%s,%s}" % (match[1], match[2]))
-        found += sorted(set(_braces(text[match.end():end - 1])) - {"{%s}" % match[1]})
+        body = text[match.end():end - 1]
+        # An empty branch ("one {}") isn't the empty placeholder {}.
+        inner = " ".join(_branches(body)) if match[2] != "choice" else body
+        found += sorted(set(_braces(inner)) - {"{%s}" % match[1]})
         pos = end
     return sorted(found + _plain_braces(text[pos:]))
 
