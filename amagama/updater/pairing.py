@@ -19,6 +19,7 @@ import re
 
 from translate.storage.aresource import AndroidResourceUnit
 from translate.storage.base import TranslationStore, TranslationUnit
+from translate.storage.jsonl10n import BaseJsonUnit
 from translate.storage.po import pounit
 from translate.storage.xliff import xliffunit
 
@@ -29,6 +30,20 @@ def text(unit):
     if isinstance(unit, xliffunit):
         return unit.target or ""
     return unit.target or unit.source
+
+
+def english_text(unit):
+    """A template unit's English: its text, or for JSON keyed by its English
+    with the values left empty ({"Save the file": ""}), its key. Only a
+    top-level key with white space reads as English, not an id."""
+    found = text(unit)
+    if found or not isinstance(unit, BaseJsonUnit):
+        return found
+    # The key as written; getid() adds a "." for each level.
+    key = str(getattr(unit, "_item", "") or "")
+    if unit.getid() == "." + key and key.strip() and re.search(r"\s", key):
+        return key
+    return found
 
 
 def is_plural(unit):
@@ -123,9 +138,9 @@ def paired_store(translation, template, exclude_ids=(), language_in_ids=False):
             target = unit.target if unit.istranslated() else ""
         else:
             target = text(unit)
-        if not target or not text(source):
+        if not target or not english_text(source):
             continue
-        paired = TranslationUnit(str(text(source)))
+        paired = TranslationUnit(str(english_text(source)))
         paired.target = str(target)
         store.addunit(paired)
     return store
