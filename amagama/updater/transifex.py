@@ -27,6 +27,9 @@ from amagama.updater.repositories import blocks as repository_blocks
 from amagama.updater.repositories import candidates as repository_candidates
 from amagama.updater.weblate import FORMATS
 
+# tx pull writes a translated XLIFF unit's target with no state.
+XLIFF_STATES = ["none", "translated", "final", "signed-off"]
+
 # Transifex file types amaGama reads, as the Weblate format each one is.
 TYPES = {
     "PO": "po",
@@ -168,6 +171,9 @@ def blocks(repositories, prefix, covered=(), names=None, pause=1, read=None, lic
                       for resource in found_resources]
         found, reasons = repository_candidates(entries, paths, "resources",
                                                "file_filter matches nothing")
+        for candidate in found:
+            if candidate.get("format") == "xliff":
+                candidate["xliff_states"] = XLIFF_STATES
         return found, skipped + reasons
 
     return repository_blocks(repositories, prefix, resolve, "resources", covered, names, pause,
