@@ -249,3 +249,21 @@ class TestBatchedInserts(object):
             assert not app.tmdb._usable_unit(nul, 'af')
             assert not app.tmdb._usable_unit(source_nul, 'af')
             assert not app.tmdb._usable_unit(surrogate, 'af')
+
+
+    def test_foreign_letters(self, app):
+        """A tr target with a letter Turkish never writes isn't usable,
+        unless its source has it too (#3202)."""
+        store = TranslationStore()
+        tatar = store.addsourceunit("Next page")
+        tatar.target = "Soñraki saife"
+        turkish = store.addsourceunit("Next page")
+        turkish.target = "Sonraki sayfa"
+        name = store.addsourceunit("Peña Nieto")
+        name.target = "Peña Nieto'nun"
+        with app.app_context():
+            assert not app.tmdb._usable_unit(tatar, "tr")
+            assert app.tmdb._usable_unit(turkish, "tr")
+            assert app.tmdb._usable_unit(name, "tr")
+            # Crimean Tatar under its own code is its own.
+            assert app.tmdb._usable_unit(tatar, "crh")

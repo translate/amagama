@@ -185,6 +185,31 @@ def split_cache_key(key):
 
 
 
+# Letters a language's own text never has: a target with one its source
+# hasn't is another language's text stored under the code, such as
+# Crimean Tatar's ñ and Azerbaijani's ə under tr (#3202).
+FOREIGN_LETTERS = {"tr": "ñÑəƏ"}
+
+
+def foreign_letters(lang, source, target):
+    """Whether target has a letter its language never writes that source hasn't."""
+    letters = FOREIGN_LETTERS.get(lang_to_table(lang) or "", "")
+    return any(letter in target and letter not in source for letter in letters)
+
+
+def _foreign_letters_sql():
+    """(SQL condition, its parameters) for foreign_letters() of targets t
+    of sources s."""
+    conditions, params = [], []
+    for lang, letters in sorted(FOREIGN_LETTERS.items()):
+        conditions.append("(t.lang = %%s AND (%s))" % " OR ".join(
+            ["(strpos(t.text, %s) > 0 AND strpos(s.text, %s) = 0)"] * len(letters)))
+        params.append(lang)
+        for letter in letters:
+            params += [letter, letter]
+    return " OR ".join(conditions), params
+
+
 def _encodable(text):
     """text as the database can hold it, or None.
 
@@ -564,6 +589,10 @@ ORDER BY rank DESC{order};
             for row in cursor.fetchall():
                 if self._indexable_string(row['text']):
                     _insert_indexable(cursor, insert, tuple(row), row['text'])
+            condition, params = _foreign_letters_sql()
+            if condition:
+                cursor.execute("DELETE FROM targets t USING sources s WHERE s.sid = t.sid AND (%s)"
+                               % condition, params)
             if keep_tid:
                 cursor.execute("""SELECT setval(pg_get_serial_sequence('targets', 'tid'),
                     COALESCE(MAX(tid), 0) + 1, false) FROM targets""")
@@ -1190,6 +1219,8 @@ ORDER BY rank DESC{order};
             return False
         if target_lang and (lang_to_table(target_lang) or "").split("_")[0] != "en" \
                 and copied_source(str(u.source), str(target)):
+            return False
+        if target_lang and foreign_letters(target_lang, str(u.source), str(target)):
             return False
         return u.istranslatable() and \
                bool(u.source) and \
