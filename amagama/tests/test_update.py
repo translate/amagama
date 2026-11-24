@@ -299,6 +299,24 @@ class TestUpdate(object):
         assert lookup("af", "Close file") == ["Maak lêer toe"]
         assert lookup("af", "Open file") == ["Maak lêer oop"]
 
+    def test_snapshot_foreign_letters(self, run, tmp_path, pg_connection):
+        """The 2019 database stored Crimean Tatar and Azerbaijani as Turkish:
+        a tr target with a letter Turkish never writes is left out (#3202)."""
+        legacy = tmp_path / "legacy.po"
+        legacy.write_text(po("tr", ("Close file", "Dosyayı kapat"), ("Next", "Soñraki"),
+                             ("Add", "Əlavə Et"), ("Ñ", "Ñ")))
+        run("initdb", "-s", "en")
+        run("build_tmdb", "-s", "en", "-t", "tr", "-i", str(legacy))
+        run("snapshot_db", "-s", "en", "--name", "legacy")
+        result = run("update", "-s", "en")
+        assert result.exit_code == 0, result.output
+        assert lookup("tr", "Close file") == ["Dosyayı kapat"]
+        assert lookup("tr", "Next") == []
+        assert lookup("tr", "Add") == []
+        # The letter itself, which its source has too, stays.
+        assert query(pg_connection, "SELECT text FROM en.targets WHERE lang = 'tr' "
+                                    "AND text = 'Ñ'") == [("Ñ",)]
+
     def test_missing_snapshot_with_live_data(self, run, tmp_path, pg_connection):
         legacy = tmp_path / "legacy.po"
         legacy.write_text(po("af", ("Close file", "Maak lêer toe")))

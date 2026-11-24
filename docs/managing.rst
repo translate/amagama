@@ -488,7 +488,9 @@ This subcommand refreshes a source language from the :ref:`sources file
 The build starts empty: snapshot blocks are loaded first, then every file of
 every other block, :setting:`UPDATER_WORKERS` at a time, each with its known
 target language, block name and licence. Files that can't be read are listed
-and left out. Before the swap, targets failing the ``printf``, ``braces`` or
+and left out, and so is a target with a letter its language never writes
+that its source hasn't (a Turkish one with Crimean Tatar's ``ñ`` or
+Azerbaijani's ``ə``). Before the swap, targets failing the ``printf``, ``braces`` or
 ``script`` checks of :ref:`check_units <managing#check-units>`, and those
 :setting:`UNIT_CHECKS_LEAVE_OUT` adds, are left out,
 and listed by check, language and block. The other checks, amaGama's and
