@@ -273,3 +273,16 @@ def test_repository_typeless_xml(tmp_path):
         (["app/localization/translations/{lang}/*.xml"], "android",
          "app/localization/source/*.xml")]
     assert skipped == {("files", "type .xml"): 1}
+
+
+def test_crowdin_own_codes():
+    """Crowdin's two_letters_code gives Brazilian Portuguese as pb; a
+    project's own mapping wins."""
+    config = "files: [{source: /po/en.po, translation: '/po/%two_letters_code%.po'}]"
+    mapped = config[:-2] + ", languages_mapping: {two_letters_code: {pt-PT: pb}}}]"
+    trees = {"https://github.com/org/%s" % name: (["po/en.po", "po/pb.po", "po/pt.po"],
+                                                 {"crowdin.yml": text})
+             for name, text in (("own", config), ("mapped", mapped))}
+    found, _ = generated(["https://github.com/org/own", "https://github.com/org/mapped"],
+                         trees=trees)
+    assert [block.get("languages") for block in found] == [{"pb": "pt_BR"}, {"pb": "pt_PT"}]
