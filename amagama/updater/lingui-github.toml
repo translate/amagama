@@ -415,9 +415,9 @@ licence = "MIT"
 name = "lingui-rakazo"
 title = "rakazo"
 url = "https://github.com/elie222/rakazo"
-files = ["apps/web/src/locales/{lang}/messages.po"]
-exclude = ["apps/web/src/locales/en/messages.po"]
-sparse = ["apps/web/src/locales/*/messages.po"]
+files = ["packages/i18n/locales/{lang}/messages.po"]
+exclude = ["packages/i18n/locales/en/messages.po"]
+sparse = ["packages/i18n/locales/*/messages.po"]
 licence = "Apache-2.0"
 
 [[block]]

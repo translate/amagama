@@ -1787,10 +1787,10 @@ licence = "AGPL-3.0-only"
 name = "crowdin-Kreate-plurals"
 title = "Kreate"
 url = "https://github.com/knighthat/Kreate"
-files = ["composeApp/src/androidMain/res/values-{lang}/plurals.xml"]
-sparse = ["composeApp/src/androidMain/res/values-*/plurals.xml", "composeApp/src/androidMain/res/values/plurals.xml"]
+files = ["app/src/main/res/values-{lang}/plurals.xml"]
+sparse = ["app/src/main/res/values-*/plurals.xml", "app/src/main/res/values/plurals.xml"]
 format = "android"
-template = "composeApp/src/androidMain/res/values/plurals.xml"
+template = "app/src/main/res/values/plurals.xml"
 languages = {"b+sr+Latn" = "sr_CS"}
 licence = "GPL-3.0-only"
 
@@ -1798,15 +1798,16 @@ licence = "GPL-3.0-only"
 name = "crowdin-Kreate-strings"
 title = "Kreate"
 url = "https://github.com/knighthat/Kreate"
-files = ["composeApp/src/androidMain/res/values-{lang}/strings.xml"]
-sparse = ["composeApp/src/androidMain/res/values-*/strings.xml", "composeApp/src/androidMain/res/values/strings.xml"]
+files = ["app/src/main/res/values-{lang}/*.strings.xml"]
+sparse = ["app/src/main/res/values-*/*.strings.xml", "app/src/main/res/values/*.strings.xml"]
 format = "android"
-template = "composeApp/src/androidMain/res/values/strings.xml"
+template = "app/src/main/res/values/*.strings.xml"
 languages = {"b+sr+Latn" = "sr_CS"}
 licence = "GPL-3.0-only"
 
 [[block]]
 name = "crowdin-Kreate-strings-2"
+disabled = "composeApp is no longer in the repository: its strings moved to app/src/main/res, which crowdin-Kreate-strings imports"
 title = "Kreate"
 url = "https://github.com/knighthat/Kreate"
 files = ["composeApp/src/commonMain/composeResources/values-{lang}/strings.xml"]
@@ -5072,6 +5073,7 @@ licence = "AGPL-3.0-only"
 
 [[block]]
 name = "crowdin-ecamp3-en"
+disabled = "common/locales moved to frontend/src/locales, which crowdin-ecamp3-en-2 imports"
 title = "ecamp3"
 url = "https://github.com/ecamp/ecamp3"
 files = ["common/locales/{lang}.json"]
@@ -6330,6 +6332,7 @@ licence = "MIT"
 
 [[block]]
 name = "crowdin-kratos"
+disabled = "its only translation is en_US, English"
 title = "kratos"
 url = "https://github.com/seatonjiang/kratos"
 files = ["languages/{lang}.po"]
