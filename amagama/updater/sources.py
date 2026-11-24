@@ -695,6 +695,7 @@ def load_sources(path=None, disabled=False):
     names = set()
     entries = _entries(path, {os.path.realpath(path)})
     for i, (path, entry) in enumerate(entries, 1):
+        written = dict(entry)
         name = entry.pop("name", None)
         where = "%s: block %s" % (path, name or i)
         if not name:
@@ -729,6 +730,8 @@ def load_sources(path=None, disabled=False):
         except ValueError as e:
             raise ValueError("%s: %s" % (where, e))
         block.disabled, block.enabled, block.path = reason, reason is None, path
+        # As the sources file gives it, defaults included.
+        block.written = written
         if block.enabled or disabled:
             blocks.append(block)
     return blocks

@@ -485,8 +485,17 @@ This subcommand refreshes a source language from the :ref:`sources file
     ...
     Swapped in 'en'; the replaced copy is _old_en.
 
-The build starts empty: snapshot blocks are loaded first, then every file of
-every other block, :setting:`UPDATER_WORKERS` at a time, each with its known
+The build starts empty: snapshot blocks are loaded first. A block whose files
+and settings are as they were when the live data was built is copied from the
+live data (its imports, sources, targets with their check flags, and links)
+instead of being imported again. Every block but the snapshots is imported
+with ``--force``; when the checks, :setting:`MAX_LENGTH`, amaGama's code that
+reads and checks files, or the version of Translate Toolkit change; and when
+the live data isn't what the last rebuild swapped in (after ``swap_db
+--rollback``, say). The first rebuild
+after this was deployed imports every block too: it has no record yet of what
+the live data was built from.
+Then every file of every other block, :setting:`UPDATER_WORKERS` at a time, each with its known
 target language, block name and licence. Files that can't be read are listed
 and left out, and so is a target with a letter its language never writes
 that its source hasn't (a Turkish one with Crimean Tatar's ``ñ`` or

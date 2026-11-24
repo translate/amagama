@@ -548,6 +548,106 @@ ORDER BY rank DESC{order};
             raise
         return tuple(counts)
 
+    def live_built(self, slang):
+        """When the live slang schema's newest import was, as text, or None."""
+        slang = lang_to_table(slang)
+        cursor = self.get_cursor()
+        if not self._has_relation(cursor, "%s.imports" % slang):
+            return None
+        cursor.execute(sql.SQL("SELECT MAX(imported) FROM {}.imports").format(
+            sql.Identifier(slang)))
+        built = cursor.fetchone()[0]
+        cursor.connection.commit()
+        return built.isoformat() if built else None
+
+    def copy_blocks(self, slang, blocks):
+        """Copy blocks' data from the live slang schema into the build schema,
+        as importing their files again would store it: their imports, the
+        sources and targets those supplied, with each target's check bits,
+        and the links. The build may hold some of the sources and targets
+        already (from the snapshot or another block); they're shared, as an
+        import would share them.
+
+        Returns (imports, sources, targets, links) copied, or None if live
+        doesn't record which block supplied what (built before imports were
+        recorded): then the blocks must be imported.
+        """
+        slang = lang_to_table(slang)
+        live, build = sql.Identifier(slang), sql.Identifier(BUILD_PREFIX + slang)
+        cursor = self.get_cursor(self.schema(slang))
+        if not all(self._has_relation(cursor, "%s.%s" % (slang, table))
+                   for table in ("imports", "target_imports")):
+            return None
+        names = sorted(blocks)
+        try:
+            # Each copied import gets the build's next iid.
+            cursor.execute(sql.SQL("""CREATE TEMP TABLE copied_imports ON COMMIT DROP AS
+                SELECT iid AS old, nextval(pg_get_serial_sequence(%s, 'iid')) AS new
+                FROM {}.imports WHERE block = ANY(%s)""").format(live),
+                (BUILD_PREFIX + slang + ".imports", names))
+            cursor.execute(sql.SQL("""INSERT INTO {0}.imports
+                    (iid, block, filename, checksum, lang, licence, units, skipped, imported)
+                SELECT c.new, i.block, i.filename, i.checksum, i.lang, i.licence, i.units,
+                    i.skipped, i.imported
+                FROM {1}.imports i JOIN copied_imports c ON c.old = i.iid""").format(build, live))
+            imports = cursor.rowcount
+            # One pass over the links for all the blocks: live has no index by iid.
+            cursor.execute(sql.SQL("""CREATE TEMP TABLE copied_links ON COMMIT DROP AS
+                SELECT l.tid, c.new AS iid FROM {}.target_imports l
+                JOIN copied_imports c ON c.old = l.iid""").format(live))
+            cursor.execute("CREATE INDEX ON copied_links (tid)")
+            cursor.execute(sql.SQL("""CREATE TEMP TABLE copied_targets ON COMMIT DROP AS
+                SELECT tid, sid, text, lang, checks FROM {}.targets
+                WHERE tid IN (SELECT tid FROM copied_links)""").format(live))
+            # Each source once, with its vector, and the build's sid for it.
+            cursor.execute(sql.SQL("""CREATE TEMP TABLE copied_sources ON COMMIT DROP AS
+                SELECT sid, text, vector, length FROM {}.sources
+                WHERE sid IN (SELECT sid FROM copied_targets)""").format(live))
+            # Text too long for the build's unique indexes as it is goes one
+            # row at a time, as an import's does: live has no such index.
+            cursor.execute(sql.SQL("""INSERT INTO {}.sources (text, vector, length)
+                SELECT text, vector, length FROM copied_sources WHERE octet_length(text) <= %s
+                ON CONFLICT (text) DO NOTHING""").format(build), (SAFE_INDEX_BYTES,))
+            sources = cursor.rowcount
+            cursor.execute("""SELECT text, vector, length FROM copied_sources
+                WHERE octet_length(text) > %s""", (SAFE_INDEX_BYTES,))
+            insert = sql.SQL("""INSERT INTO {}.sources (text, vector, length) VALUES (%s, %s, %s)
+                ON CONFLICT (text) DO NOTHING RETURNING sid""").format(build).as_string(cursor)
+            for row in cursor.fetchall():
+                # The row it returns, none if the build had the text already.
+                sources += bool(_insert_indexable(cursor, insert, tuple(row), row[0],
+                                                  returning=True))
+            cursor.execute(sql.SQL("""CREATE TEMP TABLE copied_sids ON COMMIT DROP AS
+                SELECT c.sid AS old, b.sid AS new FROM copied_sources c
+                JOIN {}.sources b ON b.text = c.text""").format(build))
+            cursor.execute("CREATE INDEX ON copied_sids (old)")
+            cursor.execute(sql.SQL("""INSERT INTO {}.targets (sid, text, lang, checks)
+                SELECT m.new, t.text, t.lang, t.checks FROM copied_targets t
+                JOIN copied_sids m ON m.old = t.sid WHERE octet_length(t.text) <= %s
+                ON CONFLICT (sid, text, lang) DO NOTHING""").format(build), (SAFE_INDEX_BYTES,))
+            targets = cursor.rowcount
+            cursor.execute("""SELECT m.new, t.text, t.lang, t.checks FROM copied_targets t
+                JOIN copied_sids m ON m.old = t.sid WHERE octet_length(t.text) > %s""",
+                (SAFE_INDEX_BYTES,))
+            insert = sql.SQL("""INSERT INTO {}.targets (sid, text, lang, checks)
+                VALUES (%s, %s, %s, %s) ON CONFLICT (sid, text, lang) DO NOTHING RETURNING tid""").format(
+                build).as_string(cursor)
+            for row in cursor.fetchall():
+                targets += bool(_insert_indexable(cursor, insert, tuple(row), row[1],
+                                                  returning=True))
+            cursor.execute(sql.SQL("""INSERT INTO {}.target_imports (tid, iid)
+                SELECT b.tid, l.iid FROM copied_links l
+                JOIN copied_targets t ON t.tid = l.tid
+                JOIN copied_sids m ON m.old = t.sid
+                JOIN {}.targets b ON b.sid = m.new AND b.text = t.text AND b.lang = t.lang
+                ON CONFLICT DO NOTHING""").format(build, build))
+            links = cursor.rowcount
+            cursor.connection.commit()
+        except Exception:
+            self.rollback(cursor.connection)
+            raise
+        return imports, sources, targets, links
+
     def load_snapshot(self, slang, name, block=None, licence=None):
         """Copy _<name>_<slang> into the empty slang schema, keeping sids.
 
