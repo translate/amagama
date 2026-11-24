@@ -4460,10 +4460,6 @@ msgid "libvips"
 msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "libx52"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
 msgid "lightdm-gtk-greeter"
 msgstr ""
 
@@ -6833,10 +6829,6 @@ msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
 msgid "kolibri"
-msgstr ""
-
-#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
-msgid "kratos"
 msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.

@@ -1332,6 +1332,7 @@ licence = "LGPL-2.1-only"
 
 [[block]]
 name = "linguas-libx52"
+disabled = "its only translation is xx_PL, a placeholder language"
 title = "libx52"
 url = "https://github.com/nirenjan/libx52"
 files = ["po/{lang}.po"]
