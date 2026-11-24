@@ -42,6 +42,10 @@ LANGUAGE = {
     "osx_code": "{lang}.lproj",
 }
 
+# Crowdin's own codes that aren't the language's code, as they appear in a
+# path: its two_letters_code for Brazilian Portuguese is "pb".
+CODES = {"pb": "pt_BR"}
+
 # Crowdin file types amaGama reads, as amaGama's format ("po" for none).
 TYPES = {
     "gettext": "po",
@@ -123,6 +127,23 @@ def _languages(mapping, placeholder):
         if normalise_language(local) != normalise_language(str(remote)):
             found[local] = normalise_language(str(remote)) or ""
     return found
+
+
+def _own_codes(found, paths):
+    """Adds to found's languages each of Crowdin's own CODES that its mask
+    gives a file among paths, unless the project's mapping already has it."""
+    paths = [path for path in paths if any(code in path for code in CODES)]
+    if not paths:
+        return
+    try:
+        mask = compile_mask(found["mask"])
+    except ValueError:
+        return
+    for path in paths:
+        match = mask.match(path)
+        code = match.group("lang") if match else None
+        if code in CODES and code not in found["languages"]:
+            found["languages"][code] = CODES[code]
 
 
 def _entries(text, directory):
@@ -261,6 +282,8 @@ def blocks(repositories, prefix, covered=(), names=None, pause=1, read=None, lic
             found_files, reasons = files(text, posixpath.dirname(config), xml)
             skipped.update({("files", reason): count for reason, count in reasons.items()})
             entries += found_files
+        for entry in entries:
+            _own_codes(entry, paths)
         found, reasons = repository_candidates(entries, paths, "files",
                                                "translation matches nothing")
         return found, skipped + reasons
