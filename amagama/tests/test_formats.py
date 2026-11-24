@@ -566,3 +566,36 @@ def test_xliff_piece_unreadable(tmp_path):
                                             * 10 + b"<trans-unit><source>")))
     with pytest.raises(Exception):
         open_pieces(str(path), size=200)
+
+
+def test_fluent_duplicate_id(tmp_path):
+    """A Fluent file defining a message twice keeps the first definition, as
+    Fluent does, instead of being left out (#3850)."""
+    path = tmp_path / "de.ftl"
+    path.write_text("save = Speichern\nopen = Öffnen\nsave = Sichern\n"
+                    "-brand = Firefox\n-brand = Fuchs\nbrand = Marke\n", encoding="utf-8")
+    store = open_store(str(path), "fluent")
+    # A message and a term may share a name.
+    assert [(unit.getid(), str(unit.source)) for unit in store.units] == [
+        ("save", "Speichern"), ("open", "Öffnen"), ("-brand", "Firefox"), ("brand", "Marke")]
+
+
+def test_fluent_without_duplicates(tmp_path, monkeypatch):
+    """A file with no duplicate is parsed once, by Translate Toolkit alone."""
+    import fluent.syntax
+
+    def again(*args, **kwargs):
+        raise AssertionError("parsed a second time")
+    monkeypatch.setattr(fluent.syntax, "parse", again)
+    path = tmp_path / "de.ftl"
+    path.write_text("save = Speichern\n    .title = Sichern\n-brand = Firefox\n",
+                    encoding="utf-8")
+    assert [(unit.getid(), str(unit.source)) for unit in open_store(str(path), "fluent").units] == [
+        ("save", "Speichern\n.title = Sichern"), ("-brand", "Firefox")]
+
+
+def test_fluent_junk_still_refused(tmp_path):
+    path = tmp_path / "de.ftl"
+    path.write_text("save = Speichern\nsave = Sichern\n= broken\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="Parsing error"):
+        open_store(str(path), "fluent")

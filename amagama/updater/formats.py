@@ -291,9 +291,38 @@ def _yaml_plurals(parse_dict):
     return text_plurals
 
 
+def _fluent_first(parse):
+    """FluentFile.parse, keeping a message or term's first definition, as
+    Fluent's runtime does, instead of refusing the file for a later one. Only
+    a file refused for that is parsed again."""
+    def first_only(self, fluentsrc):
+        try:
+            return parse(self, fluentsrc)
+        except ValueError as e:
+            if "has the same id as a previous entry" not in str(e):
+                raise
+        from fluent.syntax import FluentSerializer, ast
+        from fluent.syntax import parse as fluent_parse
+        resource = fluent_parse(fluentsrc.decode("utf-8"))
+        seen, kept = set(), []
+        for entry in resource.body:
+            if isinstance(entry, (ast.Message, ast.Term)):
+                key = ("-" if isinstance(entry, ast.Term) else "") + entry.id.name
+                if key in seen:
+                    continue
+                seen.add(key)
+            kept.append(entry)
+        resource.body = kept
+        # The units the refused parse added go; junk stays, to be refused.
+        self.units = []
+        return parse(self, FluentSerializer(with_junk=True).serialize(resource).encode("utf-8"))
+    return first_only
+
+
 def _reader(module):
     """The reader module, with translate's PHP parser built once per process,
-    and its YAML reader taking only text.
+    its YAML reader taking only text, and its Fluent reader keeping a message's
+    first definition.
 
     The PHP reader builds a parser for each file, and phply rebuilds its
     tables each time it can't save them (a read-only site-packages): about
@@ -301,6 +330,8 @@ def _reader(module):
     so they're restored first.
     """
     module = importlib.import_module(module)
+    if module.__name__ == "translate.storage.fluent" and not hasattr(module, "_amagama_first"):
+        module.FluentFile.parse = module._amagama_first = _fluent_first(module.FluentFile.parse)
     if module.__name__ == "translate.storage.yaml" and not hasattr(module, "_amagama_text"):
         module.YAMLFile._flatten = module._amagama_text = _yaml_text(module.YAMLFile._flatten)
         module.RubyYAMLFile._parse_dict = _yaml_plurals(module.RubyYAMLFile._parse_dict)
