@@ -41,11 +41,37 @@ def test_android():
                      '<string name="gone">Weg</string>'
                      '<plurals name="files"><item quantity="one">%d lêer</item>'
                      '<item quantity="other">%d lêers</item></plurals></resources>')
-    # Untranslated "open" isn't in the translation; "gone" has no English; plurals are left out.
+    # Untranslated "open" isn't in the translation; "gone" has no English; a
+    # plural pairs by quantity.
     store = paired_store(afrikaans, english)
-    assert pairs(store) == [("Save file", "Stoor lêer")]
-    # ...and counted, to be reported as skipped.
-    assert store.plurals == 1
+    assert pairs(store) == [("Save file", "Stoor lêer"), ("%d file", "%d lêer"),
+                            ("%d files", "%d lêers")]
+    assert store.plurals == 0
+
+
+@pytest.mark.parametrize("items, expected", [
+    # Russian: one pairs with one, other with other; few and many have no English.
+    ('<item quantity="one">%d файл</item><item quantity="few">%d файла</item>'
+     '<item quantity="many">%d файлов</item><item quantity="other">%d файла</item>',
+     [("%d file", "%d файл"), ("%d files", "%d файла")]),
+    # Japanese has only other.
+    ('<item quantity="other">%d 個のファイル</item>', [("%d files", "%d 個のファイル")]),
+    # Android escapes are read as the reader reads them; an empty form isn't paired.
+    ('<item quantity="one"></item><item quantity="other">%d l\\\'eer</item>',
+     [("%d files", "%d l\'eer")]),
+])
+def test_android_plurals_by_quantity(items, expected):
+    # A string after the plural still pairs.
+    english = read(aresource.AndroidResourceFile,
+                   '<resources><plurals name="files"><item quantity="one">%d file</item>'
+                   '<item quantity="other">%d files</item></plurals>'
+                   '<string name="save">Save</string></resources>')
+    translated = read(aresource.AndroidResourceFile,
+                      '<resources><plurals name="files">%s</plurals>'
+                      '<string name="save">Speichern</string></resources>' % items)
+    store = paired_store(translated, english)
+    assert pairs(store) == expected + [("Save", "Speichern")]
+    assert store.plurals == 0
 
 
 def symfony_xliff(lang, units):
@@ -194,7 +220,7 @@ def test_update_android(update, tmp_path):
     assert lookup("en_XC", "Save file") == []
 
 
-def test_update_android_plurals_skipped(update, tmp_path):
+def test_update_android_plurals(update, tmp_path):
     plurals = ('<resources><plurals name="files"><item quantity="one">%s</item>'
                '<item quantity="other">%s</item></plurals></resources>')
     url = git_repo(tmp_path / "repo", {
@@ -205,7 +231,9 @@ def test_update_android_plurals_skipped(update, tmp_path):
                           files=["res/values-{lang}/plurals.xml"],
                           template="res/values/plurals.xml"))
     assert result.exit_code == 0, result.output
-    assert "Imported 1 files: 0 units (1 skipped)." in result.output
+    assert "Imported 1 files: 2 units (0 skipped)." in result.output
+    # The exact form first; the other one matches too, less closely.
+    assert lookup("af", "%d files") == ["%d lêers", "%d lêer"]
 
 
 def test_update_symfony_xliff(update, tmp_path):
@@ -424,3 +452,15 @@ def test_update_strings(update, tmp_path):
     assert lookup("pt_BR", "Open") == ["Abrir"]
     assert lookup("sr@latin", "Open") == ["Otvori"]
     assert lookup("en", "Save file") == []
+
+
+def test_plural_then_string_other_format():
+    """A plural of a format that isn't paired is skipped, and the strings
+    after it still pair."""
+    english = read(jsonl10n.I18NextV4File,
+                   '{"files_one": "%d file", "files_other": "%d files", "save": "Save"}')
+    german = read(jsonl10n.I18NextV4File,
+                  '{"files_one": "%d Datei", "files_other": "%d Dateien", "save": "Speichern"}')
+    store = paired_store(german, english)
+    assert pairs(store) == [("Save", "Speichern")]
+    assert store.plurals == 1
