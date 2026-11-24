@@ -189,8 +189,9 @@ files it includes); a block's own settings take precedence. ``name`` and
       template = "en/*.php"
 
   The template is kept but not imported itself. Messages with no English,
-  and plurals, are left out; a translation whose template is missing is
-  listed as unreadable.
+  and plurals, are left out, except an Android plural: its one and
+  other forms each pair with the translation's, where it has them. A
+  translation whose template is missing is listed as unreadable.
 
 ``columns`` and ``header_row``
   For ``format = "csv"``: what each column holds, from ``"source"``,

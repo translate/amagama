@@ -17,6 +17,7 @@ id in the template file.
 import fnmatch
 import re
 
+from translate.storage.aresource import AndroidResourceUnit
 from translate.storage.base import TranslationStore, TranslationUnit
 from translate.storage.po import pounit
 from translate.storage.xliff import xliffunit
@@ -32,6 +33,21 @@ def text(unit):
 
 def is_plural(unit):
     return any(len(getattr(value, "strings", [])) > 1 for value in (unit.source, unit.target))
+
+
+# An Android plural's forms paired, English first: other, which Android
+# requires of every language, and one where the language has it.
+ANDROID_QUANTITIES = ("one", "other")
+
+
+def android_quantities(unit):
+    """An Android <plurals>'s text by quantity, or None for another unit.
+    From its items: Translate Toolkit maps them to the plural tags of the
+    file's language, which a fetched file doesn't name."""
+    if not isinstance(unit, AndroidResourceUnit) or unit.xmlelement.tag != "plurals":
+        return None
+    return {item.get("quantity"): unit.get_xml_text_value(item)
+            for item in unit.xmlelement.iterchildren("item")}
 
 
 def excluded(unit, patterns):
@@ -70,7 +86,8 @@ def paired_store(translation, template, exclude_ids=(), language_in_ids=False):
 
     Leaves out messages with no English or no text, plurals, and ids matching
     exclude_ids; plurals counts the plurals, which are skipped until they
-    can be stored. With language_in_ids, ids name their file's language (CLDR's
+    can be stored. An Android plural is paired by quantity instead
+    (ANDROID_QUANTITIES), each form a unit. With language_in_ids, ids name their file's language (CLDR's
     main.de...., Rails' de....): the segment where the template's ids name
     English is left out of every id before they are matched.
     """
@@ -91,7 +108,15 @@ def paired_store(translation, template, exclude_ids=(), language_in_ids=False):
         if source is None:
             continue
         if is_plural(unit) or is_plural(source):
-            store.plurals += 1
+            source_forms, target_forms = android_quantities(source), android_quantities(unit)
+            if source_forms is None or target_forms is None:
+                store.plurals += 1
+                continue
+            for quantity in ANDROID_QUANTITIES:
+                if source_forms.get(quantity) and target_forms.get(quantity):
+                    paired = TranslationUnit(source_forms[quantity])
+                    paired.target = target_forms[quantity]
+                    store.addunit(paired)
             continue
         # PO keyed by id: an empty or fuzzy msgstr is untranslated, not its id.
         if isinstance(unit, pounit):
