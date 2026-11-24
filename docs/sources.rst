@@ -188,7 +188,9 @@ files it includes); a block's own settings take precedence. ``name`` and
       files = ["{lang}/*.php"]
       template = "en/*.php"
 
-  The template is kept but not imported itself. Messages with no English,
+  The template is kept but not imported itself. JSON keyed by its English
+  with the template's values left empty (``{"Save the file": ""}``) takes a
+  top-level key with white space as the English. Messages with no English,
   and plurals, are left out, except an Android plural: its one and
   other forms each pair with the translation's, where it has them. A
   translation whose template is missing is listed as unreadable.

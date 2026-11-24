@@ -464,3 +464,19 @@ def test_plural_then_string_other_format():
     store = paired_store(german, english)
     assert pairs(store) == [("Save", "Speichern")]
     assert store.plurals == 1
+
+
+def test_json_keyed_by_english():
+    """JSON keyed by its English with empty English values (#3851): the key
+    is the English, if it reads as text, not an id."""
+    english = read(jsonl10n.JsonFile, '{"Static gain.": "", "\\n{} of {}:\\n": "", " Open": "", '
+                                      '"  ": "", "app.title": "", "save_button": "", '
+                                      '"nested": {"Open it": ""}}')
+    french = read(jsonl10n.JsonFile, '{"Static gain.": "Gain statique.", "\\n{} of {}:\\n": '
+                                     '"\\n{} sur {}:\\n", " Open": " Ouvrir", "  ": "x", '
+                                     '"app.title": "Titre", "save_button": "Enregistrer", '
+                                     '"nested": {"Open it": "Ouvrez"}}')
+    # White space only at an end reads as text too; a key of only white space doesn't.
+    assert pairs(paired_store(french, english)) == [
+        ("Static gain.", "Gain statique."), ("\n{} of {}:\n", "\n{} sur {}:\n"),
+        (" Open", " Ouvrir")]
