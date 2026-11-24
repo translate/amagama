@@ -134,9 +134,10 @@ place. With ``--check`` it downloads nothing and lists
 the blocks that changed since they were last fetched.
 
 An empty cache fills over several runs: each run fetches at most
-:setting:`UPDATER_FIRST_FETCHES` blocks for the first time, picked at random,
-so each upstream sees a little of its share each run rather than all of it at
-once. ``--block`` fetches the named blocks whatever the limit.
+:setting:`UPDATER_FIRST_FETCHES` blocks for the first time, ``core`` blocks
+first, then ``platform``, ``discovered`` and untiered ones, picked at random
+within each tier, so an upstream sees its share over several runs rather than
+all of it at once. ``--block`` fetches the named blocks whatever the limit.
 
 A repository several blocks read is asked for its commit once a run. After a
 run over every block (no ``--block``, ``--tag`` or ``--check``), the shared

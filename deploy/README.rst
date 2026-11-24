@@ -95,8 +95,9 @@ Install the units and the nginx site from the table above, then::
 
 The cache starts empty and fills a little each day: a run fetches at most 100
 blocks for the first time (``UPDATER_FIRST_FETCHES``), so the shipped sources
-file takes about three weeks. Each run picks its blocks at random, so it
-takes a little from every upstream, not all of one.
+file takes about three weeks. Each run takes ``core`` blocks first, then
+``platform``, ``discovered`` and untiered ones, at random within each tier,
+so a tier's blocks come from many upstreams, not all from one.
 
 Before the first update, keep the current data as the ``legacy`` snapshot
 (``amagama-manage snapshot_db -s en --name legacy``, as ``amagama``); an
