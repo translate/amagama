@@ -3465,6 +3465,7 @@ licence = "MIT"
 
 [[block]]
 name = "crowdin-TeleOTP"
+disabled = "TypeScript .ts files, not Qt Linguist's"
 title = "TeleOTP"
 url = "https://github.com/UselessStudio/TeleOTP"
 files = ["src/lang/{lang}.ts"]
@@ -5634,6 +5635,7 @@ licence = "MIT"
 
 [[block]]
 name = "crowdin-haruneko"
+disabled = "TypeScript .ts files, not Qt Linguist's"
 title = "haruneko"
 url = "https://github.com/manga-download/haruneko"
 files = ["web/src/i18n/locales/{lang}.ts"]
@@ -7446,6 +7448,7 @@ licence = "AGPL-3.0-only"
 
 [[block]]
 name = "crowdin-pingvin-share-x"
+disabled = "TypeScript .ts files, not Qt Linguist's"
 title = "pingvin-share-x"
 url = "https://github.com/smp46/pingvin-share-x"
 files = ["frontend/src/i18n/translations/{lang}.ts"]
@@ -8559,6 +8562,7 @@ licence = "MIT"
 
 [[block]]
 name = "crowdin-studiocms"
+disabled = "TypeScript .ts files, not Qt Linguist's"
 title = "studiocms"
 url = "https://github.com/withstudiocms/studiocms"
 files = ["packages/studiocms/src/handlers/plugin-i18n/{lang}.ts", "packages/studiocms/src/plugins/analytics/i18n/{lang}.ts"]
