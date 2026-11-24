@@ -51,7 +51,8 @@ def import_file(path, slang, tlang, block, licence, format=None, template=None, 
 
     The cache keeps the file compressed (path + compressed.SUFFIX); it is
     read from a decompressed copy under the same name. Returns (units,
-    skipped), or a reason the file can't be read; database errors raise.
+    skipped), or a reason the file can't be read or its units stored
+    (STORE_ERRORS); other database errors raise.
     """
     args = (slang, tlang, block, licence, format, template, exclude_ids, reader_options, segment,
             language_in_ids)
@@ -96,6 +97,23 @@ def _import_file(path, recorded, slang, tlang, block, licence, format, template,
         return "%s: %s" % (type(e).__name__, e)
     # The row goes first, so the targets can link to it.
     iid = tmdb.start_import(slang, tlang, recorded, block, licence)
+    try:
+        return _store_file(tmdb, path, slang, tlang, iid, stores, segment, in_pieces)
+    except STORE_ERRORS as e:
+        # What this file's text can't be stored as: the file is left out,
+        # like one that can't be read, and the update goes on.
+        tmdb.forget_import(slang, iid)
+        return "%s: %s" % (type(e).__name__, e)
+
+
+# Errors storing a file's units that come from its text, not the database:
+# psycopg2 refuses a NUL with ValueError, and DataError covers values
+# PostgreSQL won't take. A lost connection still stops the update.
+STORE_ERRORS = (ValueError, psycopg2.DataError)
+
+
+def _store_file(tmdb, path, slang, tlang, iid, stores, segment, in_pieces):
+    """Store the units of a file's stores as import iid: (units, skipped)."""
     units = skipped = 0
     for store in stores:
         # Entries left out for not decoding, and plurals, are skipped too.
@@ -396,6 +414,8 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
         raise RuntimeError("%s, while importing %s" % (e, names(stopped))) from e
     imported = stats.now()
     out("Imported %d files: %d units (%d skipped)." % (files, units, skipped))
+    # What files left out on storing had already stored, now no import runs.
+    tmdb.drop_forgotten(slang)
     if unreadable:
         out("Couldn't read %d files:" % len(unreadable))
         for path, reason in unreadable:
