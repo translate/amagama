@@ -23,9 +23,10 @@ import pycountry
 # Codes ISO 639 replaced.
 RENAMED = {"iw": "he", "in": "id", "ji": "yi", "jw": "jv", "mo": "ro"}
 
-# Countries' codes that some projects name their files by (cn.po, ua.po),
-# none of them an ISO 639 language: the country's language.
-COUNTRY_CODES = {"cn": "zh_CN", "cz": "cs", "gr": "el", "ua": "uk"}
+# Countries' codes that some projects name their files by (cn.po, ua.po,
+# jp.json), none of them an ISO 639 language: the country's language.
+COUNTRY_CODES = {"cn": "zh_CN", "cz": "cs", "dk": "da", "gr": "el", "jp": "ja", "np": "ne",
+                 "ua": "uk", "vn": "vi"}
 
 
 @functools.cache
@@ -157,6 +158,11 @@ def normalise_language(code):
     if code.lower() in COUNTRY_CODES:
         return COUNTRY_CODES[code.lower()]
     match = _POSIX.match(code)
+    if match and match["lang"].lower() in COUNTRY_CODES and _language(match["lang"].lower()) is None:
+        # A country's code with a region, gr_GR: the language with that
+        # region (el_GR); cn_TW is zh_TW.
+        language = COUNTRY_CODES[match["lang"].lower()].split("_")[0]
+        match = _POSIX.match(language + code[len(match["lang"]):])
     if match:
         lang = _language(match["lang"].lower())
         if lang is None:
