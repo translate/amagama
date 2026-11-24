@@ -1,0 +1,71 @@
+name: Metrics
+
+on:
+  schedule:
+    # After the server counts the day's lookups (00:30).
+    - cron: "47 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One run at a time: a second would push onto a branch the first has moved.
+concurrency:
+  group: metrics
+  cancel-in-progress: false
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      # Push the metrics branch.
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: main
+          persist-credentials: false
+      - name: Check out the metrics branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh auth setup-git
+          git init -q metrics
+          cd metrics
+          git remote add origin "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git"
+          # Exit 2: no such branch. Any other failure stops the run rather than
+          # starting the branch again over the one there.
+          status=0
+          git ls-remote -q --exit-code --heads origin metrics > /dev/null || status=$?
+          if [ "$status" = 0 ]; then
+            git fetch -q --depth=1 origin metrics
+            git checkout -q -B metrics FETCH_HEAD
+          elif [ "$status" = 2 ]; then
+            # The first run starts the branch, with no history of main's.
+            git checkout -q --orphan metrics
+          else
+            echo "::error::Couldn't tell whether the metrics branch exists."
+            exit 1
+          fi
+      - name: Fetch the statistics
+        run: |
+          curl -sSf --retry 3 --max-time 120 \
+              -A "amaGama metrics (GitHub Actions; $GITHUB_SERVER_URL/$GITHUB_REPOSITORY)" \
+              -o "$RUNNER_TEMP/stats.json" https://amagama-live.translatehouse.org/api/v1/stats/
+      - name: Update the metrics
+        run: python3 main/devsupport/metrics.py "$RUNNER_TEMP/stats.json" metrics main/devsupport/metrics-history.csv
+      - name: Push the metrics branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd metrics
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No new figures."
+            exit 0
+          fi
+          git -c user.name="github-actions[bot]" \
+              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              commit -qm "Metrics, $(date -u +%Y-%m-%d)"
+          git push -q origin metrics

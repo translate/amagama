@@ -437,6 +437,11 @@ Each source language has:
 (see :ref:`Sec-Purpose <api#prefetch>`), with ``limited``, how many of them
 were refused with a 429. They are totals only.
 
+A daily workflow keeps these figures over time on the repository's
+``metrics`` branch: a row per source language and rebuild in ``rebuilds.csv``,
+the lookups per day in ``use.csv``, and each source language's figures at each
+rebuild in ``builds/``.
+
 .. code-block:: json
 
     {
