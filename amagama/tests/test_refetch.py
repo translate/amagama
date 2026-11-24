@@ -148,7 +148,9 @@ def test_first_fetches_wait_for_later_updates(amagama_config, tmp_path, site):
     assert "Imported 1 files" in result.output
     result = CliRunner().invoke(manage, ("update", "-s", "en"))
     assert "left for later" not in result.output
-    assert "Imported 2 files" in result.output
+    # a, as the live data was built from, is copied; b is imported.
+    assert "Copied 1 unchanged blocks from the live data: 1 files" in result.output
+    assert "Imported 1 files" in result.output
 
 
 def test_update_survives_dropped_idle_connections(update, pg_connection, monkeypatch):

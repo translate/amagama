@@ -11,6 +11,7 @@
 import concurrent.futures
 import contextlib
 import functools
+import hashlib
 import json
 import multiprocessing
 import os
@@ -228,13 +229,71 @@ def import_files(tasks, workers, progress=None):
 CHECKS = ".checks"
 
 
+# Under SETTINGS, each block's block_settings(); under LIVE, when the live
+# data this record describes last imported (live_built()), so a rollback or
+# another build in between doesn't pass for it.
+SETTINGS = ".settings"
+LIVE = ".live"
+
+
+# Settings that don't change what a block's import stores.
+NOT_STORED = {"title", "version", "weight", "tags", "disabled", "max_age_days", "min_age_days",
+              "pause", "mirror_lag_days"}
+
+
+def importer():
+    """A fingerprint of the code that reads and checks files, and of
+    Translate Toolkit's version: a change may store a block differently, so
+    nothing is copied from data built before it."""
+    from importlib.metadata import version
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    paths = sorted([os.path.join(root, name) for name in (
+        "tmdb.py", "unit_checks.py", "poparser_compat.py")] + [
+        os.path.join(root, "updater", name) for name in os.listdir(os.path.join(root, "updater"))
+        if name.endswith(".py")])
+    digest = hashlib.sha256(version("translate-toolkit").encode("utf-8"))
+    for path in paths:
+        with open(path, "rb") as f:
+            digest.update(f.read())
+    return digest.hexdigest()
+
+
+def block_settings(block):
+    """A fingerprint of what importing block depends on besides its files:
+    its settings as the sources file gives them (a changed language map,
+    mask or licence changes the data), but those that don't change it."""
+    settings = {key: value for key, value in getattr(block, "written", {}).items()
+                if key not in NOT_STORED}
+    return hashlib.sha256(json.dumps(settings, sort_keys=True, default=str)
+                          .encode("utf-8")).hexdigest()
+
+
 def built_from(blocks, cache_dir, checks):
-    """What a rebuild would read: {block name: its fetched content}, and
-    under CHECKS the checks it runs."""
+    """What a rebuild would read: {block name: its fetched content}, under
+    CHECKS the checks it runs and under SETTINGS each block's settings."""
     states = ((block.name, block.state(cache_dir)) for block in blocks)
     built = {name: state["content"] for name, state in states if state}
     built[CHECKS] = checks
+    built[SETTINGS] = {block.name: block_settings(block) for block in blocks}
     return built
+
+
+def unchanged_blocks(blocks, cache_dir, last_built, live_built):
+    """The names of blocks whose files and settings are as the live data was
+    built from, so their data can be copied from it; none if the record isn't
+    of the live data (rolled back, or built before records named it)."""
+    if not last_built or last_built.get(LIVE) is None or last_built.get(LIVE) != live_built:
+        return []
+    settings = last_built.get(SETTINGS) or {}
+    names = []
+    for block in blocks:
+        if block.source == "snapshot":
+            continue
+        state = block.state(cache_dir)
+        if state and last_built.get(block.name) == state["content"] and \
+                settings.get(block.name) == block_settings(block):
+            names.append(block.name)
+    return names
 
 
 def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=print,
@@ -263,7 +322,10 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
         unit_checks.default_names() + unit_checks.configured_ttk(current_app.config))
         if name not in leave_out]
     styles = {block.name: block.checker for block in blocks if block.checker}
-    checks = {"leave_out": leave_out, "flags": flags, "checkers": styles}
+    # What, besides the files, decides what a rebuild stores: a change
+    # imports every block again.
+    checks = {"leave_out": leave_out, "flags": flags, "checkers": styles,
+              "max_length": tmdb.max_import_len, "importer": importer()}
     # Without its snapshot, a rebuild would drop data that only the live
     # schema still has.
     cursor = tmdb.get_cursor()
@@ -303,7 +365,10 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
             last_built = json.load(f)
     except (FileNotFoundError, ValueError):
         last_built = None
-    cache_changed = not fetch and built_from(blocks, cache_dir, checks) != last_built
+    # What it would read now, fetched or not: a block's changed settings
+    # rebuild it even if its files didn't change.
+    cache_changed = built_from(blocks, cache_dir, checks) != {
+        key: value for key, value in (last_built or {}).items() if key != LIVE}
     checks_changed = last_built is not None and last_built.get(CHECKS) != checks
     if not changed and not force and not was_pending and not cache_changed \
             and not checks_changed:
@@ -364,12 +429,25 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
             out("Not language codes in %s, skipped: %s" % (block.name,
                                                             snapshot_left_out(left_out)))
 
+    # Blocks unchanged since the live data was built are copied from it, not
+    # imported again; a forced rebuild, or changed checks, imports them all.
+    copied = set()
+    if not force and not checks_changed:
+        tmdb.use_schemas("")
+        reuse = unchanged_blocks(blocks, cache_dir, last_built, tmdb.live_built(slang))
+        tmdb.use_schemas(BUILD_PREFIX)
+        counts = tmdb.copy_blocks(slang, reuse) if reuse else None
+        if counts is not None:
+            copied = set(reuse)
+            out("Copied %d unchanged blocks from the live data: %d files, %d targets." % (
+                len(reuse), counts[0], counts[2]))
+
     def chunks():
         """Each block's import tasks, a few blocks at a time: building them all
         first would hold every file's task through the run."""
         tasks = []
         for block in blocks:
-            if block.source == "snapshot":
+            if block.source == "snapshot" or block.name in copied:
                 continue
             state = block.state(cache_dir)
             if state is None:
@@ -442,8 +520,10 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
     tmdb.drop_db([slang])
     tmdb.use_schemas("")
     tmdb.swap(slang)
+    built = built_from(blocks, cache_dir, checks)
+    built[LIVE] = tmdb.live_built(slang)
     with open(record + ".new", "w", encoding="utf-8") as f:
-        json.dump(built_from(blocks, cache_dir, checks), f)
+        json.dump(built, f)
     os.replace(record + ".new", record)
     os.remove(pending)
     out("Swapped in '%s'; the replaced copy is %s%s." % (slang, OLD_PREFIX, slang))
