@@ -327,6 +327,79 @@ class TestUpdate(object):
         assert "gnome-51/zu/broken.zu.po" in result.output
         assert lookup("zu", "Open file") == ["Vula ifayela"]
 
+    def refuse(self, monkeypatch, source, error=None):
+        """Make storing a unit with source fail as the database would."""
+        from amagama.tmdb import TMDB
+        add_list = TMDB.add_list
+
+        def refusing(tmdb, units, *args, **kwargs):
+            if any(unit["source"] == source for unit in units):
+                raise error or ValueError("A string literal cannot contain NUL (0x00) characters.")
+            return add_list(tmdb, units, *args, **kwargs)
+        monkeypatch.setattr(TMDB, "add_list", refusing)
+
+    def test_unstorable_file(self, run, site, pg_connection, monkeypatch):
+        """A file whose units can't be stored is left out like one that
+        can't be read, and the update goes on (#3848)."""
+        root, url = site
+        self.refuse(monkeypatch, "Delete file")
+        write_gnome(root, "zu", ("Open file", "Vula ifayela"),
+                    extra={"refused.zu.po": po("zu", ("Delete file", "Susa ifayela"))})
+        result = run("update", "-s", "en")
+        assert result.exit_code == 0, result.output
+        assert "Couldn't read 1 files:" in result.output
+        assert "refused.zu.po: ValueError: A string literal cannot contain NUL" in result.output
+        assert "Swapped in 'en'" in result.output
+        assert lookup("zu", "Open file") == ["Vula ifayela"]
+        assert lookup("zu", "Delete file") == []
+        assert query(pg_connection, "SELECT count(*) FROM en.imports "
+                                    "WHERE filename LIKE '%refused%'") == [(0,)]
+
+    def test_unstorable_piece(self, run, site, pg_connection, monkeypatch):
+        """A file imported in pieces that fails on a later piece leaves
+        nothing of its earlier ones."""
+        from amagama.updater import formats
+        root, url = site
+        monkeypatch.setattr(formats, "PIECE_SIZE", 40)
+        self.refuse(monkeypatch, "Delete file")
+        write_gnome(root, "zu", ("Open file", "Vula ifayela"), extra={
+            "pieces.zu.po": po("zu", ("Rename the folder", "Qamba kabusha ifolda"),
+                               ("Move the folder", "Hambisa ifolda"),
+                               ("Delete file", "Susa ifayela"))})
+        result = run("update", "-s", "en")
+        assert result.exit_code == 0, result.output
+        assert "pieces.zu.po: ValueError" in result.output
+        assert lookup("zu", "Open file") == ["Vula ifayela"]
+        assert query(pg_connection, "SELECT count(*) FROM en.targets "
+                                    "WHERE text LIKE '%ifolda%'") == [(0,)]
+        # Nor the English its targets were the only translations of.
+        assert query(pg_connection, "SELECT count(*) FROM en.sources "
+                                    "WHERE text LIKE '%the folder'") == [(0,)]
+
+    def test_unstorable_value(self, run, site, pg_connection, monkeypatch):
+        """A value PostgreSQL won't take (DataError) is left out the same way."""
+        import psycopg2
+        root, url = site
+        self.refuse(monkeypatch, "Delete file", psycopg2.DataError("value too long"))
+        write_gnome(root, "zu", ("Open file", "Vula ifayela"),
+                    extra={"refused.zu.po": po("zu", ("Delete file", "Susa ifayela"))})
+        result = run("update", "-s", "en")
+        assert result.exit_code == 0, result.output
+        assert "refused.zu.po: DataError: value too long" in result.output
+
+    def test_lost_connection_stops(self, run, site, pg_connection, monkeypatch):
+        """A database that goes away still stops the update, before the swap."""
+        import psycopg2
+        root, url = site
+        self.refuse(monkeypatch, "Delete file", psycopg2.OperationalError("server closed"))
+        write_gnome(root, "zu", ("Open file", "Vula ifayela"),
+                    extra={"refused.zu.po": po("zu", ("Delete file", "Susa ifayela"))})
+        result = run("update", "-s", "en")
+        assert result.exit_code == 1
+        assert isinstance(result.exception, psycopg2.OperationalError)
+        assert "Swapped in" not in result.output
+        assert schemas(pg_connection) == {"_build_en"}
+
     def test_unknown_language(self, run, site, pg_connection):
         root, url = site
         write_tarball(str(root / "backups/last/x!.tgz"),

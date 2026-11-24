@@ -426,6 +426,41 @@ ORDER BY rank DESC{order};
             version = EXCLUDED.version, weight = EXCLUDED.weight""", blocks)
         cursor.connection.commit()
 
+    def forget_import(self, slang, iid):
+        """Undo an import that failed: roll back what isn't committed, and
+        unlink what its committed pieces stored. Their targets are noted in
+        forgotten_targets, for drop_forgotten() to delete once no import is
+        running: another may be linking to one of them now."""
+        connection = self.get_cursor(self.schema(lang_to_table(slang))).connection
+        self.rollback(connection)
+        cursor = self.get_cursor(self.schema(lang_to_table(slang)))
+        cursor.execute("SELECT pg_advisory_xact_lock(hashtext(%s))",
+                       (self.schema(slang) + ".forgotten",))
+        cursor.execute("CREATE TABLE IF NOT EXISTS forgotten_targets (tid INTEGER NOT NULL)")
+        cursor.execute("""INSERT INTO forgotten_targets
+            SELECT tid FROM target_imports WHERE iid = %s""", (iid,))
+        cursor.execute("DELETE FROM target_imports WHERE iid = %s", (iid,))
+        cursor.execute("DELETE FROM imports WHERE iid = %s", (iid,))
+        cursor.connection.commit()
+
+    def drop_forgotten(self, slang):
+        """Delete the targets of forgotten imports that no import links to,
+        and the sources left with no targets; for when no import is running.
+        Returns how many targets went."""
+        cursor = self.get_cursor(self.schema(lang_to_table(slang)))
+        if not self._has_relation(cursor, "forgotten_targets"):
+            return 0
+        cursor.execute("""DELETE FROM targets t USING (SELECT DISTINCT tid FROM forgotten_targets) f
+            WHERE t.tid = f.tid AND NOT EXISTS (SELECT 1 FROM target_imports l WHERE l.tid = t.tid)
+            RETURNING t.sid""")
+        rows = cursor.fetchall()
+        sids = sorted({sid for (sid,) in rows})
+        cursor.execute("""DELETE FROM sources s WHERE s.sid = ANY(%s)
+            AND NOT EXISTS (SELECT 1 FROM targets t WHERE t.sid = s.sid)""", (sids,))
+        cursor.execute("DROP TABLE forgotten_targets")
+        cursor.connection.commit()
+        return len(rows)
+
     def finish_import(self, slang, iid, units, skipped, checksum=None, commit=True):
         cursor = self.get_cursor(self.schema(lang_to_table(slang)))
         cursor.execute("""UPDATE imports SET units = %s, skipped = %s, checksum = %s,
