@@ -237,12 +237,14 @@ def left_out(report, names):
     return {"targets": report.left_out, "checks": {name: report.failures(name) for name in names}}
 
 
-def rebuild(started, imported, swapped, files, units, skipped, unreadable):
+def rebuild(started, imported, swapped, files, units, skipped, unreadable, copied=(0, 0, 0)):
     """A rebuild's record for update_tm(): when it started, finished importing
-    and swapped in, and the files and units it imported, skipped and couldn't
-    read."""
+    and swapped in, the files and units it imported, skipped and couldn't
+    read, and the (blocks, files, targets) it copied from the live data."""
+    blocks, copied_files, targets = copied
     return {"started": started, "imported": imported, "swapped": swapped, "files": files,
-            "units": units, "skipped": skipped, "unreadable": unreadable}
+            "units": units, "skipped": skipped, "unreadable": unreadable,
+            "copied_blocks": blocks, "copied_files": copied_files, "copied_targets": targets}
 
 
 def _history(previous, figures):

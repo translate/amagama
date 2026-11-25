@@ -75,8 +75,9 @@ class TestRebuild(object):
         rebuild = en["rebuild"]
         assert rebuild["started"] <= rebuild["imported"] <= rebuild["swapped"]
         # Five units, one of which printf leaves out.
-        assert {key: rebuild[key] for key in ("files", "units", "skipped", "unreadable")} == \
-            {"files": 3, "units": 5, "skipped": 0, "unreadable": 0}
+        assert {key: rebuild[key] for key in ("files", "units", "skipped", "unreadable",
+                                              "copied_blocks")} == \
+            {"files": 3, "units": 5, "skipped": 0, "unreadable": 0, "copied_blocks": 0}
         assert en["history"] == [{"built": en["built"], "sources": 4, "targets": 4, "words": 10,
                                   "languages": 2, "leftOut": checks["leftOut"],
                                   "rebuild": rebuild}]
