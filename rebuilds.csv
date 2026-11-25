@@ -1,0 +1,6 @@
+source,built,started,imported,swapped,files,units,skipped,unreadable,sources,targets,words,languages,blocks,left_out,left_out_braces,left_out_printf,left_out_script,note
+en,2019-07-09T00:00:00Z,,,,,,,,782366,21100833,,282,,,,,,"Legacy OSS (legacy-2019), the 2019 database every rebuild loads first, dated when it was deployed (about 9 July 2019). Its translations are older, harvested about January 2014: it has the new strings of GNOME 3.10, KDE 4.12 and Firefox 26 (all out by December 2013) and almost none of GNOME 3.12, KDE 4.13 or Firefox 29 (March and April 2014)"
+en,2026-10-27T01:22:39Z,2026-10-26T21:48:34Z,2026-10-27T01:22:39Z,2026-10-27T01:26:07Z,78954,11232128,5399815,1,,,,,,,,,,
+en,2026-10-27T06:28:22Z,2026-10-27T03:05:23Z,2026-10-27T06:28:22Z,2026-10-27T06:31:17Z,78640,11057216,5376065,1,,,,,,,,,,
+en,2026-11-01T14:25:30Z,2026-11-01T05:00:08Z,2026-11-01T14:25:30Z,2026-11-01T15:39:02Z,170013,28154272,13222066,1,2099307,36408695,19534072,636,,35874,5176,24288,6488,
+en,2026-11-24T05:23:45Z,2026-11-23T20:01:39Z,2026-11-24T05:23:45Z,2026-11-24T11:16:07Z,592825,101911253,39187012,701,3280143,71540835,30599452,945,2663,85132,20593,46998,17845,
