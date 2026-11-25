@@ -44,7 +44,8 @@ what each figure means.
 - `rebuilds.csv`: a row per source language and rebuild. `built` is when its
   imports finished (to the second); `started`, `imported` and `swapped` when
   it started, finished importing and swapped in; `files`, `units`, `skipped`
-  and `unreadable` what it imported; `left_out` and `left_out_<check>` the
+  and `unreadable` what it imported; `copied_blocks`, `copied_files` and
+  `copied_targets` what it copied unchanged from the live data; `left_out` and `left_out_<check>` the
   targets its checks left out; `note` says what else to know about a row.
   Rebuilds from before the statistics kept these were filled in from the
   update journal, and the first row is the 2019 database (Legacy OSS) every
@@ -163,10 +164,9 @@ def update(stats, directory, histories=()):
     merge_use(days, (stats.get("use") or {}).get("days") or [])
     write_csv(use_path, USE_COLUMNS, [days[date] for date in sorted(days)])
     save_builds(directory, stats)
-    readme = os.path.join(directory, "README.md")
-    if not os.path.exists(readme):
-        with open(readme, "w", encoding="utf-8") as f:
-            f.write(README)
+    # Written every time, so the branch describes the columns this writes.
+    with open(os.path.join(directory, "README.md"), "w", encoding="utf-8") as f:
+        f.write(README)
 
 
 def main(argv):

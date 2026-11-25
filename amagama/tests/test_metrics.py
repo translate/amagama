@@ -111,3 +111,10 @@ def test_same_stats_same_files(metrics, tmp_path):
     metrics.update(stats(rebuild=REBUILD), str(tmp_path))
     assert {path.name: path.read_bytes() for path in tmp_path.rglob("*")
             if path.is_file()} == before
+
+
+def test_readme_kept_current(metrics, tmp_path):
+    """An older README on the branch is replaced with the current one."""
+    (tmp_path / "README.md").write_text("old columns\n", encoding="utf-8")
+    metrics.update(stats(), str(tmp_path))
+    assert (tmp_path / "README.md").read_text(encoding="utf-8") == metrics.README

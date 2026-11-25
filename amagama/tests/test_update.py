@@ -8,6 +8,7 @@
 
 import functools
 import http.server
+import json
 import os
 import threading
 
@@ -564,6 +565,18 @@ class TestUnchangedCopied(object):
         result = run("update", "-s", "en")
         assert "Copied 1 unchanged blocks" in result.output, result.output
         assert lookup("af", "Save file") == ["Stoor lêer"]
+
+    def test_copied_in_statistics(self, run, site, tmp_path):
+        """The statistics' rebuild record says what was copied, beside what was
+        imported, so fewer files imported isn't a smaller memory."""
+        root, url = site
+        assert run("update", "-s", "en").exit_code == 0
+        self.changed_gnome(root)
+        assert run("update", "-s", "en").exit_code == 0
+        with open(tmp_path / "cache" / "stats.json", encoding="utf-8") as f:
+            rebuild = json.load(f)["sourceLanguages"]["en"]["rebuild"]
+        assert (rebuild["copied_blocks"], rebuild["copied_files"], rebuild["copied_targets"],
+                rebuild["files"]) == (1, 1, 1, 2)
 
     def test_forced_imports_all(self, run, site):
         root, url = site

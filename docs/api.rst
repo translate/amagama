@@ -429,8 +429,10 @@ Each source language has:
 |                 | importing (``imported``) and ``swapped`` in,    |
 |                 | and the ``files`` it imported, the ``units`` it |
 |                 | added and ``skipped``, and the files it         |
-|                 | couldn't read (``unreadable``); absent if       |
-|                 | unknown                                         |
+|                 | couldn't read (``unreadable``); the blocks,     |
+|                 | files and targets it copied unchanged from the  |
+|                 | live data (``copied_blocks``, ``copied_files``, |
+|                 | ``copied_targets``); absent if unknown          |
 +-----------------+-------------------------------------------------+
 | history         | ``built``, ``sources``, ``words``, ``targets``  |
 |                 | and ``languages`` (how many) at each of the     |
@@ -481,14 +483,16 @@ rebuild in ``builds/``.
           },
           "rebuild": {"started": "2026-11-01T05:00:00Z", "imported": "2026-11-01T12:00:00Z",
                       "swapped": "2026-11-01T13:00:00Z", "files": 100, "units": 2200,
-                      "skipped": 400, "unreadable": 1},
+                      "skipped": 400, "unreadable": 1, "copied_blocks": 0,
+                      "copied_files": 0, "copied_targets": 0},
           "history": [
             {"built": "2026-11-01T12:00:00.000000Z", "sources": 1000, "words": 5000,
              "targets": 2000, "languages": 1,
              "leftOut": {"targets": 5, "checks": {"printf": 5, "braces": 0, "script": 0}},
              "rebuild": {"started": "2026-11-01T05:00:00Z", "imported": "2026-11-01T12:00:00Z",
                          "swapped": "2026-11-01T13:00:00Z", "files": 100, "units": 2200,
-                         "skipped": 400, "unreadable": 1}}
+                         "skipped": 400, "unreadable": 1, "copied_blocks": 0,
+                         "copied_files": 0, "copied_targets": 0}}
           ]
         }
       },

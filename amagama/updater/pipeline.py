@@ -451,9 +451,10 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
             out("Not language codes in %s, skipped: %s" % (block.name,
                                                             snapshot_left_out(left_out)))
 
-    copied = set(reuse)
+    copied, copied_counts = set(reuse), (0, 0, 0)
     if reuse:
         counts = tmdb.copy_blocks(slang, reuse)
+        copied_counts = (len(reuse), counts[0], counts[2])
         out("Copied %d unchanged blocks from the live data: %d files, %d targets." % (
             len(reuse), counts[0], counts[2]))
 
@@ -546,7 +547,7 @@ def update(slang, cache_dir, sources_path=None, workers=1, force=False, out=prin
     out("Swapped in '%s'; the replaced copy is %s%s." % (slang, OLD_PREFIX, slang))
     update_stats(slang, cache_dir, stats.left_out(rejected, leave_out), out,
                  stats.rebuild(started, imported, stats.now(), files, units, skipped,
-                               len(unreadable)))
+                               len(unreadable), copied_counts))
     report_failures(failed, out)
     return failed
 
