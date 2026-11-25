@@ -10,6 +10,8 @@ python-Levenshtein>=0.10.2,!=0.11.0
 # For management commands
 click
 lz4
+# discover_sources crowdin reads crowdin.yml
+PyYAML>=6
 spdx-license-list>=3.29
 
 # Monolingual sources: PHP, Fluent and YAML readers
