@@ -548,6 +548,12 @@ With ``--no-fetch`` it fetches nothing and rebuilds from the cache as it is,
 if the cache has changed since the last rebuild (each rebuild records what it
 read): for a scheduled update when ``fetch_sources`` runs on its own schedule.
 
+A request or git command that fails in a way that can pass (a 429 Too Many
+Requests, a 500, 502, 503 or 504, a dropped connection) is tried twice more, a
+minute and then two minutes later, or after the seconds a ``Retry-After`` gives,
+up to 15 minutes. A host still failing after that has its other requests in the
+run tried once.
+
 A block that fails to fetch (its server down, its repository moved) doesn't
 stop the update: it is rebuilt from its last fetch, or left out if it has
 none, and listed at the end with the error. Once it has failed 4 runs in a

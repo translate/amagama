@@ -352,7 +352,7 @@ def test_github_waits_out_rate_limits(monkeypatch):
         return answer
 
     monkeypatch.setattr(discovery.urllib.request, "urlopen", urlopen)
-    monkeypatch.setattr(discovery, "time", types.SimpleNamespace(sleep=slept.append, time=lambda: 0))
+    monkeypatch.setattr(discovery, "time", types.SimpleNamespace(sleep=slept.append))
     assert discovery.github("https://api.github.com/x", "tok", {"q": 1}) == {"ok": 1}
     assert slept == [8, 60, 60]
     assert requests[0].get_header("Authorization") == "Bearer tok"
@@ -393,7 +393,7 @@ def test_github_secondary_rate_limit(monkeypatch):
         return answer
 
     monkeypatch.setattr(discovery.urllib.request, "urlopen", urlopen)
-    monkeypatch.setattr(discovery, "time", types.SimpleNamespace(sleep=slept.append, time=lambda: 0))
+    monkeypatch.setattr(discovery, "time", types.SimpleNamespace(sleep=slept.append))
     assert discovery.github("https://api.github.com/x", "tok") == {"ok": 1}
     assert slept == [60]
 
@@ -430,14 +430,6 @@ def test_github_not_json(monkeypatch):
     monkeypatch.setattr(discovery.urllib.request, "urlopen", lambda request, timeout: Response(b"<html>"))
     with pytest.raises(FetchError):
         discovery.github("https://api.github.com/x", "tok")
-
-
-def test_wait():
-    assert discovery._wait({"X-RateLimit-Remaining": "0", "X-RateLimit-Reset": "1000000100"}, 60) \
-        <= discovery.MAX_WAIT
-    assert discovery._wait({}, 60) == 60
-    # GitHub rounds Retry-After down.
-    assert discovery._wait({"Retry-After": "1"}, 60) == 2
 
 
 def test_command(amagama_config, repository, tmp_path, monkeypatch):  # noqa: F811
