@@ -116,9 +116,12 @@ def run(amagama_config, tmp_path):
 
     def run(sources_text, *args):
         sources.write_text(sources_text)
-        amagama_config(UPDATER_SOURCES=str(sources), UPDATER_CACHE_DIR=str(cache))
+        # The statistics outside the cache, so tests see only blocks there.
+        amagama_config(UPDATER_SOURCES=str(sources), UPDATER_CACHE_DIR=str(cache),
+                       STATS_FILE=str(tmp_path / "stats.json"))
         return CliRunner().invoke(manage, ("fetch_sources",) + args)
     run.cache = cache
+    run.stats = tmp_path / "stats.json"
     return run
 
 
@@ -219,6 +222,42 @@ def test_fetch_sources_tags(run, amagama_config):
     assert "No block named a." in result.output
     result = run(sources, "--check", "--tag", "kore")
     assert result.exit_code == 2
+
+
+def test_fetch_sources_records_run(run, amagama_config, monkeypatch):
+    """A run over every block is recorded in the statistics, with the blocks
+    failing 4 runs in a row; a run over some isn't (#3518)."""
+    from amagama import stats
+    from amagama.updater.sources import Block
+
+    def changed(self, cache_dir):
+        # a's server is gone; the others haven't changed.
+        if self.name in ("a", "b"):
+            raise FetchError("gone")
+        return False
+    monkeypatch.setattr(Block, "changed", changed)
+    sources = (block("a", "translationproject") + block("b", "translationproject")
+               + block("c", "translationproject", tags=["trial"]))
+    blocks = {b.name: b for b in _configured(run, sources)}
+    for _ in range(3):
+        blocks["a"].record_failure(str(run.cache), "gone")
+    # Only c, which hasn't changed: nothing is fetched.
+    result = run(sources, "--tag", "trial")
+    assert result.exit_code == 0, result.output
+    assert stats.load(str(run.stats)) is None
+    result = run(sources)
+    assert result.exit_code == 1, result.output
+    fetch = stats.load(str(run.stats))["fetch"]
+    assert (fetch["blocks"], fetch["waiting"]) == (3, 0)
+    # b has failed once: not yet one to call out.
+    assert [(b["name"], b["runs"]) for b in fetch["failing"]] == [("a", 4)]
+    assert fetch["failing"][0]["since"] == fetch["finished"][:10]
+
+
+def _configured(run, sources_text):
+    path = run.cache.parent / "blocks.toml"
+    path.write_text(sources_text)
+    return load_sources(str(path))
 
 
 def test_update_tags(amagama_config, tmp_path, monkeypatch):

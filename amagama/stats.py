@@ -295,6 +295,18 @@ def update_tm(filename, tmdb, slangs=None, rejected=None, rebuilt=None):
     return computed
 
 
+def update_fetch(filename, blocks, waiting, failing):
+    """Record a fetch run over every block in filename: how many blocks it
+    had, how many wait for their first fetch, and the failing ones as
+    {name: {"runs", "since"}}."""
+    with _updating(filename) as figures:
+        figures["fetch"] = {
+            "finished": now(), "blocks": blocks, "waiting": waiting,
+            "failing": [{"name": name, "runs": failures["runs"],
+                         "since": failures["since"][:10]}
+                        for name, failures in sorted(failing.items())]}
+
+
 def update_use(filename, logs):
     """Add the lookups per day in logs to filename, keeping each day's highest
     counts (a day can be split between logs) for the USE_DAYS days up to the

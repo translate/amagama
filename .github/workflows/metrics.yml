@@ -69,3 +69,56 @@ jobs:
               -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
               commit -qm "Metrics, $(date -u +%Y-%m-%d)"
           git push -q origin metrics
+
+  alert:
+    # One issue says what needs attention on the live server: opened when
+    # something does, updated when that changes, closed when nothing does.
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Fetch the statistics
+        run: |
+          # No file: the site isn't answering, which health.py reports.
+          if ! curl -sSf --retry 3 --max-time 120 \
+              -A "amaGama metrics (GitHub Actions; $GITHUB_SERVER_URL/$GITHUB_REPOSITORY)" \
+              -o "$RUNNER_TEMP/stats.json" https://amagama-live.translatehouse.org/api/v1/stats/; then
+            rm -f "$RUNNER_TEMP/stats.json"
+          fi
+      - name: Open, update or close the alert
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          python3 devsupport/health.py "$RUNNER_TEMP/stats.json" > "$RUNNER_TEMP/problems.md"
+          title="The live server needs attention"
+          # Its own assignment, so a failed lookup stops the step rather
+          # than opening a second issue.
+          open=$(gh issue list --state open --author app/github-actions \
+              --search "\"$title\" in:title" --json number,title \
+              -q ".[] | select(.title == \"$title\") | .number")
+          number=${open%%$'\n'*}
+          if [ -s "$RUNNER_TEMP/problems.md" ]; then
+            cat "$RUNNER_TEMP/problems.md"
+            if [ -z "$number" ]; then
+              gh issue create --title "$title" --body-file "$RUNNER_TEMP/problems.md"
+            else
+              # What watchers last heard: the workflow's last comment, else
+              # the body it opened with. A comment that failed is sent again.
+              last=$(gh issue view "$number" --json body,comments -q \
+                  '([.comments[] | select(.author.login == "github-actions")] | last | .body) // .body')
+              if [ "$last" != "$(cat "$RUNNER_TEMP/problems.md")" ]; then
+                gh issue edit "$number" --body-file "$RUNNER_TEMP/problems.md"
+                gh issue comment "$number" --body-file "$RUNNER_TEMP/problems.md"
+              fi
+            fi
+          elif [ -n "$number" ]; then
+            gh issue close "$number" --comment "Nothing needs attention now."
+          else
+            echo "Nothing needs attention."
+          fi

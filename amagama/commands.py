@@ -645,6 +645,7 @@ def fetch_sources(block_names, tags, check):
     unknown = set(block_names) - {block.name for block in blocks}
     if unknown:
         raise click.UsageError("No block named %s." % ", ".join(sorted(unknown)))
+    configured, later = blocks, 0
     if block_names:
         blocks = [block for block in blocks if block.name in block_names]
     else:
@@ -699,8 +700,24 @@ def fetch_sources(block_names, tags, check):
             shutil.rmtree(path)
         if unused:
             print("Removed %d repositories no block uses." % len(unused))
+        record_fetch(cache_dir, configured, later)
     if failed:
         raise SystemExit(1)
+
+
+def record_fetch(cache_dir, blocks, waiting):
+    """Record a run over every block in the statistics, for the alerts; a
+    failure is reported, not raised."""
+    failing = {}
+    for block in blocks:
+        failures = block.failures(cache_dir)
+        if failures and failures["runs"] >= FAILURES_TO_REPORT:
+            failing[block.name] = failures
+    filename = stats.path(current_app.config, cache_dir)
+    try:
+        stats.update_fetch(filename, len(blocks), waiting, failing)
+    except OSError as e:
+        print("Couldn't update the statistics in %s: %s" % (filename, e))
 
 
 @click.command('sources_status')
