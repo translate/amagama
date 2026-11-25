@@ -25,6 +25,7 @@ import math
 import re
 import weakref
 
+import psycopg2
 from flask import abort, current_app
 from psycopg2 import errors, sql
 from psycopg2.extras import execute_values
@@ -35,6 +36,7 @@ from translate.storage import xliff
 from amagama import postgres
 from amagama.mojibake import CANDIDATE_REGEX, unmangle
 from amagama.source_options import SourceOptions
+from amagama import pruning
 from amagama.normalise import indexing_version
 from amagama.updater.languages import COUNTRY_CODES, normalise_language, not_language
 
@@ -43,6 +45,9 @@ from amagama.updater.languages import COUNTRY_CODES, normalise_language, not_lan
 SAFE_INDEX_BYTES = 2600
 # Rows per multi-row INSERT when a file's units are stored.
 INSERT_PAGE = 1000
+# word_counts keeps words in at least this many sources: the rest are rare,
+# all alike to amagama.pruning.
+WORD_COUNT_MIN = 100
 
 _table_name_cache = {}
 
@@ -349,6 +354,16 @@ CREATE INDEX targets_lang_sid_idx ON targets (lang, sid) WITH (fillfactor = 100)
 --- The rest is handled in the code.
 """
 
+    # A lookup's query as text, and how many sources have each of its words,
+    # for a filter on fewer of them (amagama.pruning).
+    QUERY_WORDS = """
+SELECT query::text, COALESCE((SELECT JSON_OBJECT_AGG(c.word, c.sources) FROM word_counts c
+    WHERE c.word = ANY(TSVECTOR_TO_ARRAY(TO_TSVECTOR(%(config)s, %(text)s)))), '{}')
+FROM TO_TSQUERY(%(config)s, (SELECT STRING_AGG(
+    '''' || REPLACE(REPLACE(token, CHR(92), CHR(92) || CHR(92)), '''', '''''') || '''',
+    '|') FROM TS_PARSE('default', %(text)s) WHERE tokid != 12)) query
+"""
+
     LOOKUP = """
 PREPARE {name} AS
 SELECT sid, source, target, rank from (
@@ -360,7 +375,7 @@ SELECT sid, source, target, rank from (
         '|')
         FROM TS_PARSE('default', $2) WHERE tokid != 12)) query
     WHERE t.lang = $3 AND s.length BETWEEN $4 AND $5
-    AND s.vector @@ query
+    AND s.vector @@ query{pruned}
 ) sub
 WHERE rank > $6
 ORDER BY rank DESC{order};
@@ -368,8 +383,16 @@ ORDER BY rank DESC{order};
     # Equal matches in import order, not the table's physical order (which
     # deploy_db sorts by length). A schema made before targets had a tid
     # can't tell, so its ties stay in physical order.
-    PREPARE_LOOKUP = LOOKUP.format(name="lookup", tid="t.tid, ", order=", tid")
-    PREPARE_LOOKUP_WITHOUT_TID = LOOKUP.format(name="lookup_without_tid", tid="", order="")
+    PREPARE_LOOKUP = LOOKUP.format(name="lookup", tid="t.tid, ", order=", tid", pruned="")
+    PREPARE_LOOKUP_WITHOUT_TID = LOOKUP.format(name="lookup_without_tid", tid="", order="",
+                                               pruned="")
+    # The same, matching only sources that also match $7: a query on fewer
+    # words that every source ranking above $6 matches (amagama.pruning).
+    PRUNED = "\n    AND s.vector @@ $7::tsquery"
+    PREPARE_LOOKUP_PRUNED = LOOKUP.format(name="lookup_pruned", tid="t.tid, ",
+                                          order=", tid", pruned=PRUNED)
+    PREPARE_LOOKUP_PRUNED_WITHOUT_TID = LOOKUP.format(
+        name="lookup_pruned_without_tid", tid="", order="", pruned=PRUNED)
     # TODO: stop returning "rank" once we're happy we have no users.
 
     schema_prefix = ''
@@ -382,7 +405,8 @@ ORDER BY rank DESC{order};
         self._licences = {}
         self._check_names = {}
         self._load_source_langs()
-        # {connection: {slang: the lookup statement prepared for it}}
+        # {connection: {slang: the names of the lookup statements prepared for it,
+        # as now and, if its data counts words, pruned}}
         self._prepared_statements = weakref.WeakKeyDictionary()
 
     def _load_source_langs(self):
@@ -985,6 +1009,11 @@ ORDER BY rank DESC{order};
         max_length = current_app.config.get("MAX_LENGTH")
         cursor = self.get_cursor(self.schema(slang))
         cursor.execute(self.DEPLOY_QUERY)
+        # The longer bands' indexes hold the length too (btree_gin), so a
+        # lookup's length range is applied in the index: half the sources
+        # read (#3476). Not the shortest band's: its lengths are so common
+        # that reading them costs more than it saves.
+        banded = "length, vector" if self._btree_gin(cursor) else "vector"
         lower_bound = 0
         for upper_bound in (28, 93):
             idx_name = sql.Identifier("sources_up_to_%d_text_idx" % upper_bound)
@@ -995,20 +1024,44 @@ ORDER BY rank DESC{order};
                     (max_levenshtein_length(upper_bound, similarity, max_length),))
             else:
                 cursor.execute(sql.SQL("""
-                    CREATE INDEX {} ON sources USING gin(vector)
-                    WHERE length BETWEEN %s AND %s""").format(idx_name),
+                    CREATE INDEX {} ON sources USING gin(%s)
+                    WHERE length BETWEEN %%s AND %%s""" % banded).format(idx_name),
                     (min_levenshtein_length(lower_bound, similarity),
                      max_levenshtein_length(upper_bound, similarity, max_length)))
             lower_bound = upper_bound + 1
         cursor.execute("""
-            CREATE INDEX sources_long_idx ON sources USING gin(vector)
-            WHERE length >= %s""", (min_levenshtein_length(lower_bound, similarity),))
+            CREATE INDEX sources_long_idx ON sources USING gin(%s)
+            WHERE length >= %%s""" % banded, (min_levenshtein_length(lower_bound, similarity),))
+        # How many sources have each word, for lookups to match fewer of a
+        # query's words (amagama.pruning); a word in fewer is rare.
+        cursor.execute("""
+            DROP TABLE IF EXISTS word_counts;
+            CREATE TABLE word_counts (word text PRIMARY KEY, sources integer NOT NULL);
+            INSERT INTO word_counts
+                SELECT word, COUNT(*) FROM sources, UNNEST(TSVECTOR_TO_ARRAY(vector)) word
+                GROUP BY word HAVING COUNT(*) >= %s""", (WORD_COUNT_MIN,))
         # The languages page reads these; finding them takes a scan of targets.
         cursor.execute("""
             DROP TABLE IF EXISTS target_languages;
             CREATE TABLE target_languages (lang text PRIMARY KEY);
             INSERT INTO target_languages SELECT DISTINCT lang FROM targets""")
         cursor.connection.commit()
+
+    @staticmethod
+    def _btree_gin(cursor):
+        """Whether GIN indexes can hold a length (the btree_gin extension),
+        installing it if need be; it's PostgreSQL's own, but may be missing
+        or need rights this user hasn't."""
+        cursor.execute("SAVEPOINT btree_gin")
+        try:
+            # In public, not the schema being deployed: dropping that would
+            # take the extension, and every index using it, with it.
+            cursor.execute("CREATE EXTENSION IF NOT EXISTS btree_gin SCHEMA public")
+        except psycopg2.Error:
+            cursor.execute("ROLLBACK TO SAVEPOINT btree_gin")
+            return False
+        cursor.execute("RELEASE SAVEPOINT btree_gin")
+        return True
 
     def _has_target_languages(self, cursor):
         cursor.execute("SELECT to_regclass('target_languages') IS NOT NULL")
@@ -1514,15 +1567,38 @@ ORDER BY rank DESC{order};
             cursor.execute("""SELECT EXISTS(SELECT 1 FROM information_schema.columns
                 WHERE table_schema = current_schema() AND table_name = 'targets'
                 AND column_name = 'tid')""")
-            name, statement = (("lookup", self.PREPARE_LOOKUP) if cursor.fetchone()[0]
-                               else ("lookup_without_tid", self.PREPARE_LOOKUP_WITHOUT_TID))
-            if not self.prepared_statement_exists(name):
-                cursor.execute(statement)
-            prepared[slang] = name
+            if cursor.fetchone()[0]:
+                names = (("lookup", self.PREPARE_LOOKUP),
+                         ("lookup_pruned", self.PREPARE_LOOKUP_PRUNED))
+            else:
+                names = (("lookup_without_tid", self.PREPARE_LOOKUP_WITHOUT_TID),
+                         ("lookup_pruned_without_tid", self.PREPARE_LOOKUP_PRUNED_WITHOUT_TID))
+            # Data deployed before word_counts was made isn't pruned.
+            cursor.execute("SELECT to_regclass('word_counts') IS NOT NULL")
+            if not cursor.fetchone()[0]:
+                names = names[:1]
+            for name, statement in names:
+                if not self.prepared_statement_exists(name):
+                    cursor.execute(statement)
+            prepared[slang] = [name for name, _ in names]
         lang_config = lang_to_config(slang)
-        cursor.execute(sql.SQL("EXECUTE {} (%s, %s, %s, %s, %s, %s)").format(
-                       sql.Identifier(prepared[slang])),
-                       (lang_config, query, tlang, min_len, max_len, min_rank))
+        names = prepared[slang]
+        pruned = None
+        # Fewer words than pruning.FEWEST_WORDS make fewer query words: nothing
+        # to prune, and no need to ask.
+        if len(names) > 1 and len(re.findall(r"\w+", query)) >= pruning.FEWEST_WORDS:
+            cursor.execute(self.QUERY_WORDS, {"config": lang_config, "text": query})
+            text, counts = cursor.fetchone()
+            if text:
+                pruned = pruning.lookup_filter(text, counts, min_rank)
+        if pruned:
+            cursor.execute(sql.SQL("EXECUTE {} (%s, %s, %s, %s, %s, %s, %s)").format(
+                           sql.Identifier(names[1])),
+                           (lang_config, query, tlang, min_len, max_len, min_rank, pruned))
+        else:
+            cursor.execute(sql.SQL("EXECUTE {} (%s, %s, %s, %s, %s, %s)").format(
+                           sql.Identifier(names[0])),
+                           (lang_config, query, tlang, min_len, max_len, min_rank))
 
     def translate_unit(self, unit_source, source_lang, target_lang,
                        project_style=None, min_similarity=None,

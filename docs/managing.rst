@@ -93,6 +93,15 @@ This subcommand is used to optimize the database for deployment, or with
 
 .. note:: This is an irreversible step that alters the database permanently.
 
+It builds the full-text indexes lookups use, one per band of source lengths;
+the two longer bands' indexes hold each source's length too, so a lookup reads only
+the sources of lengths it can match. That needs PostgreSQL's ``btree_gin``
+extension, which it installs in ``public`` if the database user may (it is a
+trusted extension, so a user with CREATE on the database may); without it they hold the
+words alone. It also counts how many sources have each word (``word_counts``),
+so a lookup of several words matches only sources with enough of its rarer
+ones to rank: the same suggestions, from far fewer sources read.
+
 .. _managing#dropdb:
 
 dropdb
