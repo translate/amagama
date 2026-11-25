@@ -197,6 +197,19 @@ def foreign_letters(lang, source, target):
     return any(letter in target and letter not in source for letter in letters)
 
 
+# KDE's transcripts: a translation may add a scripted alternative after
+# this, "Ставке пре %1|/|Ставке пре $[на-реч %1 ген]", which only KDE's
+# runtime reads (#3862).
+TRANSCRIPT = "|/|"
+
+
+def without_transcript(source, target):
+    """target without a KDE transcript the source hasn't."""
+    if TRANSCRIPT in target and TRANSCRIPT not in source:
+        return target.split(TRANSCRIPT, 1)[0]
+    return target
+
+
 def _foreign_letters_sql():
     """(SQL condition, its parameters) for foreign_letters() of targets t
     of sources s."""
@@ -743,16 +756,23 @@ ORDER BY rank DESC{order};
                 AND table_schema IN (current_schema(), %s)""", (snapshot,))
             keep_tid = cursor.fetchone()[0]
             columns = "tid, sid, text, lang" if keep_tid else "sid, text, lang"
-            picked = ("t.tid, t.sid, t.text" if keep_tid else "t.sid, t.text") + \
+            # A KDE transcript's translation before it (without_transcript());
+            # one with none isn't loaded, and duplicates fall to the index.
+            transcript = "strpos(t.text, '%s') > 0 AND strpos(s.text, '%s') = 0" % (
+                TRANSCRIPT, TRANSCRIPT)
+            text = "CASE WHEN %s THEN split_part(t.text, '%s', 1) ELSE t.text END" % (
+                transcript, TRANSCRIPT)
+            picked = ("t.tid, t.sid, " if keep_tid else "t.sid, ") + text + " AS text" + \
                 ", COALESCE(%s::jsonb ->> t.lang, t.lang) AS lang"
+            loaded = "t.lang = ANY(%%s) AND NOT (%s AND btrim(%s) = '')" % (transcript, text)
             cursor.execute(sql.SQL("""INSERT INTO targets (%s)
                 SELECT %s FROM {} t JOIN sources s ON s.sid = t.sid
-                WHERE octet_length(t.text) <= %%s AND t.lang = ANY(%%s)
-                ON CONFLICT DO NOTHING""" % (columns, picked)).format(snap_targets),
+                WHERE octet_length(%s) <= %%s AND %s
+                ON CONFLICT DO NOTHING""" % (columns, picked, text, loaded)).format(snap_targets),
                 (json.dumps(renamed), SAFE_INDEX_BYTES, langs))
             cursor.execute(sql.SQL("""SELECT %s FROM {} t
                 JOIN sources s ON s.sid = t.sid
-                WHERE octet_length(t.text) > %%s AND t.lang = ANY(%%s)""" % picked).format(
+                WHERE octet_length(%s) > %%s AND %s""" % (picked, text, loaded)).format(
                 snap_targets), (json.dumps(renamed), SAFE_INDEX_BYTES, langs))
             insert = "INSERT INTO targets (%s) VALUES (%s) ON CONFLICT DO NOTHING" % (
                 columns, ", ".join(["%s"] * len(columns.split(", "))))
@@ -1387,10 +1407,15 @@ ORDER BY rank DESC{order};
         except ValueError:
             # A Qt TS plural with no forms: Translate Toolkit can't make its target.
             return False
-        if target_lang and (lang_to_table(target_lang) or "").split("_")[0] != "en" \
-                and copied_source(str(u.source), str(target)):
+        plain = without_transcript(str(u.source), str(target))
+        if plain != str(target) and not plain.strip():
+            # Only a transcript: no translation before it.
             return False
-        if target_lang and foreign_letters(target_lang, str(u.source), str(target)):
+        target = plain
+        if target_lang and (lang_to_table(target_lang) or "").split("_")[0] != "en" \
+                and copied_source(str(u.source), target):
+            return False
+        if target_lang and foreign_letters(target_lang, str(u.source), target):
             return False
         return u.istranslatable() and \
                bool(u.source) and \
@@ -1400,7 +1425,7 @@ ORDER BY rank DESC{order};
                self._indexable_string(u.source) and \
                self._indexable_string(target) and \
                _encodable(str(u.source)) is not None and \
-               _encodable(str(target)) is not None
+               _encodable(target) is not None
 
     def add_store(self, store, source_lang, target_lang, project_style=None,
                   commit=True, iid=None):
@@ -1413,7 +1438,8 @@ ORDER BY rank DESC{order};
         for u in store.units:
             if not self._usable_unit(u, target_lang):
                 continue
-            source, target = _encodable(str(u.source)), _encodable(str(u.target))
+            source = _encodable(str(u.source))
+            target = _encodable(without_transcript(str(u.source), str(u.target)))
             if source is not None and target is not None:
                 units.append({'source': source, 'target': target})
 

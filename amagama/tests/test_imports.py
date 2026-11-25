@@ -267,3 +267,21 @@ class TestBatchedInserts(object):
             assert app.tmdb._usable_unit(name, "tr")
             # Crimean Tatar under its own code is its own.
             assert app.tmdb._usable_unit(tatar, "crh")
+
+
+    def test_kde_transcript(self, app, pg_connection):
+        """A KDE transcript's scripted alternative after |/| isn't stored
+        (#3862); a target that is only one is left out."""
+        store = TranslationStore()
+        store.addsourceunit("Items before %1").target = \
+            "Ставке пре %1|/|Ставке пре $[на-реч %1 ген]"
+        store.addsourceunit("Close").target = "|/|$[gen Close]"
+        store.addsourceunit("Use |/| to split").target = "Користи |/| за поделу"
+        with app.app_context():
+            iid = app.tmdb.start_import('en', 'sr', 'x.po')
+            assert app.tmdb.add_store(store, 'en', 'sr', iid=iid) == 2
+        with pg_connection.cursor() as cursor:
+            cursor.execute("SELECT text FROM en.targets")
+            assert sorted(cursor.fetchall()) == sorted([("Ставке пре %1",),
+                                                         ("Користи |/| за поделу",)])
+        pg_connection.commit()

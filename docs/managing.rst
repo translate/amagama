@@ -505,7 +505,10 @@ Then every file of every other block, :setting:`UPDATER_WORKERS` at a time, each
 target language, block name and licence. Files that can't be read are listed
 and left out, and so is a target with a letter its language never writes
 that its source hasn't (a Turkish one with Crimean Tatar's ``ñ`` or
-Azerbaijani's ``ə``). Before the swap, targets failing the ``printf``, ``braces`` or
+Azerbaijani's ``ə``). A KDE translation's scripted alternative after
+``|/|`` (a transcript, which only KDE reads) is dropped when the source has no
+``|/|``, keeping the translation before it; a target with nothing before it is
+left out. Before the swap, targets failing the ``printf``, ``braces`` or
 ``script`` checks of :ref:`check_units <managing#check-units>`, and those
 :setting:`UNIT_CHECKS_LEAVE_OUT` adds, are left out,
 and listed by check, language and block. The other checks, amaGama's and

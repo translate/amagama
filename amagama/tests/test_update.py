@@ -322,6 +322,60 @@ class TestUpdate(object):
         assert query(pg_connection, "SELECT text FROM en.targets WHERE lang = 'tr' "
                                     "AND text = 'Ñ'") == [("Ñ",)]
 
+    def test_snapshot_kde_transcripts(self, run, tmp_path, pg_connection):
+        """The 2019 database stored KDE transcripts with their translations:
+        the translation before |/| is loaded (#3862)."""
+        legacy = tmp_path / "legacy.po"
+        legacy.write_text(po("sr", ("Items before %1", "Ставке пре %1"), ("Close file", "Затвори"),
+                             ("Open file", "Отвори фајл")))
+        run("initdb", "-s", "en")
+        run("build_tmdb", "-s", "en", "-t", "sr", "-i", str(legacy))
+        # As the 2019 database has them, which an import wouldn't store now:
+        # a transcript, one that is nothing else, and one that comes to a
+        # translation the snapshot has already.
+        with pg_connection.cursor() as cursor:
+            for source, text in (("Items before %1", "Ставке пре %1 б|/|Ставке $[ген %1]"),
+                                 ("Close file", "|/|$[gen file]"),
+                                 ("Open file", "Отвори фајл|/|$[x]")):
+                cursor.execute("""INSERT INTO en.targets (sid, text, lang)
+                    SELECT sid, %s, 'sr' FROM en.sources WHERE text = %s""", (text, source))
+        pg_connection.commit()
+        run("snapshot_db", "-s", "en", "--name", "legacy")
+        result = run("update", "-s", "en")
+        assert result.exit_code == 0, result.output
+        assert sorted(lookup("sr", "Items before %1")) == ["Ставке пре %1", "Ставке пре %1 б"]
+        assert lookup("sr", "Close file") == ["Затвори"]
+        assert lookup("sr", "Open file") == ["Отвори фајл"]
+        assert query(pg_connection, "SELECT count(*) FROM en.targets WHERE text LIKE '%|/|%'") \
+            == [(0,)]
+
+    def test_snapshot_transcript_checked_stripped(self, run, tmp_path, pg_connection):
+        """A transcript's text isn't checked for foreign letters or measured
+        for the index: only the translation before it is loaded."""
+        import random
+        letters = random.Random(1)
+        noise = "".join(letters.choice("abcdefghijklmnopqrstuvwxyz ") for _ in range(9000))
+        legacy = tmp_path / "legacy.po"
+        legacy.write_text(po("tr", ("Close file", "Dosyayı kapat")))
+        run("initdb", "-s", "en")
+        run("build_tmdb", "-s", "en", "-t", "tr", "-i", str(legacy))
+        run("snapshot_db", "-s", "en", "--name", "legacy")
+        # Into the snapshot, which has no index to refuse them.
+        with pg_connection.cursor() as cursor:
+            for sid, (source, text) in enumerate((("Open file", "Dosyayı aç|/|$[ñ]"),
+                                                  ("Save file", "Dosyayı kaydet|/|$[%s]" % noise)),
+                                                 1000):
+                cursor.execute("INSERT INTO _legacy_en.sources (sid, text, vector, length) "
+                               "VALUES (%s, %s, to_tsvector('simple', %s), %s)",
+                               (sid, source, source, len(source)))
+                cursor.execute("INSERT INTO _legacy_en.targets (tid, sid, text, lang) "
+                               "VALUES (%s, %s, %s, 'tr')", (sid, sid, text))
+        pg_connection.commit()
+        result = run("update", "-s", "en")
+        assert result.exit_code == 0, result.output
+        assert lookup("tr", "Open file") == ["Dosyayı aç"]
+        assert lookup("tr", "Save file") == ["Dosyayı kaydet"]
+
     def test_missing_snapshot_with_live_data(self, run, tmp_path, pg_connection):
         legacy = tmp_path / "legacy.po"
         legacy.write_text(po("af", ("Close file", "Maak lêer toe")))
