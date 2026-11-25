@@ -507,8 +507,7 @@ Source types
   ``project`` (required) is the project's path, such as ``apps/android/dev``.
   A formal or other set goes with its language. ``base_url`` (default
   ``https://translate.wordpress.org``) names the GlotPress site; ``pause``
-  (default 5) is the seconds between exports, and a 429 Too Many Requests is
-  retried after ``retry_wait`` (default 60) seconds, then twice that.
+  (default 5) is the seconds between exports.
 
 ``snapshot``
   Data kept in the database by :ref:`snapshot_db <managing#snapshot-db>`,

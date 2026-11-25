@@ -28,7 +28,7 @@ import urllib.request
 import spdx_license_list
 
 from amagama.updater import crowdin, inlang, l10ntoml, lingui, linguas, transifex, wlc
-from amagama.updater.fetchers import TIMEOUT, USER_AGENT, FetchError
+from amagama.updater.fetchers import TIMEOUT, USER_AGENT, FetchError, rate_limit_wait
 from amagama.updater.generate import normal_url
 
 SEARCH = "https://api.github.com/search/code"
@@ -42,8 +42,6 @@ MAX_SIZE = 384 * 1024
 # Where code search's size parts start: configuration files are small, and
 # halving 384 KB down to them costs a request each time.
 SIZES = (0, 64, 128, 256, 512, 1024, 2048)
-# The longest wait for a rate limit to reset.
-MAX_WAIT = 900
 
 # Each signal: its code search query and the resolver writing its blocks.
 SIGNALS = {
@@ -80,16 +78,6 @@ class RateLimited(FetchError):
     """A GitHub request still rate limited after its retries."""
 
 
-def _wait(headers, default):
-    """Seconds until a rate limit resets, from the response's headers."""
-    if headers.get("Retry-After", "").isdigit():
-        # Rounded down: "1" for 1.8 seconds.
-        return min(int(headers["Retry-After"]) + 1, MAX_WAIT)
-    if headers.get("X-RateLimit-Remaining") == "0" and headers.get("X-RateLimit-Reset", "").isdigit():
-        return min(max(int(headers["X-RateLimit-Reset"]) - time.time(), 0) + 1, MAX_WAIT)
-    return default
-
-
 def _message(error):
     """An HTTP error's body, lowercased, or "" if it can't be read."""
     try:
@@ -115,7 +103,7 @@ def github(url, token, data=None, retries=6, wait=60):
                 "Retry-After" in e.headers or e.headers.get("X-RateLimit-Remaining") == "0"
                 or "secondary rate limit" in _message(e)))
             if (limited or e.code >= 500) and attempt < retries:
-                time.sleep(_wait(e.headers, wait))
+                time.sleep(rate_limit_wait(e.headers, wait))
                 continue
             raise (RateLimited if limited else FetchError)("%s: %s" % (url, e), e.code)
         except (urllib.error.URLError, OSError) as e:

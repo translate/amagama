@@ -303,6 +303,37 @@ def test_components(instance, monkeypatch):
     assert slept == [3]
 
 
+class OnceLimited(QuietHandler):
+    """Refuses the first request with 429 Too Many Requests."""
+
+    refused = False
+
+    def do_GET(self):
+        if not OnceLimited.refused:
+            OnceLimited.refused = True
+            self.send_response(429)
+            self.send_header("Retry-After", "622")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return
+        super().do_GET()
+
+
+def test_components_wait_out_429(instance, tmp_path, pauses, monkeypatch):
+    monkeypatch.setattr(OnceLimited, "refused", False)
+    server = http.server.ThreadingHTTPServer(
+        ("127.0.0.1", 0), functools.partial(OnceLimited, directory=str(tmp_path / "weblate")))
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    try:
+        found = weblate.components("http://127.0.0.1:%d" % server.server_address[1])
+    finally:
+        server.shutdown()
+        server.server_close()
+    # The second page is the instance fixture's own server's.
+    assert [c["project"]["slug"] for c in found] == ["app", "tool"]
+    assert pauses == [623]
+
+
 def test_command(amagama_config, instance, tmp_path):
     sources = tmp_path / "sources.toml"
     sources.write_text(block("tool", "git", url="https://git.example/tool", files=["po/{lang}.po"]))

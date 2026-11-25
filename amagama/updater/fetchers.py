@@ -15,6 +15,7 @@ target languages, and computes a fingerprint cheaply enough to check weekly.
 import contextlib
 import contextvars
 import fnmatch
+import functools
 import gzip
 import hashlib
 import http.client
@@ -26,6 +27,7 @@ import os
 import posixpath
 import re
 import shutil
+import ssl
 import subprocess
 import tarfile
 import tempfile
@@ -47,21 +49,86 @@ TIMEOUT = 120
 # The longest a reply's body may take, though data keeps coming; TIMEOUT
 # is for each read.
 DEADLINE = 3600
+# The longest wait for a rate limit to reset.
+MAX_WAIT = 900
+# A request or git command that fails in a way that can pass (a busy or
+# briefly broken server, a dropped connection) is tried RETRIES more times,
+# RETRY_WAIT seconds later and twice that the second time, or when the
+# server's Retry-After says.
+RETRIES = 2
+RETRY_WAIT = 60
+TRANSIENT_STATUSES = {408, 425, 429, 500, 502, 503, 504}
+# git's messages for network failures that can pass.
+TRANSIENT_GIT = re.compile(
+    r"could not resolve host|failed to connect|connection reset|timed out"
+    r"|early eof|unexpected disconnect|rpc failed|hung up unexpectedly|gnutls|ssl_read"
+    r"|the requested url returned error: (?:408|429|5\d\d)", re.IGNORECASE)
+# Hosts still failing after their retries in this run: their requests are
+# tried once, so a host that is down doesn't hold up every block on it.
+_failing_hosts = set()
 
 
 class FetchError(Exception):
 
-    def __init__(self, message, status=None):
+    def __init__(self, message, status=None, headers=None, transient=None):
         super(FetchError, self).__init__(message)
         self.status = status
+        self.headers = headers or {}
+        self.transient = status in TRANSIENT_STATUSES if transient is None else transient
+
+
+def rate_limit_wait(headers, default):
+    """Seconds until a rate limit resets, from the response's headers."""
+    if headers.get("Retry-After", "").isdigit():
+        # Rounded down: "1" for 1.8 seconds.
+        return min(int(headers["Retry-After"]) + 1, MAX_WAIT)
+    if headers.get("X-RateLimit-Remaining") == "0" and headers.get("X-RateLimit-Reset", "").isdigit():
+        return min(max(int(headers["X-RateLimit-Reset"]) - time.time(), 0) + 1, MAX_WAIT)
+    return default
+
+
+def retrying(host, attempt):
+    """attempt(), tried again while it raises a transient FetchError; host's
+    requests are tried once while it is failing."""
+    for n in range(RETRIES + 1):
+        try:
+            result = attempt()
+        except FetchError as e:
+            if not e.transient:
+                raise
+            if n == RETRIES or host in _failing_hosts:
+                if host:
+                    _failing_hosts.add(host)
+                raise
+            time.sleep(rate_limit_wait(e.headers, RETRY_WAIT * 2 ** n))
+        else:
+            _failing_hosts.discard(host)
+            return result
+
+
+def retried(func):
+    """func(url, ...) tried again on a transient FetchError (see retrying)."""
+    @functools.wraps(func)
+    def wrapper(url, *args, **kwargs):
+        return retrying(urllib.parse.urlsplit(url).hostname,
+                        lambda: func(url, *args, **kwargs))
+    return wrapper
 
 
 def _request(url, method="GET"):
     request = urllib.request.Request(url, method=method, headers={"User-Agent": USER_AGENT})
     try:
         return urllib.request.urlopen(request, timeout=TIMEOUT)
+    except urllib.error.HTTPError as e:
+        # A 403 with Retry-After is a rate limit.
+        headers = e.headers or {}
+        raise FetchError("%s: %s" % (url, e), e.code, headers,
+                         e.code in TRANSIENT_STATUSES or (e.code == 403 and "Retry-After" in headers))
     except (urllib.error.URLError, OSError) as e:
-        raise FetchError("%s: %s" % (url, e), getattr(e, "code", None))
+        # A network error, not an unknown URL scheme or a bad certificate.
+        reason = getattr(e, "reason", e)
+        raise FetchError("%s: %s" % (url, e), transient=isinstance(reason, OSError)
+                         and not isinstance(reason, ssl.SSLCertVerificationError))
 
 
 # What reading a response's body can raise, once it has started.
@@ -81,14 +148,32 @@ def _read(response, url):
         yield chunk
 
 
-def http_text(url):
+@retried
+def http_bytes(url):
     with _request(url) as response:
         try:
-            return b"".join(_read(response, url)).decode("utf-8")
-        except (*READ_ERRORS, UnicodeDecodeError) as e:
-            raise FetchError("%s: %s" % (url, e))
+            data = b"".join(_read(response, url))
+        except READ_ERRORS as e:
+            raise FetchError("%s: %s" % (url, e), transient=True)
+        _check_length(response, url, len(data))
+        return data
 
 
+def _check_length(response, url, got):
+    # A connection that drops early ends the body without an error.
+    length = response.headers.get("Content-Length", "")
+    if length.isdigit() and got != int(length):
+        raise FetchError("%s: got %d of %s bytes" % (url, got, length), transient=True)
+
+
+def http_text(url):
+    try:
+        return http_bytes(url).decode("utf-8")
+    except UnicodeDecodeError as e:
+        raise FetchError("%s: %s" % (url, e))
+
+
+@retried
 def http_fingerprint(url):
     """ETag or Last-Modified, with the length; None if the server gives neither."""
     with _request(url, "HEAD") as response:
@@ -99,17 +184,15 @@ def http_fingerprint(url):
         return "%s %s" % (tag, headers.get("Content-Length", ""))
 
 
+@retried
 def download(url, path):
     with _request(url) as response, open(path, "wb") as f:
         try:
             for chunk in _read(response, url):
                 f.write(chunk)
         except READ_ERRORS as e:
-            raise FetchError("%s: %s" % (url, e))
-        # A connection that drops early ends the body without an error.
-        length = response.headers.get("Content-Length", "")
-        if length.isdigit() and f.tell() != int(length):
-            raise FetchError("%s: got %d of %s bytes" % (url, f.tell(), length))
+            raise FetchError("%s: %s" % (url, e), transient=True)
+        _check_length(response, url, f.tell())
 
 
 def extract_tarball(path, dest):
@@ -296,7 +379,7 @@ class TranslationProject(TarballPerLanguage):
         return [self.base_url + urllib.parse.quote(lang) + ".tgz"]
 
 
-def run_tool(tool, *args, trusted=None):
+def run_tool(tool, *args, trusted=None, host=None):
     """A version-control command's output, run outside any repository.
 
     The caller's GIT_DIR and friends are left out. trusted is a git
@@ -304,7 +387,17 @@ def run_tool(tool, *args, trusted=None):
     them, which git otherwise refuses as "dubious ownership" when another
     user owns the cache (a mounted volume); it is set in the environment so
     the git processes git starts get it too.
+
+    A git network failure is tried again (see retrying), for the host of
+    a URL in args, else host.
     """
+    host = next((urllib.parse.urlsplit(arg).hostname for arg in args if "://" in arg), host)
+    if tool != "git":
+        return _run_tool(tool, args, trusted)
+    return retrying(host, lambda: _run_tool(tool, args, trusted))
+
+
+def _run_tool(tool, args, trusted):
     env = {key: value for key, value in os.environ.items() if not key.startswith("GIT_")}
     # A repository that isn't there fails rather than asking for a login.
     env["GIT_TERMINAL_PROMPT"] = "0"
@@ -319,7 +412,10 @@ def run_tool(tool, *args, trusted=None):
                               timeout=3600, cwd=tempfile.gettempdir(), env=env).stdout
     except (subprocess.SubprocessError, OSError) as e:
         stderr = getattr(e, "stderr", None) or ""
-        raise FetchError("%s %s: %s %s" % (tool, args[0], e, stderr.strip()))
+        # The 3600-second timeout isn't worth waiting out again.
+        transient = (tool == "git" and not isinstance(e, subprocess.TimeoutExpired)
+                     and bool(TRANSIENT_GIT.search(stderr)))
+        raise FetchError("%s %s: %s %s" % (tool, args[0], e, stderr.strip()), transient=transient)
 
 
 class HttpPerLanguage(Fetcher):
@@ -376,7 +472,8 @@ class HttpPerLanguage(Fetcher):
         try:
             return action(self.url(lang))
         except FetchError as e:
-            if e.status not in (403, 404):
+            # A rate-limited 403 isn't a missing file.
+            if e.status not in (403, 404) or e.transient:
                 raise
         url = self.fallback_url(lang)
         return action(url) if url else None
@@ -507,7 +604,8 @@ class Git(Fetcher):
             raise ValueError("mirror must be the URL of a copy of url")
 
     def _git(self, *args, clone=None):
-        return run_tool("git", *args, trusted=clone)
+        return run_tool("git", *args, trusted=clone,
+                        host=urllib.parse.urlsplit(self.source or self.settings["url"]).hostname)
 
     def fingerprint(self):
         return self.commit(self.settings["url"])
@@ -767,12 +865,11 @@ class GlotPress(Fetcher):
     project is the project's path, such as apps/android/dev. Its page lists
     every locale and set with its translated count, which is the fingerprint.
     Files are given the locale's slug as their language, so a formal or other
-    set goes with its language. Exports are pause seconds apart; a 429 is
-    retried after retry_wait seconds, twice as long the second time.
+    set goes with its language. Exports are pause seconds apart.
     """
 
     required = ("project",)
-    optional = ("base_url", "pause", "retry_wait")
+    optional = ("base_url", "pause")
     rotates = True
 
     # Slugs that aren't language codes as they are.
@@ -791,22 +888,11 @@ class GlotPress(Fetcher):
         return "%s/projects/%s/" % (self.settings.get(
             "base_url", "https://translate.wordpress.org").rstrip("/"), self.settings["project"])
 
-    def _get(self, action, url):
-        """action(url), waiting and trying again on 429 Too Many Requests."""
-        wait = self.settings.get("retry_wait", 60)
-        for attempt in range(3):
-            try:
-                return action(url)
-            except FetchError as e:
-                if e.status != 429 or attempt == 2:
-                    raise
-            time.sleep(wait * 2 ** attempt)
-
     def sets(self):
         """[(locale slug, set slug, translated count)] with something translated."""
         if not hasattr(self, "_sets"):
             path = re.escape(urllib.parse.urlsplit(self.project_url).path)
-            page = self._get(http_text, self.project_url)
+            page = http_text(self.project_url)
             rows = re.findall(path + r'([a-z0-9-]+)/([a-z0-9-]+)/\?filters%5Bstatus%5D=current"'
                               r'>([\d,]+)</a>', page)
             if not rows:
@@ -833,7 +919,7 @@ class GlotPress(Fetcher):
             # Current only: a whole export is mostly untranslated entries.
             url = "%s%s/%s/export-translations/?format=po&filters%%5Bstatus%%5D=current" % (
                 self.project_url, slug, name)
-            self._get(lambda url: download(url, os.path.join(dest, path)), url)
+            download(url, os.path.join(dest, path))
             files.append((path, lang))
             time.sleep(self.settings.get("pause", 5))
         return files
@@ -1154,8 +1240,7 @@ class VSCode(Fetcher):
     def _json(url, missing_ok=False):
         """url's JSON, unzipped if the CDN sent it gzipped; None if missing_ok and 404."""
         try:
-            with _request(url) as response:
-                data = b"".join(_read(response, url))
+            data = http_bytes(url)
         except FetchError as e:
             if missing_ok and e.status == 404:
                 return None

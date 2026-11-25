@@ -150,5 +150,6 @@ def pauses(monkeypatch):
     """The fetchers' pauses, recorded instead of slept."""
     slept = []
     monkeypatch.setattr(fetchers, "time",
-                        types.SimpleNamespace(sleep=slept.append, monotonic=time.monotonic))
+                        types.SimpleNamespace(sleep=slept.append, monotonic=time.monotonic, time=time.time))
+    monkeypatch.setattr(fetchers, "_failing_hosts", set())
     return slept

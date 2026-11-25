@@ -153,10 +153,10 @@ def test_too_many_requests_retried(glotpress, pauses):
     root, url, publish = glotpress
     GlotPressHandler.too_many = {"/projects/%s/" % PROJECT,
                                  "/projects/%s/af/default/export-translations/" % PROJECT}
-    fetcher = GlotPress({"project": PROJECT, "base_url": url, "pause": 0, "retry_wait": 7})
+    fetcher = GlotPress({"project": PROJECT, "base_url": url, "pause": 0})
     files = fetcher.fetch(str(root / "out"), ["af"])
     assert files == [("af/default.po", "af")]
-    assert pauses == [7, 7, 0]
+    assert pauses == [60, 60, 0]
 
 
 def test_too_many_requests_gives_up(glotpress, pauses, monkeypatch):
@@ -164,8 +164,8 @@ def test_too_many_requests_gives_up(glotpress, pauses, monkeypatch):
     monkeypatch.setattr(GlotPressHandler, "too_many", type("Always", (set,), {
         "__contains__": lambda self, path: True, "discard": lambda self, path: None})())
     with pytest.raises(FetchError, match="429"):
-        GlotPress({"project": PROJECT, "base_url": url, "retry_wait": 5}).sets()
-    assert pauses == [5, 10]
+        GlotPress({"project": PROJECT, "base_url": url}).sets()
+    assert pauses == [60, 120]
 
 
 def test_no_locales(glotpress):
