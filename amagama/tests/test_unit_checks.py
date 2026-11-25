@@ -32,6 +32,10 @@ from amagama.unit_checks import Report, failed_checks, length_step, script, targ
     ("%d files", "%i Dateien", "de", []),
     ("%d files", "%s Dateien", "de", ["printf"]),
     ("Line %1 of %2", "Zeile %L1 von %L2", "de", []),
+    # KDE's %2 followed by a letter isn't a conversion (#3861).
+    ("will be configured as the %2th sound card (%1)", "va fi configurată ca a %2a placă (%1)",
+     "ro", []),
+    ("Copy %1 to %2", "Kopiere %1 nach %s", "de", ["printf"]),
     # Placeholders may change places; numbered ones are KDE's and Qt's.
     ("This item costs %1 %2.", "Isto custa %2 %1.", "gl", []),
     ("In %1, a mount point for %2", "În %s, un punct de montare pentru %s", "ro", ["printf"]),
@@ -45,6 +49,9 @@ from amagama.unit_checks import Report, failed_checks, length_step, script, targ
     ("a single 100% line", "einer einzigen 100-%-Zeile", "de", []),
     ("%d%%", "%Id%%", "ar", []),
     ("Tickets to watch: {$a}", "Kaartjies wat gevolg word", "af", ["braces"]),
+    # Turkish writes a percentage %{0}: not a Ruby placeholder (#3861).
+    ("{0}% Similarity", "Benzerlik %{0}", "tr", []),
+    ("Hello %{name}", "Merhaba %{isim}", "tr", ["braces"]),
     ("{$a->name} has {$a->count}", "{$a->name} het {$ a-> count}", "af", ["braces"]),
     ("Save the {0} image", "Stoor die prent", "af", ["braces"]),
     ("Invalid \"{}\" in \"{}\"", "Ongeldige \"{}\"", "af", ["braces"]),
@@ -141,6 +148,9 @@ def test_checks(source, target, lang, failed):
     ("%s 123 …", None),
     ("%(name)s <b>{count}</b> &amp; ගොනුව", "SINHALA"),
     ("ｆｉｌｅ", None),
+    # Ordinal indicators aren't a script (#3861).
+    ("nº", "LATIN"),
+    ("ºª", None),
 ])
 def test_script(text, expected):
     assert script(text) == expected

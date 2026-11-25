@@ -45,13 +45,15 @@ _PRINTF = re.compile(
     r"%(?:(\d+)\$|\((\w+)\))?[-+#0']*(\d+|\*)?(?:\.(?:\d+|\*))?"
     r"(?:hh|h|ll|l|L|q|j|z|t|I)*([diouxXeEfFgGaAcspn])"
     r"|%L?(\d{1,2})(?![\d$])")
+# KDE's and Qt's numbered placeholders alone: %2a is %2 and a letter.
+_NUMBERED = re.compile(r"%L?(\d{1,2})(?![\d$])")
 # LibreOffice's %PRODUCTNAME and the like.
 _VARIABLE = re.compile(r"%[A-Z][A-Z_]{3,}")
 # A date and time format, whose fields are reordered as the language needs.
 _STRFTIME = re.compile(r"%[-_0^#]?[HMSYyBbPIklZjUWVCRT]")
 # Placeholders in braces: Moodle's {$a}, numbered {0} (or typed, {0,number}),
 # empty {} and Ruby's %{name}. Other braces are often text to translate.
-_BRACES = re.compile(r"%\{\w+\}|\{\$[^{}]*\}|\{\d+\}|\{\}|\{(\d+)\s*,\s*\w+[^{}]*\}")
+_BRACES = re.compile(r"%\{[^\W\d]\w*\}|\{\$[^{}]*\}|\{\d+\}|\{\}|\{(\d+)\s*,\s*\w+[^{}]*\}")
 # Java MessageFormat's choice format, {0,choice,1#one file|1<{0} files}, and
 # ICU's plural and select: their branches' text is translated, and their
 # number follows the language.
@@ -79,8 +81,8 @@ LENGTH_MIN_SOURCE = 20
 LENGTH_MAX_STEPS = 2
 
 # Unicode character name words that aren't a script.
-_NOT_SCRIPTS = {"CIRCLED", "COMBINING", "FULLWIDTH", "HALFWIDTH", "MATHEMATICAL", "MODIFIER",
-                "PARENTHESIZED", "SMALL", "SQUARED"}
+_NOT_SCRIPTS = {"CIRCLED", "COMBINING", "FEMININE", "FULLWIDTH", "HALFWIDTH", "MASCULINE",
+                "MATHEMATICAL", "MODIFIER", "PARENTHESIZED", "SMALL", "SQUARED"}
 
 
 def _failed(name):
@@ -98,16 +100,21 @@ def _failed(name):
 _escapes = _failed("escapes")
 
 
-def printf_placeholders(text):
+def printf_placeholders(text, numbered_only=False):
     """(placeholders, widened) of text: each placeholder (numbered %1 as
     itself, a conversion as its position or name and type, variables as
     they are), and those with a width. A conversion without a position
     takes the next one, so %s %s can be translated as %2$s %1$s; %i is %d,
-    and Qt's %L1 is %1."""
+    and Qt's %L1 is %1. With numbered_only, only KDE's and Qt's numbered
+    ones are read, as their own text is."""
     found, widened = collections.Counter(), set()
     text = text.replace("%%", "")
     for variable in _VARIABLE.findall(text):
         found[variable] += 1
+    if numbered_only:
+        for number in _NUMBERED.findall(_VARIABLE.sub("", text)):
+            found["%" + number] += 1
+        return found, widened
     plain = 0
     for position, name, width, conversion, numbered in _PRINTF.findall(_VARIABLE.sub("", text)):
         if not (numbered or position or name):
@@ -181,19 +188,19 @@ def _icu_split(text):
     return "".join(outside + [text[pos:]]), branches
 
 
-def _printf_parts(text):
+def _printf_parts(text, numbered_only=False):
     """(text's printf placeholders outside ICU plurals and selects, widened,
     and the placeholders their branches use or None if it has none). A
     branch uses a placeholder as many times as the language's form needs,
     so only which occur is compared; each branch counts its own positions."""
     split = _icu_split(text)
     if split is None:
-        found, widened = printf_placeholders(text)
+        found, widened = printf_placeholders(text, numbered_only)
         return found, widened, None
-    found, widened = printf_placeholders(split[0])
+    found, widened = printf_placeholders(split[0], numbered_only)
     used = set()
     for branch in split[1]:
-        branch_found, branch_widened = printf_placeholders(branch)
+        branch_found, branch_widened = printf_placeholders(branch, numbered_only)
         used |= set(branch_found)
         widened |= branch_widened
     return found, widened, used
@@ -203,7 +210,11 @@ def _printf_differs(source, target):
     if _STRFTIME.search(source):
         return False
     wanted, _, wanted_used = _printf_parts(source)
-    found, widened, found_used = _printf_parts(target)
+    # A source of KDE's or Qt's numbered placeholders alone: the target's are
+    # read so too, so a letter after one isn't a conversion.
+    keys = set(wanted) | (wanted_used or set())
+    kde = bool(keys) and all(key[1:].isdigit() for key in keys)
+    found, widened, found_used = _printf_parts(target, kde)
     known = set(wanted) | (wanted_used or set())
     numbered = any(key[1:].isdigit() for key in known)
 
