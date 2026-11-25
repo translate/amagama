@@ -389,6 +389,13 @@ them; until it has, the reply is a 404 with an ``error``. Times are in UTC.
 +-----------------+-------------------------------------------------+
 | use             | The lookups per day, or null                    |
 +-----------------+-------------------------------------------------+
+| fetch           | The last :ref:`fetch <managing#fetch-sources>`  |
+|                 | over every block: when it ``finished``, its     |
+|                 | ``blocks``, how many are ``waiting`` for their  |
+|                 | first fetch, and the ``failing`` ones (each     |
+|                 | ``name``, ``runs`` in a row and ``since``, from |
+|                 | 4 runs); absent until one has run               |
++-----------------+-------------------------------------------------+
 
 Each source language has:
 
@@ -450,7 +457,12 @@ were refused with a 429. They are totals only.
 A daily workflow keeps these figures over time on the repository's
 ``metrics`` branch: a row per source language and rebuild in ``rebuilds.csv``,
 the lookups per day in ``use.csv``, and each source language's figures at each
-rebuild in ``builds/``.
+rebuild in ``builds/``. The same workflow keeps one issue open, "The live
+server needs attention", while something does: the statistics can't be
+fetched, no rebuild has swapped in for 8 days, no fetch has finished for 3,
+a block has failed to fetch 4 runs in a row, or the lookups per day haven't
+been counted for 2 (``devsupport/health.py``). It comments when that changes
+and closes the issue when nothing needs attention.
 
 .. code-block:: json
 
