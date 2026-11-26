@@ -70,13 +70,11 @@ following fields.
 |                   | 30. Default: :setting:`MAX_CANDIDATES`    |
 |                   | (5).                                      |
 +-------------------+-------------------------------------------+
-| style             | The project's checker style, so that      |
-|                   | accelerators and similar markup are       |
-|                   | matched as that project writes them (``&``|
-|                   | for KDE, ``_`` for GNOME). One of:        |
-|                   | creativecommons, drupal, gnome, ios, kde, |
-|                   | libreoffice, minimal, mozilla, openoffice,|
-|                   | reduced, standard, terminology, wx.       |
+| style             | Accepted, and no longer has an effect:    |
+|                   | sources are :ref:`found by abstracts      |
+|                   | <api#abstracts>`, which leave out         |
+|                   | accelerators of every style (``&`` for    |
+|                   | KDE, ``_`` for GNOME).                    |
 +-------------------+-------------------------------------------+
 | exclude           | Comma-separated globs of :ref:`block names|
 |                   | <api#sources>` to leave out, such as      |
@@ -290,6 +288,20 @@ An example:
          "checks": []
        }
      ]
+
+
+.. _api#abstracts:
+
+Finding sources by abstract
+===========================
+
+Sources are found by their abstract: the text with each placeable (a
+variable such as ``%s`` or ``{0}``, a tag, an entity, a URL, an e-mail
+address, a file name, a number or an option) replaced by one marker
+character for its kind, and the accelerator left out, so ``Copy %s to %s``
+and ``Copy {0} to {1}`` are found alike. Text that is placeables alone (a URL,
+a path) is found by its text, having no words in its abstract. A lookup finds
+sources by the query's abstract, and scores their text against the query's.
 
 
 .. _api#languages:
