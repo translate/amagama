@@ -5972,6 +5972,10 @@ msgid "Music"
 msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "Musicdex"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
 msgid "Musify"
 msgstr ""
 
@@ -7856,6 +7860,10 @@ msgid "CraftStation"
 msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "Paradev"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
 msgid "PlatformPlatform"
 msgstr ""
 
@@ -7913,6 +7921,10 @@ msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
 msgid "commafeed"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "coreply"
 msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
@@ -7984,6 +7996,10 @@ msgid "kept"
 msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "lattice"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
 msgid "meru"
 msgstr ""
 
@@ -8008,6 +8024,10 @@ msgid "open-knowledge"
 msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "ork"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
 msgid "plasmic"
 msgstr ""
 
@@ -8017,6 +8037,10 @@ msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
 msgid "rango-client"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "rclone-ui"
 msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
@@ -8060,6 +8084,10 @@ msgid "AppFlowy"
 msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "Awesome.Metrix.Bar"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
 msgid "BeatDesign"
 msgstr ""
 
@@ -8100,11 +8128,19 @@ msgid "better-thermostat-ui-card"
 msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "capgo.app"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
 msgid "compress.lol"
 msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
 msgid "d1-manager"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "excaliself"
 msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.

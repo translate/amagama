@@ -28,6 +28,16 @@ template = "frontend/resources/translations/en-US.json"
 licence = "AGPL-3.0-only"
 
 [[block]]
+name = "inlang-Awesome.Metrix.Bar-messages"
+title = "Awesome.Metrix.Bar"
+url = "https://github.com/agili-app/Awesome.Metrix.Bar"
+files = ["messages/{lang}.json"]
+sparse = ["messages/*.json", "messages/en.json"]
+format = "json"
+template = "messages/en.json"
+licence = "Apache-2.0"
+
+[[block]]
 name = "inlang-BeatDesign-messages"
 title = "BeatDesign"
 url = "https://github.com/BeatAPI/BeatDesign"
@@ -128,6 +138,16 @@ template = "src/localize/languages/en.json"
 licence = "AGPL-3.0-only"
 
 [[block]]
+name = "inlang-capgo.app-messages"
+title = "capgo.app"
+url = "https://github.com/Cap-go/capgo.app"
+files = ["messages/{lang}.json"]
+sparse = ["messages/*.json", "messages/en.json"]
+format = "json"
+template = "messages/en.json"
+licence = "AGPL-3.0-only"
+
+[[block]]
 name = "inlang-compress.lol-messages"
 title = "compress.lol"
 url = "https://github.com/sowahq/compress.lol"
@@ -145,6 +165,16 @@ files = ["locales/{lang}.json"]
 sparse = ["locales/*.json", "locales/en.json"]
 format = "json"
 template = "locales/en.json"
+licence = "MIT"
+
+[[block]]
+name = "inlang-excaliself-messages"
+title = "excaliself"
+url = "https://github.com/maciekzygmunt/excaliself"
+files = ["messages/{lang}.json"]
+sparse = ["messages/*.json", "messages/en.json"]
+format = "json"
+template = "messages/en.json"
 licence = "MIT"
 
 [[block]]
