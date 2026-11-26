@@ -16,6 +16,7 @@ from translate.storage import aresource, base, jsonl10n, php, properties, tmx, x
 from amagama.application import amagama_server_factory
 from amagama.cli import manage
 from amagama.tests.test_updater import block
+from amagama.updater import formats
 from amagama.updater.formats import open_store
 from amagama.updater.pairing import paired_store, without_ids
 
@@ -349,11 +350,29 @@ def test_yaml_aliases_still_bounded(tmp_path):
         opened(tmp_path, "en.yml", "yaml", text)
 
 
+def test_yaml_limits_passed_on(tmp_path, monkeypatch):
+    """A reader passing the limits on in **kwargs, as Translate Toolkit
+    3.21.0's RubyYAMLFile does to YAMLFile, gets them (#3879)."""
+    taken = {}
+
+    class Parent(yaml.YAMLFile):
+        def __init__(self, inputfile=None, max_yaml_units=None, max_yaml_nodes=None):
+            taken.update(units=max_yaml_units, nodes=max_yaml_nodes)
+            super().__init__(inputfile)
+
+    class Child(Parent):
+        def __init__(self, inputfile=None, *, targetlanguage=None, **kwargs):
+            super().__init__(inputfile, **kwargs)
+    monkeypatch.setattr(yaml, "RubyYAMLFile", Child)
+    opened(tmp_path, "en.yml", "ruby-yaml", "en:\n  a: Text\n")
+    assert taken == {"units": formats.YAML_LIMITS["max_yaml_units"],
+                     "nodes": formats.YAML_LIMITS["max_yaml_nodes"]}
+
+
 def test_yaml_limits_left_out_where_not_taken(tmp_path, monkeypatch):
-    # Translate Toolkit before 3.20.2.
+    # Translate Toolkit before 3.20.2: no limits, and nothing passed on.
     class YAMLFile(yaml.YAMLFile):
-        def __init__(self, inputfile=None, **kwargs):
-            assert not kwargs
+        def __init__(self, inputfile=None):
             super().__init__(inputfile)
     monkeypatch.setattr(yaml, "YAMLFile", YAMLFile)
     assert [unit.source for unit in opened(tmp_path, "en.yml", "yaml", "a: Text\n").units] == [

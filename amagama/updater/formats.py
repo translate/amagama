@@ -348,8 +348,22 @@ def _reader(module):
 
 
 def _taken(reader, kwargs):
-    """kwargs, less the YAML limits a Translate Toolkit before 3.20.2 hasn't."""
-    parameters = inspect.signature(reader).parameters
+    """kwargs, less the YAML limits a Translate Toolkit before 3.20.2 hasn't:
+    those reader's __init__ doesn't name, nor its parents' it passes **kwargs
+    on to (3.21.0's RubyYAMLFile passes them on to YAMLFile)."""
+    parameters = set()
+    for cls in reader.__mro__:
+        init = vars(cls).get("__init__")
+        if init is None:
+            continue
+        try:
+            signature = inspect.signature(init)
+        except (TypeError, ValueError):
+            break
+        parameters.update(signature.parameters)
+        # Only one taking **kwargs passes them on to its parent's.
+        if not any(p.kind is p.VAR_KEYWORD for p in signature.parameters.values()):
+            break
     return {key: value for key, value in kwargs.items()
             if key not in YAML_LIMITS or key in parameters}
 
