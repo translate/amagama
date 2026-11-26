@@ -243,6 +243,24 @@ list containing zero or more results. The results contain the following fields:
 |           | fails none, or wasn't checked (added  |
 |           | since the last rebuild).              |
 +-----------+---------------------------------------+
+| forms     | Only for a plural: every form of its  |
+|           | translation, in its file's order      |
+|           | (``target`` is one of them, and a     |
+|           | form may be empty). A plural is       |
+|           | usually two suggestions: found by its |
+|           | singular English (with the form for   |
+|           | one), and by its plural (with the     |
+|           | form the language uses for most       |
+|           | counts); only the first where it has  |
+|           | one English text (Qt) or that form is |
+|           | empty.                                |
++-----------+---------------------------------------+
+| nplurals  | Only for a plural: how many forms the |
+|           | language has, by the file's           |
+|           | Plural-Forms, else Translate          |
+|           | Toolkit's table; where neither is     |
+|           | known, how many forms the file has.   |
++-----------+---------------------------------------+
 
 An example:
 

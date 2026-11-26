@@ -112,7 +112,10 @@ class TestCLI(object):
         run('initdb', '-s', 'en')
         result = run('build_tmdb', '-s', 'en', '-t', 'ar', '-i', str(path))
         assert result.exit_code == 0, result.output
-        assert lookup('Open %d file', 'ar') == [('Open %d file', '<form 1>')]
+        # The singular with the form for one; the plural with the form for
+        # most counts (11 to 99 and so on), both found by either (#3351).
+        assert lookup('Open %d file', 'ar') == [('Open %d file', '<form 1>'),
+                                                ('Open %d files', '<form 4>')]
 
     def test_build_tmdb_language_from_file_name(self, run, po_dir):
         # Without -t, the target language comes from the file name.
