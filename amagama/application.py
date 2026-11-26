@@ -83,6 +83,7 @@ def amagama_server_factory():
                            name='read_api_tmserver')
     app.register_blueprint(api.read_api, url_prefix='/api/v1',
                            name='read_api_v1')
+    app.register_blueprint(api.read_api_v2, url_prefix='/api/v2')
 
     if app.config['ENABLE_DATA_ALTERING_API']:
         app.register_blueprint(api.write_api, url_prefix='/tmserver',

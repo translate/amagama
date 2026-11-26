@@ -36,7 +36,7 @@ LOG_LINE = re.compile(
     r'"[^"]*" "(?P<agent>[^"]*)"(?: "(?P<purpose>[^"]*)")?')
 
 # A translation lookup: GET <prefix><source>/<target>/unit/...
-LOOKUP = re.compile(r"^/(?:api/v1|tmserver)/[^/]+/[^/]+/unit/")
+LOOKUP = re.compile(r"^/(?:api/v[12]|tmserver)/[^/]+/[^/]+/unit/")
 # The user agent of a Virtaal test instance, whose lookups aren't use.
 TEST_AGENT = " Test/instance"
 

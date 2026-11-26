@@ -1628,11 +1628,14 @@ ORDER BY rank DESC{order};
 
     def translate_unit(self, unit_source, source_lang, target_lang,
                        project_style=None, min_similarity=None,
-                       max_candidates=None, source_options=None):
+                       max_candidates=None, source_options=None, abstracted=False):
         """Return TM suggestions for unit_source, chosen by source_options.
 
-        Sources are found by their abstracts (indexed()), and scored by
-        their text against unit_source."""
+        Sources are found by their abstracts (indexed(), #3603). With
+        abstracted, unit_source is an abstract (API v2) and is scored
+        against the sources' abstracts; otherwise the text against theirs.
+        project_style is accepted, as it was used, but has no effect:
+        abstracts leave out accelerators of every style."""
         slang = lang_to_table(source_lang)
         if slang not in self.source_langs:
             abort(404)
@@ -1647,7 +1650,7 @@ ORDER BY rank DESC{order};
         if "\x00" in unit_source:
             abort(400)
 
-        query = indexed(unit_source)[0]
+        query = unit_source if abstracted else indexed(unit_source)[0]
 
         max_length = current_app.config.get('MAX_LENGTH', 2000)
         min_similarity = max(min_similarity or current_app.config.get('MIN_SIMILARITY', 70), 70)
@@ -1668,7 +1671,8 @@ ORDER BY rank DESC{order};
         results = []
         similarity = self.comparer.similarity
         for row in cursor:
-            quality = similarity(unit_source, row['source'], min_similarity)
+            compared = indexed(row['source'])[0] if abstracted else row['source']
+            quality = similarity(unit_source, compared, min_similarity)
             if quality >= min_similarity:
                 result = dict(row)
                 result['quality'] = quality

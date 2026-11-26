@@ -5,7 +5,9 @@
 # later license. See the LICENSE file for a copy of the license and
 # the AUTHORS.md file for copyright and authorship information.
 
-"""Sources are indexed by their abstracts (#1967)."""
+"""Sources are indexed by their abstracts (#1967), and API v2 looks up by one (#3603)."""
+
+import urllib.parse
 
 import pytest
 from click.testing import CliRunner
@@ -13,6 +15,7 @@ from click.testing import CliRunner
 from amagama.application import amagama_server_factory
 from amagama.cli import manage
 from amagama.tmdb import indexed
+from amagama.vendored import abstraction
 
 
 def run(*args, input=None):
@@ -38,6 +41,30 @@ def client(amagama_config, tmp_path):
     app = amagama_server_factory()
     with app.test_client() as client:
         yield client
+
+
+def v2(client, text, version=abstraction.ABSTRACTION_VERSION):
+    query = urllib.parse.urlencode({"q": abstraction.abstract(text)[0], "av": version})
+    return client.get("/api/v2/en/af/unit/?" + query)
+
+
+def test_v2_matches_other_placeables(client):
+    response = v2(client, "Copy %s to %s")
+    assert response.status_code == 200
+    found = response.get_json()
+    # The raw source and target, for the client to put its own placeables in.
+    assert [(s["source"], s["target"], s["quality"]) for s in found] == [
+        ("Copy {0} to {1}", "Kopieer {0} na {1}", 100)]
+
+
+def test_v2_other_version(client):
+    response = v2(client, "Copy %s to %s", version=abstraction.ABSTRACTION_VERSION + 1)
+    assert response.status_code == 409
+    assert response.get_json()["version"] == abstraction.ABSTRACTION_VERSION
+    assert client.get("/api/v2/en/af/unit/?av=2").status_code == 400
+    # No version, or not a number: not a conflict, a bad request.
+    assert client.get("/api/v2/en/af/unit/?q=Copy").status_code == 400
+    assert client.get("/api/v2/en/af/unit/?q=Copy&av=two").status_code == 400
 
 
 def test_v1_as_before(client):

@@ -18,6 +18,7 @@ from werkzeug.routing import PathConverter
 from amagama import stats, titles
 from amagama.source_options import SourceOptions
 from amagama.tmdb import lang_to_table
+from amagama.vendored import abstraction
 
 
 # Let's encourage caching for an hour. A reply keeps the Headers it is
@@ -36,6 +37,8 @@ class SourceConverter(PathConverter):
 # Create the blueprints.
 read_api = Blueprint('read_api', __name__)
 write_api = Blueprint('write_api', __name__)
+# API v2: lookups by a string's abstract (#3603).
+read_api_v2 = Blueprint('read_api_v2', __name__)
 
 # A JSONP callback must be a JavaScript name, like "f" or "Obj.f", so it
 # can't add code of its own to the reply. ASCII only, as callbacks are.
@@ -51,6 +54,7 @@ def check_languages():
 
 
 @read_api.after_request
+@read_api_v2.after_request
 @write_api.after_request
 def set_content_type(response):
     """Don't let a browser take a reply for another type; serve JSONP as script."""
@@ -90,10 +94,34 @@ def add_unit_get(slang, tlang):
     return get_uid_and_call(add_unit, slang, tlang)
 
 
+@read_api_v2.route('/<slang>/<tlang>/unit/', methods=('GET', ))
+def translate_abstract(slang, tlang):
+    """Return the translations for an abstract (q), made by the client with
+    abstraction version av: sources are scored on their abstracts. Another
+    version is a 409 giving the server's, for the client to use v1."""
+    query = request.args.get('q')
+    if not query:
+        abort(400)
+    version = get_int_arg(request, 'av')
+    if version is None:
+        abort(400)
+    if version != abstraction.ABSTRACTION_VERSION:
+        return current_app.response_class(
+            jsonwrapper({'error': "This server makes abstracts with another version.",
+                         'version': abstraction.ABSTRACTION_VERSION}),
+            status=409, mimetype='application/json')
+    return _suggestions(slang, tlang, query, abstracted=True)
+
+
 @read_api.route('/<slang>/<tlang>/unit/<source:uid>', methods=('GET', ),
                 merge_slashes=False)
 def translate_unit(slang, tlang, uid):
     """Return the translations for the provided unit."""
+    return _suggestions(slang, tlang, uid)
+
+
+def _suggestions(slang, tlang, query, abstracted=False):
+    """The reply with the suggestions for query, by the request's options."""
     min_similarity = get_int_arg(request, 'min_similarity')
     max_candidates = get_int_arg(request, 'max_candidates')
     project_style = request.args.get('style', None)
@@ -102,9 +130,10 @@ def translate_unit(slang, tlang, uid):
     except ValueError:
         abort(400)
 
-    candidates = current_app.tmdb.translate_unit(uid, slang, tlang,
+    candidates = current_app.tmdb.translate_unit(query, slang, tlang,
                                                  project_style, min_similarity,
-                                                 max_candidates, source_options)
+                                                 max_candidates, source_options,
+                                                 abstracted=abstracted)
     response = jsonwrapper(candidates)
     return current_app.response_class(response, mimetype='application/json',
                                       headers=Headers(cache_headers))

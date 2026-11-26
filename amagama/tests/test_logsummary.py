@@ -84,6 +84,14 @@ def test_rotated_away_since_listed(logs, tmp_path):
         ORDINARY: [2, 0], PREFETCH: [1, 0], BULK: [3, 2]}
 
 
+def test_v2_lookups_counted(tmp_path):
+    """API v2 lookups are lookups too (#3603)."""
+    log = tmp_path / "live-nginx.access.log"
+    log.write_text(line("/api/v2/en/af/unit/?q=Copy&av=2", purpose="-"), encoding="utf-8")
+    assert lookups_per_day([str(log)]) == {
+        "2026-11-07": {ORDINARY: 1, PREFETCH: 0, BULK: 0, "limited": 0}}
+
+
 def test_lookups_per_day(logs, tmp_path):
     test = tmp_path / "test.log"
     test.write_text(line().replace("Virtaal/1.1.0", "Virtaal/1.1.0 Test/instance")
