@@ -1950,8 +1950,8 @@ licence = "AGPL-3.0-only"
 name = "crowdin-Kreate-plurals"
 title = "Kreate"
 url = "https://github.com/knighthat/Kreate"
-files = ["app/src/main/res/values-{lang}/plurals.xml"]
-sparse = ["app/src/main/res/values-*/plurals.xml", "app/src/main/res/values/plurals.xml"]
+files = ["app/src/crowdin/res/values-{lang}/plurals.xml"]
+sparse = ["app/src/crowdin/res/values-*/plurals.xml", "app/src/main/res/values/plurals.xml"]
 format = "android"
 template = "app/src/main/res/values/plurals.xml"
 licence = "GPL-3.0-only"
@@ -1960,8 +1960,8 @@ licence = "GPL-3.0-only"
 name = "crowdin-Kreate-strings"
 title = "Kreate"
 url = "https://github.com/knighthat/Kreate"
-files = ["app/src/main/res/values-{lang}/*.strings.xml"]
-sparse = ["app/src/main/res/values-*/*.strings.xml", "app/src/main/res/values/*.strings.xml"]
+files = ["app/src/crowdin/res/values-{lang}/*.strings.xml"]
+sparse = ["app/src/crowdin/res/values-*/*.strings.xml", "app/src/main/res/values/*.strings.xml"]
 format = "android"
 template = "app/src/main/res/values/*.strings.xml"
 licence = "GPL-3.0-only"
@@ -1971,10 +1971,10 @@ name = "crowdin-Kreate-strings-2"
 disabled = "composeApp is no longer in the repository: its strings moved to app/src/main/res, which crowdin-Kreate-strings imports"
 title = "Kreate"
 url = "https://github.com/knighthat/Kreate"
-files = ["composeApp/src/commonMain/composeResources/values-{lang}/strings.xml"]
-sparse = ["composeApp/src/commonMain/composeResources/values-*/strings.xml", "composeApp/src/commonMain/composeResources/values/strings.xml"]
+files = ["app/src/patreon/res/values-{lang}/*.strings.xml"]
+sparse = ["app/src/patreon/res/values-*/*.strings.xml", "app/src/patreon/res/values/*.strings.xml"]
 format = "android"
-template = "composeApp/src/commonMain/composeResources/values/strings.xml"
+template = "app/src/patreon/res/values/*.strings.xml"
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -2381,6 +2381,16 @@ sparse = ["mobile/src/modules/i18n/translations/*.json", "mobile/src/modules/i18
 format = "json"
 template = "mobile/src/modules/i18n/translations/en.json"
 licence = "AGPL-3.0-only"
+
+[[block]]
+name = "crowdin-Musicdex-locales"
+title = "Musicdex"
+url = "https://github.com/HolodexNet/Musicdex"
+files = ["public/locales/{lang}/*.json"]
+sparse = ["public/locales/*/*.json", "public/locales/en/*.json"]
+format = "json"
+template = "public/locales/en/*.json"
+licence = "Apache-2.0"
 
 [[block]]
 name = "crowdin-Musify-app_en"
@@ -4298,7 +4308,7 @@ licence = "GPL-3.0-only"
 [[block]]
 name = "crowdin-WaEnhancer-strings"
 title = "WaEnhancer"
-url = "https://github.com/Dev4Mod/WaEnhancer"
+url = "https://github.com/Waenhancer-Dev/WaEnhancer"
 files = ["**/values-{lang}/strings.xml"]
 sparse = ["**/values-*/strings.xml", "**/values/strings.xml"]
 format = "android"

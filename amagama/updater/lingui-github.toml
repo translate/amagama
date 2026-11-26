@@ -36,6 +36,15 @@ sparse = ["src/renderer/locales/*/messages.po"]
 licence = "Apache-2.0"
 
 [[block]]
+name = "lingui-Paradev"
+title = "Paradev"
+url = "https://github.com/ParadevAI/Paradev"
+files = ["packages/i18n/locales/{lang}/messages.po"]
+exclude = ["packages/i18n/locales/en/messages.po"]
+sparse = ["packages/i18n/locales/*/messages.po"]
+licence = "MIT"
+
+[[block]]
 name = "lingui-PlatformPlatform"
 title = "PlatformPlatform"
 url = "https://github.com/platformplatform/PlatformPlatform"
@@ -171,6 +180,15 @@ files = ["commafeed-client/src/locales/{lang}/messages.po"]
 exclude = ["commafeed-client/src/locales/en/messages.po"]
 sparse = ["commafeed-client/src/locales/*/messages.po"]
 licence = "Apache-2.0"
+
+[[block]]
+name = "lingui-coreply"
+title = "coreply"
+url = "https://github.com/coreply/coreply"
+files = ["coreply-app/locales/{lang}.po", "coreply-server/locales/{lang}.po", "coreply-shared-components/locales/{lang}.po", "libcoreply/locales/{lang}.po"]
+exclude = ["coreply-app/locales/en.po", "coreply-server/locales/en.po", "coreply-shared-components/locales/en.po", "libcoreply/locales/en.po"]
+sparse = ["coreply-app/locales/*.po", "coreply-server/locales/*.po", "coreply-shared-components/locales/*.po", "libcoreply/locales/*.po"]
+licence = "AGPL-3.0-only"
 
 [[block]]
 name = "lingui-crosshare"
@@ -349,6 +367,15 @@ sparse = ["apps/web/src/locales/*/messages.po"]
 licence = "AGPL-3.0-only"
 
 [[block]]
+name = "lingui-lattice"
+title = "lattice"
+url = "https://github.com/lattice-writer/lattice"
+files = ["src/locales/{lang}/messages.po"]
+exclude = ["src/locales/en/messages.po"]
+sparse = ["src/locales/*/messages.po"]
+licence = "Apache-2.0"
+
+[[block]]
 name = "lingui-meru"
 title = "meru"
 url = "https://github.com/zoidsh/meru"
@@ -403,6 +430,15 @@ sparse = ["packages/app/src/locales/*/messages.po"]
 licence = "GPL-3.0-only"
 
 [[block]]
+name = "lingui-ork"
+title = "ork"
+url = "https://github.com/orkbot-run/ork"
+files = ["apps/web/src/locales/{lang}/messages.po"]
+exclude = ["apps/web/src/locales/en/messages.po"]
+sparse = ["apps/web/src/locales/*/messages.po"]
+licence = "Apache-2.0"
+
+[[block]]
 name = "lingui-plasmic"
 title = "plasmic"
 url = "https://github.com/plasmicapp/plasmic"
@@ -427,6 +463,15 @@ url = "https://github.com/rango-exchange/rango-client"
 files = ["translations/{lang}.po"]
 exclude = ["translations/en.po"]
 sparse = ["translations/*.po"]
+licence = "Apache-2.0"
+
+[[block]]
+name = "lingui-rclone-ui"
+title = "rclone-ui"
+url = "https://github.com/rclone/rclone-ui"
+files = ["locales/{lang}/app.po"]
+exclude = ["locales/en/app.po"]
+sparse = ["locales/*/app.po"]
 licence = "Apache-2.0"
 
 [[block]]
