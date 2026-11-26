@@ -61,7 +61,7 @@ amagama = "amagama.devserver:main"
 amagama-manage = "amagama.cli:manage"
 
 [tool.setuptools]
-packages = ["amagama", "amagama.tests", "amagama.updater", "amagama.views"]
+packages = ["amagama", "amagama.tests", "amagama.updater", "amagama.vendored", "amagama.views"]
 
 [tool.setuptools.package-data]
 amagama = ["templates/*", "static/**/*", "po/sources/*", "po/web/*"]
@@ -72,7 +72,8 @@ version = { attr = "amagama.__version__" }
 
 [tool.coverage.run]
 source = ["amagama"]
-omit = ["amagama/tests/*"]
+# Other projects' code, tested there.
+omit = ["amagama/tests/*", "amagama/vendored/*"]
 
 [tool.coverage.report]
 fail_under = 95

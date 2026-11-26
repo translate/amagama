@@ -2,7 +2,7 @@
 # Pre-commit hook: every Python file and bin/ script carries the header
 # in .license.header.txt, with a shebang above it only on the scripts in
 # bin/. docs/conf.py is left out: its own descriptive comment starts the
-# file.
+# file; so is amagama/vendored/, other projects' code with their headers.
 set -eu
 
 HEADER='#
@@ -16,7 +16,7 @@ failed=()
 for f in "$@"; do
     [ -f "$f" ] || continue
     case "$f" in
-        docs/conf.py) continue ;;
+        docs/conf.py|amagama/vendored/*) continue ;;
     esac
     first=1
     if head -1 "$f" | grep -q '^#!'; then
