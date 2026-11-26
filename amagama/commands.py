@@ -828,6 +828,20 @@ def write_pot(path, text, check, command):
         f.write(text)
 
 
+# A generator's exit status when a server is only unavailable for now (still
+# rate limited, say, after its retries): EX_TEMPFAIL.
+UNAVAILABLE = 75
+
+
+class Unavailable(click.ClickException):
+    exit_code = UNAVAILABLE
+
+
+def fetch_failed(error):
+    """The ClickException a generator exits with for error."""
+    return (Unavailable if error.transient else click.ClickException)(str(error))
+
+
 def generator_options(tags):
     """The options of a command writing sources-file blocks for review, tags
     being the default tags of its blocks."""
@@ -992,7 +1006,7 @@ def weblate_sources(url, projects, docs, no_verify, prefix, output, min_age_days
         found, skipped = weblate.blocks(weblate.components(url), prefix, projects, docs, covered,
                                         names)
     except FetchError as e:
-        raise click.ClickException(str(e))
+        raise fetch_failed(e)
     if not no_verify:
         # Only what's new or reads differently since the last run is checked.
         kept, rest = generate.unchanged(found, generated_written(prefix), disabled)
@@ -1117,7 +1131,7 @@ def discover_sources(signal, min_stars, pushed_since, min_units, search_pause, s
         read = set(names)
         kept, skipped = discovery.select(discovery.stats(names, token), min_stars, pushed_since)
     except FetchError as e:
-        raise click.ClickException(str(e))
+        raise fetch_failed(e)
     # A mirror's block is its upstream's, read from the mirror; mirrors come
     # first, as originals of the copies with more stars.
     pairs = sorted(((discovery.upstream(repository) or repository["url"], repository)

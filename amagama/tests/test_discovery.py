@@ -19,6 +19,7 @@ import urllib.parse
 import pytest
 from click.testing import CliRunner
 
+from amagama import commands
 from amagama.cli import manage
 from amagama.tests.test_crowdin import crowdin_repository  # noqa: F401 (fixture)
 from amagama.tests.test_linguas import repository  # noqa: F401 (fixture)
@@ -378,6 +379,8 @@ def test_github_still_rate_limited(monkeypatch):
     with pytest.raises(discovery.RateLimited) as e:
         discovery.github("https://api.github.com/x", "tok", retries=2)
     assert e.value.status == 429
+    # Unavailable for now: the generator exits 75, and the workflow warns.
+    assert commands.fetch_failed(e.value).exit_code == commands.UNAVAILABLE
 
 
 def test_github_secondary_rate_limit(monkeypatch):

@@ -75,7 +75,11 @@ FORGE_PAGES = ("groups", "projects", "users", "explore", "-", "wiki", "wikis", "
 
 
 class RateLimited(FetchError):
-    """A GitHub request still rate limited after its retries."""
+    """A GitHub request still rate limited after its retries: unavailable for
+    now, not broken."""
+
+    def __init__(self, message, status=None):
+        super(RateLimited, self).__init__(message, status, transient=True)
 
 
 def _message(error):
