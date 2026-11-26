@@ -10,7 +10,8 @@
 # that file, and write each command's --report into REPORT_DIR.
 #
 # Usage: regenerate-sources.sh REPORT_DIR FILE...
-# Exits 1 if any command failed; the others still run. AMAGAMA_SEARCH_MINUTES,
+# Exits 1 if any command failed; the others still run. A command exiting 75,
+# a server only unavailable for now, is a warning. AMAGAMA_SEARCH_MINUTES,
 # if set, is shared by the discover_sources commands, the ones that search:
 # each searches for the minutes the ones before it left.
 
@@ -39,7 +40,18 @@ for file in "$@"; do
     echo "::group::$name: amagama-manage $command"
     # The header is the committed command: its globs are the command's, not the shell's.
     set -f
-    if ! eval "amagama-manage $command --output \"$file\" --report \"$report_dir/$name.md\""; then
+    if eval "amagama-manage $command --output \"$file\" --report \"$report_dir/$name.md\""; then
+        code=0
+    else
+        code=$?
+    fi
+    if [ $code -eq 75 ]; then
+        # A server only unavailable for now (still rate limited): next run.
+        echo "::warning::$name: a server was unavailable; kept as it was, tried again next run"
+        printf 'Not regenerated: a server was unavailable; see the workflow log.\n' \
+            > "$report_dir/$name.md"
+        git checkout -- "$file"
+    elif [ $code -ne 0 ]; then
         echo "::error::$name: amagama-manage $command failed"
         printf 'Regenerating %s failed; see the workflow log.\n' "$name" > "$report_dir/$name.md"
         git checkout -- "$file"

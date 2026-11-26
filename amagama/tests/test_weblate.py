@@ -390,6 +390,32 @@ def test_command_bad_instance(amagama_config, instance, tmp_path):
     assert "api/components" in result.output
 
 
+class Limited(QuietHandler):
+    """Refuses every request with 429 Too Many Requests."""
+
+    def do_GET(self):
+        self.send_response(429)
+        self.send_header("Retry-After", "6000")
+        self.send_header("Content-Length", "0")
+        self.end_headers()
+
+
+def test_command_rate_limited(amagama_config, tmp_path, pauses):
+    amagama_config(UPDATER_SOURCES=str(tmp_path / "missing.toml"))
+    server = http.server.ThreadingHTTPServer(
+        ("127.0.0.1", 0), functools.partial(Limited, directory=str(tmp_path)))
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    try:
+        result = CliRunner().invoke(manage, (
+            "weblate_sources", "http://127.0.0.1:%d" % server.server_address[1], "--prefix", "t"))
+    finally:
+        server.shutdown()
+        server.server_close()
+    # Unavailable for now: the workflow tries again next run.
+    assert result.exit_code == 75, result.output
+    assert "429" in result.output
+
+
 def test_components_not_json(instance, tmp_path):
     page = tmp_path / "weblate/html/api/components"
     page.mkdir(parents=True)

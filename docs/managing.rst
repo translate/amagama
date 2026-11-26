@@ -707,7 +707,12 @@ rerunning the command in the file's header with
 the block count in ``test_shipped_sources``): keep a new
 candidate, or reject it with ``disabled = "<reason>"``, which keeps it out of
 every later run. Changes to blocks already imported are the updater's to
-find (see :ref:`update <managing#update>`), not this.
+find (see :ref:`update <managing#update>`), not this. A command whose server is
+only unavailable for now exits with status 75: a Weblate instance or a GitHub
+API request still rate limited, or failing with a 5xx or a dropped connection,
+after its retries. The workflow keeps that file as it was and warns, rather
+than failing, and the next run tries again. A code search still rate limited
+isn't one: it stops searching, and the command reads what it found.
 
 
 .. _managing#transifex-sources:
