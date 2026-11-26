@@ -15,6 +15,7 @@ files = ["app/src/main/res/values-{lang}/strings_app.xml"]
 sparse = ["app/src/main/res/values-*/strings_app.xml", "app/src/main/res/values/strings_app.xml"]
 format = "android"
 template = "app/src/main/res/values/strings_app.xml"
+languages = {"ar-rEG" = "ar_EG", "ar-rKW" = "ar_KW", "ar-rMA" = "ar_MA", "ar-rOM" = "ar_OM", "kok-rIN" = "kok_IN", "ms-rMY" = "ms_MY", "uz-rUZ" = "uz_UZ", "zh-rMO" = "zh_MO", "zh-rTW" = "zh_TW"}
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -25,6 +26,7 @@ files = ["app/src/main/res/values-{lang}/strings_errors.xml"]
 sparse = ["app/src/main/res/values-*/strings_errors.xml", "app/src/main/res/values/strings_errors.xml"]
 format = "android"
 template = "app/src/main/res/values/strings_errors.xml"
+languages = {"ar-rEG" = "ar_EG", "ar-rKW" = "ar_KW", "ar-rMA" = "ar_MA", "ar-rOM" = "ar_OM", "kok-rIN" = "kok_IN", "ms-rMY" = "ms_MY", "uz-rUZ" = "uz_UZ", "zh-rMO" = "zh_MO", "zh-rTW" = "zh_TW"}
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -35,6 +37,7 @@ files = ["app/src/main/res/values-{lang}/strings_home.xml"]
 sparse = ["app/src/main/res/values-*/strings_home.xml", "app/src/main/res/values/strings_home.xml"]
 format = "android"
 template = "app/src/main/res/values/strings_home.xml"
+languages = {"ar-rEG" = "ar_EG", "ar-rKW" = "ar_KW", "ar-rMA" = "ar_MA", "ar-rOM" = "ar_OM", "kok-rIN" = "kok_IN", "ms-rMY" = "ms_MY", "uz-rUZ" = "uz_UZ", "zh-rMO" = "zh_MO", "zh-rTW" = "zh_TW"}
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -45,6 +48,7 @@ files = ["app/src/main/res/values-{lang}/strings_hosts.xml"]
 sparse = ["app/src/main/res/values-*/strings_hosts.xml", "app/src/main/res/values/strings_hosts.xml"]
 format = "android"
 template = "app/src/main/res/values/strings_hosts.xml"
+languages = {"ar-rEG" = "ar_EG", "ar-rKW" = "ar_KW", "ar-rMA" = "ar_MA", "ar-rOM" = "ar_OM", "kok-rIN" = "kok_IN", "ms-rMY" = "ms_MY", "uz-rUZ" = "uz_UZ", "zh-rMO" = "zh_MO", "zh-rTW" = "zh_TW"}
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -55,6 +59,7 @@ files = ["app/src/main/res/values-{lang}/strings_lists.xml"]
 sparse = ["app/src/main/res/values-*/strings_lists.xml", "app/src/main/res/values/strings_lists.xml"]
 format = "android"
 template = "app/src/main/res/values/strings_lists.xml"
+languages = {"ar-rEG" = "ar_EG", "ar-rKW" = "ar_KW", "ar-rMA" = "ar_MA", "ar-rOM" = "ar_OM", "kok-rIN" = "kok_IN", "ms-rMY" = "ms_MY", "uz-rUZ" = "uz_UZ", "zh-rMO" = "zh_MO", "zh-rTW" = "zh_TW"}
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -65,6 +70,7 @@ files = ["app/src/main/res/values-{lang}/strings_log.xml"]
 sparse = ["app/src/main/res/values-*/strings_log.xml", "app/src/main/res/values/strings_log.xml"]
 format = "android"
 template = "app/src/main/res/values/strings_log.xml"
+languages = {"ar-rEG" = "ar_EG", "ar-rKW" = "ar_KW", "ar-rMA" = "ar_MA", "ar-rOM" = "ar_OM", "kok-rIN" = "kok_IN", "ms-rMY" = "ms_MY", "uz-rUZ" = "uz_UZ", "zh-rMO" = "zh_MO", "zh-rTW" = "zh_TW"}
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -75,6 +81,7 @@ files = ["app/src/main/res/values-{lang}/strings_notification.xml"]
 sparse = ["app/src/main/res/values-*/strings_notification.xml", "app/src/main/res/values/strings_notification.xml"]
 format = "android"
 template = "app/src/main/res/values/strings_notification.xml"
+languages = {"ar-rEG" = "ar_EG", "ar-rKW" = "ar_KW", "ar-rMA" = "ar_MA", "ar-rOM" = "ar_OM", "kok-rIN" = "kok_IN", "ms-rMY" = "ms_MY", "uz-rUZ" = "uz_UZ", "zh-rMO" = "zh_MO", "zh-rTW" = "zh_TW"}
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -85,6 +92,7 @@ files = ["app/src/main/res/values-{lang}/strings_prefs_backup_restore.xml"]
 sparse = ["app/src/main/res/values-*/strings_prefs_backup_restore.xml", "app/src/main/res/values/strings_prefs_backup_restore.xml"]
 format = "android"
 template = "app/src/main/res/values/strings_prefs_backup_restore.xml"
+languages = {"ar-rEG" = "ar_EG", "ar-rKW" = "ar_KW", "ar-rMA" = "ar_MA", "ar-rOM" = "ar_OM", "kok-rIN" = "kok_IN", "ms-rMY" = "ms_MY", "uz-rUZ" = "uz_UZ", "zh-rMO" = "zh_MO", "zh-rTW" = "zh_TW"}
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -95,6 +103,7 @@ files = ["app/src/main/res/values-{lang}/strings_prefs_main.xml"]
 sparse = ["app/src/main/res/values-*/strings_prefs_main.xml", "app/src/main/res/values/strings_prefs_main.xml"]
 format = "android"
 template = "app/src/main/res/values/strings_prefs_main.xml"
+languages = {"ar-rEG" = "ar_EG", "ar-rKW" = "ar_KW", "ar-rMA" = "ar_MA", "ar-rOM" = "ar_OM", "kok-rIN" = "kok_IN", "ms-rMY" = "ms_MY", "uz-rUZ" = "uz_UZ", "zh-rMO" = "zh_MO", "zh-rTW" = "zh_TW"}
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -105,6 +114,7 @@ files = ["app/src/main/res/values-{lang}/strings_prefs_root.xml"]
 sparse = ["app/src/main/res/values-*/strings_prefs_root.xml", "app/src/main/res/values/strings_prefs_root.xml"]
 format = "android"
 template = "app/src/main/res/values/strings_prefs_root.xml"
+languages = {"ar-rEG" = "ar_EG", "ar-rKW" = "ar_KW", "ar-rMA" = "ar_MA", "ar-rOM" = "ar_OM", "kok-rIN" = "kok_IN", "ms-rMY" = "ms_MY", "uz-rUZ" = "uz_UZ", "zh-rMO" = "zh_MO", "zh-rTW" = "zh_TW"}
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -115,6 +125,7 @@ files = ["app/src/main/res/values-{lang}/strings_prefs_update.xml"]
 sparse = ["app/src/main/res/values-*/strings_prefs_update.xml", "app/src/main/res/values/strings_prefs_update.xml"]
 format = "android"
 template = "app/src/main/res/values/strings_prefs_update.xml"
+languages = {"ar-rEG" = "ar_EG", "ar-rKW" = "ar_KW", "ar-rMA" = "ar_MA", "ar-rOM" = "ar_OM", "kok-rIN" = "kok_IN", "ms-rMY" = "ms_MY", "uz-rUZ" = "uz_UZ", "zh-rMO" = "zh_MO", "zh-rTW" = "zh_TW"}
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -125,6 +136,7 @@ files = ["app/src/main/res/values-{lang}/strings_prefs_vpn.xml"]
 sparse = ["app/src/main/res/values-*/strings_prefs_vpn.xml", "app/src/main/res/values/strings_prefs_vpn.xml"]
 format = "android"
 template = "app/src/main/res/values/strings_prefs_vpn.xml"
+languages = {"ar-rEG" = "ar_EG", "ar-rKW" = "ar_KW", "ar-rMA" = "ar_MA", "ar-rOM" = "ar_OM", "kok-rIN" = "kok_IN", "ms-rMY" = "ms_MY", "uz-rUZ" = "uz_UZ", "zh-rMO" = "zh_MO", "zh-rTW" = "zh_TW"}
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -135,6 +147,7 @@ files = ["app/src/main/res/values-{lang}/strings_source_edit.xml"]
 sparse = ["app/src/main/res/values-*/strings_source_edit.xml", "app/src/main/res/values/strings_source_edit.xml"]
 format = "android"
 template = "app/src/main/res/values/strings_source_edit.xml"
+languages = {"ar-rEG" = "ar_EG", "ar-rKW" = "ar_KW", "ar-rMA" = "ar_MA", "ar-rOM" = "ar_OM", "kok-rIN" = "kok_IN", "ms-rMY" = "ms_MY", "uz-rUZ" = "uz_UZ", "zh-rMO" = "zh_MO", "zh-rTW" = "zh_TW"}
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -145,6 +158,7 @@ files = ["app/src/main/res/values-{lang}/strings_support.xml"]
 sparse = ["app/src/main/res/values-*/strings_support.xml", "app/src/main/res/values/strings_support.xml"]
 format = "android"
 template = "app/src/main/res/values/strings_support.xml"
+languages = {"ar-rEG" = "ar_EG", "ar-rKW" = "ar_KW", "ar-rMA" = "ar_MA", "ar-rOM" = "ar_OM", "kok-rIN" = "kok_IN", "ms-rMY" = "ms_MY", "uz-rUZ" = "uz_UZ", "zh-rMO" = "zh_MO", "zh-rTW" = "zh_TW"}
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -155,6 +169,7 @@ files = ["app/src/main/res/values-{lang}/strings_update.xml"]
 sparse = ["app/src/main/res/values-*/strings_update.xml", "app/src/main/res/values/strings_update.xml"]
 format = "android"
 template = "app/src/main/res/values/strings_update.xml"
+languages = {"ar-rEG" = "ar_EG", "ar-rKW" = "ar_KW", "ar-rMA" = "ar_MA", "ar-rOM" = "ar_OM", "kok-rIN" = "kok_IN", "ms-rMY" = "ms_MY", "uz-rUZ" = "uz_UZ", "zh-rMO" = "zh_MO", "zh-rTW" = "zh_TW"}
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -165,6 +180,7 @@ files = ["app/src/main/res/values-{lang}/strings_welcome.xml"]
 sparse = ["app/src/main/res/values-*/strings_welcome.xml", "app/src/main/res/values/strings_welcome.xml"]
 format = "android"
 template = "app/src/main/res/values/strings_welcome.xml"
+languages = {"ar-rEG" = "ar_EG", "ar-rKW" = "ar_KW", "ar-rMA" = "ar_MA", "ar-rOM" = "ar_OM", "kok-rIN" = "kok_IN", "ms-rMY" = "ms_MY", "uz-rUZ" = "uz_UZ", "zh-rMO" = "zh_MO", "zh-rTW" = "zh_TW"}
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -175,6 +191,7 @@ files = ["app/src/main/res/values-{lang}/strings.xml"]
 sparse = ["app/src/main/res/values-*/strings.xml", "app/src/main/res/values/strings.xml"]
 format = "android"
 template = "app/src/main/res/values/strings.xml"
+languages = {"ar-rEG" = "ar_EG", "ar-rKW" = "ar_KW", "ar-rMA" = "ar_MA", "ar-rOM" = "ar_OM", "kok-rIN" = "kok_IN", "ms-rMY" = "ms_MY", "uz-rUZ" = "uz_UZ", "zh-rMO" = "zh_MO", "zh-rTW" = "zh_TW"}
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -185,7 +202,7 @@ files = ["app/src/main/res/values-{lang}/strings.xml"]
 sparse = ["app/src/main/res/values-*/strings.xml", "app/src/main/res/values/strings.xml"]
 format = "android"
 template = "app/src/main/res/values/strings.xml"
-languages = {"sv" = "sv_SE", "zh-rHN" = "zh_CN"}
+languages = {"ar-rEG" = "ar_EG", "ar-rKW" = "ar_KW", "ar-rMA" = "ar_MA", "ar-rOM" = "ar_OM", "kok-rIN" = "kok_IN", "ms-rMY" = "ms_MY", "sv" = "sv_SE", "uz-rUZ" = "uz_UZ", "zh-rHN" = "zh_CN", "zh-rMO" = "zh_MO", "zh-rTW" = "zh_TW"}
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -207,6 +224,17 @@ files = ["src/locale/arrowdl_{lang}.ts"]
 exclude = ["src/locale/arrowdl_en_US.ts"]
 sparse = ["src/locale/arrowdl_*.ts"]
 format = "ts"
+licence = "LGPL-3.0-only"
+
+[[block]]
+name = "transifex-ArrowDL-web-extension"
+title = "ArrowDL"
+url = "https://github.com/setvisible/ArrowDL"
+files = ["web-extension/extension/src/base/_locales/{lang}/messages.json"]
+sparse = ["web-extension/extension/src/base/_locales/*/messages.json", "web-extension/extension/src/base/_locales/en/messages.json"]
+format = "webextension"
+template = "web-extension/extension/src/base/_locales/en/messages.json"
+languages = {"ar" = "ar_EG", "de" = "de_DE", "en" = "en_US", "fr" = "fr_FR", "hu" = "hu_HU", "it" = "it_IT", "ja" = "ja_JP", "ko" = "ko_KR", "nl" = "nl_NL", "pl" = "pl_PL", "ru" = "ru_RU", "vi" = "vi_VN"}
 licence = "LGPL-3.0-only"
 
 [[block]]
@@ -236,7 +264,7 @@ files = ["loc/{lang}.json"]
 sparse = ["loc/*.json", "loc/en.json"]
 format = "json"
 template = "loc/en.json"
-languages = {"es" = "es_ES", "fa" = "fa_IR", "jp_jp" = "ja_JP", "ua" = "uk_UA", "zar_afr" = "af_ZA", "zar_xho" = "xh"}
+languages = {"es" = "es_ES", "fa" = "fa_IR", "ua" = "uk_UA", "zar_afr" = "af_ZA", "zar_xho" = "xh"}
 licence = "MIT"
 
 [[block]]
@@ -1150,7 +1178,7 @@ files = ["app/src/main/res/values-{lang}/strings.xml"]
 sparse = ["app/src/main/res/values-*/strings.xml", "app/src/main/res/values/strings.xml"]
 format = "android"
 template = "app/src/main/res/values/strings.xml"
-languages = {"gug-rPY" = "gn_PY"}
+languages = {"gug-rPY" = "gn_PY", "zh-rTW" = "zh_TW"}
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -1197,6 +1225,7 @@ files = ["app/src/main/res/values-{lang}/strings.xml"]
 sparse = ["app/src/main/res/values-*/strings.xml", "app/src/main/res/values/strings.xml"]
 format = "android"
 template = "app/src/main/res/values/strings.xml"
+languages = {"zh-rTW" = "zh_TW"}
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -1340,7 +1369,7 @@ files = ["app/src/main/res/values-{lang}/strings.xml"]
 sparse = ["app/src/main/res/values-*/strings.xml", "app/src/main/res/values/strings.xml"]
 format = "android"
 template = "app/src/main/res/values/strings.xml"
-languages = {"b+en+001" = "en_GB", "en-rpirate" = "en@pirate", "my" = "my_MM", "sr-rSP" = "sr@latin", "zh-rBG" = ""}
+languages = {"ar-rEG" = "ar_EG", "ar-rKW" = "ar_KW", "ar-rMA" = "ar_MA", "ar-rOM" = "ar_OM", "b+en+001" = "en_GB", "en-rpirate" = "en@pirate", "kok-rIN" = "kok_IN", "ms-rMY" = "ms_MY", "my" = "my_MM", "sr-rSP" = "sr@latin", "uz-rUZ" = "uz_UZ", "zh-rBG" = "zh_CN", "zh-rMO" = "zh_MO", "zh-rTW" = "zh_TW"}
 licence = "GPL-2.0-only"
 
 [[block]]
@@ -1351,7 +1380,7 @@ files = ["opencloudApp/src/main/res/values-{lang}/strings.xml"]
 sparse = ["opencloudApp/src/main/res/values-*/strings.xml", "opencloudApp/src/main/res/values/strings.xml"]
 format = "android"
 template = "opencloudApp/src/main/res/values/strings.xml"
-languages = {"en-rpirate" = "en@pirate", "my" = "my_MM", "sr-rSP" = "sr@latin", "zh-rBG" = ""}
+languages = {"ar-rEG" = "ar_EG", "ar-rKW" = "ar_KW", "ar-rMA" = "ar_MA", "ar-rOM" = "ar_OM", "en-rpirate" = "en@pirate", "kok-rIN" = "kok_IN", "ms-rMY" = "ms_MY", "my" = "my_MM", "sr-rSP" = "sr@latin", "uz-rUZ" = "uz_UZ", "zh-rBG" = "zh_CN", "zh-rMO" = "zh_MO", "zh-rTW" = "zh_TW"}
 licence = "GPL-2.0-only"
 
 [[block]]
@@ -1362,7 +1391,7 @@ files = ["src/main/res/values-{lang}/strings.xml"]
 sparse = ["src/main/res/values-*/strings.xml", "src/main/res/values/strings.xml"]
 format = "android"
 template = "src/main/res/values/strings.xml"
-languages = {"ja" = "ja_JP", "nl" = "nl_NL"}
+languages = {"ja" = "ja_JP", "nl" = "nl_NL", "zh-rTW" = "zh_TW"}
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -1391,7 +1420,7 @@ files = ["app/src/custom/res/values-{lang}/strings.xml"]
 sparse = ["app/src/custom/res/values-*/strings.xml", "app/src/custom/res/values/strings.xml"]
 format = "android"
 template = "app/src/custom/res/values/strings.xml"
-languages = {"no" = "nb"}
+languages = {"no" = "nb", "zh-rTW" = "zh_TW"}
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -1402,7 +1431,7 @@ files = ["app/src/main/res/values-{lang}/strings.xml"]
 sparse = ["app/src/main/res/values-*/strings.xml", "app/src/main/res/values/strings.xml"]
 format = "android"
 template = "app/src/main/res/values/strings.xml"
-languages = {"no" = "nb"}
+languages = {"no" = "nb", "zh-rTW" = "zh_TW"}
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -1421,6 +1450,7 @@ files = ["android/BOINC/app/src/main/res/values-{lang}/strings.xml"]
 sparse = ["android/BOINC/app/src/main/res/values-*/strings.xml", "android/BOINC/app/src/main/res/values/strings.xml"]
 format = "android"
 template = "android/BOINC/app/src/main/res/values/strings.xml"
+languages = {"zh-rTW" = "zh_TW"}
 licence = "LGPL-3.0-only"
 
 [[block]]
@@ -1579,7 +1609,7 @@ files = ["src/main/res/values-{lang}/strings.xml"]
 sparse = ["src/main/res/values-*/strings.xml", "src/main/res/values/strings.xml"]
 format = "android"
 template = "src/main/res/values/strings.xml"
-languages = {"ja" = "ja_JP", "nl" = "nl_NL"}
+languages = {"ja" = "ja_JP", "nl" = "nl_NL", "zh-rTW" = "zh_TW"}
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -1609,7 +1639,7 @@ files = ["dhis-2/dhis-services/dhis-service-core/src/main/resources/i18n_global_
 sparse = ["dhis-2/dhis-services/dhis-service-core/src/main/resources/i18n_global.properties", "dhis-2/dhis-services/dhis-service-core/src/main/resources/i18n_global_*.properties"]
 format = "properties"
 template = "dhis-2/dhis-services/dhis-service-core/src/main/resources/i18n_global.properties"
-languages = {"prs" = "fa_AF", "uz_UZ_Cyrl" = "uz@cyrillic", "uz_UZ_Latn" = "uz@latin"}
+languages = {"prs" = "fa_AF", "uz_UZ_Cyrl" = "uz@cyrillic", "uz_UZ_Latn" = "uz"}
 licence = "BSD-3-Clause"
 
 [[block]]
@@ -1619,6 +1649,15 @@ url = "https://github.com/slyapustin/django-classified"
 files = ["django_classified/locale/{lang}/LC_MESSAGES/django.po"]
 sparse = ["django_classified/locale/*/LC_MESSAGES/django.po"]
 licence = "MIT"
+
+[[block]]
+name = "transifex-django-helpdesk"
+title = "django-helpdesk"
+url = "https://github.com/django-helpdesk/django-helpdesk"
+files = ["src/helpdesk/locale/{lang}/LC_MESSAGES/django.po"]
+exclude = ["src/helpdesk/locale/en/LC_MESSAGES/django.po"]
+sparse = ["src/helpdesk/locale/*/LC_MESSAGES/django.po"]
+licence = "BSD-3-Clause"
 
 [[block]]
 name = "transifex-django-machina"
@@ -1637,15 +1676,6 @@ files = ["newsletter/locale/{lang}/LC_MESSAGES/django.po", "newsletter/locale/{l
 exclude = ["newsletter/locale/en/LC_MESSAGES/django.po", "newsletter/locale/en/LC_MESSAGES/djangojs.po"]
 sparse = ["newsletter/locale/*/LC_MESSAGES/django.po", "newsletter/locale/*/LC_MESSAGES/djangojs.po"]
 licence = "AGPL-3.0-only"
-
-[[block]]
-name = "transifex-django-photologue"
-title = "django-photologue"
-url = "https://github.com/richardbarran/django-photologue"
-files = ["photologue/locale/{lang}/LC_MESSAGES/django.po"]
-exclude = ["photologue/locale/en_US/LC_MESSAGES/django.po"]
-sparse = ["photologue/locale/*/LC_MESSAGES/django.po"]
-licence = "BSD-3-Clause"
 
 [[block]]
 name = "transifex-django-selectable"
@@ -1804,14 +1834,6 @@ sparse = ["followthemoney/translations/*/LC_MESSAGES/followthemoney.po"]
 licence = "MIT"
 
 [[block]]
-name = "transifex-formcreator"
-title = "formcreator"
-url = "https://github.com/pluginsGLPI/formcreator"
-files = ["locales/{lang}.po"]
-sparse = ["locales/*.po"]
-licence = "GPL-3.0-only"
-
-[[block]]
 name = "transifex-fusiondirectory"
 title = "fusiondirectory"
 url = "https://github.com/fusiondirectory/fusiondirectory"
@@ -1826,6 +1848,16 @@ title = "gaupol"
 url = "https://github.com/otsaloma/gaupol"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "transifex-ghostery-extension-781c0a91592c8c4001fa2107414c04db"
+title = "ghostery-extension"
+url = "https://github.com/ghostery/ghostery-extension"
+files = ["src/_locales/{lang}/messages.json"]
+sparse = ["src/_locales/*/messages.json", "src/_locales/en/messages.json"]
+format = "webextension"
+template = "src/_locales/en/messages.json"
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -1850,6 +1882,16 @@ title = "grocy"
 url = "https://github.com/grocy/grocy"
 files = ["localization/{lang}/chore_assignment_types.po", "localization/{lang}/chore_period_types.po", "localization/{lang}/component_translations.po", "localization/{lang}/demo_data.po", "localization/{lang}/locales.po", "localization/{lang}/permissions.po", "localization/{lang}/stock_transaction_types.po", "localization/{lang}/strings.po", "localization/{lang}/userfield_types.po"]
 sparse = ["localization/*/chore_assignment_types.po", "localization/*/chore_period_types.po", "localization/*/component_translations.po", "localization/*/demo_data.po", "localization/*/locales.po", "localization/*/permissions.po", "localization/*/stock_transaction_types.po", "localization/*/strings.po", "localization/*/userfield_types.po"]
+licence = "MIT"
+
+[[block]]
+name = "transifex-grocy-desktop-FrmMain"
+title = "grocy-desktop"
+url = "https://github.com/grocy/grocy-desktop"
+files = ["grocy-desktop/FrmMain.{lang}.resx"]
+sparse = ["grocy-desktop/FrmMain.*.resx", "grocy-desktop/FrmMain.resx"]
+format = "resx"
+template = "grocy-desktop/FrmMain.resx"
 licence = "MIT"
 
 [[block]]
@@ -1897,6 +1939,16 @@ url = "https://github.com/inveniosoftware/invenio-app-rdm"
 files = ["invenio_app_rdm/theme/assets/semantic-ui/translations/invenio_app_rdm/messages/{lang}/messages.po", "invenio_app_rdm/translations/{lang}/LC_MESSAGES/messages.po"]
 sparse = ["invenio_app_rdm/theme/assets/semantic-ui/translations/invenio_app_rdm/messages/*/messages.po", "invenio_app_rdm/translations/*/LC_MESSAGES/messages.po"]
 licence = "MIT"
+
+[[block]]
+name = "transifex-ipfs-companion-messages-json"
+title = "ipfs-companion"
+url = "https://github.com/ipfs/ipfs-companion"
+files = ["add-on/_locales/{lang}/messages.json"]
+sparse = ["add-on/_locales/*/messages.json", "add-on/_locales/en/messages.json"]
+format = "webextension"
+template = "add-on/_locales/en/messages.json"
+licence = "CC0-1.0"
 
 [[block]]
 name = "transifex-ipfs-desktop-ipfs-desktop-json"
@@ -2007,7 +2059,7 @@ files = ["jami-android/app/src/main/res/values-{lang}/strings.xml"]
 sparse = ["jami-android/app/src/main/res/values-*/strings.xml", "jami-android/app/src/main/res/values/strings.xml"]
 format = "android"
 template = "jami-android/app/src/main/res/values/strings.xml"
-languages = {"b+sr+Cyrl" = "sr@cyrillic", "sr" = "sr_RS"}
+languages = {"ar-rEG" = "ar_EG", "sr" = "sr_RS", "zh-rTW" = "zh_TW"}
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -2018,7 +2070,7 @@ files = ["jami-android/app/src/main/res/values-{lang}/strings_account.xml"]
 sparse = ["jami-android/app/src/main/res/values-*/strings_account.xml", "jami-android/app/src/main/res/values/strings_account.xml"]
 format = "android"
 template = "jami-android/app/src/main/res/values/strings_account.xml"
-languages = {"b+sr+Cyrl" = "sr@cyrillic", "sr" = "sr_RS"}
+languages = {"ar-rEG" = "ar_EG", "sr" = "sr_RS", "zh-rTW" = "zh_TW"}
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -2029,7 +2081,7 @@ files = ["jami-android/app/src/main/res/values-{lang}/strings_call.xml"]
 sparse = ["jami-android/app/src/main/res/values-*/strings_call.xml", "jami-android/app/src/main/res/values/strings_call.xml"]
 format = "android"
 template = "jami-android/app/src/main/res/values/strings_call.xml"
-languages = {"b+sr+Cyrl" = "sr@cyrillic", "sr" = "sr_RS"}
+languages = {"ar-rEG" = "ar_EG", "sr" = "sr_RS", "zh-rTW" = "zh_TW"}
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -2040,7 +2092,7 @@ files = ["jami-android/app/src/main/res/values-{lang}/strings_content_descriptio
 sparse = ["jami-android/app/src/main/res/values-*/strings_content_description.xml", "jami-android/app/src/main/res/values/strings_content_description.xml"]
 format = "android"
 template = "jami-android/app/src/main/res/values/strings_content_description.xml"
-languages = {"b+sr+Cyrl" = "sr@cyrillic", "sr" = "sr_RS"}
+languages = {"ar-rEG" = "ar_EG", "sr" = "sr_RS", "zh-rTW" = "zh_TW"}
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -2051,7 +2103,7 @@ files = ["jami-android/app/src/main/res/values-{lang}/strings_preferences.xml"]
 sparse = ["jami-android/app/src/main/res/values-*/strings_preferences.xml", "jami-android/app/src/main/res/values/strings_preferences.xml"]
 format = "android"
 template = "jami-android/app/src/main/res/values/strings_preferences.xml"
-languages = {"b+sr+Cyrl" = "sr@cyrillic", "sr" = "sr_RS"}
+languages = {"ar-rEG" = "ar_EG", "sr" = "sr_RS", "zh-rTW" = "zh_TW"}
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -2070,6 +2122,16 @@ files = ["locale/{lang}/LC_MESSAGES/django.po", "locale/{lang}/LC_MESSAGES/djang
 exclude = ["locale/en/LC_MESSAGES/django.po", "locale/en/LC_MESSAGES/djangojs.po"]
 sparse = ["locale/*/LC_MESSAGES/django.po", "locale/*/LC_MESSAGES/djangojs.po"]
 licence = "AGPL-3.0-only"
+
+[[block]]
+name = "transifex-livemarks-messages-json--master"
+title = "livemarks"
+url = "https://github.com/nt1m/livemarks"
+files = ["_locales/{lang}/messages.json"]
+sparse = ["_locales/*/messages.json", "_locales/en/messages.json"]
+format = "webextension"
+template = "_locales/en/messages.json"
+licence = "MIT"
 
 [[block]]
 name = "transifex-lmms"
@@ -2203,7 +2265,7 @@ files = ["News-Android-App/src/main/res/values-{lang}/strings.xml"]
 sparse = ["News-Android-App/src/main/res/values-*/strings.xml", "News-Android-App/src/main/res/values/strings.xml"]
 format = "android"
 template = "News-Android-App/src/main/res/values/strings.xml"
-languages = {"ca-rXV" = "ca@valencia", "en-rXP" = "en@pirate", "es-rUS" = "es_419", "my" = "my_MM", "sr-rSP" = "sr@latin", "zh-rBG" = ""}
+languages = {"ar-rEG" = "ar_EG", "ar-rKW" = "ar_KW", "ar-rMA" = "ar_MA", "ar-rOM" = "ar_OM", "ca-rXV" = "ca@valencia", "en-rXP" = "en@pirate", "es-rUS" = "es_419", "kok-rIN" = "kok_IN", "ms-rMY" = "ms_MY", "my" = "my_MM", "sr-rSP" = "sr@latin", "uz-rUZ" = "uz_UZ", "zh-rBG" = "zh_CN", "zh-rMO" = "zh_MO", "zh-rTW" = "zh_TW"}
 licence = "AGPL-3.0-only"
 
 [[block]]
@@ -2214,7 +2276,17 @@ files = ["app/src/main/res/values-{lang}/strings.xml"]
 sparse = ["app/src/main/res/values-*/strings.xml", "app/src/main/res/values/strings.xml"]
 format = "android"
 template = "app/src/main/res/values/strings.xml"
-languages = {"b+en+001" = "en_GB", "en-rpirate" = "en@pirate", "my" = "my_MM", "sr-rSP" = "sr@latin", "zh-rBG" = ""}
+languages = {"ar-rEG" = "ar_EG", "ar-rKW" = "ar_KW", "ar-rMA" = "ar_MA", "ar-rOM" = "ar_OM", "b+en+001" = "en_GB", "en-rpirate" = "en@pirate", "kok-rIN" = "kok_IN", "ms-rMY" = "ms_MY", "my" = "my_MM", "sr-rSP" = "sr@latin", "uz-rUZ" = "uz_UZ", "zh-rBG" = "zh_CN", "zh-rMO" = "zh_MO", "zh-rTW" = "zh_TW"}
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "transifex-noscript-messagesjson"
+title = "noscript"
+url = "https://github.com/hackademix/noscript"
+files = ["src/_locales/{lang}/messages.json"]
+sparse = ["src/_locales/*/messages.json", "src/_locales/en/messages.json"]
+format = "webextension"
+template = "src/_locales/en/messages.json"
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -2225,7 +2297,7 @@ files = ["app/src/main/res/values-{lang}/strings.xml"]
 sparse = ["app/src/main/res/values-*/strings.xml", "app/src/main/res/values/strings.xml"]
 format = "android"
 template = "app/src/main/res/values/strings.xml"
-languages = {"b+en+001" = "en_GB", "en-rpirate" = "en@pirate", "my" = "my_MM", "sr-rSP" = "sr@latin", "zh-rBG" = ""}
+languages = {"ar-rEG" = "ar_EG", "ar-rKW" = "ar_KW", "ar-rMA" = "ar_MA", "ar-rOM" = "ar_OM", "b+en+001" = "en_GB", "en-rpirate" = "en@pirate", "kok-rIN" = "kok_IN", "ms-rMY" = "ms_MY", "my" = "my_MM", "sr-rSP" = "sr@latin", "uz-rUZ" = "uz_UZ", "zh-rBG" = "zh_CN", "zh-rMO" = "zh_MO", "zh-rTW" = "zh_TW"}
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -2289,6 +2361,7 @@ files = ["app/src/main/res/values-{lang}/accessibility.xml"]
 sparse = ["app/src/main/res/values-*/accessibility.xml", "app/src/main/res/values/accessibility.xml"]
 format = "android"
 template = "app/src/main/res/values/accessibility.xml"
+languages = {"zh-rTW" = "zh_TW"}
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -2299,6 +2372,7 @@ files = ["app/src/main/res/values-{lang}/strings.xml"]
 sparse = ["app/src/main/res/values-*/strings.xml", "app/src/main/res/values/strings.xml"]
 format = "android"
 template = "app/src/main/res/values/strings.xml"
+languages = {"zh-rTW" = "zh_TW"}
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -2309,6 +2383,7 @@ files = ["app/src/main/res/values-{lang}/strings-preferences.xml"]
 sparse = ["app/src/main/res/values-*/strings-preferences.xml", "app/src/main/res/values/strings-preferences.xml"]
 format = "android"
 template = "app/src/main/res/values/strings-preferences.xml"
+languages = {"zh-rTW" = "zh_TW"}
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -2319,6 +2394,7 @@ files = ["app/src/main/res/values-{lang}/strings-tags.xml"]
 sparse = ["app/src/main/res/values-*/strings-tags.xml", "app/src/main/res/values/strings-tags.xml"]
 format = "android"
 template = "app/src/main/res/values/strings-tags.xml"
+languages = {"zh-rTW" = "zh_TW"}
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -2329,6 +2405,7 @@ files = ["app/src/main/res/values-{lang}/waypoints.xml"]
 sparse = ["app/src/main/res/values-*/waypoints.xml", "app/src/main/res/values/waypoints.xml"]
 format = "android"
 template = "app/src/main/res/values/waypoints.xml"
+languages = {"zh-rTW" = "zh_TW"}
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -2348,8 +2425,19 @@ files = ["app/src/main/res/values-{lang}/strings.xml"]
 sparse = ["app/src/main/res/values-*/strings.xml", "app/src/main/res/values/strings.xml"]
 format = "android"
 template = "app/src/main/res/values/strings.xml"
-languages = {"en-rpirate" = "en@pirate", "es-rUS" = "es_419", "my" = "my_MM", "sr-rSP" = "sr@latin", "zh-rBG" = ""}
+languages = {"ar-rEG" = "ar_EG", "ar-rKW" = "ar_KW", "ar-rMA" = "ar_MA", "ar-rOM" = "ar_OM", "en-rpirate" = "en@pirate", "es-rUS" = "es_419", "kok-rIN" = "kok_IN", "ms-rMY" = "ms_MY", "my" = "my_MM", "sr-rSP" = "sr@latin", "uz-rUZ" = "uz_UZ", "zh-rBG" = "zh_CN", "zh-rMO" = "zh_MO", "zh-rTW" = "zh_TW"}
 licence = "GPL-3.0-only"
+
+[[block]]
+name = "transifex-passman-webextension-passman-webextension"
+title = "passman-webextension"
+url = "https://github.com/nextcloud/passman-webextension"
+files = ["public/_locales/{lang}/messages.json"]
+sparse = ["public/_locales/*/messages.json", "public/_locales/en/messages.json"]
+format = "webextension"
+template = "public/_locales/en/messages.json"
+languages = {"bg" = "bg_BG", "cs" = "cs_CZ", "fi" = "fi_FI", "hu" = "hu_HU", "ja" = "ja_JP", "nb" = "nb_NO", "sk" = "sk_SK", "th" = "th_TH"}
+licence = "AGPL-3.0-only"
 
 [[block]]
 name = "transifex-pencil"
@@ -2403,7 +2491,7 @@ files = ["common/src/main/res/values-{lang}/array.xml"]
 sparse = ["common/src/main/res/values-*/array.xml", "common/src/main/res/values/array.xml"]
 format = "android"
 template = "common/src/main/res/values/array.xml"
-languages = {"bg" = "bg_BG", "cs" = "cs_CZ", "de" = "de_DE", "el" = "el_GR", "es" = "es_ES", "fr" = "fr_FR", "hu" = "hu_HU", "ignore_ar" = "ar", "ignore_ar_AA" = "ar_AA", "ignore_ar_EG" = "ar_EG", "ignore_ar_SA" = "ar_SA", "ignore_ar_SY" = "ar_SY", "ignore_de_CH" = "de_CH", "ignore_el" = "el", "ignore_en_NL" = "en_NL", "ignore_en_US" = "en_US", "ignore_eu_ES" = "eu_ES", "ignore_hi_IN" = "hi_IN", "ignore_hr" = "hr", "ignore_it_CH" = "it_CH", "ignore_it_IT" = "it_IT", "ignore_ku_IQ" = "ku_IQ", "ignore_nb" = "nb", "ignore_nl_BE" = "nl_BE", "ignore_ru_RU" = "ru_RU", "ignore_sr" = "sr", "ignore_zh_TW" = "zh_TW", "lt" = "lt_LT", "mn" = "mn_MN", "pt" = "pt_PT", "sv" = "sv_SE", "tr" = "tr_TR", "zh" = "zh_CN"}
+languages = {"bg" = "bg_BG", "cs" = "cs_CZ", "de" = "de_DE", "el" = "el_GR", "es" = "es_ES", "fr" = "fr_FR", "hu" = "hu_HU", "ignore_ar" = "ar", "ignore_ar_AA" = "ar_AA", "ignore_ar_EG" = "ar_EG", "ignore_ar_SA" = "ar_SA", "ignore_ar_SY" = "ar_SY", "ignore_de_CH" = "de_CH", "ignore_el" = "el", "ignore_en_NL" = "en_NL", "ignore_en_US" = "en_US", "ignore_eu_ES" = "eu_ES", "ignore_hi_IN" = "hi_IN", "ignore_hr" = "hr", "ignore_it_CH" = "it_CH", "ignore_it_IT" = "it_IT", "ignore_ku_IQ" = "ku_IQ", "ignore_nb" = "nb", "ignore_nl_BE" = "nl_BE", "ignore_ru_RU" = "ru_RU", "ignore_sr" = "sr", "ignore_zh_TW" = "zh_TW", "lt" = "lt_LT", "mn" = "mn_MN", "pt" = "pt_PT", "sv" = "sv_SE", "tr" = "tr_TR", "zh" = "zh_CN", "zh-rTW" = "zh_TW"}
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -2414,7 +2502,7 @@ files = ["app/res/values-{lang}/cues.xml"]
 sparse = ["app/res/values-*/cues.xml", "app/res/values/cues.xml"]
 format = "android"
 template = "app/res/values/cues.xml"
-languages = {"bg" = "bg_BG", "cs" = "cs_CZ", "de" = "de_DE", "el" = "el_GR", "es" = "es_ES", "fr" = "fr_FR", "hu" = "hu_HU", "ignore_ar" = "ar", "ignore_ar_AA" = "ar_AA", "ignore_ar_EG" = "ar_EG", "ignore_ar_SA" = "ar_SA", "ignore_ar_SY" = "ar_SY", "ignore_de_CH" = "de_CH", "ignore_el" = "el", "ignore_en_NL" = "en_NL", "ignore_en_US" = "en_US", "ignore_eu_ES" = "eu_ES", "ignore_hi_IN" = "hi_IN", "ignore_hr" = "hr", "ignore_it_CH" = "it_CH", "ignore_it_IT" = "it_IT", "ignore_ku_IQ" = "ku_IQ", "ignore_nb" = "nb", "ignore_nl_BE" = "nl_BE", "ignore_ru_RU" = "ru_RU", "ignore_sr" = "sr", "ignore_zh_TW" = "zh_TW", "lt" = "lt_LT", "mn" = "mn_MN", "pt" = "pt_PT", "sv" = "sv_SE", "tr" = "tr_TR", "zh" = "zh_CN"}
+languages = {"bg" = "bg_BG", "cs" = "cs_CZ", "de" = "de_DE", "el" = "el_GR", "es" = "es_ES", "fr" = "fr_FR", "hu" = "hu_HU", "ignore_ar" = "ar", "ignore_ar_AA" = "ar_AA", "ignore_ar_EG" = "ar_EG", "ignore_ar_SA" = "ar_SA", "ignore_ar_SY" = "ar_SY", "ignore_de_CH" = "de_CH", "ignore_el" = "el", "ignore_en_NL" = "en_NL", "ignore_en_US" = "en_US", "ignore_eu_ES" = "eu_ES", "ignore_hi_IN" = "hi_IN", "ignore_hr" = "hr", "ignore_it_CH" = "it_CH", "ignore_it_IT" = "it_IT", "ignore_ku_IQ" = "ku_IQ", "ignore_nb" = "nb", "ignore_nl_BE" = "nl_BE", "ignore_ru_RU" = "ru_RU", "ignore_sr" = "sr", "ignore_zh_TW" = "zh_TW", "lt" = "lt_LT", "mn" = "mn_MN", "pt" = "pt_PT", "sv" = "sv_SE", "tr" = "tr_TR", "zh" = "zh_CN", "zh-rTW" = "zh_TW"}
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -2425,8 +2513,18 @@ files = ["common/src/main/res/values-{lang}/strings.xml"]
 sparse = ["common/src/main/res/values-*/strings.xml", "common/src/main/res/values/strings.xml"]
 format = "android"
 template = "common/src/main/res/values/strings.xml"
-languages = {"bg" = "bg_BG", "cs" = "cs_CZ", "de" = "de_DE", "el" = "el_GR", "es" = "es_ES", "fr" = "fr_FR", "hu" = "hu_HU", "ignore_ar" = "ar", "ignore_ar_AA" = "ar_AA", "ignore_ar_EG" = "ar_EG", "ignore_ar_SA" = "ar_SA", "ignore_ar_SY" = "ar_SY", "ignore_de_CH" = "de_CH", "ignore_el" = "el", "ignore_en_NL" = "en_NL", "ignore_en_US" = "en_US", "ignore_eu_ES" = "eu_ES", "ignore_hi_IN" = "hi_IN", "ignore_hr" = "hr", "ignore_it_CH" = "it_CH", "ignore_it_IT" = "it_IT", "ignore_ku_IQ" = "ku_IQ", "ignore_nb" = "nb", "ignore_nl_BE" = "nl_BE", "ignore_ru_RU" = "ru_RU", "ignore_sr" = "sr", "ignore_zh_TW" = "zh_TW", "lt" = "lt_LT", "mn" = "mn_MN", "pt" = "pt_PT", "sv" = "sv_SE", "tr" = "tr_TR", "zh" = "zh_CN"}
+languages = {"bg" = "bg_BG", "cs" = "cs_CZ", "de" = "de_DE", "el" = "el_GR", "es" = "es_ES", "fr" = "fr_FR", "hu" = "hu_HU", "ignore_ar" = "ar", "ignore_ar_AA" = "ar_AA", "ignore_ar_EG" = "ar_EG", "ignore_ar_SA" = "ar_SA", "ignore_ar_SY" = "ar_SY", "ignore_de_CH" = "de_CH", "ignore_el" = "el", "ignore_en_NL" = "en_NL", "ignore_en_US" = "en_US", "ignore_eu_ES" = "eu_ES", "ignore_hi_IN" = "hi_IN", "ignore_hr" = "hr", "ignore_it_CH" = "it_CH", "ignore_it_IT" = "it_IT", "ignore_ku_IQ" = "ku_IQ", "ignore_nb" = "nb", "ignore_nl_BE" = "nl_BE", "ignore_ru_RU" = "ru_RU", "ignore_sr" = "sr", "ignore_zh_TW" = "zh_TW", "lt" = "lt_LT", "mn" = "mn_MN", "pt" = "pt_PT", "sv" = "sv_SE", "tr" = "tr_TR", "zh" = "zh_CN", "zh-rTW" = "zh_TW"}
 licence = "GPL-3.0-only"
+
+[[block]]
+name = "transifex-seafile-client-finder-sync"
+title = "seafile-client"
+url = "https://github.com/haiwen/seafile-client"
+files = ["fsplugin/{lang}.lproj/Localizable.strings"]
+sparse = ["fsplugin/*.lproj/Localizable.strings", "fsplugin/en.lproj/Localizable.strings"]
+format = "strings"
+template = "fsplugin/en.lproj/Localizable.strings"
+licence = "Apache-2.0"
 
 [[block]]
 name = "transifex-silverstripe-cms-master-js"
@@ -2468,6 +2566,16 @@ sparse = ["sphinx_rtd_theme/locale/*/LC_MESSAGES/sphinx.po"]
 licence = "MIT"
 
 [[block]]
+name = "transifex-stylus-messages"
+title = "stylus"
+url = "https://github.com/openstyles/stylus"
+files = ["src/_locales/{lang}/messages.json"]
+sparse = ["src/_locales/*/messages.json", "src/_locales/en/messages.json"]
+format = "webextension"
+template = "src/_locales/en/messages.json"
+licence = "GPL-3.0-only"
+
+[[block]]
 name = "transifex-synfig"
 title = "synfig"
 url = "https://github.com/synfig/synfig"
@@ -2494,6 +2602,28 @@ sparse = ["src/renderer/locales/*/core.json", "src/renderer/locales/en/core.json
 format = "json"
 template = "src/renderer/locales/en/core.json"
 licence = "AGPL-3.0-only"
+
+[[block]]
+name = "transifex-talk-ios-talk-ios"
+title = "talk-ios"
+url = "https://github.com/nextcloud/talk-ios"
+files = ["NextcloudTalk/{lang}.lproj/Localizable.strings"]
+sparse = ["NextcloudTalk/*.lproj/Localizable.strings", "NextcloudTalk/en.lproj/Localizable.strings"]
+format = "strings"
+template = "NextcloudTalk/en.lproj/Localizable.strings"
+languages = {"cs" = "cs_CZ", "hu" = "hu_HU", "ja" = "ja_JP"}
+licence = "GPL-3.0-only"
+
+[[block]]
+name = "transifex-talk-ios-talk-ios-info"
+title = "talk-ios"
+url = "https://github.com/nextcloud/talk-ios"
+files = ["NextcloudTalk/{lang}.lproj/InfoPlist.strings"]
+sparse = ["NextcloudTalk/*.lproj/InfoPlist.strings", "NextcloudTalk/en.lproj/InfoPlist.strings"]
+format = "strings"
+template = "NextcloudTalk/en.lproj/InfoPlist.strings"
+languages = {"cs" = "cs_CZ", "hu" = "hu_HU", "ja" = "ja_JP"}
+licence = "GPL-3.0-only"
 
 [[block]]
 name = "transifex-tasking-manager-version-4"
@@ -2633,7 +2763,7 @@ files = ["imports/i18n/data/{lang}.i18n.json"]
 sparse = ["imports/i18n/data/*.i18n.json", "imports/i18n/data/en.i18n.json"]
 format = "json"
 template = "imports/i18n/data/en.i18n.json"
-languages = {"az-LA" = "az@latin", "bg" = "bg_BG", "en-YS" = "en@ysv", "es-LA" = "es_419", "fi" = "fi_FI", "gn" = "gug_PY", "hu" = "hu_HU", "id" = "id_ID", "ja-HI" = "ja@hira", "lv" = "lv_LV", "mn" = "mn_MN", "uz-AR" = "uz@arabic", "uz-LA" = "uz@latin", "ve-CC" = "vec", "ve-PP" = "vep", "vl-SS" = "vls", "wa-RR" = "war", "zh-GB" = ""}
+languages = {"az-LA" = "az", "bg" = "bg_BG", "en-YS" = "en@ysv", "es-LA" = "es_419", "fi" = "fi_FI", "gn" = "gug_PY", "hu" = "hu_HU", "id" = "id_ID", "ja-HI" = "ja@hira", "lv" = "lv_LV", "mn" = "mn_MN", "uz-AR" = "uz@arabic", "uz-LA" = "uz", "ve-CC" = "vec", "ve-PP" = "vep", "vl-SS" = "vls", "wa-RR" = "war", "zh-GB" = "zh_CN"}
 licence = "MIT"
 
 [[block]]

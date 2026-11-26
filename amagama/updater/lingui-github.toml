@@ -147,7 +147,7 @@ licence = "MIT"
 [[block]]
 name = "lingui-bramble"
 title = "bramble"
-url = "https://github.com/flythenimbus/bramble"
+url = "https://github.com/bramble-sh/bramble"
 files = ["packages/core/src/locales/{lang}/messages.po"]
 exclude = ["packages/core/src/locales/en/messages.po"]
 sparse = ["packages/core/src/locales/*/messages.po"]
