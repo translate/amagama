@@ -345,13 +345,46 @@ DROP INDEX IF EXISTS targets_unique_idx;
 CREATE INDEX sources_cluster_idx ON sources (length) WITH (fillfactor = 100);
 CLUSTER sources USING sources_cluster_idx;
 DROP INDEX sources_cluster_idx;  -- was only for CLUSTER
+--- The rest is handled in the code.
+"""
 
--- CLUSTER targets so that one language's strings are physically contiguous
+    # CLUSTER targets so that one language's strings are physically
+    # contiguous; collapse_links() writes them in that order instead.
+    CLUSTER_TARGETS = """
 CREATE INDEX targets_cluster_idx ON targets (lang, length(text)) WITH (fillfactor = 100);
 CLUSTER targets USING targets_cluster_idx;
 DROP INDEX targets_cluster_idx;  -- was only for CLUSTER
-CREATE INDEX targets_lang_sid_idx ON targets (lang, sid) WITH (fillfactor = 100);
---- The rest is handled in the code.
+"""
+
+    # Each target's imports as one of the distinct combinations of them
+    # (provenance), not a row per import: a few hundred thousand
+    # combinations against tens of millions of links (#3554). Written with
+    # the targets in CLUSTER_TARGETS's order, one rewrite of the table rather
+    # than an UPDATE of every row and a CLUSTER after.
+    COLLAPSE_LINKS = """
+CREATE TABLE provenance (
+    id SERIAL PRIMARY KEY,
+    iids INTEGER[] NOT NULL,
+    -- MD5 of the iids: unique by this, as a translation in thousands of files
+    -- has too many imports for a btree entry; matches compare iids too.
+    key TEXT NOT NULL,
+    -- The blocks of those imports, for lookups and the statistics.
+    blocks TEXT[] NOT NULL
+);
+INSERT INTO provenance (iids, key, blocks)
+    SELECT d.iids, MD5(ARRAY_TO_STRING(d.iids, ',')),
+        COALESCE((SELECT ARRAY_AGG(DISTINCT i.block ORDER BY i.block)
+        FROM imports i WHERE i.iid = ANY(d.iids) AND i.block IS NOT NULL), '{}')
+    FROM (SELECT DISTINCT ARRAY_AGG(iid ORDER BY iid) AS iids
+          FROM target_imports GROUP BY tid) d;
+CREATE UNIQUE INDEX provenance_key_idx ON provenance (key);
+CREATE TABLE targets_collapsed AS
+    SELECT t.*, p.id AS provenance
+    FROM targets t
+    LEFT JOIN (SELECT tid, ARRAY_AGG(iid ORDER BY iid) AS iids
+               FROM target_imports GROUP BY tid) l ON l.tid = t.tid
+    LEFT JOIN provenance p ON p.iids = l.iids
+    ORDER BY t.lang, LENGTH(t.text);
 """
 
     # A lookup's query as text, and how many sources have each of its words,
@@ -947,7 +980,8 @@ ORDER BY rank DESC{order};
                 if cursor.rowcount:
                     continue
                 if links:
-                    self._move_links(cursor, """SELECT t.tid AS old, u.tid AS new
+                    self._move_links(cursor, """SELECT t.tid AS old, u.tid AS new,
+                            t.sid AS old_sid, u.sid AS new_sid, u.lang
                         FROM targets t JOIN targets u
                         ON u.sid = t.sid AND u.lang = t.lang AND u.text = %(fixed)s
                         WHERE t.sid = %(sid)s AND t.lang = %(lang)s AND t.text = %(text)s""",
@@ -961,7 +995,8 @@ ORDER BY rank DESC{order};
                     # Move the targets to the existing source, dropping ones
                     # it already has.
                     if links:
-                        self._move_links(cursor, """SELECT t.tid AS old, u.tid AS new
+                        self._move_links(cursor, """SELECT t.tid AS old, u.tid AS new,
+                                t.sid AS old_sid, u.sid AS new_sid, u.lang
                             FROM targets t JOIN targets u
                             ON u.sid = %(new)s AND u.lang = t.lang AND u.text = t.text
                             WHERE t.sid = %(old)s""", {'old': sid, 'new': existing[0]})
@@ -985,9 +1020,21 @@ ORDER BY rank DESC{order};
         current_app.cache.clear()
         return len(sources), len(targets), unconverted
 
-    @staticmethod
-    def _move_links(cursor, pairs, params):
-        """Give each new target of the (old, new) tid pairs the old one's imports."""
+    def _move_links(self, cursor, pairs, params):
+        """Give each new target of the (old, new, old_sid, new_sid, lang) pairs
+        the old one's imports."""
+        if self._relation_kind(cursor, 'target_imports') == 'v':
+            # Deployed: the old targets are about to go, so only the new ones
+            # change. The old ones are locked first, so an import added to
+            # one meanwhile is in what's moved.
+            cursor.execute("""SELECT 1 FROM (%s) p JOIN targets o ON o.sid = p.old_sid
+                AND o.lang = p.lang AND o.tid = p.old FOR UPDATE OF o""" % pairs, params)
+            self._add_provenance(cursor, """SELECT p.new AS tid, p.new_sid AS sid, p.lang,
+                    COALESCE(op.iids, '{}') AS iids
+                FROM (%s) p JOIN targets o ON o.sid = p.old_sid AND o.lang = p.lang
+                    AND o.tid = p.old
+                LEFT JOIN provenance op ON op.id = o.provenance""" % pairs, params)
+            return
         cursor.execute("""INSERT INTO target_imports (tid, iid)
             SELECT p.new, l.iid FROM (%s) p JOIN target_imports l ON l.tid = p.old
             ON CONFLICT DO NOTHING""" % pairs, params)
@@ -1009,6 +1056,12 @@ ORDER BY rank DESC{order};
         max_length = current_app.config.get("MAX_LENGTH")
         cursor = self.get_cursor(self.schema(slang))
         cursor.execute(self.DEPLOY_QUERY)
+        if self._relation_kind(cursor, 'target_imports') == 'r':
+            self._collapse_links(cursor)
+        else:
+            cursor.execute(self.CLUSTER_TARGETS)
+        cursor.execute("CREATE INDEX targets_lang_sid_idx ON targets (lang, sid) "
+                       "WITH (fillfactor = 100)")
         # The longer bands' indexes hold the length too (btree_gin), so a
         # lookup's length range is applied in the index: half the sources
         # read (#3476). Not the shortest band's: its lengths are so common
@@ -1046,6 +1099,35 @@ ORDER BY rank DESC{order};
             CREATE TABLE target_languages (lang text PRIMARY KEY);
             INSERT INTO target_languages SELECT DISTINCT lang FROM targets""")
         cursor.connection.commit()
+
+    @staticmethod
+    def _relation_kind(cursor, name):
+        """pg_class.relkind of name in the current schema: 'r' a table, 'v' a
+        view; None if there's none."""
+        cursor.execute("SELECT relkind FROM pg_class WHERE oid = to_regclass(%s)", (name,))
+        row = cursor.fetchone()
+        return row[0] if row else None
+
+    def _collapse_links(self, cursor):
+        """Replace target_imports with provenance (COLLAPSE_LINKS), and the
+        table with a view of the same rows for what reads it."""
+        cursor.execute("SELECT pg_get_serial_sequence('targets', 'tid')")
+        sequence = cursor.fetchone()[0]
+        cursor.execute(self.COLLAPSE_LINKS)
+        # The tid sequence goes with the new table, not the old one.
+        cursor.execute(sql.SQL("ALTER SEQUENCE {} OWNED BY NONE").format(sql.SQL(sequence)))
+        cursor.execute("DROP TABLE targets")
+        cursor.execute("ALTER TABLE targets_collapsed RENAME TO targets")
+        cursor.execute("""ALTER TABLE targets ALTER tid SET DEFAULT nextval(%s::regclass),
+            ALTER tid SET NOT NULL, ALTER sid SET NOT NULL, ALTER text SET NOT NULL,
+            ALTER lang SET NOT NULL""", (sequence,))
+        cursor.execute(sql.SQL("ALTER SEQUENCE {} OWNED BY targets.tid").format(sql.SQL(sequence)))
+        cursor.execute("DROP TABLE target_imports")
+        # Read-only: links are added to provenance (_add_provenance()).
+        cursor.execute("""CREATE VIEW target_imports AS
+            SELECT t.tid, UNNEST(p.iids) AS iid
+            FROM targets t JOIN provenance p ON p.id = t.provenance""")
+        cursor.execute("ANALYZE targets; ANALYZE provenance")
 
     @staticmethod
     def _btree_gin(cursor):
@@ -1320,9 +1402,41 @@ ORDER BY rank DESC{order};
                 cursor.execute("""INSERT INTO targets (sid, text, lang)
                     VALUES (%(sid)s, %(target)s, %(target_lang)s) RETURNING tid""", unit)
                 row = cursor.fetchone()
-        cursor.execute("""INSERT INTO target_imports (tid, iid) VALUES (%s, %s)
-            ON CONFLICT DO NOTHING""", (row[0], iid))
+        if not unique and self._has_relation(cursor, 'provenance'):
+            self._add_provenance(cursor, """SELECT %(tid)s::integer AS tid,
+                %(sid)s::integer AS sid, %(target_lang)s::text AS lang,
+                ARRAY[%(iid)s]::integer[] AS iids""", dict(unit, tid=row[0], iid=iid))
+        else:
+            cursor.execute("""INSERT INTO target_imports (tid, iid) VALUES (%s, %s)
+                ON CONFLICT DO NOTHING""", (row[0], iid))
         return True
+
+    @staticmethod
+    def _add_provenance(cursor, adding, params):
+        """In a deployed schema (where target_imports is provenance's view),
+        add imports to targets: adding is a query of (tid, sid, lang, iids)
+        rows, the targets and the imports to add to them. Found by sid and
+        lang, which are indexed there, as tid isn't."""
+        # Locked first: another writer's change to the same targets is then
+        # committed, and seen by the merge, which is a statement after.
+        cursor.execute("""SELECT 1 FROM (%s) a
+            JOIN targets t ON t.sid = a.sid AND t.lang = a.lang AND t.tid = a.tid
+            FOR UPDATE OF t""" % adding, params)
+        cursor.execute("""CREATE TEMP TABLE merging AS
+            SELECT a.tid, a.sid, a.lang, ARRAY(SELECT DISTINCT x
+                FROM UNNEST(COALESCE(p.iids, '{}') || a.iids) x ORDER BY x) AS iids
+            FROM (%s) a JOIN targets t ON t.sid = a.sid AND t.lang = a.lang AND t.tid = a.tid
+            LEFT JOIN provenance p ON p.id = t.provenance""" % adding, params)
+        cursor.execute("""INSERT INTO provenance (iids, key, blocks)
+            SELECT DISTINCT m.iids, MD5(ARRAY_TO_STRING(m.iids, ',')),
+                COALESCE((SELECT ARRAY_AGG(DISTINCT i.block ORDER BY i.block)
+                FROM imports i WHERE i.iid = ANY(m.iids) AND i.block IS NOT NULL), '{}')
+            FROM merging m ON CONFLICT (key) DO NOTHING""")
+        cursor.execute("""UPDATE targets t SET provenance = p.id
+            FROM merging m JOIN provenance p
+                ON p.key = MD5(ARRAY_TO_STRING(m.iids, ',')) AND p.iids = m.iids
+            WHERE t.sid = m.sid AND t.lang = m.lang AND t.tid = m.tid""")
+        cursor.execute("DROP TABLE merging")
 
     def _add_batch(self, units, cursor, iid):
         """add_dict() for units in a few statements, not a few each: targets
@@ -1654,14 +1768,27 @@ ORDER BY rank DESC{order};
         """Give each result the names of the blocks it was imported from, and
         of the check_names ({bit: name}) it is flagged with."""
         blocks, flags = {}, {}
-        if results and self._has_relation(cursor, 'target_imports'):
+        kind = self._relation_kind(cursor, 'target_imports') if results else None
+        mask = "BIT_OR(t.checks)" if check_names else "NULL"
+        if kind == 'v':
+            # Deployed: the blocks are in the target's provenance. (Through
+            # the view would read every target: tid isn't indexed here.)
+            cursor.execute("""SELECT t.sid, t.text, ARRAY_AGG(DISTINCT b.block ORDER BY b.block),
+                    %s
+                FROM targets t JOIN provenance p ON p.id = t.provenance,
+                UNNEST(p.blocks) b (block)
+                WHERE t.lang = %%s AND t.sid = ANY(%%s)
+                GROUP BY t.sid, t.text""" % mask,
+                (tlang, [result['sid'] for result in results]))
+        elif kind:
             cursor.execute("""SELECT t.sid, t.text, ARRAY_AGG(DISTINCT i.block ORDER BY i.block),
                     %s
                 FROM targets t JOIN target_imports l ON l.tid = t.tid
                 JOIN imports i ON i.iid = l.iid
                 WHERE t.lang = %%s AND t.sid = ANY(%%s) AND i.block IS NOT NULL
-                GROUP BY t.sid, t.text""" % ("BIT_OR(t.checks)" if check_names else "NULL"),
+                GROUP BY t.sid, t.text""" % mask,
                 (tlang, [result['sid'] for result in results]))
+        if kind:
             for sid, text, names, mask in cursor.fetchall():
                 blocks[(sid, text)], flags[(sid, text)] = names, mask or 0
         for result in results:

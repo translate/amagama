@@ -673,13 +673,12 @@ class TestUnchangedCopied(object):
         assert run("update", "-s", "en").exit_code == 0
         long = "Lêer " * 2000
         with pg_connection.cursor() as cursor:
-            cursor.execute("""INSERT INTO en.targets (sid, text, lang)
-                SELECT t.sid, %s, 'af' FROM en.targets t JOIN en.target_imports l
-                ON l.tid = t.tid JOIN en.imports i ON i.iid = l.iid
-                WHERE i.block = 'tp' LIMIT 1 RETURNING tid""", (long,))
-            tid = cursor.fetchone()[0]
-            cursor.execute("""INSERT INTO en.target_imports (tid, iid)
-                SELECT %s, iid FROM en.imports WHERE block = 'tp' LIMIT 1""", (tid,))
+            # Linked as tp's targets are: live keeps their imports as one
+            # combination (provenance).
+            cursor.execute("""INSERT INTO en.targets (sid, text, lang, provenance)
+                SELECT t.sid, %s, 'af', t.provenance FROM en.targets t
+                JOIN en.provenance p ON p.id = t.provenance
+                WHERE 'tp' = ANY(p.blocks) AND t.lang = 'af' LIMIT 1""", (long,))
         pg_connection.commit()
         self.changed_gnome(root)
         result = run("update", "-s", "en")
@@ -698,13 +697,12 @@ class TestUnchangedCopied(object):
         letters = random.Random(1)
         noise = "".join(letters.choice("abcdefghijklmnopqrstuvwxyz ") for _ in range(9000))
         with pg_connection.cursor() as cursor:
-            cursor.execute("""INSERT INTO en.targets (sid, text, lang)
-                SELECT t.sid, %s, 'af' FROM en.targets t JOIN en.target_imports l
-                ON l.tid = t.tid JOIN en.imports i ON i.iid = l.iid
-                WHERE i.block = 'tp' LIMIT 1 RETURNING tid""", (noise,))
-            tid = cursor.fetchone()[0]
-            cursor.execute("""INSERT INTO en.target_imports (tid, iid)
-                SELECT %s, iid FROM en.imports WHERE block = 'tp' LIMIT 1""", (tid,))
+            # Linked as tp's targets are: live keeps their imports as one
+            # combination (provenance).
+            cursor.execute("""INSERT INTO en.targets (sid, text, lang, provenance)
+                SELECT t.sid, %s, 'af', t.provenance FROM en.targets t
+                JOIN en.provenance p ON p.id = t.provenance
+                WHERE 'tp' = ANY(p.blocks) AND t.lang = 'af' LIMIT 1""", (noise,))
         pg_connection.commit()
         self.changed_gnome(root)
         result = run("update", "-s", "en")

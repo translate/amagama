@@ -216,6 +216,15 @@ class TestWriteAPI(object):
 
 
 class TestRepairMojibake(object):
+    """Live data is deployed: its links are combinations (#3554)."""
+
+    @pytest.fixture(params=["built", "deployed"])
+    def repair(self, request):
+        def repair():
+            if request.param == "deployed":
+                run('deploy_db', input='y\n')
+            run('repair_mojibake', '--apply')
+        return repair
 
     def mangle(self, text):
         return text.encode('utf-8').decode('latin-1')
@@ -226,31 +235,87 @@ class TestRepairMojibake(object):
             JOIN en.target_imports l ON l.tid = t.tid JOIN en.imports i ON i.iid = l.iid
             ORDER BY 1, 2, 3""")
 
-    def test_fixed_in_place(self, load, pg_connection):
+    def test_fixed_in_place(self, load, pg_connection, repair):
         run('initdb', '-s', 'en')
         load('gnome-51', 'af', [('Open file', self.mangle('Maak lêer oop'))])
-        run('repair_mojibake', '--apply')
+        repair()
         assert self.links(pg_connection) == [('Open file', 'Maak lêer oop', 'gnome-51')]
 
-    def test_merged_into_the_fixed_target(self, load, pg_connection):
+    def test_merged_into_the_fixed_target(self, load, pg_connection, repair):
         run('initdb', '-s', 'en')
         load('gnome-51', 'af', [('Open file', self.mangle('Maak lêer oop'))])
         load('debian', 'af', [('Open file', 'Maak lêer oop')])
-        run('repair_mojibake', '--apply')
+        repair()
         assert self.links(pg_connection) == [
             ('Open file', 'Maak lêer oop', 'debian'),
             ('Open file', 'Maak lêer oop', 'gnome-51')]
         assert query(pg_connection, "SELECT COUNT(*) FROM en.target_imports") == [(2,)]
 
-    def test_merged_source(self, load, pg_connection):
+    def test_merged_source(self, load, pg_connection, repair):
         run('initdb', '-s', 'en')
         load('gnome-51', 'af', [(self.mangle('Résumé'), 'Opsomming')])
         load('debian', 'af', [('Résumé', 'Opsomming')])
-        run('repair_mojibake', '--apply')
+        repair()
         assert self.links(pg_connection) == [
             ('Résumé', 'Opsomming', 'debian'),
             ('Résumé', 'Opsomming', 'gnome-51')]
         assert query(pg_connection, "SELECT COUNT(*) FROM en.target_imports") == [(2,)]
+
+
+class TestCollapsed(object):
+    """deploy_db keeps each target's imports as one combination of them
+    (provenance), and target_imports as a view of the same links (#3554)."""
+
+    @pytest.fixture
+    def loaded(self, load):
+        run('initdb', '-s', 'en')
+        load('gnome-51', 'af', [('Open file', 'Maak lêer oop'), ('Save file', 'Stoor lêer'),
+                                ('Quit', 'Verlaat')])
+        load('debian', 'af', [('Open file', 'Maak lêer oop'), ('Close file', 'Maak toe')])
+        load('kde', 'zu', [('Open file', 'Vula ifayela'), ('Save file', 'Gcina ifayela')])
+        load('kde', 'zu', [('Save file', 'Gcina ifayela')])
+
+    def test_same_links(self, loaded, pg_connection):
+        links = "SELECT tid, iid FROM en.target_imports ORDER BY 1, 2"
+        before = query(pg_connection, links)
+        run('deploy_db', input='y\n')
+        assert query(pg_connection, links) == before
+        assert query(pg_connection, "SELECT relkind FROM pg_class "
+                     "WHERE oid = 'en.target_imports'::regclass") == [('v',)]
+
+    def test_combinations_shared(self, loaded, pg_connection):
+        run('deploy_db', input='y\n')
+        rows = query(pg_connection, """SELECT t.text, p.blocks, cardinality(p.iids)
+            FROM en.targets t JOIN en.provenance p ON p.id = t.provenance ORDER BY 1""")
+        assert rows == [('Gcina ifayela', ['kde'], 2), ('Maak lêer oop', ['debian', 'gnome-51'], 2),
+                        ('Maak toe', ['debian'], 1), ('Stoor lêer', ['gnome-51'], 1),
+                        ('Verlaat', ['gnome-51'], 1), ('Vula ifayela', ['kde'], 1)]
+        # Six targets, five combinations: Stoor lêer and Verlaat share one.
+        assert query(pg_connection, "SELECT COUNT(*) FROM en.provenance") == [(5,)]
+        assert query(pg_connection, "SELECT COUNT(*) FROM en.targets WHERE provenance IS NULL") \
+            == [(0,)]
+
+    def test_same_statistics(self, loaded):
+        from amagama import stats
+
+        def figures():
+            app = amagama_server_factory()
+            with app.app_context():
+                return stats.compute(app.tmdb, 'en')["blocks"]
+        before = figures()
+        run('deploy_db', input='y\n')
+        assert figures() == before
+        assert {block["name"]: block["targets"] for block in before} == {
+            'debian': 2, 'gnome-51': 3, 'kde': 2}
+
+    def test_unlinked_schema_clustered(self, amagama_config, pg_connection):
+        """A schema made before target_imports existed deploys as before."""
+        run('initdb', '-s', 'en')
+        with pg_connection.cursor() as cursor:
+            cursor.execute("DROP TABLE en.target_imports")
+        pg_connection.commit()
+        run('deploy_db', input='y\n')
+        assert query(pg_connection, "SELECT to_regclass('en.provenance')") == [(None,)]
 
 
 def test_replies_have_their_own_headers(load):
@@ -265,3 +330,77 @@ def test_replies_have_their_own_headers(load):
         str(len(r.data)) for r in replies]
     assert replies[0].headers is not replies[1].headers
     assert list(api.cache_headers) == [('Cache-Control', 'max-age=3600, public')]
+
+
+def test_concurrent_writes_keep_both(load, amagama_config, pg_server):
+    """Two writers adding imports to one deployed target: neither's is lost."""
+    import threading
+
+    import psycopg2
+
+    from amagama.tmdb import TMDB
+    run('initdb', '-s', 'en')
+    load('gnome-51', 'af', [('Open file', 'Maak lêer oop')])
+    run('deploy_db', input='y\n')
+    connect = dict(dbname='amagama_test', user=pg_server.user, password=pg_server.password,
+                   host=pg_server.host, port=pg_server.port)
+    first, second = psycopg2.connect(**connect), psycopg2.connect(**connect)
+    with first.cursor() as cursor:
+        cursor.execute("""INSERT INTO en.imports (block, filename, lang, units, skipped)
+            VALUES ('debian', 'a', 'af', 1, 0), ('kde', 'b', 'af', 1, 0) RETURNING iid""")
+        iids = [row[0] for row in cursor.fetchall()]
+        cursor.execute("SELECT tid, sid FROM en.targets")
+        tid, sid = cursor.fetchone()
+    first.commit()
+    adding = "SELECT %(tid)s AS tid, %(sid)s AS sid, 'af'::text AS lang, ARRAY[%(iid)s] AS iids"
+    for connection in (first, second):
+        with connection.cursor() as cursor:
+            cursor.execute("SET search_path TO en")
+    # The first holds the target; the second waits for it, then merges.
+    TMDB._add_provenance(first.cursor(), adding, {"tid": tid, "sid": sid, "iid": iids[0]})
+    waiting = threading.Thread(target=lambda: (
+        TMDB._add_provenance(second.cursor(), adding, {"tid": tid, "sid": sid, "iid": iids[1]}),
+        second.commit()), daemon=True)
+    waiting.start()
+    # Until the second is waiting for the first's lock on the target.
+    import time
+    deadline = time.monotonic() + 10
+    with first.cursor() as cursor:
+        while True:
+            # Statistics are read once a transaction unless cleared.
+            cursor.execute("SELECT pg_stat_clear_snapshot()")
+            cursor.execute("SELECT wait_event_type FROM pg_stat_activity WHERE pid = %s",
+                           (second.get_backend_pid(),))
+            if cursor.fetchone()[0] == "Lock":
+                break
+            assert time.monotonic() < deadline, "the second writer never waited for the lock"
+            time.sleep(0.05)
+    first.commit()
+    waiting.join(10)
+    # A deadlock fails here rather than hanging the suite (daemon: it isn't waited for).
+    assert not waiting.is_alive()
+    with first.cursor() as cursor:
+        cursor.execute("""SELECT p.blocks FROM en.targets t
+            JOIN en.provenance p ON p.id = t.provenance""")
+        assert cursor.fetchone()[0] == ['debian', 'gnome-51', 'kde']
+    first.close()
+    second.close()
+
+
+def test_target_from_many_imports(load, pg_connection):
+    """A translation in many files has many imports: its combination is too
+    big for a btree index entry, and must deploy all the same."""
+    run('initdb', '-s', 'en')
+    load('kde', 'af', [('Cancel', 'Kanselleer')])
+    with pg_connection.cursor() as cursor:
+        cursor.execute("""WITH added AS (
+                INSERT INTO en.imports (block, filename, lang, units, skipped)
+                SELECT 'kde', 'file-' || n, 'af', 1, 0 FROM generate_series(1, 1000) n
+                RETURNING iid)
+            INSERT INTO en.target_imports (tid, iid)
+            SELECT t.tid, a.iid FROM en.targets t, added a""")
+    pg_connection.commit()
+    run('deploy_db', input='y\n')
+    assert query(pg_connection, "SELECT cardinality(iids) FROM en.provenance") == [(1001,)]
+    with client() as c:
+        assert lookup(c, 'Cancel') == [('Kanselleer', ['kde'])]
