@@ -78,7 +78,7 @@ jobs:
           AMAGAMA_SEARCH_PAUSE: ${{ steps.token.outputs.works == 'true' && '6' || '61' }}
           # The workflow's token waits minutes at a time for the rate limit:
           # stop searching in time to read what was found within the step's
-          # 270. The commands share these minutes.
+          # 270. The discover_sources commands share these minutes.
           AMAGAMA_SEARCH_MINUTES: "180"
         run: >-
           devsupport/regenerate-sources.sh "$RUNNER_TEMP/reports"
