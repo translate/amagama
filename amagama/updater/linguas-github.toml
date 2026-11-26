@@ -80,15 +80,6 @@ sparse = ["po/*.po"]
 licence = "GPL-3.0-only"
 
 [[block]]
-name = "linguas-Collision"
-title = "Collision"
-url = "https://codeberg.org/GeopJr/Collision"
-mirror = "https://github.com/GeopJr/Collision"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "BSD-2-Clause"
-
-[[block]]
 name = "linguas-ConsoleKit2"
 title = "ConsoleKit2"
 url = "https://github.com/ConsoleKit2/ConsoleKit2"
@@ -295,6 +286,14 @@ sparse = ["po/*.po"]
 licence = "GPL-3.0-only"
 
 [[block]]
+name = "linguas-OpenX6X00"
+title = "OpenX6X00"
+url = "https://github.com/Guru-RF/OpenX6X00"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "LGPL-2.1-only"
+
+[[block]]
 name = "linguas-OpenXMB"
 title = "OpenXMB"
 url = "https://github.com/phenom64/OpenXMB"
@@ -439,6 +438,14 @@ url = "https://github.com/amule-project/amule"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "GPL-2.0-only"
+
+[[block]]
+name = "linguas-apexshot"
+title = "apexshot"
+url = "https://github.com/apex-shot/apexshot"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
 
 [[block]]
 name = "linguas-appcenter"
@@ -1543,6 +1550,14 @@ sparse = ["po/*.po"]
 licence = "GPL-3.0-only"
 
 [[block]]
+name = "linguas-overwitch"
+title = "overwitch"
+url = "https://github.com/dagargo/overwitch"
+files = ["po/{lang}.po"]
+sparse = ["po/*.po"]
+licence = "GPL-3.0-only"
+
+[[block]]
 name = "linguas-packet"
 title = "packet"
 url = "https://github.com/nozwock/packet"
@@ -1573,14 +1588,6 @@ url = "https://github.com/pablo-s/passes"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-pavucontrol"
-title = "pavucontrol"
-url = "https://github.com/pulseaudio/pavucontrol"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
 
 [[block]]
 name = "linguas-penguin-mail"
@@ -1685,7 +1692,7 @@ licence = "GPL-3.0-only"
 [[block]]
 name = "linguas-riff"
 title = "riff"
-url = "https://github.com/Diegovsky/riff"
+url = "https://github.com/Riff-Developers/riff"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "MIT"
@@ -1825,14 +1832,6 @@ url = "https://github.com/hakandundar34coding/system-monitoring-center"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
 licence = "GPL-3.0-only"
-
-[[block]]
-name = "linguas-systemd-stable"
-title = "systemd-stable"
-url = "https://github.com/systemd/systemd-stable"
-files = ["po/{lang}.po"]
-sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
 
 [[block]]
 name = "linguas-taxi"
@@ -2005,7 +2004,7 @@ title = "warzone2100"
 url = "https://github.com/Warzone2100/warzone2100"
 files = ["po/{lang}.po"]
 sparse = ["po/*.po"]
-licence = "GPL-2.0-only"
+licence = "GPL-3.0-only"
 
 [[block]]
 name = "linguas-waybox"

@@ -405,6 +405,18 @@ segment = true
 licence = "CC-BY-SA-4.0"
 
 [[block]]
+name = "fedora-docs-l10n-asciidoc-keywords"
+title = "fedora-docs-l10n/asciidoc-keywords"
+url = "https://forge.fedoraproject.org/localization-docs/asciidoc-keywords.git"
+ref = "main"
+files = ["langs/{lang}/asciidoc-attributes.yml"]
+sparse = ["asciidoc-attributes.yml", "langs/*/asciidoc-attributes.yml"]
+format = "yaml"
+template = "asciidoc-attributes.yml"
+segment = true
+licence = "CC-BY-SA-3.0"
+
+[[block]]
 name = "fedora-docs-l10n-atomic-desktops"
 title = "fedora-docs-l10n/atomic-desktops"
 url = "https://forge.fedoraproject.org/localization-docs/atomic-desktops.git"
@@ -735,6 +747,16 @@ segment = true
 licence = "CC-BY-SA-4.0"
 
 [[block]]
+name = "fedora-docs-l10n-fdwg"
+title = "fedora-docs-l10n/fdwg"
+url = "https://forge.fedoraproject.org/localization-docs/fdwg.git"
+ref = "main"
+files = ["po/{lang}/main/antora.yml.po", "po/{lang}/main/examples/exampe-example.po", "po/{lang}/main/nav.po", "po/{lang}/main/pages/architecture.po", "po/{lang}/main/pages/contribute.po", "po/{lang}/main/pages/index.po", "po/{lang}/main/partials/attributes.po", "po/{lang}/main/partials/partial-example.po"]
+sparse = ["po/*/main/antora.yml.po", "po/*/main/examples/exampe-example.po", "po/*/main/nav.po", "po/*/main/pages/architecture.po", "po/*/main/pages/contribute.po", "po/*/main/pages/index.po", "po/*/main/partials/attributes.po", "po/*/main/partials/partial-example.po"]
+segment = true
+licence = "CC-BY-SA-4.0"
+
+[[block]]
 name = "fedora-docs-l10n-fedora"
 title = "fedora-docs-l10n/fedora"
 url = "https://forge.fedoraproject.org/localization-docs/fedora.git"
@@ -851,16 +873,6 @@ url = "https://forge.fedoraproject.org/localization-docs/gaming.git"
 ref = "main"
 files = ["po/{lang}/**/*.po"]
 sparse = ["po/*/**/*.po"]
-segment = true
-licence = "CC-BY-SA-3.0"
-
-[[block]]
-name = "fedora-docs-l10n-i3"
-title = "fedora-docs-l10n/i3"
-url = "https://forge.fedoraproject.org/localization-docs/i3.git"
-ref = "main"
-files = ["po/{lang}/master/antora.yml.po", "po/{lang}/master/nav.po", "po/{lang}/master/pages/bugs.po", "po/{lang}/master/pages/design-goals.po", "po/{lang}/master/pages/faq.po", "po/{lang}/master/pages/index.po", "po/{lang}/master/pages/kickstart.po", "po/{lang}/master/pages/meetings.po", "po/{lang}/master/pages/package-groups.po", "po/{lang}/master/partials/attributes.po"]
-sparse = ["po/*/master/antora.yml.po", "po/*/master/nav.po", "po/*/master/pages/bugs.po", "po/*/master/pages/design-goals.po", "po/*/master/pages/faq.po", "po/*/master/pages/index.po", "po/*/master/pages/kickstart.po", "po/*/master/pages/meetings.po", "po/*/master/pages/package-groups.po", "po/*/master/partials/attributes.po"]
 segment = true
 licence = "CC-BY-SA-3.0"
 
@@ -1049,8 +1061,8 @@ name = "fedora-docs-l10n-mindshare-committee-events"
 title = "fedora-docs-l10n/mindshare-committee-events"
 url = "https://forge.fedoraproject.org/localization-docs/mindshare-committee-events.git"
 ref = "main"
-files = ["po/{lang}/main/nav.po", "po/{lang}/main/pages/boxes/europe.po", "po/{lang}/main/pages/boxes/index.po", "po/{lang}/main/pages/boxes/united-states.po", "po/{lang}/main/pages/covid19.po", "po/{lang}/main/pages/release-parties.po", "po/{lang}/main/pages/requests/large.po", "po/{lang}/main/pages/requests/medium.po", "po/{lang}/main/pages/requests/small.po", "po/{lang}/main/pages/requests/swag-only.po"]
-sparse = ["po/*/main/nav.po", "po/*/main/pages/boxes/europe.po", "po/*/main/pages/boxes/index.po", "po/*/main/pages/boxes/united-states.po", "po/*/main/pages/covid19.po", "po/*/main/pages/release-parties.po", "po/*/main/pages/requests/large.po", "po/*/main/pages/requests/medium.po", "po/*/main/pages/requests/small.po", "po/*/main/pages/requests/swag-only.po"]
+files = ["po/{lang}/**/*.po"]
+sparse = ["po/*/**/*.po"]
 segment = true
 licence = "CC-BY-SA-4.0"
 
