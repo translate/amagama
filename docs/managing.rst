@@ -703,7 +703,8 @@ gone. Rerun a command with ``--output`` on its committed file and propose the
 diff in a pull request with the report as its description (the monthly
 :file:`.github/workflows/discover.yml` does this for each file it lists,
 rerunning the command in the file's header with
-:file:`devsupport/regenerate-sources.sh`): keep a new
+:file:`devsupport/regenerate-sources.sh`, then ``amagama-manage sources_pot`` and
+the block count in ``test_shipped_sources``): keep a new
 candidate, or reject it with ``disabled = "<reason>"``, which keeps it out of
 every later run. Changes to blocks already imported are the updater's to
 find (see :ref:`update <managing#update>`), not this.

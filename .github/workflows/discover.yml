@@ -96,12 +96,24 @@ jobs:
           amagama/updater/wlc-github.toml
       - name: Open a pull request
         env:
+          AMAGAMA_CONFIG: ${{ runner.temp }}/settings.py
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if git diff --quiet; then
             echo "Nothing changed."
             exit 0
           fi
+          # The tests check the blocks' titles and how many there are.
+          amagama-manage sources_pot
+          python - <<'EOF'
+          import pathlib, re
+          from amagama.updater.sources import load_sources
+          test = pathlib.Path("amagama/tests/test_updater.py")
+          text, found = re.subn(r"(assert len\(blocks\) == )\d+", r"\g<1>%d" % len(load_sources()),
+                                test.read_text())
+          assert found == 1, found
+          test.write_text(text)
+          EOF
           # One branch: a rerun, or a run with last month's pull request still
           # open, replaces it and updates that pull request.
           branch=discovered-sources
