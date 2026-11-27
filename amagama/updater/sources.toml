@@ -183,6 +183,17 @@ licence = "LGPL-3.0-only"
 versions = ["19", "20"]
 
 [[block]]
+name = "gitlab"
+title = "GitLab"
+source = "git"
+min_age_days = 7
+url = "https://gitlab.com/gitlab-org/gitlab.git"
+ref = "master"
+files = ["locale/{lang}/gitlab.po"]
+# locale/ is outside doc/, ee/ and jh/, which have their own licences.
+licence = "MIT"
+
+[[block]]
 name = "qt-{version}"
 title = "Qt"
 source = "git"

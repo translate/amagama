@@ -64,6 +64,10 @@ msgid "Odoo"
 msgstr ""
 
 #. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
+msgid "GitLab"
+msgstr ""
+
+#. The name of a project amaGama has translations from. Translate or transliterate it only where that's usual.
 msgid "Qt"
 msgstr ""
 
