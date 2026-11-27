@@ -249,10 +249,11 @@ def importer():
     nothing is copied from data built before it."""
     from importlib.metadata import version
     root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    # The vendored abstraction decides what sources are indexed as (#3603).
     paths = sorted([os.path.join(root, name) for name in (
         "tmdb.py", "unit_checks.py", "poparser_compat.py")] + [
-        os.path.join(root, "updater", name) for name in os.listdir(os.path.join(root, "updater"))
-        if name.endswith(".py")])
+        os.path.join(root, directory, name) for directory in ("updater", "vendored")
+        for name in os.listdir(os.path.join(root, directory)) if name.endswith(".py")])
     digest = hashlib.sha256(version("translate-toolkit").encode("utf-8"))
     for path in paths:
         with open(path, "rb") as f:

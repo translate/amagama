@@ -119,7 +119,7 @@ class TestRepairMojibake(object):
     def test_failed_apply_changes_nothing(self, mangled_database, monkeypatch):
         def fail(*args):
             raise RuntimeError("indexing failed")
-        monkeypatch.setattr('amagama.tmdb.indexing_version', fail)
+        monkeypatch.setattr('amagama.tmdb.indexed', fail)
         result = run('repair_mojibake', '--apply')
         assert result.exit_code != 0
         assert targets(mangled_database, 'File') == sorted(

@@ -5,6 +5,8 @@ amaGama API
 
 amaGama answers HTTP requests with JSON. The API lives under ``/api/v1/``;
 ``/tmserver/`` is the older path to the same read API and still works.
+``/api/v2/`` has one lookup, by a client's abstract of the text (:ref:`API v2
+<api#v2>`).
 
 
 .. _api#tm-suggestion-request:
@@ -70,13 +72,11 @@ following fields.
 |                   | 30. Default: :setting:`MAX_CANDIDATES`    |
 |                   | (5).                                      |
 +-------------------+-------------------------------------------+
-| style             | The project's checker style, so that      |
-|                   | accelerators and similar markup are       |
-|                   | matched as that project writes them (``&``|
-|                   | for KDE, ``_`` for GNOME). One of:        |
-|                   | creativecommons, drupal, gnome, ios, kde, |
-|                   | libreoffice, minimal, mozilla, openoffice,|
-|                   | reduced, standard, terminology, wx.       |
+| style             | Accepted, and no longer has an effect:    |
+|                   | sources are :ref:`found by abstracts      |
+|                   | <api#abstracts>`, which leave out         |
+|                   | accelerators of every style (``&`` for    |
+|                   | KDE, ``_`` for GNOME).                    |
 +-------------------+-------------------------------------------+
 | exclude           | Comma-separated globs of :ref:`block names|
 |                   | <api#sources>` to leave out, such as      |
@@ -290,6 +290,41 @@ An example:
          "checks": []
        }
      ]
+
+
+.. _api#abstracts:
+
+Finding sources by abstract
+===========================
+
+Sources are found by their abstract: the text with each placeable (a
+variable such as ``%s`` or ``{0}``, a tag, an entity, a URL, an e-mail
+address, a file name, a number or an option) replaced by one marker
+character for its kind, and the accelerator left out, so ``Copy %s to %s``
+and ``Copy {0} to {1}`` are found alike. Text that is placeables alone (a URL,
+a path) is found by its text, having no words in its abstract. A lookup finds
+sources by the query's abstract, and scores their text against the query's.
+
+
+.. _api#v2:
+
+Lookups by abstract (API v2)
+============================
+
+API v2 takes an abstract the client made and scores the sources' abstracts
+against it, for a client that puts its own placeables back into a suggestion
+(as Virtaal does):
+
+``GET <SERVER>/api/v2/<SOURCE_LANGUAGE>/<TARGET_LANGUAGE>/unit/?q=<ABSTRACT>&av=<VERSION>``
+
+``av`` is the version of the abstraction the client used, Virtaal's
+``ABSTRACTION_VERSION``. If it isn't the server's, the reply is a 409 with
+``error`` and the server's ``version``, and the client should use API v1;
+without a ``q``, or with an ``av`` that isn't a number, it's a 400. An
+abstract of placeables alone has no words to find sources by: API v1 finds
+those by their text. The options and the reply are those of :ref:`API v1
+<api#tm-suggestion-results>`; ``source`` and ``target`` are the stored text,
+not abstracts.
 
 
 .. _api#languages:

@@ -37,6 +37,7 @@ from amagama import postgres
 from amagama.mojibake import CANDIDATE_REGEX, unmangle
 from amagama.source_options import SourceOptions
 from amagama import pruning
+from amagama.vendored import abstraction
 from amagama.normalise import indexing_version
 from amagama.updater.languages import COUNTRY_CODES, normalise_language, not_language
 
@@ -585,6 +586,34 @@ ORDER BY rank DESC{order};
             raise
         return tuple(counts)
 
+    @staticmethod
+    def _reindex_sources(cursor, slang):
+        """Index the sources a snapshot brought by their abstracts (indexed()),
+        as an import does: a snapshot may hold another indexing's. Those whose
+        abstract is their text, as was the indexing before (#3603), are as
+        they were."""
+        config = lang_to_config(slang)
+        update = """UPDATE sources s SET vector = TO_TSVECTOR(%s, v.abstract),
+            length = v.length FROM (VALUES %%s) AS v (sid, abstract, length)
+            WHERE s.sid = v.sid""" % sql.Literal(config).as_string(cursor)
+        changed = []
+        # Streamed, and written a page at a time: a snapshot can hold a
+        # million sources. The cursor reads them as they were at its start.
+        with cursor.connection.cursor(name="reindex_sources") as rows:
+            rows.itersize = 10000
+            rows.execute("SELECT sid, text FROM sources")
+            for sid, text in rows:
+                found, length = indexed(text)
+                if found != text or indexing_version(text) != text:
+                    changed.append((sid, found, length))
+                if len(changed) >= INSERT_PAGE:
+                    execute_values(cursor, update, changed,
+                                   template="(%s::integer, %s::text, %s::integer)")
+                    changed = []
+        if changed:
+            execute_values(cursor, update, changed,
+                           template="(%s::integer, %s::text, %s::integer)")
+
     def records_blocks(self, slang):
         """Whether the live slang schema records which block supplied what."""
         slang = lang_to_table(slang)
@@ -759,6 +788,7 @@ ORDER BY rank DESC{order};
                     _insert_indexable(cursor, """INSERT INTO sources (sid, text, vector, length)
                         VALUES (%s, %s, %s, %s) ON CONFLICT DO NOTHING""",
                         tuple(row), row['text'])
+            self._reindex_sources(cursor, slang)
             cursor.execute("""SELECT setval(pg_get_serial_sequence('sources', 'sid'),
                 COALESCE(MAX(sid), 0) + 1, false) FROM sources""")
 
@@ -934,7 +964,6 @@ ORDER BY rank DESC{order};
             return len(sources), len(targets), unconverted
 
         lang_config = lang_to_config(slang)
-        checker = project_checker(None, slang)
         try:
             links = self._has_relation(cursor, 'target_imports')
             for sid, lang, text, fixed in targets:
@@ -976,8 +1005,8 @@ ORDER BY rank DESC{order};
                     cursor.execute("""UPDATE sources SET text = %(text)s, length = %(length)s,
                         vector = TO_TSVECTOR(%(lang_config)s, %(indexed)s)
                         WHERE sid = %(sid)s""", {
-                        'text': fixed, 'length': len(fixed), 'lang_config': lang_config,
-                        'indexed': indexing_version(fixed, checker), 'sid': sid})
+                        'text': fixed, 'length': indexed(fixed)[1], 'lang_config': lang_config,
+                        'indexed': indexed(fixed)[0], 'sid': sid})
             cursor.connection.commit()
         except Exception:
             self.rollback(cursor.connection)
@@ -1388,7 +1417,6 @@ ORDER BY rank DESC{order};
             # Everything is already cached.
             return set()
 
-        checker = project_checker(project_style, source_lang)
 
         cursor = self.get_cursor(schema)
         select_query = """SELECT text, sid FROM sources WHERE
@@ -1399,13 +1427,11 @@ ORDER BY rank DESC{order};
         to_store = all_sources - already_cached - set(already_stored)
         if to_store:
             lang_config = lang_to_config(source_lang)
-            params = [{
-                    "lang_config": lang_config,
-                    "source": s,
-                    "indexed_source": indexing_version(s, checker),
-                    "length": len(s),
-                } for s in sorted(to_store)  # sorted to avoid deadlocks
-            ]
+            params = []
+            for s in sorted(to_store):  # sorted to avoid deadlocks
+                found, length = indexed(s)
+                params.append({"lang_config": lang_config, "source": s,
+                               "indexed_source": found, "length": length})
             # A parallel import may add the same source first.
             insert = """INSERT INTO sources (text, vector, length)
                 VALUES (%(source)s, TO_TSVECTOR(%(lang_config)s, %(indexed_source)s), %(length)s)
@@ -1602,8 +1628,14 @@ ORDER BY rank DESC{order};
 
     def translate_unit(self, unit_source, source_lang, target_lang,
                        project_style=None, min_similarity=None,
-                       max_candidates=None, source_options=None):
-        """Return TM suggestions for unit_source, chosen by source_options."""
+                       max_candidates=None, source_options=None, abstracted=False):
+        """Return TM suggestions for unit_source, chosen by source_options.
+
+        Sources are found by their abstracts (indexed(), #3603). With
+        abstracted, unit_source is an abstract (API v2) and is scored
+        against the sources' abstracts; otherwise the text against theirs.
+        project_style is accepted, as it was used, but has no effect:
+        abstracts leave out accelerators of every style."""
         slang = lang_to_table(source_lang)
         if slang not in self.source_langs:
             abort(404)
@@ -1618,7 +1650,7 @@ ORDER BY rank DESC{order};
         if "\x00" in unit_source:
             abort(400)
 
-        checker = project_checker(project_style, source_lang)
+        query = unit_source if abstracted else indexed(unit_source)[0]
 
         max_length = current_app.config.get('MAX_LENGTH', 2000)
         min_similarity = max(min_similarity or current_app.config.get('MIN_SIMILARITY', 70), 70)
@@ -1626,20 +1658,21 @@ ORDER BY rank DESC{order};
             max_candidates = current_app.config.get('MAX_CANDIDATES', 5)
         max_candidates = min(max_candidates, 30)
 
-        source_len = len(unit_source)
+        # Lengths are the abstracts', as the sources' are.
+        source_len = len(query)
         minlen = min_levenshtein_length(source_len, min_similarity)
         maxlen = max_levenshtein_length(source_len, min_similarity, max_length)
 
         minrank = max(min_similarity / 2, 30)
 
         cursor = self.get_cursor(self.schema(slang))
-        self._translate_query(cursor, slang, tlang, indexing_version(unit_source, checker),
-                              minlen, maxlen, minrank)
+        self._translate_query(cursor, slang, tlang, query, minlen, maxlen, minrank)
 
         results = []
         similarity = self.comparer.similarity
         for row in cursor:
-            quality = similarity(unit_source, row['source'], min_similarity)
+            compared = indexed(row['source'])[0] if abstracted else row['source']
+            quality = similarity(unit_source, compared, min_similarity)
             if quality >= min_similarity:
                 result = dict(row)
                 result['quality'] = quality
@@ -1669,6 +1702,18 @@ ORDER BY rank DESC{order};
             result['sources'] = blocks.get(key, [])
             result['checks'] = [name for bit, name in sorted((check_names or {}).items())
                                 if flags.get(key, 0) >> bit & 1]
+
+
+def indexed(text):
+    """(what text is indexed as, its length): its abstract, each placeable one
+    marker and no accelerator, as Virtaal looks up by (#3603). The markers
+    aren't words, so the index holds text's words around them; text that is
+    placeables alone (a URL, a path, "$1, $2") is indexed as it is, as it
+    would otherwise have no words to be found by."""
+    found = abstraction.abstract(text)[0]
+    if not re.search(r"\w", found):
+        return text, len(text)
+    return found, len(found)
 
 
 def min_levenshtein_length(length, min_similarity):
