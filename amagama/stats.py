@@ -191,7 +191,25 @@ def compute(tmdb, slang):
         blocks = [{"name": name, "title": title or name, "version": version,
                    "languages": langs, "imported": _utc(imported), "targets": None, "checks": {}}
                   for name, title, version, langs, imported in cursor.fetchall()]
-    if blocks and _exists(cursor, schema, "target_imports"):
+    linked = blocks and _exists(cursor, schema, "provenance")
+    if linked:
+        # Deployed (#3554): each combination of imports once, with its blocks,
+        # counted from the targets grouped by it.
+        cursor.execute(sql.SQL("""SELECT b.block, SUM(c.n)::bigint FROM (
+                SELECT provenance, COUNT(*) AS n FROM {0}.targets GROUP BY 1) c
+            JOIN {0}.provenance p ON p.id = c.provenance, UNNEST(p.blocks) b (block)
+            GROUP BY 1""").format(s))
+        targets = dict(cursor.fetchall())
+        by_block = {}
+        if flagged:
+            cursor.execute(sql.SQL("""SELECT b.block, c.checks, SUM(c.n)::bigint FROM (
+                    SELECT provenance, checks, COUNT(*) AS n FROM {0}.targets
+                    WHERE checks IS NOT NULL GROUP BY 1, 2) c
+                JOIN {0}.provenance p ON p.id = c.provenance, UNNEST(p.blocks) b (block)
+                GROUP BY 1, 2""").format(s))
+            by_block = _failures(cursor.fetchall(), flagged)
+    elif blocks and _exists(cursor, schema, "target_imports"):
+        linked = True
         cursor.execute(sql.SQL("""SELECT block, COUNT(*) FROM (
                 SELECT DISTINCT i.block, l.tid FROM {0}.target_imports l
                 JOIN {0}.imports i ON i.iid = l.iid WHERE i.block IS NOT NULL) d
@@ -204,6 +222,7 @@ def compute(tmdb, slang):
                 JOIN {0}.imports i ON i.iid = l.iid
                 WHERE t.checks IS NOT NULL AND i.block IS NOT NULL GROUP BY 1, 2""").format(s))
             by_block = _failures(cursor.fetchall(), flagged)
+    if linked:
         for block in blocks:
             block["targets"] = int(targets.get(block["name"], 0))
             block["checks"] = by_block.get(block["name"], {})

@@ -688,13 +688,19 @@ class Report(object):
                 self.by_block[name][block] += n
                 if by_source:
                     self.by_source[(block, lang)][name] += n
+        # The examples' blocks in one query: in a deployed schema
+        # target_imports is a view, and finding a target by tid reads them all.
+        tids = sorted({example[3] for examples in self.examples.values() for example in examples})
+        found = {}
+        if tids:
+            cursor.execute(sql.SQL("""SELECT l.tid, ARRAY_AGG(DISTINCT i.block ORDER BY i.block)
+                FROM {0}.target_imports l JOIN {0}.imports i ON i.iid = l.iid
+                WHERE l.tid = ANY(%s) AND i.block IS NOT NULL GROUP BY l.tid""").format(
+                sql.Identifier(schema)), (tids,))
+            found = dict(cursor.fetchall())
         for examples in self.examples.values():
             for example in examples:
-                cursor.execute(sql.SQL("""SELECT DISTINCT i.block FROM {0}.target_imports l
-                    JOIN {0}.imports i ON i.iid = l.iid
-                    WHERE l.tid = %s AND i.block IS NOT NULL ORDER BY i.block""").format(
-                    sql.Identifier(schema)), (example[3],))
-                example[3] = [block for block, in cursor.fetchall()]
+                example[3] = found.get(example[3], [])
 
 
 def _rows(connection, schema, langs, styled=False, unchecked=False):

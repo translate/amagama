@@ -102,6 +102,13 @@ words alone. It also counts how many sources have each word (``word_counts``),
 so a lookup of several words matches only sources with enough of its rarer
 ones to rank: the same suggestions, from far fewer sources read.
 
+Each translation's imports, a row per import while a rebuild runs, become one
+of the distinct combinations of them (``provenance``, with their blocks), and
+``target_imports`` a view of the same links: a few hundred thousand
+combinations in place of tens of millions of rows and their index. A
+deployed schema adds to a translation's combination where it would add a link
+(the write API, :ref:`repair_mojibake <managing#repair-mojibake>`).
+
 .. _managing#dropdb:
 
 dropdb
