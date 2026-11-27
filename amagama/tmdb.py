@@ -32,11 +32,12 @@ from psycopg2.extras import execute_values
 from translate.lang import data
 from translate.search.lshtein import LevenshteinComparer
 from translate.storage import xliff
+from translate.storage.base import TranslationUnit
 
 from amagama import postgres
 from amagama.mojibake import CANDIDATE_REGEX, unmangle
 from amagama.source_options import SourceOptions
-from amagama import pruning
+from amagama import plurals, pruning
 from amagama.normalise import indexing_version
 from amagama.updater.languages import COUNTRY_CODES, normalise_language, not_language
 
@@ -290,6 +291,10 @@ CREATE TABLE targets (
     lang VARCHAR(32) NOT NULL,
     -- The checks it fails, as bits of check_names; NULL for none.
     checks BIGINT,
+    -- A plural's forms, in its file's order, and how many the language
+    -- has (amagama.plurals); NULL for any other translation.
+    forms TEXT[],
+    nplurals SMALLINT,
     FOREIGN KEY (sid) references sources(sid)
 );
 CREATE UNIQUE INDEX targets_unique_idx ON targets (sid, text, lang);
@@ -408,6 +413,8 @@ ORDER BY rank DESC{order};
         # {connection: {slang: the names of the lookup statements prepared for it,
         # as now and, if its data counts words, pruned}}
         self._prepared_statements = weakref.WeakKeyDictionary()
+        # {connection: {schema: whether its targets hold plurals' forms}}
+        self._forms_known = weakref.WeakKeyDictionary()
 
     def _load_source_langs(self):
         cursor = self.get_cursor()
@@ -437,6 +444,7 @@ ORDER BY rank DESC{order};
     def forget_connection(self, conn):
         super(TMDB, self).forget_connection(conn)
         self._prepared_statements.pop(conn, None)
+        self._forms_known.pop(conn, None)
 
     def init_app(self, app):
         super(TMDB, self).init_app(app)
@@ -657,9 +665,15 @@ ORDER BY rank DESC{order};
                 SELECT l.tid, c.new AS iid FROM {}.target_imports l
                 JOIN copied_imports c ON c.old = l.iid""").format(live))
             cursor.execute("CREATE INDEX ON copied_links (tid)")
+            # A plural's forms too, where live has them (built after #3351).
+            cursor.execute("""SELECT EXISTS(SELECT 1 FROM pg_attribute
+                WHERE attrelid = to_regclass(%s) AND attname = 'forms' AND NOT attisdropped)""",
+                (slang + ".targets",))
+            forms = ("forms, nplurals" if cursor.fetchone()[0]
+                     else "NULL::text[] AS forms, NULL::smallint AS nplurals")
             cursor.execute(sql.SQL("""CREATE TEMP TABLE copied_targets ON COMMIT DROP AS
-                SELECT tid, sid, text, lang, checks FROM {}.targets
-                WHERE tid IN (SELECT tid FROM copied_links)""").format(live))
+                SELECT tid, sid, text, lang, checks, %s FROM {}.targets
+                WHERE tid IN (SELECT tid FROM copied_links)""" % forms).format(live))
             # Each source once, with its vector, and the build's sid for it.
             cursor.execute(sql.SQL("""CREATE TEMP TABLE copied_sources ON COMMIT DROP AS
                 SELECT sid, text, vector, length FROM {}.sources
@@ -687,18 +701,21 @@ ORDER BY rank DESC{order};
             cursor.execute(sql.SQL("""CREATE TABLE IF NOT EXISTS {}.checked_before
                 (tid INTEGER PRIMARY KEY)""").format(build))
             cursor.execute(sql.SQL("""WITH inserted AS (
-                    INSERT INTO {0}.targets (sid, text, lang, checks)
-                    SELECT m.new, t.text, t.lang, t.checks FROM copied_targets t
+                    INSERT INTO {0}.targets (sid, text, lang, checks, forms, nplurals)
+                    SELECT m.new, t.text, t.lang, t.checks, t.forms, t.nplurals
+                    FROM copied_targets t
                     JOIN copied_sids m ON m.old = t.sid WHERE octet_length(t.text) <= %s
                     ON CONFLICT (sid, text, lang) DO NOTHING RETURNING tid)
                 INSERT INTO {0}.checked_before SELECT tid FROM inserted""").format(build),
                 (SAFE_INDEX_BYTES,))
             targets = cursor.rowcount
-            cursor.execute("""SELECT m.new, t.text, t.lang, t.checks FROM copied_targets t
+            cursor.execute("""SELECT m.new, t.text, t.lang, t.checks, t.forms, t.nplurals
+                FROM copied_targets t
                 JOIN copied_sids m ON m.old = t.sid WHERE octet_length(t.text) > %s""",
                 (SAFE_INDEX_BYTES,))
-            insert = sql.SQL("""INSERT INTO {}.targets (sid, text, lang, checks)
-                VALUES (%s, %s, %s, %s) ON CONFLICT (sid, text, lang) DO NOTHING RETURNING tid""").format(
+            insert = sql.SQL("""INSERT INTO {}.targets (sid, text, lang, checks, forms, nplurals)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                ON CONFLICT (sid, text, lang) DO NOTHING RETURNING tid""").format(
                 build).as_string(cursor)
             checked = sql.SQL("INSERT INTO {}.checked_before VALUES (%s)").format(
                 build).as_string(cursor)
@@ -780,6 +797,11 @@ ORDER BY rank DESC{order};
                 AND table_schema IN (current_schema(), %s)""", (snapshot,))
             keep_tid = cursor.fetchone()[0]
             columns = "tid, sid, text, lang" if keep_tid else "sid, text, lang"
+            # A plural's forms, from a snapshot made since targets had them.
+            cursor.execute("""SELECT COUNT(*) = 2 FROM information_schema.columns
+                WHERE table_name = 'targets' AND column_name = 'forms'
+                AND table_schema IN (current_schema(), %s)""", (snapshot,))
+            keep_forms = cursor.fetchone()[0]
             # A KDE transcript's translation before it (without_transcript());
             # one with none isn't loaded, and duplicates fall to the index.
             transcript = "strpos(t.text, '%s') > 0 AND strpos(s.text, '%s') = 0" % (
@@ -788,6 +810,9 @@ ORDER BY rank DESC{order};
                 transcript, TRANSCRIPT)
             picked = ("t.tid, t.sid, " if keep_tid else "t.sid, ") + text + " AS text" + \
                 ", COALESCE(%s::jsonb ->> t.lang, t.lang) AS lang"
+            if keep_forms:
+                columns += ", forms, nplurals"
+                picked += ", t.forms, t.nplurals"
             loaded = "t.lang = ANY(%%s) AND NOT (%s AND btrim(%s) = '')" % (transcript, text)
             cursor.execute(sql.SQL("""INSERT INTO targets (%s)
                 SELECT %s FROM {} t JOIN sources s ON s.sid = t.sid
@@ -1286,29 +1311,37 @@ ORDER BY rank DESC{order};
             self._available_langs = {}
         return int(bool(added))
 
-    def add_dict(self, unit, cursor, iid=None, unique=True):
+    def add_dict(self, unit, cursor, iid=None, unique=True, forms=False):
         """Insert units represented as dictionaries in database.
 
         With iid, link the target to that import; unique says whether
-        targets has its unique index, which a deployed schema doesn't. The
+        targets has its unique index, which a deployed schema doesn't; forms
+        whether it has a plural's forms (unit's forms and nplurals). The
         caller is expected to handle errors.
         """
         unit['sid'] = self.get_sid(unit, cursor)
+        columns, values = ((", forms, nplurals", ", %(forms)s, %(nplurals)s")
+                           if forms and unit.get('forms') else ("", ""))
         if iid is None:
             # ON CONFLICT covers a parallel import adding the same target; NOT
             # EXISTS a deployed schema, which has no unique index.
-            return _insert_indexable(cursor, """INSERT INTO targets (sid, text, lang)
-                SELECT %(sid)s, %(target)s, %(target_lang)s
+            return _insert_indexable(cursor, """INSERT INTO targets (sid, text, lang%s)
+                SELECT %%(sid)s, %%(target)s, %%(target_lang)s%s
                 WHERE NOT EXISTS (SELECT 1 FROM targets
-                    WHERE sid = %(sid)s AND lang = %(target_lang)s AND text = %(target)s)
-                ON CONFLICT DO NOTHING""", unit, unit['target'])
+                    WHERE sid = %%(sid)s AND lang = %%(target_lang)s AND text = %%(target)s)
+                ON CONFLICT DO NOTHING""" % (columns, values), unit, unit['target'])
         if unique:
             # Unlike DO NOTHING, DO UPDATE returns the tid of a target that
             # is already there, even one a parallel import just added.
-            row = _insert_indexable(cursor, """INSERT INTO targets (sid, text, lang)
-                VALUES (%(sid)s, %(target)s, %(target_lang)s)
-                ON CONFLICT (sid, text, lang) DO UPDATE SET sid = EXCLUDED.sid
-                RETURNING tid""", unit, unit['target'], returning=True)
+            # A plural's forms fill a row that has none (an ordinary
+            # translation with the same text imported first).
+            filled = (", forms = COALESCE(targets.forms, EXCLUDED.forms), "
+                      "nplurals = COALESCE(targets.nplurals, EXCLUDED.nplurals)" if columns else "")
+            row = _insert_indexable(cursor, """INSERT INTO targets (sid, text, lang%s)
+                VALUES (%%(sid)s, %%(target)s, %%(target_lang)s%s)
+                ON CONFLICT (sid, text, lang) DO UPDATE SET sid = EXCLUDED.sid%s
+                RETURNING tid""" % (columns, values, filled), unit, unit['target'],
+                returning=True)
             if not row:
                 return False
         else:
@@ -1317,30 +1350,57 @@ ORDER BY rank DESC{order};
                 LIMIT 1""", unit)
             row = cursor.fetchone()
             if row is None:
-                cursor.execute("""INSERT INTO targets (sid, text, lang)
-                    VALUES (%(sid)s, %(target)s, %(target_lang)s) RETURNING tid""", unit)
+                cursor.execute("""INSERT INTO targets (sid, text, lang%s)
+                    VALUES (%%(sid)s, %%(target)s, %%(target_lang)s%s) RETURNING tid"""
+                               % (columns, values), unit)
                 row = cursor.fetchone()
+            elif columns:
+                cursor.execute("""UPDATE targets SET forms = %(forms)s, nplurals = %(nplurals)s
+                    WHERE sid = %(sid)s AND lang = %(target_lang)s AND tid = %(tid)s
+                    AND forms IS NULL""", dict(unit, tid=row[0]))
         cursor.execute("""INSERT INTO target_imports (tid, iid) VALUES (%s, %s)
             ON CONFLICT DO NOTHING""", (row[0], iid))
         return True
 
-    def _add_batch(self, units, cursor, iid):
+    def _add_batch(self, units, cursor, iid, forms=False):
         """add_dict() for units in a few statements, not a few each: targets
         too short to risk the index limit, linked to import iid, in a schema
-        with its unique index. Returns how many units were stored."""
+        with its unique index (and a plural's forms if forms). Returns how
+        many units were stored."""
         if not units:
             return 0
         sids = self._sids(cursor, {unit['source'] for unit in units},
                           self.schema(units[0]['source_lang']))
-        rows = sorted({(sids[unit['source']], unit['target'], unit['target_lang'])
-                       for unit in units}, key=lambda row: (row[1], row[0]))
+        # One row per target (an INSERT can't update one twice), a plural's
+        # if any of them is.
+        by_target = {}
+        for unit in units:
+            key = (sids[unit['source']], unit['target'], unit['target_lang'])
+            plural = (tuple(unit['forms']), unit.get('nplurals')) if forms and unit.get('forms') \
+                else (None, None)
+            if key not in by_target or by_target[key][0] is None:
+                by_target[key] = plural
+        rows = sorted((key + plural for key, plural in by_target.items()),
+                      key=lambda row: (row[1], row[0]))
         # A target already there isn't written again (DO UPDATE would make a
         # new row version for each repeat): its tid is read instead.
-        added = execute_values(cursor, """INSERT INTO targets (sid, text, lang) VALUES %s
-            ON CONFLICT (sid, text, lang) DO NOTHING
-            RETURNING sid, text, lang, tid""", rows, page_size=INSERT_PAGE, fetch=True)
+        if forms:
+            # A plural's forms fill a row that has none; other rows aren't
+            # written again.
+            added = execute_values(cursor, """INSERT INTO targets (sid, text, lang, forms, nplurals)
+                VALUES %s ON CONFLICT (sid, text, lang) DO UPDATE
+                SET forms = EXCLUDED.forms, nplurals = EXCLUDED.nplurals
+                WHERE targets.forms IS NULL AND EXCLUDED.forms IS NOT NULL
+                RETURNING sid, text, lang, tid""",
+                [row[:3] + (list(row[3]) if row[3] else None, row[4]) for row in rows],
+                template="(%s, %s, %s, %s::text[], %s)", page_size=INSERT_PAGE, fetch=True)
+        else:
+            added = execute_values(cursor, """INSERT INTO targets (sid, text, lang) VALUES %s
+                ON CONFLICT (sid, text, lang) DO NOTHING
+                RETURNING sid, text, lang, tid""", [row[:3] for row in rows],
+                page_size=INSERT_PAGE, fetch=True)
         tids = {row[3] for row in added}
-        there = sorted(set(rows) - {(row[0], row[1], row[2]) for row in added})
+        there = sorted({row[:3] for row in rows} - {(row[0], row[1], row[2]) for row in added})
         if there:
             tids.update(row[0] for row in execute_values(cursor, """SELECT t.tid
                 FROM targets t JOIN (VALUES %s) AS v (sid, text, lang)
@@ -1452,6 +1512,22 @@ ORDER BY rank DESC{order};
             return bool(u.target) and u.get_state_n() >= u.S_UNREVIEWED
         return u.istranslated()
 
+    @staticmethod
+    def _has_forms(cursor):
+        """Whether targets, in the current schema, can hold a plural's forms
+        (one made before #3351 can't)."""
+        cursor.execute("""SELECT EXISTS(SELECT 1 FROM pg_attribute
+            WHERE attrelid = to_regclass('targets') AND attname = 'forms' AND NOT attisdropped)""")
+        return cursor.fetchone()[0]
+
+    def _plural_translated(self, unit):
+        """Whether a plural unit's forms are translations: not fuzzy (and an
+        XLIFF one's state as _translated() asks). Its first form may be empty
+        while others aren't: each form is then taken or not on its own."""
+        if isinstance(unit, xliff.xliffunit):
+            return unit.get_state_n() >= unit.S_UNREVIEWED
+        return not unit.isfuzzy()
+
     def _usable_unit(self, u, target_lang=None):
         """Whether to import u. With target_lang, a copied_source() isn't,
         unless target_lang is a variant of English."""
@@ -1488,13 +1564,42 @@ ORDER BY rank DESC{order};
         joined is left out.
         """
         units = []
-        for u in store.units:
-            if not self._usable_unit(u, target_lang):
+        plural_rule = plurals.rule(store, target_lang)
+        # Plurals stored as two pairs: the second isn't one of the file's
+        # units, for the importer's skipped count.
+        store.plural_pairs = 0
+        for unit in store.units:
+            expanded = plurals.entries(unit, plural_rule)
+            if expanded is None:
+                pairs, forms, nplurals = [unit], None, None
+            elif not (unit.istranslatable() and self._plural_translated(unit)):
                 continue
-            source = _encodable(str(u.source))
-            target = _encodable(without_transcript(str(u.source), str(u.target)))
-            if source is not None and target is not None:
-                units.append({'source': source, 'target': target})
+            else:
+                # A plural: its singular and its plural, each checked as any
+                # translation is, both with all the forms.
+                found, forms, nplurals = expanded
+                if not found:
+                    # Neither form its rule picks is in the file.
+                    continue
+                pairs = []
+                for source, target in found:
+                    pairs.append(TranslationUnit(source))
+                    pairs[-1].target = target
+                # As the targets are stored: without a KDE transcript.
+                forms = [_encodable(without_transcript(found[0][0], form)) for form in forms]
+                if None in forms:
+                    forms = nplurals = None
+            stored = 0
+            for u in pairs:
+                if not self._usable_unit(u, target_lang):
+                    continue
+                source = _encodable(str(u.source))
+                target = _encodable(without_transcript(str(u.source), str(u.target)))
+                if source is not None and target is not None:
+                    units.append({'source': source, 'target': target, 'forms': forms,
+                                  'nplurals': nplurals})
+                    stored += 1
+            store.plural_pairs += max(stored - 1, 0)
 
         if not units:
             return 0
@@ -1521,6 +1626,7 @@ ORDER BY rank DESC{order};
         cursor = self.get_cursor(self.schema(slang))
         try:
             iid, unique = self._link_mode(cursor, iid)
+            forms = self._has_forms(cursor)
             # We sort to avoid deadlocks during parallel import.
             units.sort(key=lambda x: x['target'])
             count = 0
@@ -1531,13 +1637,15 @@ ORDER BY rank DESC{order};
                     'target_lang': tlang,
                     'lang_config': lang_config,
                 })
+                unit.setdefault('forms', None)
+                unit.setdefault('nplurals', None)
                 if unit['source'] in too_long:
                     continue
                 if iid is not None and unique and not _long(unit['target']):
                     batch.append(unit)
-                elif self.add_dict(unit, cursor, iid, unique):
+                elif self.add_dict(unit, cursor, iid, unique, forms):
                     count += 1
-            count += self._add_batch(batch, cursor, iid)
+            count += self._add_batch(batch, cursor, iid, forms)
             if count:
                 self._add_target_language(cursor, tlang)
             if commit:
@@ -1645,10 +1753,28 @@ ORDER BY rank DESC{order};
                 result['quality'] = quality
                 results.append(result)
         # Choosing needs the sources of every match, not just the best.
+        self._add_forms(cursor, slang, tlang, results)
         self._add_sources(cursor, tlang, results, self.check_names(slang))
         source_options = source_options or SourceOptions()
         licences = self.block_licences(slang) if source_options.licences else None
         return source_options.choose(results, max_candidates, self.block_weights(slang), licences)
+
+    def _add_forms(self, cursor, slang, tlang, results):
+        """Give each result that is a plural its forms and nplurals."""
+        known = self._forms_known.setdefault(cursor.connection, {})
+        schema = self.schema(slang)
+        if schema not in known:
+            known[schema] = self._has_forms(cursor)
+        if not results or not known[schema]:
+            return
+        cursor.execute("""SELECT sid, text, forms, nplurals FROM targets
+            WHERE lang = %s AND sid = ANY(%s) AND forms IS NOT NULL""",
+            (tlang, [result['sid'] for result in results]))
+        found = {(sid, text): (forms, nplurals) for sid, text, forms, nplurals in cursor.fetchall()}
+        for result in results:
+            plural = found.get((result['sid'], result['target']))
+            if plural:
+                result['forms'], result['nplurals'] = plural
 
     def _add_sources(self, cursor, tlang, results, check_names=None):
         """Give each result the names of the blocks it was imported from, and

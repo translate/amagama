@@ -125,8 +125,10 @@ def _store_file(tmdb, path, slang, tlang, iid, stores, segment, in_pieces):
             store = segmented(store, slang, tlang, lambda u: tmdb._usable_unit(u, tlang))
         added = tmdb.add_store(store, slang, tlang, commit=in_pieces, iid=iid)
         units += added
-        # Sentence pairs add units; skipped counts the file's own.
-        skipped += translatable - (whole if segment else added)
+        # Sentence pairs, and plurals' second pairs, add units; skipped
+        # counts the file's own.
+        skipped += translatable - (whole if segment
+                                   else added - getattr(store, "plural_pairs", 0))
         # Let this piece go before the next is read.
         del store
     tmdb.finish_import(slang, iid, units, skipped, file_checksum(path))

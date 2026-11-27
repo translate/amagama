@@ -376,6 +376,22 @@ class TestUpdate(object):
         assert lookup("tr", "Open file") == ["Dosyayı aç"]
         assert lookup("tr", "Save file") == ["Dosyayı kaydet"]
 
+    def test_snapshot_keeps_plural_forms(self, run, tmp_path, pg_connection):
+        """A snapshot made since targets had plurals' forms loads them (#3351)."""
+        legacy = tmp_path / "legacy.po"
+        legacy.write_text(po("af", ("Open file", "Maak lêer oop"))
+                          + '\nmsgid "%d file"\nmsgid_plural "%d files"\n'
+                            'msgstr[0] "%d lêer"\nmsgstr[1] "%d lêers"\n')
+        run("initdb", "-s", "en")
+        run("build_tmdb", "-s", "en", "-t", "af", "-i", str(legacy))
+        run("snapshot_db", "-s", "en", "--name", "legacy")
+        result = run("update", "-s", "en")
+        assert result.exit_code == 0, result.output
+        forms = ["%d lêer", "%d lêers"]
+        assert query(pg_connection, """SELECT text, forms, nplurals FROM en.targets
+            WHERE forms IS NOT NULL ORDER BY text""") == [("%d lêer", forms, 2),
+                                                          ("%d lêers", forms, 2)]
+
     def test_missing_snapshot_with_live_data(self, run, tmp_path, pg_connection):
         legacy = tmp_path / "legacy.po"
         legacy.write_text(po("af", ("Close file", "Maak lêer toe")))
@@ -601,6 +617,28 @@ class TestUnchangedCopied(object):
     def changed_gnome(self, root):
         write_gnome(root, "af", ("Open file", "Maak lêer oop"), ("Close file", "Maak lêer toe"))
         write_stats(root, af=2, zu=1)
+
+    def test_plural_forms_copied(self, run, site, pg_connection):
+        """A copied plural keeps its forms (#3351)."""
+        root, url = site
+        write_tarball(str(root / "backups/last/af.tgz"), {"af/bash-5.2.af.po": po(
+            "af", ("Save file", "Stoor lêer"))
+            + '\nmsgid "%d file"\nmsgid_plural "%d files"\n'
+              'msgstr[0] "%d lêer"\nmsgstr[1] "%d lêers"\n'})
+        assert run("update", "-s", "en").exit_code == 0
+        # The file has two units: the plural's second pair adds one, and
+        # none is skipped.
+        assert query(pg_connection, """SELECT units, skipped FROM en.imports
+            WHERE block = 'tp'""") == [(3, 0)]
+        plural = """SELECT text, forms, nplurals FROM en.targets
+            WHERE forms IS NOT NULL ORDER BY text"""
+        forms = ["%d lêer", "%d lêers"]
+        assert query(pg_connection, plural) == [("%d lêer", forms, 2), ("%d lêers", forms, 2)]
+        self.changed_gnome(root)
+        result = run("update", "-s", "en")
+        assert result.exit_code == 0, result.output
+        assert "Copied 1 unchanged blocks" in result.output, result.output
+        assert query(pg_connection, plural) == [("%d lêer", forms, 2), ("%d lêers", forms, 2)]
 
     def test_unchanged_copied(self, run, site, pg_connection):
         root, url = site

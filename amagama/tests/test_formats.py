@@ -191,14 +191,19 @@ def test_nextcloud_plurals_form_for_one(tmp_path):
     assert [(u.source, u.target) for u in store.units] == [("%n file", "<form 1>")]
 
 
-@pytest.mark.parametrize("plural, expected", [
-    (ARABIC_PLURAL, "<form 1>"),
+@pytest.mark.parametrize("plural, one, most", [
+    (ARABIC_PLURAL, "<form 1>", "<form 4>"),
     ("(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2)",
-     "<form 0>"),
-    ("n==1 ? 1 : (", "<form 0>"),
+     "<form 0>", "<form 2>"),
+    # A broken Plural-Forms: the language's own rule (Arabic's).
+    ("n==1 ? 1 : (", "<form 1>", "<form 4>"),
 ])
 @pytest.mark.parametrize("size", [None, 40])
-def test_po_plurals_form_for_one(tmp_path, plural, expected, size):
+def test_po_plurals_forms(tmp_path, plural, one, most, size):
+    """A plural is read with its forms in the file's order; it's stored as its
+    singular with the form for one and its plural with the form for most
+    counts (#3351)."""
+    from amagama import plurals
     path = tmp_path / "ar.po"
     path.write_bytes(('msgid ""\nmsgstr ""\n"Content-Type: text/plain; charset=UTF-8\\n"\n'
                       '"Plural-Forms: nplurals=6; plural=%s;\\n"\n\n'
@@ -207,8 +212,10 @@ def test_po_plurals_form_for_one(tmp_path, plural, expected, size):
                       % (plural, "".join('msgstr[%d] "<form %d>"\n' % (i, i) for i in range(6))))
                      .encode())
     stores = list(open_pieces(str(path), size=size)) if size else [open_store(str(path))]
-    assert [(str(u.source), str(u.target)) for store in stores for u in store.units
-            if not u.isheader()] == [("Save file", "<save>"), ("%d file", expected)]
+    found = [plurals.entries(u, plurals.rule(store, "ar")) for store in stores
+             for u in store.units if not u.isheader()]
+    assert found == [None, ([("%d file", one), ("%d files", most)],
+                            ["<form %d>" % i for i in range(6)], 6)]
 
 
 PO_HEADER = b'msgid ""\nmsgstr ""\n"Content-Type: text/plain; charset=ISO-8859-1\\n"\n\n'

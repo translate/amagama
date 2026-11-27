@@ -27,7 +27,6 @@ import re
 
 from lxml import etree
 from translate.lang.data import cldr_plural_categories
-from translate.misc.multistring import multistring
 from translate.storage import factory, po, poheader, tmx, xliff
 from translate.storage.base import TranslationStore, TranslationUnit
 
@@ -393,7 +392,6 @@ def open_store(path, format=None, columns=None, header_row=False, xliff_states=N
         with open(path, "rb") as f:
             # Not store_class(f): NextcloudJsonFile then fails on _metadata.
             store.parse(f.read())
-    _singulars_first(store)
     if xliff_states and isinstance(store, xliff.xlifffile):
         return _accepted_xliff(store, xliff_states)
     if format == "nextcloud-json":
@@ -577,7 +575,7 @@ def open_pieces(path, format=None, columns=None, header_row=False, xliff_states=
         return None
     for piece in pieces(path, size):
         read(path, piece)
-    return (_singulars_first(read(path, piece)) for piece in pieces(path, size))
+    return (read(path, piece) for piece in pieces(path, size))
 
 
 def _singular_form(plural):
@@ -586,19 +584,6 @@ def _singular_form(plural):
         return int(gettext.c2py(plural)(1)) if plural else 0
     except (ValueError, ArithmeticError, RecursionError):
         return 0
-
-
-def _singulars_first(store):
-    """store, with each plural target's form for n=1 first, the one str()
-    gives and so the one imported. Arabic's first form is for n=0."""
-    if not isinstance(store, poheader.poheader):
-        return store
-    form = _singular_form(store.getheaderplural()[1])
-    for unit in store.units if form else []:
-        strings = [str(s) for s in getattr(unit.target, "strings", [])]
-        if form < len(strings):
-            unit.target = multistring([strings[form]] + strings[:form] + strings[form + 1:])
-    return store
 
 
 _NEXTCLOUD_PLURAL = re.compile(r"_(.*)_::_.*_", re.DOTALL)
