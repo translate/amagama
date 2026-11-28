@@ -80,6 +80,9 @@ jobs:
           # stop searching in time to read what was found within the step's
           # 270. The discover_sources commands share these minutes.
           AMAGAMA_SEARCH_MINUTES: "180"
+          # GitLab.com's projects API, for the *-gitlab files: a fine-grained
+          # token with Project: Read.
+          GITLAB_TOKEN: ${{ secrets.DISCOVER_GITLAB_TOKEN }}
         run: >-
           devsupport/regenerate-sources.sh "$RUNNER_TEMP/reports"
           amagama/updater/weblate-fedora.toml
@@ -94,6 +97,13 @@ jobs:
           amagama/updater/lingui-github.toml
           amagama/updater/inlang-github.toml
           amagama/updater/wlc-github.toml
+          amagama/updater/linguas-gitlab.toml
+          amagama/updater/crowdin-gitlab.toml
+          amagama/updater/transifex-gitlab.toml
+          amagama/updater/l10n-toml-gitlab.toml
+          amagama/updater/lingui-gitlab.toml
+          amagama/updater/inlang-gitlab.toml
+          amagama/updater/wlc-gitlab.toml
       - name: Open a pull request
         env:
           AMAGAMA_CONFIG: ${{ runner.temp }}/settings.py
