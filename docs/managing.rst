@@ -795,6 +795,34 @@ repository's stats then select it: not archived or a fork, at least
 block's. GitHub gives ``GPL-3.0`` and its like, which SPDX defines as
 ``GPL-3.0-only``: correct a block whose project allows later versions.
 
+GitLab.com has no code search across projects, so ``--forge gitlab`` lists
+its public projects instead, most stars first down to ``--min-stars``, with a
+token in ``GITLAB_TOKEN`` (a fine-grained token with Project: Read is
+enough), and reads those whose top-level files hold the signal's
+configuration (:file:`po/LINGUAS` for ``linguas``):
+
+.. code-block:: console
+
+    $ GITLAB_TOKEN=... amagama-manage discover_sources linguas --forge gitlab \
+          --prefix gitlab-linguas --min-stars 25 --output amagama/updater/linguas-gitlab.toml
+
+The prefix mustn't begin with another generated file's prefix and a hyphen:
+a command regenerating ``linguas`` takes every block named ``linguas-...`` as
+its own, so ``linguas-gitlab`` would be rewritten by the GitHub run.
+
+A configuration kept deeper in a repository is missed. GitLab gives no push
+date, so ``--pushed-since`` goes by a project's last activity, issues
+included, and its licence key is taken as the SPDX id (``gpl-3.0`` as
+``GPL-3.0-only``). GitLab projects have fewer stars than GitHub's: about
+2,000 public ones had 25 or more in November 2026; GitLab lists at most 50,000
+this way, so a lower ``--min-stars`` may stop short, and the report says so. Each project's listings
+and licence are kept in :file:`gitlab-discovery.json` in ``UPDATER_CACHE_DIR``
+until its next activity, so a run of every signal lists each project once.
+The repositories of the blocks being regenerated are looked up and read again
+too, and a block whose project is gone is dropped. ``--search-minutes`` stops
+reading more projects: the blocks of those not read are kept, and the report
+says new candidates may be missing. ``--bot-prs-days`` is GitHub's only.
+
 A project's mirror on GitHub (GNOME's, Xfce's) is read from GitHub, but its
 block fetches from the repository it copies: a repository is taken as a
 mirror when GitHub says it is one and of what; when its description says

@@ -21,6 +21,7 @@ import re
 import shutil
 import sys
 import time
+import urllib.parse
 
 import click
 from flask import current_app
@@ -33,7 +34,8 @@ from translate.lang.identify import LanguageIdentifier
 from amagama import logsummary, stats
 from amagama.licences import normalise_licence
 from amagama.source_options import MAX_WEIGHT
-from amagama.updater import discovery, generate, languages, retirements, status, transifex, weblate
+from amagama.updater import (discovery, generate, gitlab, languages, retirements, status, transifex,
+                             weblate)
 from amagama.updater.fetchers import VCS_DIRECTORIES, FetchError, remembered_commits
 from amagama.updater.formats import open_pieces, open_store
 from amagama.updater.repositories import unread_repositories
@@ -908,6 +910,63 @@ def generated_context(prefix):
     return generate.context(generated_sources(), prefix)
 
 
+def generated_urls(prefix, host):
+    """normal_url() of the repositories on host of the blocks whose names
+    start with prefix: each block's own, or its mirror's."""
+    found = set()
+    for block in generated_sources():
+        if block.name.startswith(prefix + "-") and block.source == "git":
+            for url in (block.fetcher.settings.get("url"), block.fetcher.settings.get("mirror")):
+                if url and urllib.parse.urlsplit(url).hostname == host:
+                    found.add(generate.normal_url(url))
+    return found
+
+
+def gitlab_stats(signal, prefix, min_stars, pushed_since, token, log, deadline=None):
+    """(stats as discovery.stats() gives them, skipped, normal_url() of the
+    repositories read, whether some weren't) of GitLab.com's public projects
+    with min_stars that commit signal's configuration, and of the blocks being
+    regenerated. Once deadline (a time.monotonic()) has passed, no more
+    projects are read."""
+    cache_dir = os.path.expanduser(current_app.config.get('UPDATER_CACHE_DIR'))
+    lab = gitlab.GitLab(token, os.path.join(cache_dir, "gitlab-discovery.json"))
+    try:
+        projects = {generate.normal_url(project["web_url"]): project
+                    for project in lab.projects(min_stars)}
+        listed = len(projects)
+        # The blocks being regenerated are read again, whatever their stars now;
+        # one whose project is gone is read too, and dropped.
+        regenerated = generated_urls(prefix, gitlab.HOST)
+        for url in sorted(regenerated - set(projects)):
+            project = lab.project(url.split("/", 1)[1])
+            if project:
+                projects[generate.normal_url(project["web_url"])] = project
+        log("%d projects with at least %d stars%s%s." % (
+            listed, min_stars, ", and %d more from the blocks being regenerated" % (
+                len(projects) - listed) if len(projects) > listed else "",
+            "; GitLab lists no more: raise --min-stars" if lab.truncated else ""))
+        # Only those select() keeps, its licence aside, are read.
+        kept, skipped = discovery.select(
+            {url: gitlab.repository(project) for url, project in projects.items()},
+            min_stars, pushed_since, licensed=False)
+        stats, unread = {}, set()
+        for kept_repository in kept:
+            project = projects[generate.normal_url(kept_repository["url"])]
+            if deadline is not None and time.monotonic() >= deadline:
+                unread.add(generate.normal_url(project["web_url"]))
+                continue
+            if lab.has_config(project, signal):
+                stats[project["web_url"]] = gitlab.repository(project, lab.licence_key(project))
+            else:
+                key = ("repositories", "no %s configuration where it's looked for" % signal)
+                skipped[key] = skipped.get(key, 0) + 1
+    finally:
+        lab.save()
+    if unread:
+        log("Out of time: %d projects not read." % len(unread))
+    return stats, skipped, (set(projects) | regenerated) - unread, bool(unread) or lab.truncated
+
+
 def generated_written(prefix):
     """generate.written() of the sources file, for blocks whose names start
     with prefix."""
@@ -1074,11 +1133,15 @@ def transifex_sources(repositories, from_file, prefix, output, min_age_days, wei
 @click.option('--bot-prs-days', type=click.IntRange(min=0), default=0, show_default=True,
               help="Also read repositories with a translation bot's pull request merged in "
               "the last days (crowdin).")
+@click.option('--forge', type=click.Choice(["github", "gitlab"]), default="github",
+              show_default=True,
+              help="GitHub's code search (GITHUB_TOKEN), or GitLab.com's public projects by "
+              "stars, their top-level files read (GITLAB_TOKEN).")
 @generator_options(("discovered",))
 @with_appcontext
 @with_shared_repositories
 def discover_sources(signal, min_stars, pushed_since, min_units, search_pause, search_minutes,
-                     bot_prs_days, prefix, output, min_age_days, weight, tags, report):
+                     bot_prs_days, forge, prefix, output, min_age_days, weight, tags, report):
     """Write sources-file blocks for repositories that commit a signal's
     localisation configuration, for review.
 
@@ -1089,13 +1152,20 @@ def discover_sources(signal, min_stars, pushed_since, min_units, search_pause, s
     blocks being regenerated are read too, as code search misses some each
     run. Repositories that blocks in the sources file already import are left
     out, but for blocks with the same prefix, which this regenerates.
+
+    With --forge gitlab, GitLab.com's public projects with enough stars are
+    listed instead, and those whose top-level files (po/ for LINGUAS) hold
+    the signal's configuration are read.
     """
-    token = os.environ.get("GITHUB_TOKEN")
+    token = os.environ.get("GITLAB_TOKEN" if forge == "gitlab" else "GITHUB_TOKEN")
     if not token:
-        raise click.UsageError("GitHub's code search needs a token: set GITHUB_TOKEN.")
+        raise click.UsageError(
+            "GitLab's projects API needs a token: set GITLAB_TOKEN." if forge == "gitlab"
+            else "GitHub's code search needs a token: set GITHUB_TOKEN.")
     bot_prs = discovery.SIGNALS[signal].get("bot_prs", [])
-    if bot_prs_days and not bot_prs:
-        raise click.UsageError("%s has no translation bot's pull requests." % signal)
+    if bot_prs_days and (not bot_prs or forge == "gitlab"):
+        raise click.UsageError("%s has no translation bot's pull requests%s." % (
+            signal, " on GitLab" if forge == "gitlab" and bot_prs else ""))
     # Only a date given is kept for the next run; the default moves each year.
     given = " --pushed-since %s" % pushed_since.date().isoformat() if pushed_since else ""
     pushed_since = pushed_since.date() if pushed_since else discovery.default_pushed_since()
@@ -1106,30 +1176,37 @@ def discover_sources(signal, min_stars, pushed_since, min_units, search_pause, s
 
     try:
         names, incomplete = set(), False
-        for query in discovery.SIGNALS[signal]["queries"]:
-            found, missing = discovery.search(query, token, pause=search_pause, deadline=deadline,
-                                              log=log)
-            names, incomplete = names | set(found), incomplete or missing
-        if bot_prs_days:
-            since = datetime.date.today() - datetime.timedelta(days=bot_prs_days)
-            merged = set()
-            for query in bot_prs:
-                found, missing = discovery.search_prs(query, token, since, deadline=deadline,
-                                                      log=log)
-                merged, incomplete = merged | set(found), incomplete or missing
-            click.echo("%d repositories with a bot's pull request, %d of them not found by "
-                       "code search." % (len(merged), len(merged - names)), err=True)
-            names |= merged
-        # Code search's results differ from run to run: the blocks being
-        # regenerated are read again whether it found them or not.
-        previous = generated_repositories(prefix) - names
-        click.echo("%d repositories found%s%s." % (
-            len(names), ", some of the search's results missing" if incomplete else "",
-            ", and %d more from the blocks being regenerated" % len(previous) if previous else ""),
-            err=True)
-        names = sorted(names | previous)
-        read = set(names)
-        kept, skipped = discovery.select(discovery.stats(names, token), min_stars, pushed_since)
+        if forge == "gitlab":
+            found_stats, skipped_before, read, incomplete = gitlab_stats(
+                signal, prefix, min_stars, pushed_since, token, log, deadline)
+        else:
+            for query in discovery.SIGNALS[signal]["queries"]:
+                found, missing = discovery.search(query, token, pause=search_pause,
+                                                  deadline=deadline, log=log)
+                names, incomplete = names | set(found), incomplete or missing
+            if bot_prs_days:
+                since = datetime.date.today() - datetime.timedelta(days=bot_prs_days)
+                merged = set()
+                for query in bot_prs:
+                    found, missing = discovery.search_prs(query, token, since, deadline=deadline,
+                                                          log=log)
+                    merged, incomplete = merged | set(found), incomplete or missing
+                click.echo("%d repositories with a bot's pull request, %d of them not found by "
+                           "code search." % (len(merged), len(merged - names)), err=True)
+                names |= merged
+            # Code search's results differ from run to run: the blocks being
+            # regenerated are read again whether it found them or not.
+            previous = generated_repositories(prefix) - names
+            click.echo("%d repositories found%s%s." % (
+                len(names), ", some of the search's results missing" if incomplete else "",
+                ", and %d more from the blocks being regenerated" % len(previous)
+                if previous else ""), err=True)
+            names = sorted(names | previous)
+            read = {generate.normal_url("https://github.com/" + name) for name in names}
+            found_stats, skipped_before = discovery.stats(names, token), {}
+        kept, skipped = discovery.select(found_stats, min_stars, pushed_since)
+        for key, count in skipped_before.items():
+            skipped[key] = skipped.get(key, 0) + count
     except FetchError as e:
         raise fetch_failed(e)
     # A mirror's block is its upstream's, read from the mirror; mirrors come
@@ -1156,20 +1233,22 @@ def discover_sources(signal, min_stars, pushed_since, min_units, search_pause, s
     names_found = {block["name"] for block in found}
     unread = [settings for name, settings in sorted(generated_written(prefix).items())
               if name not in names_found and not {
-                  discovery.github_name(settings.get("url")),
-                  discovery.github_name(settings.get("mirror"))} & read]
+                  generate.normal_url(settings[key]) for key in ("url", "mirror")
+                  if settings.get(key)} & read]
     unread += [settings for settings in failed_repositories(prefix, found, failed)
                if settings not in unread]
     if unread:
         click.echo("Kept %d blocks whose repositories weren't read: %s." % (
             len(unread), ", ".join(block["name"] for block in unread)), err=True)
     found += unread
-    command = "discover_sources %s --prefix %s --min-stars %d%s --min-units %d%s" % (
-        signal, prefix, min_stars, given, min_units,
+    command = "discover_sources %s%s --prefix %s --min-stars %d%s --min-units %d%s" % (
+        signal, " --forge gitlab" if forge == "gitlab" else "", prefix, min_stars, given, min_units,
         " --bot-prs-days %d" % bot_prs_days if bot_prs_days else "")
     write_generated(found, skipped, command, min_age_days, weight, tags, output, disabled,
-                    names, report, note="Code search didn't give all its results this run: "
-                    "new candidates may be missing." if incomplete else None,
+                    names, report, note=(
+                        "Not every project was read this run: new candidates may be missing."
+                        if forge == "gitlab" else "Code search didn't give all its results this "
+                        "run: new candidates may be missing.") if incomplete else None,
                     # Read most stars first, but written by name: stars change every run.
                     by_name=True)
 
