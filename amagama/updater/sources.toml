@@ -196,6 +196,37 @@ files = ["locale/{lang}/gitlab.po"]
 licence = "MIT"
 
 [[block]]
+name = "nala"
+title = "Nala"
+source = "git"
+min_age_days = 7
+url = "https://gitlab.com/volian/nala"
+files = ["locales/{lang}/main.ftl"]
+format = "fluent"
+template = "locales/en-US/main.ftl"
+licence = "GPL-3.0-or-later"
+
+[[block]]
+name = "lazarus"
+title = "Lazarus"
+source = "git"
+min_age_days = 7
+url = "https://gitlab.com/freepascal.org/lazarus/lazarus"
+# The IDE's: the LCL and components have their own licences.
+files = ["languages/lazaruside.{lang}.po"]
+licence = "GPL-2.0-or-later"
+
+[[block]]
+name = "es-de"
+title = "ES-DE"
+source = "git"
+min_age_days = 7
+url = "https://gitlab.com/es-de/emulationstation-de"
+files = ["locale/po/{lang}.po"]
+languages = { en_US = "" }
+licence = "MIT"
+
+[[block]]
 name = "qt-{version}"
 title = "Qt"
 source = "git"
