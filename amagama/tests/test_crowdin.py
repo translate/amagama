@@ -271,6 +271,48 @@ def test_files_typescript():
         assert entry["format"] == "ts"
 
 
+def test_gettext_sources():
+    config = """files:
+  - source: /texts/en_US.po
+    translation: /texts/%locale_with_underscore%.po
+  - source: /po/app.pot
+    translation: /po/%two_letters_code%.po
+  - source: /lang/en.po
+    type: gettext
+    translation: /lang/%two_letters_code%.po
+  - source: /res/en.po
+    type: json
+    translation: /res/%two_letters_code%.po
+"""
+    assert crowdin.gettext_sources(config) == ["texts/en_US.po", "lang/en.po"]
+
+
+@pytest.mark.parametrize("given", [None, "gettext"])
+def test_files_keyed_po(given):
+    """A .po source keyed by id, read so from the repository, is po-mono:
+    its English is the template (#3889)."""
+    config = "files: [{source: /texts/en_US.po, %stranslation: '/texts/%%locale%%.po'}]" % (
+        "type: %s, " % given if given else "")
+    [entry] = crowdin.files(config, xml={"texts/en_US.po": "po-mono"})[0]
+    assert (entry["format"], entry["template"], entry["source"]) == (
+        "po-mono", "texts/en_US.po", None)
+    [entry] = crowdin.files(config)[0]
+    assert (entry["format"], entry["template"]) == ("po", None)
+
+
+@pytest.mark.parametrize("text, expected", [
+    ('msgid ""\nmsgstr ""\n' + "".join('\nmsgid "app.key%d"\nmsgstr "Text %d"\n' % (n, n)
+                                       for n in range(6)), "po-mono"),
+    ('msgid ""\nmsgstr ""\n' + "".join('\nmsgid "Open %d"\nmsgstr ""\n' % n
+                                       for n in range(6)), None),
+    ('msgid "unclosed\n', None),
+])
+def test_po_format(tmp_path, monkeypatch, text, expected):
+    monkeypatch.setattr(repositories, "read_file", lambda directory, path: text)
+    assert repositories.po_format(str(tmp_path), "texts/en_US.po", ["texts/en_US.po"]) == expected
+    assert repositories.po_format(str(tmp_path), "texts/en_US.po", ["README"]) is None
+
+
 def test_xml_format_not_text(tmp_path, monkeypatch):
     def undecodable(directory, path):
         return b"\xff".decode("utf-8")

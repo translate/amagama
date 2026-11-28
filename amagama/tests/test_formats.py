@@ -639,3 +639,17 @@ def test_keyed_names_kept():
     pairs = [(key, "x") for key in KEYS] + [("Open the file %d" % n, "") for n in range(5)]
     assert formats.keyed(formats._read_po("x.po", keyed_po(*pairs)))
 
+
+def test_keyed_template():
+    """The English of PO keyed by id is in its msgstrs."""
+    english = keyed_po(*[(key, "Text %d" % n) for n, key in enumerate(KEYS)])
+    assert formats.keyed_template("en.po", english)
+    # Most of its msgstrs (80%) hold the English.
+    keys = KEYS + [key + "2" for key in KEYS]
+    some = [(key, "Text" if n < 8 else "") for n, key in enumerate(keys)]
+    assert formats.keyed_template("en.po", keyed_po(*some))
+    some = [(key, "Text" if n < 7 else "") for n, key in enumerate(keys)]
+    assert not formats.keyed_template("en.po", keyed_po(*some))
+    # A keyed POT has no English to pair with.
+    assert not formats.keyed_template("en.po", keyed_po(*[(key, "") for key in KEYS]))
+    assert not formats.keyed_template("en.po", keyed_po(*[("Open %d" % n, "") for n in range(6)]))
