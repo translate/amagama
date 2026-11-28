@@ -22,6 +22,8 @@ import re
 import urllib.parse
 
 from amagama.updater.fetchers import FetchError, run_tool
+from amagama.updater.filemask import compile_mask
+from amagama.updater.formats import keyed_template
 from amagama.updater.generate import (Names, Pacer, check_block, clone, identity, matches, matching,
                                       normal_url, with_mirror)
 from amagama.updater.languages import normalise_language
@@ -195,6 +197,34 @@ def read(url, configuration):
             return None
         directory, paths = cloned
         return paths, {path: read_file(directory, path) for path in configs(paths, configuration)}
+
+
+def first_text(directory, pattern, paths):
+    """The text of the first of paths, in a clone at directory, that pattern
+    (a file mask without {lang}) matches, or None."""
+    try:
+        mask = compile_mask(pattern, allow_lang=False)
+    except ValueError:
+        return None
+    path = next((path for path in paths if mask.match(path)), None)
+    if path is None:
+        return None
+    try:
+        return read_file(directory, path)
+    except (FetchError, UnicodeError):
+        return None
+
+
+def po_format(directory, pattern, paths):
+    """"po-mono" for an English PO file keyed by id, the first pattern
+    matches in a clone; None for ordinary PO, or a file that can't be read."""
+    text = first_text(directory, pattern, paths)
+    try:
+        return "po-mono" if text is not None and keyed_template(
+            pattern, text.encode("utf-8")) else None
+    except Exception:
+        # What Translate Toolkit can't parse is left to import as before.
+        return None
 
 
 def candidates(files, paths, what, nothing):

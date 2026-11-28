@@ -12,6 +12,7 @@ import concurrent.futures
 import contextlib
 import functools
 import hashlib
+import itertools
 import json
 import multiprocessing
 import os
@@ -26,7 +27,7 @@ from amagama.tmdb import BUILD_PREFIX, OLD_PREFIX, lang_to_table, snapshot_left_
 from amagama import unit_checks
 from amagama.unit_checks import reject
 from amagama.updater import chromium, compressed
-from amagama.updater.formats import CHROMIUM, open_pieces, open_store
+from amagama.updater.formats import CHROMIUM, keyed, open_pieces, open_store
 from amagama.updater.languages import described, described_retired
 from amagama.updater.pairing import paired_store, without_ids
 from amagama.updater.segment import segmented
@@ -91,7 +92,14 @@ def _import_file(path, recorded, slang, tlang, block, licence, format, template,
                 if template is not None:
                     store = paired_store(store, template_store(template, format), exclude_ids,
                                          language_in_ids)
+                elif _ordinary_po(path, format) and keyed(store):
+                    return KEYED_PO
                 stores = [store]
+            elif _ordinary_po(path, format):
+                first = next(stores, None)
+                if first is not None and keyed(first):
+                    return KEYED_PO
+                stores = itertools.chain([] if first is None else [first], stores)
             if template is None and exclude_ids:
                 stores = (without_ids(store, exclude_ids) for store in stores)
     except Exception as e:
@@ -105,6 +113,15 @@ def _import_file(path, recorded, slang, tlang, block, licence, format, template,
         # like one that can't be read, and the update goes on.
         tmdb.forget_import(slang, iid)
         return "%s: %s" % (type(e).__name__, e)
+
+
+# Why a PO file keyed by id, read as ordinary PO, is left out: its keys would
+# be stored as the English.
+KEYED_PO = "PO keyed by id: format po-mono, with the English file as template, reads it"
+
+
+def _ordinary_po(path, format):
+    return format == "po" or format is None and path.endswith(".po")
 
 
 # Errors storing a file's units that come from its text, not the database:

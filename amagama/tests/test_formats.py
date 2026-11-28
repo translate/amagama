@@ -599,3 +599,57 @@ def test_fluent_junk_still_refused(tmp_path):
     path.write_text("save = Speichern\nsave = Sichern\n= broken\n", encoding="utf-8")
     with pytest.raises(ValueError, match="Parsing error"):
         open_store(str(path), "fluent")
+
+
+def keyed_po(*pairs):
+    return ('msgid ""\nmsgstr ""\n"Content-Type: text/plain; charset=UTF-8\\n"\n' +
+            "".join('\nmsgid "%s"\nmsgstr "%s"\n' % pair for pair in pairs)).encode("utf-8")
+
+
+KEYS = ["worldedit.selection.cuboid.primary", "commands.wedit:blocks.changed",
+        "settings_title", "Common:label:cancel", "app.name"]
+
+
+@pytest.mark.parametrize("ids, expected", [
+    (KEYS, True),
+    # One English message in five is still keyed.
+    (KEYS[:4] + ["Open the file"], True),
+    (KEYS[:3] + ["Open the file", "Save"], False),
+    # Ordinary PO: words, hyphenated words and file names among them.
+    (["Open", "Save", "E-mail", "Wi-Fi", "Built-in", "README.md"], False),
+    (["File", "Edit", "View", "Help", "Quit"], False),
+    # Hyphenated English words, as KDE's are.
+    (["Double-click", "Middle-click", "Left-click", "Right-click", "Click-and-drag"], False),
+    # Too few to tell.
+    (KEYS[:4], False),
+])
+def test_keyed(ids, expected):
+    """A PO file whose msgids are keys rather than English (#3889)."""
+    store = formats._read_po("x.po", keyed_po(*[(i, "x") for i in ids]))
+    assert formats.keyed(store) is expected
+
+
+def test_keyed_names_kept():
+    """Names translated as themselves (image files in docs, device names)
+    aren't keys, nor are untranslated messages counted."""
+    names = ["shortcuts-add-empty.png", "shortcuts-added.png", "Boxes_new_machine.png",
+             "qemu-x86-q35", "ne2k_pci", "virtio.9p"]
+    assert not formats.keyed(formats._read_po("x.po", keyed_po(*[(n, n) for n in names])))
+    # Untranslated: the five keys translated make it keyed, whatever else.
+    pairs = [(key, "x") for key in KEYS] + [("Open the file %d" % n, "") for n in range(5)]
+    assert formats.keyed(formats._read_po("x.po", keyed_po(*pairs)))
+
+
+def test_keyed_template():
+    """The English of PO keyed by id is in its msgstrs."""
+    english = keyed_po(*[(key, "Text %d" % n) for n, key in enumerate(KEYS)])
+    assert formats.keyed_template("en.po", english)
+    # Most of its msgstrs (80%) hold the English.
+    keys = KEYS + [key + "2" for key in KEYS]
+    some = [(key, "Text" if n < 8 else "") for n, key in enumerate(keys)]
+    assert formats.keyed_template("en.po", keyed_po(*some))
+    some = [(key, "Text" if n < 7 else "") for n, key in enumerate(keys)]
+    assert not formats.keyed_template("en.po", keyed_po(*some))
+    # A keyed POT has no English to pair with.
+    assert not formats.keyed_template("en.po", keyed_po(*[(key, "") for key in KEYS]))
+    assert not formats.keyed_template("en.po", keyed_po(*[("Open %d" % n, "") for n in range(6)]))

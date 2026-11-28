@@ -4352,6 +4352,8 @@ url = "https://github.com/SIsilicon/WorldEdit-BE"
 files = ["texts/{lang}.po"]
 exclude = ["texts/en_US.po"]
 sparse = ["texts/*.po"]
+format = "po-mono"
+template = "texts/en_US.po"
 licence = "GPL-3.0-only"
 
 [[block]]
@@ -4851,6 +4853,8 @@ url = "https://github.com/Limitex/avatar-compressor"
 files = ["Editor/Common/Localization/{lang}.po"]
 exclude = ["Editor/Common/Localization/en-US.po"]
 sparse = ["Editor/Common/Localization/*.po"]
+format = "po-mono"
+template = "Editor/Common/Localization/en-US.po"
 licence = "MIT"
 
 [[block]]
@@ -7202,6 +7206,8 @@ url = "https://github.com/kiwiirc/kiwiirc"
 files = ["src/res/locales/app.{lang}.po"]
 exclude = ["src/res/locales/app.dev.po"]
 sparse = ["src/res/locales/app.*.po"]
+format = "po-mono"
+template = "src/res/locales/app.dev.po"
 licence = "Apache-2.0"
 
 [[block]]

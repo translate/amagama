@@ -97,6 +97,35 @@ def test_lingui():
     assert skipped == {}
 
 
+def test_lingui_keyed():
+    """An English PO catalog keyed by id (explicit message ids) is the
+    template of PO read by id (#3889)."""
+    paths = ["web/lingui.config.ts", "web/src/locales/en/messages.po",
+             "web/src/locales/de/messages.po"]
+    found, _ = lingui.blocks([URL], "t", names=Names(), pause=0, read=lambda url: (
+        paths, {"web/lingui.config.ts": LINGUI}, {"web/src/locales/en/messages.po"}))
+    [block] = found
+    check_block(block)
+    assert (block["files"], block["format"], block["template"]) == (
+        ["web/src/locales/{lang}/messages.po"], "po-mono", "web/src/locales/en/messages.po")
+
+
+def test_lingui_keyed_from_repository(tmp_path):
+    repo = tmp_path / "repo"
+    po = 'msgid ""\nmsgstr ""\n' + "".join('\nmsgid "app.key%d"\nmsgstr "%s %d"\n' % (n, "%s", n)
+                                           for n in range(6))
+    files = {"lingui.config.js": "export default { catalogs: [{ path: 'locales/{locale}' }] }",
+             "locales/en.po": po % (("Text",) * 6), "locales/de.po": po % (("Text",) * 6)}
+    for path, text in files.items():
+        (repo / path).parent.mkdir(parents=True, exist_ok=True)
+        (repo / path).write_text(text, encoding="utf-8")
+    subprocess.run(["sh", "-c", "git init -q -b main && git add . && git -c user.name=t "
+                    "-c user.email=t@example.org commit -q -m c"], cwd=repo, check=True)
+    assert lingui.repository(repo.as_uri())[2] == {"locales/en.po"}
+    [block] = lingui.blocks([repo.as_uri()], "t", names=Names(), pause=0)[0]
+    assert (block["format"], block["template"]) == ("po-mono", "locales/en.po")
+
+
 def test_lingui_json_and_package_json():
     paths = ["package.json", "locale/en.json", "locale/de.json"]
     config = {"name": "app", "lingui": {"catalogs": [{"path": "locale/{locale}"}],

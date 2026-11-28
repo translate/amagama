@@ -453,6 +453,39 @@ class TestUpdate(object):
         assert query(pg_connection, "SELECT count(*) FROM en.sources "
                                     "WHERE text LIKE '%the folder'") == [(0,)]
 
+    KEYED = [("worldedit.selection.cuboid.primary", "Eerste posisie gestel na %s."),
+             ("worldedit.selection.cuboid.secondary", "Tweede posisie gestel na %s."),
+             ("commands.wedit:blocks.changed", "%s blokke is verander."),
+             ("commands.wedit:tool.bind.navwand", "Navigasiestaf gebind aan %s."),
+             ("worldedit.undo.none", "Niks ontdoen nie.")]
+
+    def test_keyed_po(self, run, site, pg_connection):
+        """A PO file keyed by id, read as ordinary PO, is left out and named:
+        its keys would be stored as the English (#3889)."""
+        root, url = site
+        write_gnome(root, "af", ("Open file", "Maak lêer oop"),
+                    extra={"keyed.af.po": po("af", *self.KEYED)})
+        result = run("update", "-s", "en")
+        assert result.exit_code == 0, result.output
+        assert "Couldn't read 1 files:" in result.output
+        assert "keyed.af.po: PO keyed by id" in result.output
+        assert lookup("af", "Open file") == ["Maak lêer oop"]
+        assert query(pg_connection, "SELECT count(*) FROM en.sources "
+                                    "WHERE text LIKE 'worldedit.%'") == [(0,)]
+
+    def test_keyed_po_pieces(self, run, site, pg_connection, monkeypatch):
+        """So is one read in pieces, by its first."""
+        from amagama.updater import formats
+        root, url = site
+        monkeypatch.setattr(formats, "PIECE_SIZE", 500)
+        write_gnome(root, "af", ("Open file", "Maak lêer oop"),
+                    extra={"keyed.af.po": po("af", *self.KEYED * 4)})
+        result = run("update", "-s", "en")
+        assert result.exit_code == 0, result.output
+        assert "keyed.af.po: PO keyed by id" in result.output
+        assert query(pg_connection, "SELECT count(*) FROM en.sources "
+                                    "WHERE text LIKE 'worldedit.%'") == [(0,)]
+
     def test_unstorable_value(self, run, site, pg_connection, monkeypatch):
         """A value PostgreSQL won't take (DataError) is left out the same way."""
         import psycopg2

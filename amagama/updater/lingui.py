@@ -21,9 +21,10 @@ import json
 import posixpath
 import re
 
+from amagama.updater import repositories
+from amagama.updater.generate import clone
 from amagama.updater.repositories import blocks as repository_blocks
-from amagama.updater.repositories import candidates, is_english, join
-from amagama.updater.repositories import read as read_configs
+from amagama.updater.repositories import candidates, configs, is_english, join
 
 # The root package.json only: a monorepo has hundreds.
 CONFIG = re.compile(r"(?:^|/)(?:lingui\.config\.[cm]?[jt]s|\.linguirc)\Z|\Apackage\.json\Z")
@@ -68,9 +69,11 @@ def settings(path, text):
     return catalogs, file_format, source
 
 
-def files(path, text):
+def files(path, text, keyed=()):
     """(files, skipped) of a Lingui configuration at path in the repository:
-    the dicts repositories.candidates() takes."""
+    the dicts repositories.candidates() takes. keyed are the English PO
+    catalogs keyed by id (explicit message ids), read from the repository:
+    their English is in their msgstrs, so they're templates (po-mono)."""
     found, skipped = [], collections.Counter()
     read_back = settings(path, text)
     if read_back is None:
@@ -97,15 +100,30 @@ def files(path, text):
         mask = catalog.replace("{locale}", "{lang}", 1).replace("{locale}", "*") + extension
         english = catalog.replace("{locale}", source) + extension
         name = posixpath.basename(catalog.split("{locale}")[0].rstrip("/")) or "messages"
-        found.append({"name": name, "mask": mask, "format": file_format,
-                      "template": english if file_format == "json" else None,
-                      "source": english if file_format == "po" else None, "languages": {}})
+        mono = file_format == "json" or english in keyed
+        found.append({"name": name, "mask": mask,
+                      "format": "po-mono" if english in keyed else file_format,
+                      "template": english if mono else None,
+                      "source": None if mono else english, "languages": {}})
     return found, skipped
 
 
 def repository(url):
-    """repositories.read() of url's Lingui configurations."""
-    return read_configs(url, CONFIG)
+    """(paths, {config: text}, English PO catalogs keyed by id) of url's
+    Lingui configurations, or None if the repository isn't there; see
+    repositories.read() for a config that can't be read."""
+    with clone(url, None) as cloned:
+        if cloned is None:
+            return None
+        directory, paths = cloned
+        texts = {path: repositories.read_file(directory, path) for path in configs(paths, CONFIG)}
+        keyed = set()
+        for path, text in texts.items():
+            for entry in files(path, text)[0] if text is not None else ():
+                if entry["format"] == "po" and \
+                        repositories.po_format(directory, entry["source"], paths):
+                    keyed.add(entry["source"])
+        return paths, texts, keyed
 
 
 def blocks(repositories, prefix, covered=(), names=None, pause=1, read=None, licences=None,
@@ -117,14 +135,15 @@ def blocks(repositories, prefix, covered=(), names=None, pause=1, read=None, lic
         read_back = (read or repository)(url)
         if read_back is None:
             return None
-        paths, texts = read_back
+        paths, texts, *keyed = read_back
+        keyed = keyed[0] if keyed else set()
         skipped = collections.Counter()
         entries = []
         for config, text in sorted(texts.items()):
             if text is None:
                 skipped["catalogs", "unreadable configuration"] += 1
                 continue
-            found, reasons = files(config, text)
+            found, reasons = files(config, text, keyed)
             skipped.update({("catalogs", reason): count for reason, count in reasons.items()})
             entries += found
         if not entries and not skipped:

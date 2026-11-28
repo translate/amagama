@@ -215,6 +215,8 @@ url = "https://github.com/pascalorg/editor"
 files = ["packages/editor/src/i18n/locales/{lang}/messages.po"]
 exclude = ["packages/editor/src/i18n/locales/en/messages.po"]
 sparse = ["packages/editor/src/i18n/locales/*/messages.po"]
+format = "po-mono"
+template = "packages/editor/src/i18n/locales/en/messages.po"
 licence = "MIT"
 
 [[block]]
@@ -317,6 +319,8 @@ url = "https://github.com/colophon-group/jobseek"
 files = ["apps/web/locales/{lang}.po"]
 exclude = ["apps/web/locales/en.po"]
 sparse = ["apps/web/locales/*.po"]
+format = "po-mono"
+template = "apps/web/locales/en.po"
 licence = "MIT"
 
 [[block]]
@@ -499,6 +503,8 @@ url = "https://github.com/gnehs/subtitle-translator-electron"
 files = ["src/locales/{lang}.po"]
 exclude = ["src/locales/en-US.po"]
 sparse = ["src/locales/*.po"]
+format = "po-mono"
+template = "src/locales/en-US.po"
 licence = "MIT"
 
 [[block]]

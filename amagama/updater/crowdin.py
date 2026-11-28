@@ -21,7 +21,6 @@ import re
 import yaml
 
 from amagama.updater import repositories
-from amagama.updater.fetchers import FetchError
 from amagama.updater.filemask import compile_mask
 from amagama.updater.formats import is_monolingual
 from amagama.updater.generate import clone
@@ -83,13 +82,17 @@ def _path(path):
 
 def _format(source, given, xml=None):
     """amaGama's format for a file, or None if amaGama doesn't read it; xml
-    gives the format of typeless .xml sources read from the repository."""
+    gives formats read from the repository: of typeless .xml and .ts
+    sources, and po-mono for .po sources keyed by id."""
+    read = (xml or {}).get(source)
     if given:
-        return TYPES.get(str(given).lower())
-    if source.lower().endswith(".ts"):
+        found = TYPES.get(str(given).lower())
+    elif source.lower().endswith(".ts"):
         # Read from the repository: Qt's, or TypeScript.
         return (xml or {}).get(source, "ts")
-    return repositories.format_of(source) or (xml or {}).get(source)
+    else:
+        found = repositories.format_of(source) or read
+    return "po-mono" if found == "po" and read == "po-mono" else found
 
 
 def mask(translation, source):
@@ -185,13 +188,22 @@ def typeless_xml(text, directory=""):
                 source.lower().endswith(".xml") and not repositories.format_of(source))]
 
 
+def gettext_sources(text, directory=""):
+    """The .po sources of a crowdin.yml's gettext files, which may be keyed by
+    id: their English is then in the msgstrs (po_format())."""
+    return [source for entry, source in _entries(text, directory)[1]
+            if source and source.lower().endswith(".po") and
+            str(entry.get("type") or "gettext").lower() == "gettext"]
+
+
 def files(text, directory="", xml=None):
     """(files, skipped) of a crowdin.yml in directory of the repository.
 
     Each file is a dict of the translations it reads (mask), its format,
     template (a monolingual source), source and language overrides;
-    skipped counts files left out, by reason. xml maps typeless .xml sources
-    to their format, read from the repository.
+    skipped counts files left out, by reason. xml maps sources to the format
+    read from the repository: typeless .xml and .ts ones, and .po ones keyed
+    by id.
     """
     found, skipped = [], collections.Counter()
     base, entries = _entries(text, directory)
@@ -235,16 +247,8 @@ def xml_format(directory, source, paths):
     """The format of a typeless .xml or .ts source, from the first file it
     matches in a clone: "android" for string resources, "ts" for Qt
     Linguist's, else None."""
-    try:
-        mask = compile_mask(source, allow_lang=False)
-    except ValueError:
-        return None
-    path = next((path for path in paths if mask.match(path)), None)
-    if path is None:
-        return None
-    try:
-        text = repositories.read_file(directory, path)
-    except (FetchError, UnicodeError):
+    text = repositories.first_text(directory, source, paths)
+    if text is None:
         return None
     if source.lower().endswith(".ts"):
         return "ts" if QT_TS_ROOT.match(text) else None
@@ -252,9 +256,10 @@ def xml_format(directory, source, paths):
 
 
 def repository(url):
-    """(paths, {config: text}, {typeless .xml or .ts source: format}) of url's
+    """(paths, {config: text}, {source: format read from it}) of url's
     Crowdin configurations, or None if the repository isn't there; see
-    repositories.read() for a config that can't be read."""
+    repositories.read() for a config that can't be read. The formats are of
+    typeless .xml and .ts sources, and po-mono for .po ones keyed by id."""
     with clone(url, None) as cloned:
         if cloned is None:
             return None
@@ -265,6 +270,9 @@ def repository(url):
             for source in typeless_xml(texts[path], posixpath.dirname(path)):
                 if source not in xml:
                     xml[source] = xml_format(directory, source, paths)
+            for source in gettext_sources(texts[path], posixpath.dirname(path)):
+                if source not in xml and repositories.po_format(directory, source, paths):
+                    xml[source] = "po-mono"
         return paths, texts, xml
 
 
