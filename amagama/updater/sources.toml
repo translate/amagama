@@ -10,7 +10,9 @@ include = ["weblate-fedora.toml", "weblate-hosted.toml", "weblate-inkscape.toml"
            "weblate-opensuse.toml", "weblate-lxqt.toml", "weblate-xwiki.toml",
            "linguas-github.toml", "transifex-github.toml", "crowdin-github.toml",
            "l10n-toml-github.toml", "lingui-github.toml", "inlang-github.toml",
-           "wlc-github.toml", "mediawiki-bundled.toml", "openstack.toml"]
+           "wlc-github.toml", "linguas-gitlab.toml", "transifex-gitlab.toml",
+           "crowdin-gitlab.toml", "l10n-toml-gitlab.toml", "lingui-gitlab.toml",
+           "inlang-gitlab.toml", "wlc-gitlab.toml", "mediawiki-bundled.toml", "openstack.toml"]
 
 # The blocks here are chosen by hand.
 [defaults]
