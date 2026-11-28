@@ -32,6 +32,10 @@ from amagama.unit_checks import Report, failed_checks, length_step, script, targ
     ("%d files", "%i Dateien", "de", []),
     ("%d files", "%s Dateien", "de", ["printf"]),
     ("Line %1 of %2", "Zeile %L1 von %L2", "de", []),
+    # glibc's I flag prints the locale's digits (#3890).
+    ("Moves Left: %2u", "حرکت‌های مانده: %I2u", "fa", []),
+    ("%.3f atm", "%I.3f ض.ج.", "ar", []),
+    ("%d items", "%Id مورد", "fa", []),
     # KDE's %2 followed by a letter isn't a conversion (#3861).
     ("will be configured as the %2th sound card (%1)", "va fi configurată ca a %2a placă (%1)",
      "ro", []),
@@ -49,6 +53,19 @@ from amagama.unit_checks import Report, failed_checks, length_step, script, targ
     ("a single 100% line", "einer einzigen 100-%-Zeile", "de", []),
     ("%d%%", "%Id%%", "ar", []),
     ("Tickets to watch: {$a}", "Kaartjies wat gevolg word", "af", ["braces"]),
+    # A plural translated as its argument, as languages without plurals do (#3890).
+    ("{count, plural, one {# person joined} other {# people joined}}", "{count} คนเข้าร่วม",
+     "th", []),
+    ("{n, plural, one {# of {1}} other {# of {1}}}", "{n} dari {1}", "id", []),
+    # Its other placeholders are still compared.
+    ("{n, plural, one {# of {1}} other {# of {1}}}", "{n} dari", "id", ["braces"]),
+    ("{g, select, male {He} other {They}} left", "{g} pergi", "id", ["braces"]),
+    ("{0, plural, one {# file} other {# files}}", "{0} berkas", "id", []),
+    ("{0, plural, one {# file} other {# files}}", "{0} 个文件", "zh_cn", []),
+    # A language with plural forms keeps them.
+    ("{count, plural, one {# person joined} other {# people joined}}", "{count} anslöt",
+     "sv", ["braces"]),
+    ("{0, plural, one {# file} other {# files}}", "berkas", "id", ["braces"]),
     # Turkish writes a percentage %{0}: not a Ruby placeholder (#3861).
     ("{0}% Similarity", "Benzerlik %{0}", "tr", []),
     ("Hello %{name}", "Merhaba %{isim}", "tr", ["braces"]),

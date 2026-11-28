@@ -42,7 +42,7 @@ _checker = checks.StandardChecker()
 # printf conversions (%s, %1$s, %(name)s, with flags, width and length), or
 # KDE's and Qt's numbered %1 to %99.
 _PRINTF = re.compile(
-    r"%(?:(\d+)\$|\((\w+)\))?[-+#0']*(\d+|\*)?(?:\.(?:\d+|\*))?"
+    r"%(?:(\d+)\$|\((\w+)\))?[-+#0'I]*(\d+|\*)?(?:\.(?:\d+|\*))?"
     r"(?:hh|h|ll|l|L|q|j|z|t|I)*([diouxXeEfFgGaAcspn])"
     r"|%L?(\d{1,2})(?![\d$])")
 # KDE's and Qt's numbered placeholders alone: %2a is %2 and a letter.
@@ -262,13 +262,45 @@ def _braces(text):
     return sorted(found + _plain_braces(text[pos:]))
 
 
-def _braces_differ(source, target):
+# A plural or selectordinal as its argument: a language without plurals
+# writes "{n} items" for "{n, plural, one {# item} other {# items}}".
+_COUNTED = re.compile(r"\{(\w+),(?:plural|selectordinal)\}")
+
+
+@functools.lru_cache(maxsize=1024)
+def _one_form(lang):
+    """Whether lang has one plural form (Thai, Indonesian, Japanese...), by
+    Translate Toolkit's table, trying simpler codes; False if not known."""
+    from translate.lang import data
+    code = lang or ""
+    while code:
+        base, _, region = code.partition("_")
+        # amaGama's codes are in lower case (zh_cn); the table's aren't.
+        found = data.languages.get(code) or (
+            region and data.languages.get("%s_%s" % (base, region.upper())))
+        if found:
+            return int(found[1]) == 1
+        simpler = data.simplercode(code)
+        code = simpler if simpler != code else ""
+    return False
+
+
+def _braces_differ(source, target, lang=""):
     """Whether target's placeholders differ from source's. A numbered or
     named one may be used more or fewer times; each {} takes the next
     argument, so their number must match."""
     if _TEX.search(source):
         return False
     wanted, found = _braces(source), _braces(target)
+    # A plural that a language with one form writes as its argument: a
+    # numbered one is then that placeholder ({0}); a named one isn't
+    # counted ({count} is often text). Elsewhere a plural's forms are wanted.
+    for key in set(wanted) - set(found) if _one_form(lang) else ():
+        counted = _COUNTED.fullmatch(key)
+        if counted and "{%s}" % counted[1] in target:
+            plain = "{%s}" % counted[1]
+            wanted = [plain if k == key and counted[1].isdigit() else k for k in wanted
+                      if k != key or counted[1].isdigit()]
     return set(wanted) != set(found) or wanted.count("{}") != found.count("{}")
 
 
@@ -284,7 +316,7 @@ def _unchanged(source, target, lang):
 
 CHECKS = {
     "printf": lambda source, target, lang: _printf_differs(source, target),
-    "braces": lambda source, target, lang: _braces_differ(source, target),
+    "braces": _braces_differ,
     "tags": lambda source, target, lang: tags(source) != tags(target),
     "escapes": lambda source, target, lang: _escapes(source, target),
     "unchanged": _unchanged,
